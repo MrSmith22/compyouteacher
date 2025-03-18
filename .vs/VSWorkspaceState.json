@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\app",
+    "\\app\\api",
+    "\\app\\api\\assignments",
+    "\\app\\api\\assignments\\create-doc",
+    "\\app\\dashboard",
+    "\\app\\dashboard\\components",
+    "\\public",
+    "\\utils"
+  ],
+  "SelectedNode": "\\app\\api\\assignments\\create-doc\\route.js",
+  "PreviewInSolutionExplorer": false
+}
