@@ -2,7 +2,6 @@ import { google } from "googleapis";
 
 export async function POST(req) {
   try {
-    // Safely parse the request body
     const { studentEmail } = await req.json();
 
     if (!studentEmail) {
@@ -12,25 +11,21 @@ export async function POST(req) {
       );
     }
 
-    // Authenticate using the Service Account
     const auth = new google.auth.GoogleAuth({
-      keyFile: "service-account.json", // Make sure this file is in your project root!
+      keyFile: "service-account.json",
       scopes: ["https://www.googleapis.com/auth/drive"],
     });
 
     const drive = google.drive({ version: "v3", auth });
 
-    // Copy the template document for the student
-   const response = await drive.files.copy({
-  fileId: "1g4LujJZYEymrC5qIWDMSZandCd1F_b12YCfCZg37LyU",
-  requestBody: {
-    name: `MLK Essay - ${studentEmail}`,
-    parents: ["root"],  // Ensures it goes to "My Drive"
-  },
-});
+    const response = await drive.files.copy({
+      fileId: "1g4LujJZYEymrC5qIWDMSZandCd1F_b12YCfCZg37LyU",
+      requestBody: {
+        name: `MLK Essay - ${studentEmail}`,
+        parents: ["1mYAIqIMgUNgltgDK07uN3159lefetEJA"], // your new folder ID
+      },
+    });
 
-
-    // Grant student access to the file
     await drive.permissions.create({
       fileId: response.data.id,
       requestBody: {
