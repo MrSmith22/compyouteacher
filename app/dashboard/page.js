@@ -21,11 +21,12 @@ export default function Dashboard() {
               <ul className="list-disc pl-5">
                 <li>
                   <a
-                    href="/assignments/mlk-essay"
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    Start Assignment: MLK Rhetorical Strategies
-                  </a>
+  href="/modules"
+  className="text-blue-500 hover:text-blue-700"
+>
+  Start Assignment: MLK Rhetorical Strategies
+</a>
+
                 </li>
               </ul>
             </div>
