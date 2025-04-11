@@ -1,53 +1,51 @@
+// /app/api/assignments/create-doc/route.js
+
 import { google } from "googleapis";
+import { NextResponse } from "next/server";
+import { readFileSync } from "fs";
+import path from "path";
 
-export async function POST(req) {
+export async function POST(request) {
+  const body = await request.json();
+  const { templateId, email } = body;
+
+  if (!templateId || !email) {
+    return NextResponse.json({ error: "Missing templateId or email" }, { status: 400 });
+  }
+
   try {
-    const { studentEmail } = await req.json();
-
-    if (!studentEmail) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing studentEmail" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const serviceAccountKey = JSON.parse(
+      readFileSync(path.join(process.cwd(), "service-account.json"))
+    );
 
     const auth = new google.auth.GoogleAuth({
-      keyFile: "service-account.json",
+      credentials: serviceAccountKey,
       scopes: ["https://www.googleapis.com/auth/drive"],
     });
 
     const drive = google.drive({ version: "v3", auth });
 
-    const response = await drive.files.copy({
-      fileId: "1g4LujJZYEymrC5qIWDMSZandCd1F_b12YCfCZg37LyU",
+    const copy = await drive.files.copy({
+      fileId: templateId,
       requestBody: {
-        name: `MLK Essay - ${studentEmail}`,
-        parents: ["1mYAIqIMgUNgltgDK07uN3159lefetEJA"], // your new folder ID
+        name: `MLK T-Chart - ${email}`,
       },
     });
 
     await drive.permissions.create({
-      fileId: response.data.id,
+      fileId: copy.data.id,
       requestBody: {
-        role: "writer",
         type: "user",
-        emailAddress: studentEmail,
+        role: "writer",
+        emailAddress: email,
       },
     });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        documentUrl: `https://docs.google.com/document/d/${response.data.id}`,
-      }),
-      { headers: { "Content-Type": "application/json" } }
-    );
-
+    return NextResponse.json({
+      docUrl: `https://docs.google.com/document/d/${copy.data.id}/edit`,
+    });
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    console.error("Google Docs API error:", error);
+    return NextResponse.json({ error: "Failed to create document" }, { status: 500 });
   }
 }
