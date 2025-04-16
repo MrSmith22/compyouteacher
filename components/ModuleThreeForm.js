@@ -1,7 +1,7 @@
 ﻿// JavaScript source code
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
 
@@ -17,7 +17,7 @@ const questionGroups = [
   },
   {
     title: "Speech: Appeals Adapted to Audience",
-    questions: ["", "", ""], // will be filled dynamically
+    questions: ["", "", ""],
   },
   {
     title: "Speech: Appeals Adapted to Purpose",
@@ -44,35 +44,55 @@ export default function ModuleThreeForm() {
     .slice(0, step)
     .reduce((sum, group) => sum + group.questions.length, 0);
 
+  useEffect(() => {
+    const fetchResponses = async () => {
+      const email = session?.user?.email;
+      if (!email) return;
+
+      const { data, error } = await supabase
+        .from("module3_responses")
+        .select("responses")
+        .eq("user_email", email)
+        .single();
+
+      if (data) {
+        setResponses(data.responses);
+        generateCustomLabelsFromPrefill(data.responses);
+      }
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching responses:", error.message);
+      }
+    };
+
+    fetchResponses();
+  }, [session]);
+
   const handleChange = (i, value) => {
     const updated = [...responses];
     updated[groupStartIndex + i] = value;
     setResponses(updated);
   };
 
-  const generateCustomLabels = () => {
-    const speechAudience = responses[0] || "the speech audience";
-    const speechPurpose = responses[1] || "the speech's purpose";
-    const letterAudience = responses[2] || "the letter audience";
-    const letterPurpose = responses[3] || "the letter's purpose";
+  const generateCustomLabelsFromPrefill = (prefill = responses) => {
+    const speechAudience = prefill[0] || "the speech audience";
+    const speechPurpose = prefill[1] || "the speech's purpose";
+    const letterAudience = prefill[2] || "the letter audience";
+    const letterPurpose = prefill[3] || "the letter's purpose";
 
     const dynamicLabels = [
-      // Step 1: Speech - Audience
       `How does King use Ethos when addressing ${speechAudience}?`,
       `How does King use Pathos when addressing ${speechAudience}?`,
       `How does King use Logos when addressing ${speechAudience}?`,
 
-      // Step 2: Speech - Purpose
       `How does King use Ethos to support his purpose of ${speechPurpose}?`,
       `How does King use Pathos to support his purpose of ${speechPurpose}?`,
       `How does King use Logos to support his purpose of ${speechPurpose}?`,
 
-      // Step 3: Letter - Audience
       `How does King use Ethos when addressing ${letterAudience}?`,
       `How does King use Pathos when addressing ${letterAudience}?`,
       `How does King use Logos when addressing ${letterAudience}?`,
 
-      // Step 4: Letter - Purpose
       `How does King use Ethos to support his purpose of ${letterPurpose}?`,
       `How does King use Pathos to support his purpose of ${letterPurpose}?`,
       `How does King use Logos to support his purpose of ${letterPurpose}?`,
@@ -89,7 +109,7 @@ export default function ModuleThreeForm() {
       return;
     }
 
-    const { data, error } = await supabase.from("module3_responses").insert({
+    const { data, error } = await supabase.from("module3_responses").upsert({
       user_email: email,
       responses,
       created_at: new Date().toISOString(),
@@ -106,6 +126,16 @@ export default function ModuleThreeForm() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h2 className="text-2xl font-bold">{currentGroup.title}</h2>
+
+      {step === 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">🎬 Thesis Statement Walkthrough</h3>
+          <video width="100%" height="360" controls>
+            <source src="/videos/thesis-intro.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )}
 
       {currentGroup.questions.map((question, i) => (
         <div key={i} className="mb-4">
@@ -148,7 +178,7 @@ export default function ModuleThreeForm() {
         {step < questionGroups.length - 1 ? (
           <button
             onClick={() => {
-              if (step === 0) generateCustomLabels();
+              if (step === 0) generateCustomLabelsFromPrefill();
               setStep(step + 1);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded"
@@ -169,4 +199,4 @@ export default function ModuleThreeForm() {
       </div>
     </div>
   );
-}
+} 

@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Sidebar from "./components/Sidebar";
+import StudentResponses from "./components/StudentResponses";
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -37,6 +38,12 @@ export default function Dashboard() {
             >
               Sign out
             </button>
+            {/* Module 3 Submissions Viewer */}
+<div className="mt-8">
+  <h3 className="text-xl font-semibold mb-4">🧾 Student Module 3 Responses</h3>
+  <StudentResponses />
+</div>
+
           </>
         ) : (
           <>
