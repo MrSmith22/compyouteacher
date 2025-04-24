@@ -1,5 +1,5 @@
-import ModuleTwo from "@/components/ModuleTwo";
+import ModuleTwoForm from "@/components/ModuleTwoForm";
 
 export default function ModuleTwoPage() {
-  return <ModuleTwo />;
+  return <ModuleTwoForm />;
 }

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const modules = [
   {
@@ -114,6 +115,7 @@ export default function ModuleSystem() {
 
   const [userAnswers, setUserAnswers] = useState([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const router = useRouter();
 
   const handleAnswerChange = (index, value) => {
     const updatedAnswers = [...userAnswers];
@@ -123,6 +125,11 @@ export default function ModuleSystem() {
 
   const handleSubmitQuiz = () => {
     setQuizSubmitted(true);
+    // show answers for 1 second, then redirect with score
+    setTimeout(() => {
+      const pct = getScore();
+      router.push(`/modules/1/success?score=${pct}`);
+    }, 1000);
   };
 
   const isQuizCorrect = (index) => {
@@ -193,11 +200,6 @@ export default function ModuleSystem() {
           >
             Submit Quiz
           </button>
-        )}
-        {quizSubmitted && (
-          <p className="mt-4 font-bold">
-            Score: {getScore()}%
-          </p>
         )}
       </div>
     </div>
