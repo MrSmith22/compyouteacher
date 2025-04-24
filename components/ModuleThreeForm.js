@@ -1,11 +1,14 @@
 ﻿// JavaScript source code
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
 
+/*──────────────────────────────────────────────────────────*/
+/* CONFIG */
+/*──────────────────────────────────────────────────────────*/
 const questionGroups = [
   {
     title: "Audience & Purpose",
@@ -17,7 +20,7 @@ const questionGroups = [
     ],
   },
   { title: "Speech: Appeals Adapted to Audience", questions: ["", "", ""] },
-  { title: "Speech: Appeals Adapted to Purpose",  questions: ["", "", ""] },
+  { title: "Speech: Appeals Adapted to Purpose", questions: ["", "", ""] },
   { title: "Letter: Appeals Adapted to Audience", questions: ["", "", ""] },
   { title: "Letter: Appeals Adapted to Purpose", questions: ["", "", ""] },
 ];
@@ -26,32 +29,35 @@ export default function ModuleThreeForm() {
   const router = useRouter();
   const { data: session } = useSession();
 
-  // helper – treat ≤ 6 words as a “short phrase”
+  /* helper – a “phrase” = ≤ 6 words */
   const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
 
+  /* state */
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState(Array(16).fill(""));
   const [customLabels, setCustomLabels] = useState(null);
+  const [lastSaved, setLastSaved] = useState(null);
+  const savingRef = useRef(false);
 
   const currentGroup = questionGroups[step];
   const groupStartIndex = questionGroups
     .slice(0, step)
     .reduce((sum, g) => sum + g.questions.length, 0);
 
-  /* ───────── Prefill if student already has data ───────── */
+  /*────────────────────────── Prefill */
   useEffect(() => {
     const fetchExisting = async () => {
       const email = session?.user?.email;
       if (!email) return;
-
       const { data } = await supabase
         .from("module3_responses")
-        .select("responses")
+        .select("responses, updated_at")
         .eq("user_email", email)
         .single();
       if (data) {
         setResponses(data.responses);
         generateCustomLabels(data.responses);
+        if (data.updated_at) setLastSaved(new Date(data.updated_at));
       }
     };
     fetchExisting();
@@ -63,7 +69,7 @@ export default function ModuleThreeForm() {
     setResponses(updated);
   };
 
-  /* ───────── Build dynamic labels for Q5-16 ───────── */
+  /*────────────────────────── Dynamic labels */
   const generateCustomLabels = (prefill = responses) => {
     const [sa, sp, la, lp] = [
       prefill[0] || "the speech audience",
@@ -71,7 +77,6 @@ export default function ModuleThreeForm() {
       prefill[2] || "the letter audience",
       prefill[3] || "the letter's purpose",
     ];
-
     setCustomLabels([
       `How does King use Ethos when addressing ${sa}?`,
       `How does King use Pathos when addressing ${sa}?`,
@@ -88,29 +93,40 @@ export default function ModuleThreeForm() {
     ]);
   };
 
-  /* ───────── Submit / upsert then redirect ───────── */
+  /*────────────────────────── Autosave */
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    const id = setInterval(async () => {
+      if (savingRef.current) return;
+      savingRef.current = true;
+      await supabase.from("module3_responses").upsert({
+        user_email: session.user.email,
+        responses,
+        created_at: new Date().toISOString(),
+      });
+      setLastSaved(new Date());
+      savingRef.current = false;
+    }, 20000);
+    return () => clearInterval(id);
+  }, [responses, session]);
+
+  /*────────────────────────── Submit */
   const handleSubmit = async () => {
     const email = session?.user?.email;
     if (!email) {
       alert("You must be signed in to save your responses.");
       return;
     }
-
     const { error } = await supabase.from("module3_responses").upsert({
       user_email: email,
       responses,
       created_at: new Date().toISOString(),
     });
-
-    if (error) {
-      console.error("Supabase error:", error.message);
-      alert("Something went wrong: " + error.message);
-    } else {
-      router.push("/modules/3/success");
-    }
+    if (error) alert(error.message);
+    else router.push("/modules/3/success");
   };
 
-  /* ───────── UI ───────── */
+  /*────────────────────────── UI */
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h2 className="text-2xl font-bold">{currentGroup.title}</h2>
@@ -154,34 +170,49 @@ export default function ModuleThreeForm() {
         </div>
       )}
 
-      <div className="flex justify-between">
-        {step > 0 && (
-          <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-300 rounded">
-            Back
-          </button>
+      {/* footer */}
+      <div className="flex justify-between items-center mt-4">
+        {lastSaved && (
+          <span className="text-xs text-gray-500">Saved {lastSaved.toLocaleTimeString()}</span>
         )}
-        {step < questionGroups.length - 1 ? (
-          <button
-            onClick={() => {
-              if (step === 0) generateCustomLabels();
-              setStep(step + 1);
-            }}
-            disabled={step === 0
-              ? currentGroup.questions.some((_, i) => {
-                  const ans = responses[groupStartIndex + i];
-                  return !ans || !isPhrase(ans);
-                })
-              : currentGroup.questions.some((_, i) => !responses[groupStartIndex + i])}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        ) : (
-          <button onClick={handleSubmit} className="px-4 py-2 bg-green-600 text-white rounded">
-            Submit
-          </button>
-        )}
+
+        <div className="ml-auto flex gap-2">
+          {step > 0 && (
+            <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-300 rounded">
+              Back
+            </button>
+          )}
+
+          {step < questionGroups.length - 1 ? (
+            <button
+              onClick={() => {
+                if (step === 0) generateCustomLabels();
+                setStep(step + 1);
+              }}
+              disabled={
+                step === 0
+                  ? currentGroup.questions.some((_, i) => {
+                      const ans = responses[groupStartIndex + i];
+                      return !ans || !isPhrase(ans);
+                    })
+                  : currentGroup.questions.some(
+                      (_, i) => !responses[groupStartIndex + i]
+                    )
+              }
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
+                            Next
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              className="px-4 py-2 bg-green-600 text-white rounded"
+            >
+              Submit
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
