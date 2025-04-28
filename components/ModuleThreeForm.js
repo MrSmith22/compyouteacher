@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
 
+
 /*──────────────────────────────────────────────────────────*/
 /* CONFIG */
 /*──────────────────────────────────────────────────────────*/
@@ -29,6 +30,10 @@ export default function ModuleThreeForm() {
   const router = useRouter();
   const { data: session } = useSession();
 
+  const [structureChoice, setStructureChoice] = useState("");
+  const [thesis, setThesis] = useState("");
+
+
   /* helper – a “phrase” = ≤ 6 words */
   const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
 
@@ -51,14 +56,16 @@ export default function ModuleThreeForm() {
       if (!email) return;
       const { data } = await supabase
         .from("module3_responses")
-        .select("responses, updated_at")
+        .select("responses, thesis, updated_at")
         .eq("user_email", email)
         .single();
-      if (data) {
-        setResponses(data.responses);
-        generateCustomLabels(data.responses);
-        if (data.updated_at) setLastSaved(new Date(data.updated_at));
-      }
+
+     if (data) {
+  setResponses(data.responses);
+  generateCustomLabels(data.responses);
+  if (data.thesis) setThesis(data.thesis);
+  if (data.updated_at) setLastSaved(new Date(data.updated_at));
+}
     };
     fetchExisting();
   }, [session]);
@@ -102,29 +109,38 @@ export default function ModuleThreeForm() {
       await supabase.from("module3_responses").upsert({
         user_email: session.user.email,
         responses,
+        thesis,
         created_at: new Date().toISOString(),
       });
       setLastSaved(new Date());
       savingRef.current = false;
     }, 20000);
     return () => clearInterval(id);
-  }, [responses, session]);
+  }, [responses, thesis, session]);
 
   /*────────────────────────── Submit */
   const handleSubmit = async () => {
-    const email = session?.user?.email;
-    if (!email) {
-      alert("You must be signed in to save your responses.");
-      return;
-    }
-    const { error } = await supabase.from("module3_responses").upsert({
-      user_email: email,
-      responses,
-      created_at: new Date().toISOString(),
-    });
-    if (error) alert(error.message);
-    else router.push("/modules/3/success");
-  };
+  const email = session?.user?.email;
+  if (!email) {
+    alert("You must be signed in to save your responses.");
+    return;
+  }
+
+  const { error } = await supabase.from("module3_responses").upsert({
+  user_email: email,
+  responses,
+  thesis,
+  created_at: new Date().toISOString(),
+});
+
+
+  if (error) {
+    alert("Something went wrong: " + error.message);
+  } else {
+    router.push("/modules/3/success");
+  }
+};
+
 
   /*────────────────────────── UI */
   return (
@@ -158,17 +174,78 @@ export default function ModuleThreeForm() {
       ))}
 
       {step === questionGroups.length - 1 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2">Review Your Responses</h3>
-          <ul className="space-y-2 text-sm">
-            {responses.map((r, i) => (
-              <li key={i} className="bg-gray-100 p-2 rounded" style={{ wordBreak: "break-word" }}>
-                <strong>Q{i + 1}:</strong> {r || <em className="text-red-500">No response</em>}
-              </li>
-            ))}
-          </ul>
+  <div className="mt-6 space-y-6">
+    <h3 className="text-lg font-semibold mb-4">📌 Write Your Thesis Statement</h3>
+
+    {/* Structure choice */}
+    <div className="space-y-2">
+      <label className="block font-semibold mb-1">Choose your structure:</label>
+      <div className="space-y-1">
+        <label className="block">
+          <input
+            type="radio"
+            name="structure"
+            value="similarities-then-differences"
+            checked={structureChoice === "similarities-then-differences"}
+            onChange={(e) => setStructureChoice(e.target.value)}
+          />
+          <span className="ml-2">Primarily Similarities, then Differences</span>
+        </label>
+        <label className="block">
+          <input
+            type="radio"
+            name="structure"
+            value="differences-then-similarities"
+            checked={structureChoice === "differences-then-similarities"}
+            onChange={(e) => setStructureChoice(e.target.value)}
+          />
+          <span className="ml-2">Primarily Differences, then Similarities</span>
+        </label>
+        <label className="block">
+          <input
+            type="radio"
+            name="structure"
+            value="appeals-organization"
+            checked={structureChoice === "appeals-organization"}
+            onChange={(e) => setStructureChoice(e.target.value)}
+          />
+          <span className="ml-2">Organized by Ethos/Pathos/Logos</span>
+        </label>
+      </div>
+    </div>
+
+    {/* Thesis Template */}
+    {structureChoice && (
+      <div className="mt-4">
+        <p className="font-semibold mb-1">Suggested Thesis Template:</p>
+        <div className="p-3 bg-gray-100 rounded text-sm">
+          {structureChoice === "similarities-then-differences" && (
+            <p>Although both works {`____`}, they differ in {`____`} because {`____`}.</p>
+          )}
+          {structureChoice === "differences-then-similarities" && (
+            <p>While {`____`} differs between the two works, both share {`____`} through {`____`}.</p>
+          )}
+          {structureChoice === "appeals-organization" && (
+            <p>Dr. King uses {`ethos`}, {`pathos`}, and {`logos`} differently to address {`____`} in each text.</p>
+          )}
         </div>
-      )}
+      </div>
+    )}
+
+    {/* Thesis Input */}
+    {structureChoice && (
+      <div className="mt-4">
+        <label className="block font-semibold mb-1">Your full thesis:</label>
+        <textarea
+          value={thesis}
+          onChange={(e) => setThesis(e.target.value)}
+          className="w-full border rounded p-2 min-h-[80px]"
+        />
+      </div>
+    )}
+  </div>
+)}
+
 
       {/* footer */}
       <div className="flex justify-between items-center mt-4">
