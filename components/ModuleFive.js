@@ -4,6 +4,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "../lib/supabaseClient";
+import { useRouter } from "next/navigation";
+
 
 // ⬇️ DnD Kit imports
 import {
@@ -19,7 +21,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableItem } from "./SortableItem";
-import { useRouter } from "next/navigation";
 
 
 /* ───────── helpers  (inserted after imports) ───────── */
@@ -229,13 +230,11 @@ const addPoint = (bucketIndex) => {
 // 🔄 rebuild preview whenever outline changes
 useEffect(() => {
   setPreviewText(buildOutlineText());
-}, [thesis, outline, conclusion]);
+}, [thesis, outline, conclusion, locked]);
 /* ── FINALIZE: lock UI & save flag ───────────────────────── */
 const finalizeOutline = async () => {
-  // 1️⃣  freeze editing for this session
-  setLocked(true);
+  setLocked(true);                      // freeze UI
 
-  // 2️⃣  persist as “finalized” in Supabase
   const email = session?.user?.email;
   if (!email) return;
 
@@ -249,11 +248,14 @@ const finalizeOutline = async () => {
         body: outline,
         conclusion,
       },
-      finalized: true,                     // 👈 new flag
+      finalized: true,                  // flag!
       updated_at: new Date().toISOString(),
     });
-router.push("/modules/5/success");
+
+  // after successful save → next screen
+  router.push("/modules/5/success");
 };
+
 /* ────────────────────────────────────────────────────────── */
 
 
