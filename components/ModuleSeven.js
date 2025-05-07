@@ -16,6 +16,14 @@ export default function ModuleSeven() {
 
   // 🎙️ Start recording
   const startRecording = async () => {
+    console.log("Recording started...");
+    if (audioURL) {
+      const confirmOverwrite = confirm(
+        "You already have a recording. Starting a new one will overwrite it. Continue?"
+      );
+      if (!confirmOverwrite) return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -29,37 +37,35 @@ export default function ModuleSeven() {
       };
 
       mediaRecorder.onstop = async () => {
-  const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-  const filename = `audio-${session.user.email}-${Date.now()}.webm`;
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        console.log("Blob size (bytes):", audioBlob.size);
 
-  // Upload to Supabase
-  const { error } = await supabase.storage
-    .from("student-audio")
-    .upload(filename, audioBlob, {
-      contentType: "audio/webm"
-    });
+        const filename = `audio-${session.user.email}-${Date.now()}.webm`;
 
-  if (error) {
-    console.error("Upload error:", error);
-    alert("Failed to save audio.");
-    return;
-  }
+        const { data, error } = await supabase.storage
+          .from("student-audio")
+          .upload(filename, audioBlob, {
+            contentType: "audio/webm"
+          });
 
-  const { data } = supabase.storage
-    .from("student-audio")
-    .getPublicUrl(filename);
+        if (error) {
+          console.error("Upload error:", error.message || error);
+          alert("Failed to save audio.");
+          return;
+        }
 
-  const publicURL = data?.publicUrl;
-  setAudioURL(publicURL);
+        const { data: urlData } = supabase.storage
+          .from("student-audio")
+          .getPublicUrl(filename);
 
-  // Save URL to the student's draft record
-  await supabase
-    .from("student_drafts")
-    .update({ audio_url: publicURL })
-    .eq("user_email", session.user.email)
-    .eq("module", 6);
-};
+        const publicURL = urlData?.publicUrl;
+        setAudioURL(publicURL);
 
+        await supabase
+          .from("student_drafts")
+          .update({ audio_url: publicURL })
+          .eq("user_email", session.user.email)
+          .eq("module", 6);
       };
 
       mediaRecorder.start();
@@ -86,13 +92,14 @@ export default function ModuleSeven() {
 
       const { data } = await supabase
         .from("student_drafts")
-        .select("full_text, revised")
+        .select("full_text, revised, audio_url")
         .eq("user_email", email)
         .eq("module", 6)
         .single();
 
       if (data?.full_text) setText(data.full_text);
       if (data?.revised) setLocked(true);
+      if (data?.audio_url) setAudioURL(data.audio_url);
     };
     fetchData();
   }, [session]);
@@ -101,14 +108,15 @@ export default function ModuleSeven() {
   const saveRevision = async () => {
     if (!session?.user?.email) return;
 
-    await supabase
-      .from("student_drafts")
-      .update({
-        full_text: text,
-        revised: true
-      })
-      .eq("user_email", session.user.email)
-      .eq("module", 6);
+   await supabase
+  .from("student_drafts")
+  .upsert({
+    user_email: session.user.email,
+    module: 6,
+    audio_url: publicURL,
+    updated_at: new Date().toISOString()
+  });
+
 
     setLocked(true);
   };
@@ -135,8 +143,9 @@ export default function ModuleSeven() {
         {!recording ? (
           <button
             onClick={startRecording}
-            disabled={locked}
-            className="bg-red-600 text-white px-4 py-2 rounded mr-2"
+            className={`${
+              locked ? "opacity-60" : ""
+            } bg-red-600 text-white px-4 py-2 rounded mr-2`}
           >
             🎙️ Start Recording
           </button>
