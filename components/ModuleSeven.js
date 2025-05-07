@@ -28,10 +28,38 @@ export default function ModuleSeven() {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioURL(url);
+      mediaRecorder.onstop = async () => {
+  const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+  const filename = `audio-${session.user.email}-${Date.now()}.webm`;
+
+  // Upload to Supabase
+  const { error } = await supabase.storage
+    .from("student-audio")
+    .upload(filename, audioBlob, {
+      contentType: "audio/webm"
+    });
+
+  if (error) {
+    console.error("Upload error:", error);
+    alert("Failed to save audio.");
+    return;
+  }
+
+  const { data } = supabase.storage
+    .from("student-audio")
+    .getPublicUrl(filename);
+
+  const publicURL = data?.publicUrl;
+  setAudioURL(publicURL);
+
+  // Save URL to the student's draft record
+  await supabase
+    .from("student_drafts")
+    .update({ audio_url: publicURL })
+    .eq("user_email", session.user.email)
+    .eq("module", 6);
+};
+
       };
 
       mediaRecorder.start();
