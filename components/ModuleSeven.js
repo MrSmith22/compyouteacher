@@ -1,11 +1,13 @@
 ﻿"use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function ModuleSeven() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [text, setText] = useState("");
   const [locked, setLocked] = useState(false);
 
@@ -14,8 +16,34 @@ export default function ModuleSeven() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
+  // 🧠 Load saved draft
+  useEffect(() => {
+    const fetchData = async () => {
+      const email = session?.user?.email;
+      if (!email) return;
+
+      const { data } = await supabase
+        .from("student_drafts")
+        .select("full_text, revised, final_ready, audio_url")
+        .eq("user_email", email)
+        .eq("module", 6)
+        .single();
+
+      if (data?.full_text) setText(data.full_text);
+      if (data?.audio_url) setAudioURL(data.audio_url);
+      if (data?.final_ready) setLocked(true); // Only lock if final submission is marked
+    };
+
+    fetchData();
+  }, [session]);
+
   // 🎙️ Start recording
   const startRecording = async () => {
+    if (audioURL) {
+      const confirmOverwrite = confirm("You already have a recording. Overwrite it?");
+      if (!confirmOverwrite) return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -28,10 +56,28 @@ export default function ModuleSeven() {
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioURL(url);
+        const filename = `audio-${session.user.email}-${Date.now()}.webm`;
+
+        const { error } = await supabase.storage
+          .from("student-audio")
+          .upload(filename, audioBlob, {
+            contentType: "audio/webm",
+          });
+
+        if (error) {
+          console.error("Upload error:", error.message || error);
+          alert("Failed to save audio.");
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("student-audio")
+          .getPublicUrl(filename);
+
+        const publicURL = urlData?.publicUrl;
+        setAudioURL(publicURL);
       };
 
       mediaRecorder.start();
@@ -50,46 +96,55 @@ export default function ModuleSeven() {
     }
   };
 
-  // 🧠 Load saved full-text draft
-  useEffect(() => {
-    const fetchData = async () => {
-      const email = session?.user?.email;
-      if (!email) return;
-
-      const { data } = await supabase
-        .from("student_drafts")
-        .select("full_text, revised")
-        .eq("user_email", email)
-        .eq("module", 6)
-        .single();
-
-      if (data?.full_text) setText(data.full_text);
-      if (data?.revised) setLocked(true);
-    };
-    fetchData();
-  }, [session]);
-
-  // 💾 Save revision
+  // 💾 Save revised draft + audio (but keep editable)
   const saveRevision = async () => {
     if (!session?.user?.email) return;
 
     await supabase
       .from("student_drafts")
-      .update({
+      .upsert({
+        user_email: session.user.email,
+        module: 6,
         full_text: text,
-        revised: true
-      })
-      .eq("user_email", session.user.email)
-      .eq("module", 6);
+        revised: true,
+        final_ready: false,
+        audio_url: audioURL || null,
+        updated_at: new Date().toISOString(),
+      });
 
-    setLocked(true);
+    alert("Revision saved. You can continue editing or go to the next module.");
   };
 
   if (!session) return <p className="p-6">Loading...</p>;
 
+ const finalizeDraft = async () => {
+  if (!session?.user?.email) return;
+
+  await supabase
+    .from("student_drafts")
+    .upsert({
+      user_email: session.user.email,
+      module: 6,
+      full_text: text,
+      final_text: text, // ✅ ensures Module 8 loads correctly
+      final_ready: true,
+      updated_at: new Date().toISOString()
+    });
+
+  setLocked(true);
+
+  // Optional: Redirect
+  router.push("/modules/8");
+};
+
+
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">✍️ Module 7: Revise Your Draft</h1>
+      <p className="text-gray-600">
+        Make any final edits to your essay, and record yourself reading it out loud.
+      </p>
 
       <textarea
         className="w-full min-h-[300px] border p-4 rounded"
@@ -108,7 +163,9 @@ export default function ModuleSeven() {
           <button
             onClick={startRecording}
             disabled={locked}
-            className="bg-red-600 text-white px-4 py-2 rounded mr-2"
+            className={`${
+              locked ? "opacity-60 cursor-not-allowed" : ""
+            } bg-red-600 text-white px-4 py-2 rounded mr-2`}
           >
             🎙️ Start Recording
           </button>
@@ -129,18 +186,29 @@ export default function ModuleSeven() {
         )}
       </section>
 
+      <button
+        onClick={saveRevision}
+        disabled={locked}
+        className={`${
+          locked ? "opacity-60 cursor-not-allowed" : ""
+        } bg-blue-700 text-white px-6 py-3 rounded shadow`}
+      >
+        ✅ Mark as Revised & Continue
+      </button>
+
       {!locked && (
-        <button
-          onClick={saveRevision}
-          className="bg-blue-700 text-white px-6 py-3 rounded shadow"
-        >
-          ✅ Mark as Revised & Continue
-        </button>
-      )}
+  <button
+    onClick={finalizeDraft}
+    className="bg-green-700 text-white px-6 py-3 rounded shadow"
+  >
+    🚀 I'm Done Revising — Move to Module 8
+  </button>
+)}
+
 
       {locked && (
         <div className="text-green-700 font-semibold">
-          ✅ Draft revision complete.
+          ✅ Draft revision complete. You cannot make further changes.
         </div>
       )}
     </div>
