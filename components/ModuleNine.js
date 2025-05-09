@@ -9,6 +9,13 @@ export default function ModuleNine() {
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
 
+  const [pdfFile, setPdfFile] = useState(null);
+
+const handleFileChange = (e) => {
+  setPdfFile(e.target.files[0]);
+};
+
+
   const questions = [
     {
       question: "What is the correct font for APA Style papers?",
@@ -159,6 +166,32 @@ export default function ModuleNine() {
     }
   };
 
+  const handleUploadPDF = async () => {
+  if (!pdfFile || !session?.user?.email) {
+    alert("Please select a PDF file first.");
+    return;
+  }
+
+  const fileExt = pdfFile.name.split(".").pop();
+  const filePath = `final-pdfs/${session.user.email}-${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from("final-submissions")
+    .upload(filePath, pdfFile, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: "application/pdf",
+    });
+
+  if (error) {
+    console.error("Upload failed:", error.message);
+    alert("Failed to upload PDF.");
+  } else {
+    alert("✅ PDF uploaded successfully!");
+  }
+};
+
+
   if (!session) return <p className="p-6">Loading...</p>;
 
   return (
@@ -229,6 +262,32 @@ export default function ModuleNine() {
           >
             ✍ Export Final Draft to Google Docs (APA Format)
           </button>
+
+          <section className="mt-8 border border-gray-200 p-4 rounded">
+  <h2 className="text-lg font-semibold mb-2">📤 Submit Final Essay as PDF</h2>
+  <p className="text-sm text-gray-600 mb-2">
+    After formatting your essay in Google Docs, download it as a PDF and upload it here.
+  </p>
+
+  <input
+    type="file"
+    accept=".pdf"
+    onChange={handleFileChange}
+    className="mb-2"
+  />
+
+  <button
+    onClick={handleUploadPDF}
+    disabled={!pdfFile}
+    className={`bg-purple-700 text-white px-6 py-2 rounded shadow ${
+      !pdfFile ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+  >
+    📎 Upload Final PDF
+  </button>
+</section>
+
+
         </>
       )}
     </div>
