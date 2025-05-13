@@ -166,30 +166,18 @@ const handleFileChange = (e) => {
     }
   };
 
-  const handleUploadPDF = async () => {
-  if (!pdfFile || !session?.user?.email) {
+const handleUploadPDF = () => {
+  if (!pdfFile) {
     alert("Please select a PDF file first.");
     return;
   }
 
-  const fileExt = pdfFile.name.split(".").pop();
-  const filePath = `final-pdfs/${session.user.email}-${Date.now()}.${fileExt}`;
+  // Simulate successful upload
+  alert("✅ Your PDF has been 'submitted'. This is a placeholder for the final app.");
 
-  const { error } = await supabase.storage
-    .from("final-submissions")
-    .upload(filePath, pdfFile, {
-      cacheControl: "3600",
-      upsert: true,
-      contentType: "application/pdf",
-    });
-
-  if (error) {
-    console.error("Upload failed:", error.message);
-    alert("Failed to upload PDF.");
-  } else {
-    alert("✅ PDF uploaded successfully!");
-  }
+  // TODO: Reinstate PDF upload to Supabase after resolving RLS/storage policy issues
 };
+
 
 
   if (!session) return <p className="p-6">Loading...</p>;
@@ -286,7 +274,6 @@ const handleFileChange = (e) => {
     📎 Upload Final PDF
   </button>
 </section>
-
 
         </>
       )}
