@@ -9,34 +9,47 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-theme-light text-theme-dark px-4">
-      <div className="max-w-md w-full text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Comp-YouTeacher</h1>
-        <p className="text-base text-gray-600 mb-6">
-          Your step-by-step writing assistant for crafting powerful essays.
+    <div className="min-h-screen flex flex-col justify-center items-center bg-theme-light text-theme-dark px-4">
+      <div className="w-full max-w-3xl text-center">
+        {/* Rainbow Gradient Bar */}
+        <div
+          className="bg-gradient-to-r p-4 rounded-xl shadow-md mb-8"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, #A60204, #D96704, #377303, #1B406D, #282A30)",
+          }}
+        >
+          <h1 className="text-4xl font-bold text-white tracking-wide">
+            The Writing Processor
+          </h1>
+        </div>
+
+        {/* Slogan */}
+        <p className="text-base text-gray-700 mb-6 font-medium">
+          Learn the writing process. Think deeper. Write better.
         </p>
 
         {session ? (
           <>
             <p className="mb-4 text-sm">Signed in as {session.user.email}</p>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 items-center">
               <button
-                className="bg-theme-green hover:bg-green-700 text-white px-4 py-2 rounded-2xl shadow"
+                className="bg-theme-green hover:bg-green-700 text-white px-6 py-3 rounded-xl shadow"
                 onClick={() => router.push("/dashboard")}
               >
                 Go to Dashboard
               </button>
               <button
-                className="bg-theme-red hover:bg-red-700 text-white px-4 py-2 rounded-2xl shadow"
+                className="bg-theme-red hover:bg-red-700 text-white px-6 py-3 rounded-xl shadow"
                 onClick={() => signOut({ callbackUrl: "/" })}
               >
                 Sign out
               </button>
               <Link
                 href="/modules/10"
-                className="text-sm text-theme-blue underline mt-2"
+                className="text-sm text-theme-blue underline mt-3"
               >
-                📊 Teacher Dashboard (Module 10)
+                Teacher Dashboard
               </Link>
             </div>
           </>
@@ -44,7 +57,7 @@ export default function Home() {
           <>
             <p className="mb-4 text-sm">Not signed in</p>
             <button
-              className="bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded-2xl shadow"
+              className="bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded-xl shadow"
               onClick={() => signIn("google")}
             >
               Sign in with Google
