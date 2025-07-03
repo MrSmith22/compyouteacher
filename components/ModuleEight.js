@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
 export default function ModuleEight() {
   const { data: session } = useSession();
+  const router = useRouter();
+
   const [text, setText] = useState("");
   const [locked, setLocked] = useState(false);
 
@@ -14,7 +17,7 @@ export default function ModuleEight() {
       const email = session?.user?.email;
       if (!email) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("student_drafts")
         .select("full_text, final_text, final_ready")
         .eq("user_email", email)
@@ -26,7 +29,7 @@ export default function ModuleEight() {
       if (data?.final_text) {
         setText(data.final_text);
       } else if (data?.full_text) {
-        setText(data.full_text); // ✅ fallback path
+        setText(data.full_text); // fallback path
       }
 
       if (data?.final_ready) setLocked(true);
@@ -36,10 +39,13 @@ export default function ModuleEight() {
   }, [session]);
 
   const saveFinalText = async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+
     await supabase
       .from("student_drafts")
       .upsert({
-        user_email: session.user.email,
+        user_email: email,
         module: 6,
         final_text: text,
         final_ready: true,
@@ -47,15 +53,19 @@ export default function ModuleEight() {
       });
 
     setLocked(true);
+
+    router.push("/modules/8/success");
   };
 
   if (!session) return <p className="p-6">Loading...</p>;
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📝 Module 8: Final Polish</h1>
-      <p className="text-sm text-gray-600 mb-4">
-        This is your last chance to make final edits before formatting your essay in APA and exporting. Focus on clarity, grammar, and flow.
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <h1 className="text-3xl font-extrabold text-theme-blue">📝 Module 8: Final Polish</h1>
+
+      <p className="text-md text-gray-700 mb-4">
+        This is your last chance to make final edits before formatting your essay in APA and exporting.
+        Focus on clarity, grammar, and flow. When ready, lock your draft and move to the next step.
       </p>
 
       <textarea
@@ -68,12 +78,12 @@ export default function ModuleEight() {
       {!locked ? (
         <button
           onClick={saveFinalText}
-          className="bg-blue-700 text-white px-6 py-3 rounded shadow"
+          className="bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded shadow"
         >
-          ✅ I'm Done Polishing – Lock and Continue
+          ✅ I'm Done Polishing — Lock and Continue
         </button>
       ) : (
-        <div className="text-green-700 font-semibold">
+        <div className="text-theme-green font-semibold">
           ✅ Final draft locked and ready for APA formatting.
         </div>
       )}

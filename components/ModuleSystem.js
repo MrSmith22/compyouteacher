@@ -1,5 +1,4 @@
-﻿// app/components/ModuleSystem.js
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -106,7 +105,6 @@ const modules = [
       ]
     },
   },
-  // We'll add more modules later (2-7)
 ];
 
 export default function ModuleSystem() {
@@ -125,7 +123,6 @@ export default function ModuleSystem() {
 
   const handleSubmitQuiz = () => {
     setQuizSubmitted(true);
-    // show answers for 1 second, then redirect with score
     setTimeout(() => {
       const pct = getScore();
       router.push(`/modules/1/success?score=${pct}`);
@@ -148,9 +145,13 @@ export default function ModuleSystem() {
   };
 
   return (
-    <div className="p-4 bg-white shadow rounded max-w-3xl mx-auto">
-      <h2 className="text-xl font-bold mb-2">{currentModule.title}</h2>
-      <p className="mb-4">{currentModule.description}</p>
+    <div className="p-4 bg-theme-light shadow rounded max-w-3xl mx-auto">
+      <h2 className="text-3xl font-extrabold text-center text-theme-blue mb-2">
+        {currentModule.title}
+      </h2>
+      <p className="text-center text-theme-muted mb-6">
+        {currentModule.description}
+      </p>
 
       {/* Video */}
       <div className="mb-6">
@@ -165,10 +166,10 @@ export default function ModuleSystem() {
 
       {/* Quiz */}
       <div className="mb-4">
-        <h3 className="font-semibold mb-2">Quiz</h3>
+        <h3 className="text-2xl font-semibold mb-4 text-theme-green">Quiz</h3>
         {currentModule.content.quiz.map((q, index) => (
           <div key={index} className="mb-4">
-            <p className="font-medium">{q.question}</p>
+            <p className="font-medium mb-2 text-theme-dark">{q.question}</p>
             <select
               value={userAnswers[index] || ""}
               onChange={(e) => handleAnswerChange(index, e.target.value)}
@@ -196,7 +197,7 @@ export default function ModuleSystem() {
         {!quizSubmitted && (
           <button
             onClick={handleSubmitQuiz}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-theme-blue text-white px-4 py-2 rounded"
           >
             Submit Quiz
           </button>

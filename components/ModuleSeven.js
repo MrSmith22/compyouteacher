@@ -16,7 +16,6 @@ export default function ModuleSeven() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  // 🧠 Load saved draft
   useEffect(() => {
     const fetchData = async () => {
       const email = session?.user?.email;
@@ -31,13 +30,12 @@ export default function ModuleSeven() {
 
       if (data?.full_text) setText(data.full_text);
       if (data?.audio_url) setAudioURL(data.audio_url);
-      if (data?.final_ready) setLocked(true); // Only lock if final submission is marked
+      if (data?.final_ready) setLocked(true);
     };
 
     fetchData();
   }, [session]);
 
-  // 🎙️ Start recording
   const startRecording = async () => {
     if (audioURL) {
       const confirmOverwrite = confirm("You already have a recording. Overwrite it?");
@@ -51,9 +49,7 @@ export default function ModuleSeven() {
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorder.onstop = async () => {
@@ -62,9 +58,7 @@ export default function ModuleSeven() {
 
         const { error } = await supabase.storage
           .from("student-audio")
-          .upload(filename, audioBlob, {
-            contentType: "audio/webm",
-          });
+          .upload(filename, audioBlob, { contentType: "audio/webm" });
 
         if (error) {
           console.error("Upload error:", error.message || error);
@@ -76,8 +70,7 @@ export default function ModuleSeven() {
           .from("student-audio")
           .getPublicUrl(filename);
 
-        const publicURL = urlData?.publicUrl;
-        setAudioURL(publicURL);
+        setAudioURL(urlData?.publicUrl);
       };
 
       mediaRecorder.start();
@@ -88,7 +81,6 @@ export default function ModuleSeven() {
     }
   };
 
-  // ⏹️ Stop recording
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
@@ -96,54 +88,36 @@ export default function ModuleSeven() {
     }
   };
 
-  // 💾 Save revised draft + audio (but keep editable)
-  const saveRevision = async () => {
-    if (!session?.user?.email) return;
+  const saveDraft = async ({ finalized = false } = {}) => {
+    const email = session?.user?.email;
+    if (!email) return;
 
-    await supabase
-      .from("student_drafts")
-      .upsert({
-        user_email: session.user.email,
-        module: 6,
-        full_text: text,
-        revised: true,
-        final_ready: false,
-        audio_url: audioURL || null,
-        updated_at: new Date().toISOString(),
-      });
+    await supabase.from("student_drafts").upsert({
+      user_email: email,
+      module: 6,
+      full_text: text,
+      final_text: finalized ? text : null,
+      revised: !finalized,
+      final_ready: finalized,
+      audio_url: audioURL || null,
+      updated_at: new Date().toISOString(),
+    });
 
-    alert("Revision saved. You can continue editing or go to the next module.");
+    if (finalized) {
+      setLocked(true);
+      router.push("/modules/7/success");
+    } else {
+      alert("Revision saved. You can continue editing or finalize.");
+    }
   };
 
   if (!session) return <p className="p-6">Loading...</p>;
 
- const finalizeDraft = async () => {
-  if (!session?.user?.email) return;
-
-  await supabase
-    .from("student_drafts")
-    .upsert({
-      user_email: session.user.email,
-      module: 6,
-      full_text: text,
-      final_text: text, // ✅ ensures Module 8 loads correctly
-      final_ready: true,
-      updated_at: new Date().toISOString()
-    });
-
-  setLocked(true);
-
-  // Optional: Redirect
-  router.push("/modules/8");
-};
-
-
-
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">✍️ Module 7: Revise Your Draft</h1>
-      <p className="text-gray-600">
-        Make any final edits to your essay, and record yourself reading it out loud.
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold text-theme-blue">✍️ Module 7: Revise Your Draft</h1>
+      <p className="text-theme-dark">
+        Make final edits to your essay and record yourself reading it aloud.
       </p>
 
       <textarea
@@ -154,9 +128,9 @@ export default function ModuleSeven() {
       />
 
       <section>
-        <h2 className="text-lg font-semibold mb-2">🔊 Read-Aloud Recording</h2>
+        <h2 className="text-xl font-semibold text-theme-dark mb-2">🔊 Read-Aloud Recording</h2>
         <p className="text-sm text-gray-600 mb-2">
-          Read your essay out loud and record it. Listening to yourself can help you catch awkward sentences or improve your flow.
+          Record yourself reading your essay aloud. Listening helps you spot awkward sentences and improve flow.
         </p>
 
         {!recording ? (
@@ -165,7 +139,7 @@ export default function ModuleSeven() {
             disabled={locked}
             className={`${
               locked ? "opacity-60 cursor-not-allowed" : ""
-            } bg-red-600 text-white px-4 py-2 rounded mr-2`}
+            } bg-theme-red text-white px-4 py-2 rounded mr-2`}
           >
             🎙️ Start Recording
           </button>
@@ -186,28 +160,26 @@ export default function ModuleSeven() {
         )}
       </section>
 
-      <button
-        onClick={saveRevision}
-        disabled={locked}
-        className={`${
-          locked ? "opacity-60 cursor-not-allowed" : ""
-        } bg-blue-700 text-white px-6 py-3 rounded shadow`}
-      >
-        ✅ Mark as Revised & Continue
-      </button>
-
       {!locked && (
-  <button
-    onClick={finalizeDraft}
-    className="bg-green-700 text-white px-6 py-3 rounded shadow"
-  >
-    🚀 I'm Done Revising — Move to Module 8
-  </button>
-)}
+        <div className="flex flex-wrap gap-4 mt-6">
+          <button
+            onClick={() => saveDraft()}
+            className="bg-theme-blue text-white px-6 py-3 rounded shadow"
+          >
+            💾 Save Revision
+          </button>
 
+          <button
+            onClick={() => saveDraft({ finalized: true })}
+            className="bg-theme-orange text-white px-6 py-3 rounded shadow"
+          >
+            🚀 Finalize & Continue to Module 8
+          </button>
+        </div>
+      )}
 
       {locked && (
-        <div className="text-green-700 font-semibold">
+        <div className="text-green-700 font-semibold mt-4">
           ✅ Draft revision complete. You cannot make further changes.
         </div>
       )}
