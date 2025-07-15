@@ -23,7 +23,7 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
-      // 📝 Load finalized outline
+      // Load outline
       const { data: outlineRow } = await supabase
         .from("student_outlines")
         .select("outline,finalized")
@@ -38,14 +38,14 @@ export default function ModuleSix() {
 
       setOutline(outlineRow.outline);
 
-      // 📝 Load T‑chart observations
+      // Load observations
       const { data: obs } = await supabase
         .from("tchart_entries")
         .select("*")
         .eq("user_email", email);
       setObservations(obs || []);
 
-      // 📝 Load draft
+      // Load draft
       const { data: draftRow } = await supabase
         .from("student_drafts")
         .select("sections,locked")
@@ -70,7 +70,7 @@ export default function ModuleSix() {
     loadData();
   }, [session]);
 
-  // 📝 Debounced autosave
+  // Auto-save
   useEffect(() => {
     if (!session?.user?.email || draft.length === 0) return;
 
@@ -110,6 +110,18 @@ export default function ModuleSix() {
     router.push("/modules/6/success");
   };
 
+  const unlockDraft = async () => {
+    setLocked(false);
+    await supabase.from("student_drafts").upsert({
+      user_email: session.user.email,
+      module: 6,
+      sections: draft,
+      full_text: draft.join("\n\n"),
+      locked: false,
+      updated_at: new Date().toISOString()
+    });
+  };
+
   if (!outline) return <p className="p-6">Loading…</p>;
 
   return (
@@ -119,10 +131,9 @@ export default function ModuleSix() {
 
         <p className="text-gray-700">
           Use your outline and observations to write your draft. Start with an introduction, develop
-          the body paragraphs, and finish with a conclusion. When you’re ready, mark your draft complete.
+          the body paragraphs, and finish with a conclusion.
         </p>
 
-        {/* Introduction */}
         <section>
           <h2 className="text-xl font-bold mb-2">{roman(1)}. Introduction</h2>
           <textarea
@@ -133,7 +144,6 @@ export default function ModuleSix() {
           />
         </section>
 
-        {/* Body paragraphs */}
         {outline.body.map((b, i) => (
           <section key={i}>
             <h2 className="text-xl font-bold mb-2">
@@ -148,7 +158,6 @@ export default function ModuleSix() {
           </section>
         ))}
 
-        {/* Conclusion */}
         <section>
           <h2 className="text-xl font-bold mb-2">
             {roman(outline.body.length + 2)}. Conclusion
@@ -161,18 +170,26 @@ export default function ModuleSix() {
           />
         </section>
 
-        <button
-          onClick={markComplete}
-          disabled={locked}
-          className={`mt-6 bg-theme-orange text-white px-4 py-2 rounded shadow ${
-            locked ? "opacity-50 pointer-events-none" : ""
-          }`}
-        >
-          ✅ Mark Draft Complete & Continue
-        </button>
+        <div className="space-x-4 mt-6">
+          <button
+            onClick={markComplete}
+            disabled={locked}
+            className={`bg-theme-orange text-white px-4 py-2 rounded shadow ${
+              locked ? "opacity-50 pointer-events-none" : ""
+            }`}
+          >
+            ✅ Mark Draft Complete & Continue
+          </button>
+
+          <button
+            onClick={unlockDraft}
+            className="bg-theme-blue text-white px-4 py-2 rounded shadow"
+          >
+            🔓 Unlock Draft for Editing
+          </button>
+        </div>
       </main>
 
-      {/* Slide-out panel */}
       <aside
         className={`fixed right-0 top-0 h-full w-[320px] bg-white border-l shadow-lg z-10 p-4 overflow-y-auto transition-transform duration-300 ${
           sideOpen ? "translate-x-0" : "translate-x-full"

@@ -23,14 +23,14 @@ export default function ModuleSeven() {
 
       const { data } = await supabase
         .from("student_drafts")
-        .select("full_text, revised, final_ready, audio_url")
+        .select("full_text, revised, final_ready, audio_url, locked")
         .eq("user_email", email)
         .eq("module", 6)
         .single();
 
       if (data?.full_text) setText(data.full_text);
       if (data?.audio_url) setAudioURL(data.audio_url);
-      if (data?.final_ready) setLocked(true);
+      if (data?.final_ready || data?.locked) setLocked(true);
     };
 
     fetchData();
@@ -100,6 +100,7 @@ export default function ModuleSeven() {
       revised: !finalized,
       final_ready: finalized,
       audio_url: audioURL || null,
+      locked: finalized,
       updated_at: new Date().toISOString(),
     });
 
@@ -107,8 +108,25 @@ export default function ModuleSeven() {
       setLocked(true);
       router.push("/modules/7/success");
     } else {
-      alert("Revision saved. You can continue editing or finalize.");
+      alert("Draft saved. You can continue editing or finalize.");
     }
+  };
+
+  const unlockDraft = async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+
+    await supabase.from("student_drafts").upsert({
+      user_email: email,
+      module: 6,
+      full_text: text,
+      audio_url: audioURL || null,
+      locked: false,
+      final_ready: false,
+      updated_at: new Date().toISOString(),
+    });
+
+    setLocked(false);
   };
 
   if (!session) return <p className="p-6">Loading...</p>;
@@ -160,27 +178,38 @@ export default function ModuleSeven() {
         )}
       </section>
 
-      {!locked && (
-        <div className="flex flex-wrap gap-4 mt-6">
-          <button
-            onClick={() => saveDraft()}
-            className="bg-theme-blue text-white px-6 py-3 rounded shadow"
-          >
-            💾 Save Revision
-          </button>
+      <div className="flex flex-wrap gap-4 mt-6">
+        <button
+          onClick={() => saveDraft()}
+          disabled={locked}
+          className={`bg-theme-blue text-white px-6 py-3 rounded shadow ${
+            locked ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          💾 Save Revision
+        </button>
 
-          <button
-            onClick={() => saveDraft({ finalized: true })}
-            className="bg-theme-orange text-white px-6 py-3 rounded shadow"
-          >
-            🚀 Finalize & Continue to Module 8
-          </button>
-        </div>
-      )}
+        <button
+          onClick={() => saveDraft({ finalized: true })}
+          disabled={locked}
+          className={`bg-theme-orange text-white px-6 py-3 rounded shadow ${
+            locked ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          🚀 Finalize & Continue to Module 8
+        </button>
+
+        <button
+          onClick={unlockDraft}
+          className="bg-theme-green text-white px-6 py-3 rounded shadow"
+        >
+          🔓 Unlock Draft for Editing
+        </button>
+      </div>
 
       {locked && (
         <div className="text-green-700 font-semibold mt-4">
-          ✅ Draft revision complete. You cannot make further changes.
+          ✅ Draft revision complete. You can unlock to edit.
         </div>
       )}
     </div>

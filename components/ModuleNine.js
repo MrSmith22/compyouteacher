@@ -2,17 +2,16 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
 export default function ModuleNine() {
   const { data: session } = useSession();
+  const router = useRouter();
+
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [pdfFile, setPdfFile] = useState(null);
-
-  const handleFileChange = (e) => {
-    setPdfFile(e.target.files[0]);
-  };
 
   const questions = [
     { question: "What is the correct font for APA Style papers?", options: ["Times New Roman, 12 pt", "Calibri, 8 pt", "Arial, 14 pt"], answer: "Times New Roman, 12 pt" },
@@ -40,80 +39,67 @@ export default function ModuleNine() {
     userAnswers.forEach((ans, idx) => {
       if (ans === questions[idx].answer) total++;
     });
+
     setScore(total);
     setSubmitted(true);
 
     if (session?.user?.email) {
-      await supabase.from("module9_quiz").upsert({
-        user_email: session.user.email,
-        score: total,
-        total: questions.length,
-        submitted_at: new Date().toISOString(),
-      });
+      await supabase
+        .from("module9_quiz")
+        .upsert({
+          user_email: session.user.email,
+          score: total,
+          total: questions.length,
+          submitted_at: new Date().toISOString(),
+        });
     }
   };
 
-  const handleExportToGoogleDocs = async () => {
-    if (!session?.user?.email) return;
-
-    const { data } = await supabase
-      .from("student_drafts")
-      .select("final_text")
-      .eq("user_email", session.user.email)
-      .eq("module", 6)
-      .single();
-
-    if (!data?.final_text) {
-      alert("Could not find your final essay text.");
-      return;
-    }
-
-    const response = await fetch("/api/export-to-docs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: data.final_text, email: session.user.email }),
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      window.open(result.url, "_blank");
-    } else {
-      alert("Failed to export to Google Docs.");
-    }
+  const handleFileChange = (e) => {
+    setPdfFile(e.target.files[0]);
   };
 
-  const handleUploadPDF = () => {
+  const handleUploadPDF = async () => {
     if (!pdfFile) {
       alert("Please select a PDF file first.");
       return;
     }
-    alert("✅ Your PDF has been 'submitted'. This is a placeholder.");
+
+    const filename = `final-essay-${session.user.email}-${Date.now()}.pdf`;
+
+    const { error } = await supabase.storage
+      .from("final-pdfs")
+      .upload(filename, pdfFile, {
+        contentType: "application/pdf",
+      });
+
+    if (error) {
+      console.error("Upload error:", error.message || error);
+      alert("Failed to upload PDF.");
+      return;
+    }
+
+    router.push("/modules/9/success");
   };
 
   if (!session) return <p className="p-6">Loading…</p>;
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-extrabold text-theme-blue mb-2">📘 Module 9: APA Mini Quiz</h1>
+      <h1 className="text-3xl font-bold text-theme-blue">📘 Module 9: APA Mini Quiz & Final Submission</h1>
 
-      <section className="border p-4 rounded bg-theme-light space-y-2 shadow">
-        <h2 className="text-xl font-semibold text-theme-dark">📋 APA Formatting Checklist</h2>
+      <section className="border border-gray-300 p-4 rounded bg-blue-50 space-y-2">
+        <h2 className="text-xl font-semibold">📋 APA Formatting Checklist</h2>
         <ul className="list-disc ml-6 text-sm">
           <li>Times New Roman, 12pt font</li>
           <li>Double spacing throughout</li>
-          <li>Title page with all required info</li>
-          <li>Page header with title and page number</li>
-          <li>References page in alphabetical order</li>
+          <li>Title page with title, author, institution, course, instructor, and date</li>
+          <li>Page header with title and page number, right-aligned</li>
+          <li>References page: double spaced and in alphabetical order</li>
         </ul>
         <p className="mt-2">
           📄 Use this template:{" "}
-          <a
-            href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-theme-blue underline"
-          >
+          <a href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">
             Copy APA Google Docs Template
           </a>
         </p>
@@ -142,27 +128,20 @@ export default function ModuleNine() {
       {!submitted ? (
         <button
           onClick={handleSubmit}
-          className="bg-theme-green text-white px-6 py-3 rounded shadow"
+          className="bg-theme-blue text-white px-6 py-3 rounded shadow"
         >
           ✅ Submit Quiz
         </button>
       ) : (
         <>
-          <div className="text-theme-green font-semibold">
-            🎯 You scored {score} / {questions.length}.
+          <div className="text-green-700 font-semibold">
+            You scored {score} out of {questions.length}.
           </div>
 
-          <button
-            onClick={handleExportToGoogleDocs}
-            className="bg-theme-blue text-white px-6 py-3 rounded shadow mt-4"
-          >
-            ✍ Export Final Draft to Google Docs (APA Format)
-          </button>
-
-          <section className="mt-8 border p-4 rounded bg-white shadow">
-            <h2 className="text-lg font-semibold mb-2 text-theme-dark">📤 Submit Final Essay as PDF</h2>
+          <section className="mt-8 border border-gray-200 p-4 rounded bg-gray-50">
+            <h2 className="text-lg font-semibold mb-2">📤 Submit Final Essay as PDF</h2>
             <p className="text-sm text-gray-600 mb-2">
-              After formatting in Google Docs, download your essay as a PDF and upload it here.
+              After formatting your essay in Google Docs, download it as a PDF and upload it here.
             </p>
 
             <input
@@ -175,7 +154,7 @@ export default function ModuleNine() {
             <button
               onClick={handleUploadPDF}
               disabled={!pdfFile}
-              className={`bg-theme-orange text-white px-6 py-2 rounded shadow ${
+              className={`bg-theme-green text-white px-6 py-2 rounded shadow ${
                 !pdfFile ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >

@@ -19,42 +19,60 @@ export default function ModuleEight() {
 
       const { data } = await supabase
         .from("student_drafts")
-        .select("full_text, final_text, final_ready")
+        .select("full_text, final_text, final_ready, locked")
         .eq("user_email", email)
         .eq("module", 6)
         .single();
 
-      console.log("Module 8 loaded:", data);
-
       if (data?.final_text) {
         setText(data.final_text);
       } else if (data?.full_text) {
-        setText(data.full_text); // fallback path
+        setText(data.full_text);
       }
 
-      if (data?.final_ready) setLocked(true);
+      if (data?.final_ready || data?.locked) setLocked(true);
     };
 
     fetchText();
   }, [session]);
 
-  const saveFinalText = async () => {
+  const saveDraft = async ({ finalized = false } = {}) => {
     const email = session?.user?.email;
     if (!email) return;
 
-    await supabase
-      .from("student_drafts")
-      .upsert({
-        user_email: email,
-        module: 6,
-        final_text: text,
-        final_ready: true,
-        updated_at: new Date().toISOString(),
-      });
+    await supabase.from("student_drafts").upsert({
+      user_email: email,
+      module: 6,
+      full_text: text,
+      final_text: finalized ? text : null,
+      final_ready: finalized,
+      locked: finalized,
+      updated_at: new Date().toISOString()
+    });
 
-    setLocked(true);
+    if (finalized) {
+      setLocked(true);
+      router.push("/modules/8/success");
+    } else {
+      alert("Draft saved. You can continue editing or finalize.");
+    }
+  };
 
-    router.push("/modules/8/success");
+  const unlockDraft = async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+
+    await supabase.from("student_drafts").upsert({
+      user_email: email,
+      module: 6,
+      full_text: text,
+      final_text: null,
+      final_ready: false,
+      locked: false,
+      updated_at: new Date().toISOString()
+    });
+
+    setLocked(false);
   };
 
   if (!session) return <p className="p-6">Loading...</p>;
@@ -65,7 +83,7 @@ export default function ModuleEight() {
 
       <p className="text-md text-gray-700 mb-4">
         This is your last chance to make final edits before formatting your essay in APA and exporting.
-        Focus on clarity, grammar, and flow. When ready, lock your draft and move to the next step.
+        Focus on clarity, grammar, and flow.
       </p>
 
       <textarea
@@ -75,16 +93,38 @@ export default function ModuleEight() {
         disabled={locked}
       />
 
-      {!locked ? (
+      <div className="flex flex-wrap gap-4 mt-6">
         <button
-          onClick={saveFinalText}
-          className="bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded shadow"
+          onClick={() => saveDraft()}
+          disabled={locked}
+          className={`bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded shadow ${
+            locked ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          ✅ I'm Done Polishing — Lock and Continue
+          💾 Save Draft
         </button>
-      ) : (
-        <div className="text-theme-green font-semibold">
-          ✅ Final draft locked and ready for APA formatting.
+
+        <button
+          onClick={() => saveDraft({ finalized: true })}
+          disabled={locked}
+          className={`bg-theme-orange text-white px-6 py-3 rounded shadow ${
+            locked ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          🚀 Finalize & Continue
+        </button>
+
+        <button
+          onClick={unlockDraft}
+          className="bg-theme-green text-white px-6 py-3 rounded shadow"
+        >
+          🔓 Unlock Draft for Editing
+        </button>
+      </div>
+
+      {locked && (
+        <div className="text-theme-green font-semibold mt-4">
+          ✅ Final draft locked. You can unlock to make changes.
         </div>
       )}
     </div>

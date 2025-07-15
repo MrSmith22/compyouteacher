@@ -12,10 +12,8 @@ export default function ModuleTwo() {
   const [entries, setEntries] = useState(() =>
     categories.reduce((acc, key) => {
       acc[key] = {
-        speech_note: "",
-        letter_note: "",
-        speech_quote: "",
-        letter_quotes: "",
+        observation: "",
+        quote: "",
         letter_url: "",
       };
       return acc;
@@ -40,12 +38,10 @@ export default function ModuleTwo() {
 
       const newEntries = { ...entries };
       data.forEach((row) => {
-        if (newEntries[row.category]) {
-          newEntries[row.category] = {
-            speech_note: row.speech_note || "",
-            letter_note: row.letter_note || "",
-            speech_quote: row.speech_quote || "",
-            letter_quotes: row.letter_quotes || "",
+        if (newEntries[row.type]) {
+          newEntries[row.type] = {
+            observation: row.observation || "",
+            quote: row.quote || "",
             letter_url: row.letter_url || "",
           };
         }
@@ -76,11 +72,9 @@ export default function ModuleTwo() {
         const entry = entries[cat];
         const { error } = await supabase.from("tchart_entries").upsert({
           user_email: session.user.email,
-          category: cat,
-          speech_note: entry.speech_note,
-          letter_note: entry.letter_note,
-          speech_quote: entry.speech_quote,
-          letter_quotes: entry.letter_quotes,
+          type: cat,
+          observation: entry.observation,
+          quote: entry.quote,
           letter_url: entry.letter_url,
           updated_at: new Date().toISOString(),
         });
@@ -106,60 +100,47 @@ export default function ModuleTwo() {
       <p className="text-theme-dark">
         Use this chart to compare the rhetorical strategies used in Dr. King's{" "}
         <em>I Have a Dream</em> speech and{" "}
-        <em>Letter from a Birmingham Jail</em> across five categories.
+        <em>Letter from a Birmingham Jail</em>.
       </p>
 
       {categories.map((cat) => (
-        <div key={cat} className="border-t pt-6">
-          <h3 className="text-xl font-semibold capitalize text-theme-dark mb-2">
-            {cat}
-          </h3>
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Observation from the speech"
-            value={entries[cat].speech_note}
-            onChange={handleChange(cat, "speech_note")}
-          />
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Observation from the letter"
-            value={entries[cat].letter_note}
-            onChange={handleChange(cat, "letter_note")}
-          />
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Quote from the speech"
-            value={entries[cat].speech_quote}
-            onChange={handleChange(cat, "speech_quote")}
-          />
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Quote from the letter"
-            value={entries[cat].letter_quotes}
-            onChange={handleChange(cat, "letter_quotes")}
-          />
+        <div key={cat} className="space-y-2">
+          <h3 className="font-semibold">{cat}</h3>
+
           <input
             type="text"
-            className="w-full border p-2 rounded mb-4"
-            placeholder="URL (optional)"
+            placeholder="Observation"
+            value={entries[cat].observation}
+            onChange={handleChange(cat, "observation")}
+            className="border rounded p-2 w-full"
+          />
+
+          <input
+            type="text"
+            placeholder="Quote"
+            value={entries[cat].quote}
+            onChange={handleChange(cat, "quote")}
+            className="border rounded p-2 w-full"
+          />
+
+          <input
+            type="text"
+            placeholder="Letter URL"
             value={entries[cat].letter_url}
             onChange={handleChange(cat, "letter_url")}
+            className="border rounded p-2 w-full"
           />
         </div>
       ))}
 
       <button
         onClick={handleSave}
-        className="bg-theme-blue text-white px-4 py-2 rounded shadow"
+        className="bg-theme-green text-white px-4 py-2 rounded"
       >
-        Save My Work
+        Save
       </button>
 
-      {status && <p className="text-sm text-gray-600 mt-2">{status}</p>}
+      <div>{status}</div>
     </div>
   );
 }

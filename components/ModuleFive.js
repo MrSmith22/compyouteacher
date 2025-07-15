@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { supabase } from "../lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import { supabase } from "../lib/supabaseClient";
 
 import {
   DndContext,
@@ -19,9 +19,6 @@ import {
 } from "@dnd-kit/sortable";
 import { SortableItem } from "./SortableItem";
 
-const roman = (n) =>
-  ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] || `(${n + 1})`;
-
 export default function ModuleFive() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -32,20 +29,15 @@ export default function ModuleFive() {
   const [previewText, setPreviewText] = useState("");
   const [locked, setLocked] = useState(false);
 
-  const readonly = locked ? "pointer-events-none opacity-60" : "";
-
   const sensors = useSensors(useSensor(PointerSensor));
 
   const buildOutlineText = () => {
-    let out = `${roman(0)}. Introduction\n`;
-    if (thesis.trim()) {
-      out += `   THESIS: ${thesis.trim()}\n`;
-    }
-    out += "\n";
-
+    const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+    let out = `${roman[0]}. Introduction\n`;
+    if (thesis.trim()) out += `   THESIS: ${thesis.trim()}\n\n`;
     outline.forEach((b, i) => {
       const idx = i + 1;
-      out += `${roman(idx)}. ${b.bucket || "Main Idea"}\n`;
+      out += `${roman[idx] || `(${idx})`}. ${b.bucket || "Main Idea"}\n`;
       b.points.forEach((pt, j) => {
         if (!pt.trim()) return;
         const letter = String.fromCharCode(65 + j);
@@ -53,13 +45,11 @@ export default function ModuleFive() {
       });
       out += "\n";
     });
-
-    const conclNum = roman(outline.length + 1);
+    const conclNum = roman[outline.length + 1] || `(${outline.length + 1})`;
     out += `${conclNum}. CONCLUSION — Restates Thesis\n`;
     if (thesis.trim()) out += `   THESIS: ${thesis.trim()}\n`;
     if (conclusion.summary.trim()) out += `   • ${conclusion.summary.trim()}\n`;
     if (conclusion.finalThought.trim()) out += `   • ${conclusion.finalThought.trim()}\n`;
-
     return out;
   };
 
@@ -68,9 +58,9 @@ export default function ModuleFive() {
       const email = session?.user?.email;
       if (!email) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("student_outlines")
-        .select("outline")
+        .select("outline, finalized")
         .eq("user_email", email)
         .eq("module", 5)
         .single();
@@ -79,6 +69,7 @@ export default function ModuleFive() {
         setThesis(data.outline.thesis || "");
         setOutline(data.outline.body || []);
         setConclusion(data.outline.conclusion || { summary: "", finalThought: "" });
+        setLocked(!!data.finalized);
       }
 
       if (!data?.outline?.thesis) {
@@ -88,10 +79,7 @@ export default function ModuleFive() {
           .eq("user_email", email)
           .order("created_at", { ascending: false })
           .limit(1);
-
-        if (mod3?.length && mod3[0]?.thesis) {
-          setThesis(mod3[0].thesis);
-        }
+        if (mod3?.length && mod3[0]?.thesis) setThesis(mod3[0].thesis);
       }
 
       if (!data?.outline?.body?.length) {
@@ -100,15 +88,10 @@ export default function ModuleFive() {
           .select("buckets")
           .eq("user_email", email)
           .single();
-
         if (bucketsData?.buckets?.length) {
           const body = bucketsData.buckets.map((b) => ({
             bucket: b.name,
-            points: b.items.map((i) => {
-              const obs = i.observation?.trim() || "";
-              const quote = i.quote?.trim() || "";
-              return `${obs}${quote ? ` — “${quote}”` : ""}`;
-            }),
+            points: b.items.map((i) => i.observation),
           }));
           setOutline(body);
         }
@@ -124,33 +107,63 @@ export default function ModuleFive() {
     const id = setTimeout(async () => {
       const email = session.user.email;
 
-      const outlineData = {
-        thesis,
-        body: outline,
-        conclusion,
-      };
+      const hasContent =
+        thesis.trim() ||
+        outline.some((b) => b.bucket.trim() || b.points.some((p) => p.trim())) ||
+        conclusion.summary.trim() ||
+        conclusion.finalThought.trim();
 
-      try {
-        const { error } = await supabase
-          .from("student_outlines")
-          .upsert({
-            user_email: email,
-            module: 5,
-            outline: outlineData,
-            updated_at: new Date().toISOString(),
-          });
-
-        if (error) console.error("Auto‑save failed:", error);
-      } catch (err) {
-        console.error("Auto‑save failed:", err);
+      if (!hasContent) {
+        console.log("Skipping save — no content yet.");
+        return;
       }
+
+      const outlineData = { thesis, body: outline, conclusion };
+      const { error } = await supabase.from("student_outlines").upsert({
+        user_email: email,
+        module: 5,
+        outline: outlineData,
+        updated_at: new Date().toISOString(),
+        finalized: locked,
+      });
+      if (error) console.error("Auto-save failed:", error);
     }, 800);
 
     return () => clearTimeout(id);
-  }, [thesis, outline, conclusion, session]);
+  }, [thesis, outline, conclusion, locked, session]);
+
+  useEffect(() => {
+    setPreviewText(buildOutlineText());
+  }, [thesis, outline, conclusion]);
+
+  const finalizeOutline = async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+    setLocked(true);
+    await supabase.from("student_outlines").upsert({
+      user_email: email,
+      module: 5,
+      outline: { thesis, body: outline, conclusion },
+      finalized: true,
+      updated_at: new Date().toISOString(),
+    });
+    router.push("/modules/5/success");
+  };
+
+  const unlockOutline = async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+    setLocked(false);
+    await supabase.from("student_outlines").upsert({
+      user_email: email,
+      module: 5,
+      outline: { thesis, body: outline, conclusion },
+      finalized: false,
+      updated_at: new Date().toISOString(),
+    });
+  };
 
   const updatePoint = (bucketIndex, pointIndex, value) => {
-    if (locked) return;
     setOutline((prev) => {
       const copy = [...prev];
       copy[bucketIndex].points[pointIndex] = value;
@@ -159,7 +172,6 @@ export default function ModuleFive() {
   };
 
   const updateBucketName = (bucketIndex, name) => {
-    if (locked) return;
     setOutline((prev) => {
       const copy = [...prev];
       copy[bucketIndex].bucket = name;
@@ -168,7 +180,6 @@ export default function ModuleFive() {
   };
 
   const removePoint = (bucketIndex, pointIndex) => {
-    if (locked) return;
     setOutline((prev) =>
       prev.map((b, i) =>
         i === bucketIndex
@@ -179,47 +190,19 @@ export default function ModuleFive() {
   };
 
   const deleteBucket = (bucketIndex) => {
-    if (locked) return;
     setOutline((prev) => prev.filter((_, i) => i !== bucketIndex));
   };
 
   const addBucket = () => {
-    if (locked) return;
     setOutline((prev) => [...prev, { bucket: "New Bucket", points: [""] }]);
   };
 
   const addPoint = (bucketIndex) => {
-    if (locked) return;
     setOutline((prev) =>
       prev.map((b, i) =>
         i === bucketIndex ? { ...b, points: [...b.points, ""] } : b
       )
     );
-  };
-
-  useEffect(() => {
-    setPreviewText(buildOutlineText());
-  }, [thesis, outline, conclusion, locked]);
-
-  const finalizeOutline = async () => {
-    setLocked(true);
-
-    const email = session?.user?.email;
-    if (!email) return;
-
-    await supabase.from("student_outlines").upsert({
-      user_email: email,
-      module: 5,
-      outline: {
-        thesis,
-        body: outline,
-        conclusion,
-      },
-      finalized: true,
-      updated_at: new Date().toISOString(),
-    });
-
-    router.push("/modules/5/success");
   };
 
   const handleDragEnd = (event) => {
@@ -231,35 +214,28 @@ export default function ModuleFive() {
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext
         items={outline.map((_, i) => i.toString())}
         strategy={verticalListSortingStrategy}
       >
-        <div className={`p-6 max-w-4xl mx-auto bg-theme-light rounded shadow space-y-6 ${readonly}`}>
-          <h1 className="text-3xl font-extrabold text-theme-blue mb-4">
-          🧩 Build Your Outline
-          </h1>
+        <div className="p-6 max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold text-theme-blue mb-4">🧩 Build Your Outline</h1>
 
-          <div className="mb-6">
-            <label className="block font-semibold text-theme-dark mb-2">Thesis Statement</label>
-            <textarea
-              className="w-full border rounded p-2"
-              value={thesis}
-              onChange={(e) => setThesis(e.target.value)}
-              disabled={locked}
-            />
-          </div>
+          <label className="block font-semibold mb-2">Thesis Statement</label>
+          <textarea
+            className="w-full border rounded p-2 mb-6"
+            value={thesis}
+            onChange={(e) => setThesis(e.target.value)}
+            disabled={locked}
+          />
 
           <button
             onClick={addBucket}
-            className="mb-4 bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700"
+            disabled={locked}
+            className="mb-4 bg-green-600 text-white px-4 py-2 rounded"
           >
-            ➕ Add New Bucket
+            ➕ Add New Bucket
           </button>
 
           {outline.map((section, i) => (
@@ -268,15 +244,16 @@ export default function ModuleFive() {
                 <div className="flex justify-between items-center mb-2">
                   <input
                     type="text"
-                    className="font-bold text-theme-blue text-lg border-b flex-grow mr-2"
+                    className="font-bold text-blue-700 text-lg border-b flex-grow mr-2"
                     value={section.bucket}
                     onChange={(e) => updateBucketName(i, e.target.value)}
+                    disabled={locked}
                   />
                   <button
                     onClick={() => deleteBucket(i)}
                     onPointerDown={(e) => e.stopPropagation()}
-                    className="text-theme-red font-bold"
-                    title="Delete Bucket"
+                    disabled={locked}
+                    className="text-red-600 font-bold"
                   >
                     🗑️
                   </button>
@@ -288,14 +265,15 @@ export default function ModuleFive() {
                       type="text"
                       className="w-full border p-2 rounded"
                       placeholder={`Supporting Detail ${j + 1}`}
-                      value={point || ""}
+                      value={point}
                       onChange={(e) => updatePoint(i, j, e.target.value)}
+                      disabled={locked}
                     />
                     <button
                       onClick={() => removePoint(i, j)}
                       onPointerDown={(e) => e.stopPropagation()}
-                      className="text-theme-red"
-                      title="Remove point"
+                      disabled={locked}
+                      className="text-red-500"
                     >
                       ❌
                     </button>
@@ -305,45 +283,37 @@ export default function ModuleFive() {
                 <button
                   onClick={() => addPoint(i)}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="text-sm text-theme-blue mt-2 hover:underline"
+                  disabled={locked}
+                  className="text-sm text-blue-600 mt-2"
                 >
-                  ➕ Add Point
+                  ➕ Add Point
                 </button>
               </div>
             </SortableItem>
           ))}
 
-          <div className="mb-10">
-            <h2 className="text-lg font-semibold mb-2 text-theme-dark">📝 Conclusion</h2>
-            <textarea
-              className="w-full border rounded p-2 mb-2"
-              placeholder="Restate thesis or summarize key ideas..."
-              value={conclusion.summary}
-              onChange={(e) => setConclusion({ ...conclusion, summary: e.target.value })}
+          <div className="mt-6 flex gap-4">
+            <button
+              onClick={finalizeOutline}
               disabled={locked}
-            />
-            <textarea
-              className="w-full border rounded p-2"
-              placeholder="Final thought or call to action..."
-              value={conclusion.finalThought}
-              onChange={(e) => setConclusion({ ...conclusion, finalThought: e.target.value })}
-              disabled={locked}
-            />
-          </div>
+              className={`bg-theme-orange text-white px-4 py-2 rounded shadow ${
+                locked ? "opacity-50 pointer-events-none" : ""
+              }`}
+            >
+              ✅ Finalize & Continue
+            </button>
 
-          <button
-            onClick={finalizeOutline}
-            className={`mt-6 bg-theme-orange text-white px-4 py-2 rounded shadow hover:opacity-90 ${
-              locked ? "opacity-50 pointer-events-none" : ""
-            }`}
-            disabled={locked}
-          >
-            ✅ Finalize Outline & Continue
-          </button>
+            <button
+              onClick={unlockOutline}
+              className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600"
+            >
+              🔓 Unlock & Revise
+            </button>
+          </div>
 
           {previewText && (
             <div className="mt-10 border-t pt-6">
-              <h2 className="text-lg font-semibold mb-2 text-theme-dark">🖨️ Outline Preview</h2>
+              <h2 className="text-lg font-semibold mb-2">🖨️ Outline Preview</h2>
               <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border">
                 {previewText}
               </pre>
