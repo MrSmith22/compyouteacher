@@ -67,7 +67,12 @@ export default function ModuleFive() {
 
       if (data?.outline) {
         setThesis(data.outline.thesis || "");
-        setOutline(data.outline.body || []);
+        setOutline(
+          data.outline.body?.map((b) => ({
+            ...b,
+            id: b.id || `${Date.now()}-${Math.random()}`,
+          })) || []
+        );
         setConclusion(data.outline.conclusion || { summary: "", finalThought: "" });
         setLocked(!!data.finalized);
       }
@@ -90,6 +95,7 @@ export default function ModuleFive() {
           .single();
         if (bucketsData?.buckets?.length) {
           const body = bucketsData.buckets.map((b) => ({
+            id: `${Date.now()}-${Math.random()}`,
             bucket: b.name,
             points: b.items.map((i) => i.observation),
           }));
@@ -99,7 +105,11 @@ export default function ModuleFive() {
     };
 
     loadData();
-  }, [session]);
+  }, [session?.user?.email]);
+
+  useEffect(() => {
+    setPreviewText(buildOutlineText());
+  }, [thesis, outline, conclusion]);
 
   useEffect(() => {
     if (!session?.user?.email) return;
@@ -113,10 +123,7 @@ export default function ModuleFive() {
         conclusion.summary.trim() ||
         conclusion.finalThought.trim();
 
-      if (!hasContent) {
-        console.log("Skipping save — no content yet.");
-        return;
-      }
+      if (!hasContent) return;
 
       const outlineData = { thesis, body: outline, conclusion };
       const { error } = await supabase.from("student_outlines").upsert({
@@ -130,11 +137,7 @@ export default function ModuleFive() {
     }, 800);
 
     return () => clearTimeout(id);
-  }, [thesis, outline, conclusion, locked, session]);
-
-  useEffect(() => {
-    setPreviewText(buildOutlineText());
-  }, [thesis, outline, conclusion]);
+  }, [thesis, outline, conclusion, locked, session?.user?.email]);
 
   const finalizeOutline = async () => {
     const email = session?.user?.email;
@@ -194,7 +197,10 @@ export default function ModuleFive() {
   };
 
   const addBucket = () => {
-    setOutline((prev) => [...prev, { bucket: "New Bucket", points: [""] }]);
+    setOutline((prev) => [
+      ...prev,
+      { id: `${Date.now()}-${Math.random()}`, bucket: "New Bucket", points: [""] },
+    ]);
   };
 
   const addPoint = (bucketIndex) => {
@@ -220,7 +226,12 @@ export default function ModuleFive() {
         strategy={verticalListSortingStrategy}
       >
         <div className="p-6 max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-theme-blue mb-4">🧩 Build Your Outline</h1>
+          <h1 className="text-2xl font-bold text-theme-blue mb-4">
+            🧩 Build Your Outline
+          </h1>
+          <p className="mb-4 text-gray-700">
+            In the previous module, you grouped your observations into buckets. Now, decide the order of those buckets and the points within each. Drag and drop to reorder buckets. You can also reorder points within buckets using ↑ and ↓ buttons next to each point.
+          </p>
 
           <label className="block font-semibold mb-2">Thesis Statement</label>
           <textarea
@@ -239,7 +250,7 @@ export default function ModuleFive() {
           </button>
 
           {outline.map((section, i) => (
-            <SortableItem key={i.toString()} id={i.toString()}>
+            <SortableItem key={section.id} id={i.toString()}>
               <div className="mb-4 border rounded p-4 bg-white shadow">
                 <div className="flex justify-between items-center mb-2">
                   <input
@@ -269,14 +280,7 @@ export default function ModuleFive() {
                       onChange={(e) => updatePoint(i, j, e.target.value)}
                       disabled={locked}
                     />
-                    <button
-                      onClick={() => removePoint(i, j)}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      disabled={locked}
-                      className="text-red-500"
-                    >
-                      ❌
-                    </button>
+                    <button onClick={() => removePoint(i, j)} disabled={locked}>❌</button>
                   </div>
                 ))}
 

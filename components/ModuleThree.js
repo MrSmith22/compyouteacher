@@ -21,7 +21,7 @@ const questionGroups = [
   { title: "Letter: Appeals Adapted to Purpose", questions: ["", "", ""] },
 ];
 
-export default function ModuleThreeForm() {
+export default function ModuleThree() {
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -126,6 +126,19 @@ export default function ModuleThreeForm() {
     }
   };
 
+  const guidanceText = () => {
+    switch (structureChoice) {
+      case "similarities-then-differences":
+        return "Start your thesis by noting one or more similarities between the speech and the letter based on your observations, then point out a key difference supported by specific examples from your notes.";
+      case "differences-then-similarities":
+        return "Focus your thesis on a major difference you found, then show how they also share some similarities — draw directly from your ethos, pathos, logos, audience, and purpose observations.";
+      case "appeals-organization":
+        return "Use your ethos, pathos, and logos observations to describe how King organizes his appeals differently in the speech and letter to address his audience and purpose.";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 bg-theme-light rounded shadow">
       <h2 className="text-3xl font-extrabold text-theme-green text-center">
@@ -135,8 +148,8 @@ export default function ModuleThreeForm() {
       {step === 0 && (
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-theme-blue mb-2">
-  🎬 Thesis Statement Walkthrough
-</h3>
+            🎬 Thesis Statement Walkthrough
+          </h3>
           <video width="100%" height="360" controls className="rounded shadow">
             <source src="/videos/thesis-intro.mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -155,7 +168,7 @@ export default function ModuleThreeForm() {
             className="w-full border rounded p-2 min-h-[80px]"
           />
           {step === 0 && i < 4 && responses[groupStartIndex + i] && !isPhrase(responses[groupStartIndex + i]) && (
-            <p className="text-xs text-theme-red mt-1">Keep it short—just a phrase.</p>
+            <p className="text-xs text-theme-red mt-1">Keep it short — just a phrase.</p>
           )}
         </div>
       ))}
@@ -194,6 +207,12 @@ export default function ModuleThreeForm() {
               {structureChoice === "appeals-organization" && (
                 <p>Dr. King uses ethos, pathos, and logos differently to address ___ in each text.</p>
               )}
+
+              <div className="mt-3 p-2 bg-white rounded shadow">
+                <p className="text-sm text-theme-dark">
+                  <strong>Guidance:</strong> {guidanceText()}
+                </p>
+              </div>
             </div>
           )}
 

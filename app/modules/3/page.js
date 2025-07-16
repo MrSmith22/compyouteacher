@@ -1,6 +1,6 @@
 // JavaScript source code
-import ModuleThreeForm from "@/components/ModuleThreeForm";
+import ModuleThree from "@/components/ModuleThree";
 
 export default function ModuleThreePage() {
-  return <ModuleThreeForm />;
+  return <ModuleThree />;
 }

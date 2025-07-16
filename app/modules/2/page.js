@@ -1,5 +1,5 @@
-import ModuleTwo from "@/components/ModuleTwo";
+import { redirect } from "next/navigation";
 
 export default function ModuleTwoPage() {
-  return <ModuleTwo />;
+  redirect("/modules/2/step1");
 }

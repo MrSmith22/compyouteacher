@@ -98,12 +98,21 @@ export default function ModuleFour() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-theme-dark">🧠 Group Your Ideas into Buckets</h1>
+  <h1 className="text-2xl font-bold mb-4 text-theme-dark">🧠 Group Your Ideas into Buckets</h1>
 
-      <p className="mb-4 text-gray-700">
-        Use the filters to explore your analysis entries. Then create buckets (like paragraph ideas)
-        and add entries into them. These groupings will help you plan your outline in the next module.
-      </p>
+  <p className="mb-4 text-gray-700">
+    Now it’s time to organize your observations into <strong>buckets</strong> — groups of related ideas. 
+    Each bucket should focus on one key idea or theme that helps prove your thesis. 
+    For example, you might create a bucket called <em>“King’s Credibility”</em> and add all observations 
+    about ethos to it, or a bucket called <em>“Emotional Appeals to Justice”</em> and group relevant 
+    pathos examples. Buckets often become body paragraphs in your essay.
+  </p>
+
+  <p className="mb-4 text-gray-700">
+    Use the filters below to focus on specific strategies (like ethos, pathos, logos) and sources (speech or letter). 
+    Then create buckets with clear names, and add your observations and quotes into the buckets where they fit best.
+  </p>
+
 
       {/* Filters */}
       <div className="flex gap-4 mb-4">
