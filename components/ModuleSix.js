@@ -23,7 +23,6 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
-      // Load outline
       const { data: outlineRow } = await supabase
         .from("student_outlines")
         .select("outline,finalized")
@@ -38,14 +37,12 @@ export default function ModuleSix() {
 
       setOutline(outlineRow.outline);
 
-      // Load observations
       const { data: obs } = await supabase
         .from("tchart_entries")
         .select("*")
         .eq("user_email", email);
       setObservations(obs || []);
 
-      // Load draft
       const { data: draftRow } = await supabase
         .from("student_drafts")
         .select("sections,locked")
@@ -70,7 +67,6 @@ export default function ModuleSix() {
     loadData();
   }, [session]);
 
-  // Auto-save
   useEffect(() => {
     if (!session?.user?.email || draft.length === 0) return;
 
@@ -129,13 +125,35 @@ export default function ModuleSix() {
       <main className="flex-1 p-6 space-y-8">
         <h1 className="text-2xl font-bold text-theme-dark mb-2">✍️ Draft Your Essay</h1>
 
-        <p className="text-gray-700">
-          Use your outline and observations to write your draft. Start with an introduction, develop
-          the body paragraphs, and finish with a conclusion.
+        <div className="text-gray-700 space-y-2">
+          <p>
+            <strong>Now it’s time to write your draft!</strong>
+            <br />
+            Below, you’ll see each section of your paper already set up for you: the introduction, one paragraph for each group of ideas (or <em>bucket</em>) you created in your outline, and the conclusion.
+          </p>
+          <p>
+            Your job now is to use the outline you built in Module 5 and the observations and quotes you collected earlier to fully write out each section as a complete paragraph.
+          </p>
+        </div>
+
+        <ul className="list-disc list-inside text-gray-700 space-y-1 mt-2">
+          <li>Start with a clear topic sentence that connects to your thesis.</li>
+          <li>Add details and evidence from your observations and quotes to support your point.</li>
+          <li>Explain how your evidence relates back to your thesis.</li>
+        </ul>
+
+        <p className="text-gray-700 mt-2">
+          The <strong>Introduction</strong> should include your thesis and give the reader an idea of what’s coming.  
+          Each <strong>body paragraph</strong> (one for each bucket) should focus on one main idea from your outline and develop it fully.  
+          The <strong>Conclusion</strong> should restate your thesis in a fresh way and leave the reader with a final thought.
+        </p>
+
+        <p className="text-gray-700 mt-2">
+          📌 You can also open the <strong>Outline / Notes</strong> panel on the right to review your buckets and observations while you write.
         </p>
 
         <section>
-          <h2 className="text-xl font-bold mb-2">{roman(1)}. Introduction</h2>
+          <h2 className="text-xl font-bold mb-2">{roman(0)}. Introduction</h2>
           <textarea
             className="w-full border rounded p-3 min-h-[120px]"
             value={draft[0] || ""}
@@ -147,7 +165,7 @@ export default function ModuleSix() {
         {outline.body.map((b, i) => (
           <section key={i}>
             <h2 className="text-xl font-bold mb-2">
-              {roman(i + 2)}. {b.bucket}
+              {roman(i + 1)}. {b.bucket}
             </h2>
             <textarea
               className="w-full border rounded p-3 min-h-[160px]"
@@ -160,7 +178,7 @@ export default function ModuleSix() {
 
         <section>
           <h2 className="text-xl font-bold mb-2">
-            {roman(outline.body.length + 2)}. Conclusion
+            {roman(outline.body.length + 1)}. Conclusion
           </h2>
           <textarea
             className="w-full border rounded p-3 min-h-[120px]"
@@ -208,7 +226,7 @@ export default function ModuleSix() {
           {outline.body.map((b, i) => (
             <div key={i}>
               <div className="font-semibold">
-                {roman(i + 2)}. {b.bucket}
+                {roman(i + 1)}. {b.bucket}
               </div>
               <ul className="pl-4 list-disc list-inside text-xs">
                 {b.points.map((pt, j) => (
@@ -217,7 +235,7 @@ export default function ModuleSix() {
               </ul>
             </div>
           ))}
-          <div>{roman(outline.body.length + 2)}. Conclusion</div>
+          <div>{roman(outline.body.length + 1)}. Conclusion</div>
         </div>
 
         <h3 className="text-lg font-semibold mb-2">🔍 Observations</h3>

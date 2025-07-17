@@ -88,6 +88,39 @@ export default function ModuleNine() {
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-theme-blue">📘 Module 9: APA Mini Quiz & Final Submission</h1>
 
+      {/* 📖 Explanation Section */}
+      <section className="border border-gray-300 p-4 rounded bg-blue-50 space-y-2">
+        <h2 className="text-xl font-semibold">📖 About This Module: APA Formatting</h2>
+        <p className="text-sm">
+          Now that your essay draft is complete, it’s time to format it in <strong>APA Style</strong>, a standard style for academic writing.
+        </p>
+        <p className="text-sm">
+          In this module you will:
+        </p>
+        <ul className="list-disc ml-6 text-sm">
+          <li>Take a short quiz to show that you understand the basics of APA formatting.</li>
+          <li>Use the provided Google Docs APA Template (linked below) to format your essay.</li>
+          <li>Download your finished essay as a PDF and upload it here for final submission.</li>
+        </ul>
+        <p className="text-sm">
+          ✨ You’ll move your essay to Google Docs now because it has the tools you need to properly format APA papers — such as headers, spacing, and references.
+        </p>
+        <p>
+          📄 Click here to copy the template and get started:
+        </p>
+        <p>
+          <a
+            href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 underline"
+          >
+            📄 Copy APA Google Docs Template
+          </a>
+        </p>
+      </section>
+
+      {/* 📋 APA Checklist */}
       <section className="border border-gray-300 p-4 rounded bg-blue-50 space-y-2">
         <h2 className="text-xl font-semibold">📋 APA Formatting Checklist</h2>
         <ul className="list-disc ml-6 text-sm">
@@ -97,14 +130,9 @@ export default function ModuleNine() {
           <li>Page header with title and page number, right-aligned</li>
           <li>References page: double spaced and in alphabetical order</li>
         </ul>
-        <p className="mt-2">
-          📄 Use this template:{" "}
-          <a href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">
-            Copy APA Google Docs Template
-          </a>
-        </p>
       </section>
 
+      {/* 📑 Quiz */}
       {questions.map((q, idx) => (
         <div key={idx} className="space-y-2">
           <p className="font-medium">{idx + 1}. {q.question}</p>
@@ -138,6 +166,7 @@ export default function ModuleNine() {
             You scored {score} out of {questions.length}.
           </div>
 
+          {/* 📤 Upload Final PDF */}
           <section className="mt-8 border border-gray-200 p-4 rounded bg-gray-50">
             <h2 className="text-lg font-semibold mb-2">📤 Submit Final Essay as PDF</h2>
             <p className="text-sm text-gray-600 mb-2">

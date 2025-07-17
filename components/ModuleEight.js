@@ -81,10 +81,23 @@ export default function ModuleEight() {
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-extrabold text-theme-blue">📝 Module 8: Final Polish</h1>
 
-      <p className="text-md text-gray-700 mb-4">
-        This is your last chance to make final edits before formatting your essay in APA and exporting.
-        Focus on clarity, grammar, and flow.
-      </p>
+      <div className="text-md text-gray-700 mb-4">
+        You’re almost finished! Below is your complete draft.
+        <br /><br />
+        <strong>What to do now:</strong>
+        <div className="mt-2">
+          <ul className="list-disc pl-5">
+            <li>Read through your essay carefully from start to finish.</li>
+            <li>Fix spelling, grammar, and awkward sentences.</li>
+            <li>Check that each paragraph supports your thesis clearly.</li>
+            <li>Make sure your ideas flow logically and sound professional.</li>
+          </ul>
+        </div>
+        <br />
+        🚫 <em>Don’t change the structure or main ideas here — just polish the language.</em>
+        <br /><br />
+        When ready, click <strong>Finalize & Continue</strong> to move on.
+      </div>
 
       <textarea
         className="w-full min-h-[300px] border p-4 rounded"

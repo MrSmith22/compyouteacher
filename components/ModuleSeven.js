@@ -134,8 +134,21 @@ export default function ModuleSeven() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-theme-blue">✍️ Module 7: Revise Your Draft</h1>
-      <p className="text-theme-dark">
-        Make final edits to your essay and record yourself reading it aloud.
+
+      <p className="text-theme-dark space-y-2">
+        <strong>Now it’s time to revise your draft for flow and clarity.</strong><br />
+        Below you can see your entire essay draft. In this step, you won’t focus on fixing every little mistake.  
+        Instead, your goal is to make sure your ideas come through clearly and that your essay flows naturally from start to finish.
+      </p>
+
+      <p className="text-theme-dark mt-2">
+        To help with this, you’ll record yourself reading your essay out loud.  
+        Listening to your own words helps you notice awkward sentences, missing connections, or parts that don’t sound right.
+      </p>
+
+      <p className="text-theme-dark mt-2">
+        As you listen back, jot down notes or make small changes if something sounds confusing, repetitive, or out of place.  
+        Don’t worry about spelling or tiny details — you’ll polish those later.
       </p>
 
       <textarea
@@ -148,7 +161,9 @@ export default function ModuleSeven() {
       <section>
         <h2 className="text-xl font-semibold text-theme-dark mb-2">🔊 Read-Aloud Recording</h2>
         <p className="text-sm text-gray-600 mb-2">
-          Record yourself reading your essay aloud. Listening helps you spot awkward sentences and improve flow.
+          🎤 Click <strong>Start Recording</strong> and read your essay out loud, all the way through.  
+          Then, listen to your recording to hear how it flows. Pay attention to parts that sound confusing, awkward, or repetitive.  
+          You can stop and re-record if you’d like.
         </p>
 
         {!recording ? (
