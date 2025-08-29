@@ -1,18 +1,19 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function ModuleNine() {
   const { data: session } = useSession();
+
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [pdfFile, setPdfFile] = useState(null);
+  const [exportUrl, setExportUrl] = useState(null);
+  const [popupBlocked, setPopupBlocked] = useState(false);
 
-  const handleFileChange = (e) => {
-    setPdfFile(e.target.files[0]);
-  };
+  const handleFileChange = (e) => setPdfFile(e.target.files[0]);
 
   const questions = [
     { question: "What is the correct font for APA Style papers?", options: ["Times New Roman, 12 pt", "Calibri, 8 pt", "Arial, 14 pt"], answer: "Times New Roman, 12 pt" },
@@ -28,6 +29,19 @@ export default function ModuleNine() {
   ];
 
   const [userAnswers, setUserAnswers] = useState(Array(questions.length).fill(""));
+
+  useEffect(() => {
+    // Load any previously exported doc link
+    (async () => {
+      if (!session?.user?.email) return;
+      const { data } = await supabase
+        .from("exported_docs")
+        .select("web_view_link")
+        .eq("user_email", session.user.email)
+        .maybeSingle();
+      if (data?.web_view_link) setExportUrl(data.web_view_link);
+    })();
+  }, [session]);
 
   const handleChange = (index, value) => {
     const updated = [...userAnswers];
@@ -76,10 +90,17 @@ export default function ModuleNine() {
 
     const result = await response.json();
 
-    if (response.ok) {
-      window.open(result.url, "_blank");
-    } else {
+    if (!response.ok) {
       alert("Failed to export to Google Docs.");
+      return;
+    }
+
+    setExportUrl(result.url);
+
+    // Try opening a new tab; detect popup block
+    const win = window.open(result.url, "_blank");
+    if (!win || win.closed || typeof win.closed === "undefined") {
+      setPopupBlocked(true);
     }
   };
 
@@ -158,6 +179,34 @@ export default function ModuleNine() {
           >
             ✍ Export Final Draft to Google Docs (APA Format)
           </button>
+
+          {exportUrl && (
+            <div className="mt-4 border rounded p-3 bg-white shadow">
+              <div className="font-semibold mb-2">Your Google Doc</div>
+              <div className="flex items-center gap-3">
+                <a
+                  className="text-theme-blue underline"
+                  href={exportUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open your document
+                </a>
+                <button
+                  className="px-3 py-1 border rounded"
+                  onClick={() => navigator.clipboard.writeText(exportUrl)}
+                >
+                  Copy link
+                </button>
+              </div>
+              {popupBlocked && (
+                <p className="text-sm text-orange-700 mt-2">
+                  It looks like a popup blocker stopped the new tab. Use the link above,
+                  or allow popups for localhost.
+                </p>
+              )}
+            </div>
+          )}
 
           <section className="mt-8 border p-4 rounded bg-white shadow">
             <h2 className="text-lg font-semibold mb-2 text-theme-dark">📤 Submit Final Essay as PDF</h2>
