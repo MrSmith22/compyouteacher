@@ -42,3 +42,4 @@ next-env.d.ts
 
 .vs/
 public/videos/*.mp4
+.env.local
