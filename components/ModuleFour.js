@@ -1,10 +1,9 @@
-﻿// JavaScript source code
-// components/ModuleFour.js
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function ModuleFour() {
   const { data: session } = useSession();
@@ -13,75 +12,61 @@ export default function ModuleFour() {
   const [newBucketName, setNewBucketName] = useState("");
   const [reflection, setReflection] = useState("");
   const [filter, setFilter] = useState({ strategy: "", source: "" });
+  const router = useRouter();
 
   // 📌 Load analysis + buckets + reflection
-useEffect(() => {
-  const fetchData = async () => {
-    const email = session?.user?.email;
-    if (!email) return;
+  useEffect(() => {
+    const fetchData = async () => {
+      const email = session?.user?.email;
+      if (!email) return;
 
-    // Load analysis
-    const { data: analysisData, error: analysisError } = await supabase
-      .from("tchart_entries")
-      .select("*")
-      .eq("user_email", email);
+      // Load analysis
+      const { data: analysisData, error: analysisError } = await supabase
+        .from("tchart_entries")
+        .select("*")
+        .eq("user_email", email);
 
-    if (analysisError) {
-      console.error("Error fetching analysis:", analysisError);
-    } else {
-      setAnalysis(analysisData);
-    }
+      if (analysisError) {
+        console.error("Error fetching analysis:", analysisError);
+      } else {
+        setAnalysis(analysisData);
+      }
 
-    // Load buckets + reflection
-    const { data: saved, error: loadError } = await supabase
-      .from("bucket_groups")
-      .select("*")
-      .eq("user_email", email);
+      // Load buckets + reflection
+      const { data: saved, error: loadError } = await supabase
+        .from("bucket_groups")
+        .select("*")
+        .eq("user_email", email);
 
-    if (loadError) {
-      console.warn("Error loading buckets/reflection:", loadError);
-    } else if (saved?.length > 0) {
-      setBuckets(saved[0].buckets || []);
-      setReflection(saved[0].reflection || "");
-    }
-  };
+      if (loadError) {
+        console.warn("Error loading buckets/reflection:", loadError);
+      } else if (saved?.length > 0) {
+        setBuckets(saved[0].buckets || []);
+        setReflection(saved[0].reflection || "");
+      }
+    };
 
-  fetchData();
-}, [session]);
-
+    fetchData();
+  }, [session]);
 
   // 📌 Save when buckets or reflection change
   useEffect(() => {
     const saveBuckets = async () => {
       const email = session?.user?.email;
-     if (!email) return;
-if (buckets.length === 0 && reflection.trim() === "") return;
+      if (!email) return;
+      if (buckets.length === 0 && reflection.trim() === "") return;
 
-
-     console.log("Saving for:", email);
-
-
-     console.log("Submitting payload:", JSON.stringify({
-  user_email: email,
-  buckets,
-  reflection,
-  updated_at: new Date().toISOString(),
-}, null, 2));
-
-
-const { error } = await supabase
-  .from("bucket_groups")
-  .upsert(
-    {
-      user_email: email,
-      buckets,
-      reflection,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_email" }
-  );
-
-
+      const { error } = await supabase
+        .from("bucket_groups")
+        .upsert(
+          {
+            user_email: email,
+            buckets,
+            reflection,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_email" }
+        );
 
       if (error) {
         console.error("Error saving buckets & reflection:", error);
@@ -90,9 +75,6 @@ const { error } = await supabase
 
     saveBuckets();
   }, [buckets, reflection, session]);
-
-
-
 
   const addBucket = () => {
     if (!newBucketName) return;
@@ -106,40 +88,17 @@ const { error } = await supabase
     setBuckets(updated);
   };
 
-  const filteredAnalysis = analysis.flatMap((entry) => {
-  const entries = [];
-
-  if (
-    (!filter.strategy || entry.category === filter.strategy) &&
-    (!filter.source || filter.source === "speech")
-  ) {
-    entries.push({
-      category: entry.category,
-      source: "speech",
-      observation: entry.speech_note,
-      quote: (entry.speech_quotes || []).join("; "),
-    });
-  }
-
-  if (
-    (!filter.strategy || entry.category === filter.strategy) &&
-    (!filter.source || filter.source === "letter")
-  ) {
-    entries.push({
-      category: entry.category,
-      source: "letter",
-      observation: entry.letter_note,
-      quote: (entry.letter_quotes || []).join("; "),
-    });
-  }
-
-  return entries;
-});
-
+  // ✅ Filter & map analysis
+  const filteredAnalysis = analysis.filter((entry) => {
+    return (
+      (!filter.strategy || entry.category === filter.strategy) &&
+      (!filter.source || entry.type === filter.source)
+    );
+  });
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">🧠 Group Your Ideas into Buckets</h1>
+      <h1 className="text-2xl font-bold mb-4 text-theme-dark">🧠 Group Your Ideas into Buckets</h1>
 
       <p className="mb-4 text-gray-700">
         Use the filters to explore your analysis entries. Then create buckets (like paragraph ideas)
@@ -174,12 +133,12 @@ const { error } = await supabase
 
       {/* Analysis Entries */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Your Analysis Entries</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">Your Analysis Entries</h2>
         <ul className="space-y-2">
           {filteredAnalysis.map((entry, i) => (
             <li key={i} className="border p-3 rounded bg-gray-50">
               <p><strong>Category:</strong> {entry.category}</p>
-              <p><strong>Source:</strong> {entry.source}</p>
+              <p><strong>Source:</strong> {entry.type}</p>
               <p><strong>Observation:</strong> {entry.observation}</p>
               <p><strong>Quote:</strong> {entry.quote || <em>None yet</em>}</p>
               {buckets.length > 0 && (
@@ -202,9 +161,9 @@ const { error } = await supabase
         </ul>
       </div>
 
-           {/* Bucket Creator */}
+      {/* Bucket Creator */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Create Buckets</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">Create Buckets</h2>
         <div className="flex gap-2">
           <input
             className="border p-2 rounded w-full"
@@ -214,7 +173,7 @@ const { error } = await supabase
           />
           <button
             onClick={addBucket}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-theme-blue text-white px-4 py-2 rounded"
           >
             Add
           </button>
@@ -223,14 +182,16 @@ const { error } = await supabase
 
       {/* Buckets */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-2">Your Buckets</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">Your Buckets</h2>
         {buckets.map((bucket, i) => (
           <div key={i} className="mb-4 border p-4 rounded bg-white shadow">
-            <h3 className="font-bold text-blue-600 mb-2">{bucket.name}</h3>
+            <h3 className="font-bold text-theme-blue mb-2">{bucket.name}</h3>
             <ul className="list-disc list-inside">
               {bucket.items.map((item, j) => (
                 <li key={j}>
-                  <span className="font-medium">{item.category}:</span> {item.observation}
+                  <strong>{item.category} ({item.source}):</strong>{" "}
+                  {item.quote && <span className="italic">“{item.quote}”</span>}
+                  {item.observation && <> — {item.observation}</>}
                 </li>
               ))}
             </ul>
@@ -240,7 +201,7 @@ const { error } = await supabase
 
       {/* Final Reflection */}
       <div className="mb-10">
-        <h2 className="text-lg font-semibold mb-2">💬 Reflection</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">💬 Reflection</h2>
         <p className="text-sm text-gray-600 mb-2">
           Why did you group your observations this way? Which patterns or key ideas do you think are
           important enough to include in your essay?
@@ -252,6 +213,34 @@ const { error } = await supabase
           placeholder="Write your thoughts here..."
         />
       </div>
+      {/* Save & Continue Button */}
+<div className="text-center mt-6">
+  <button
+    onClick={async () => {
+      const email = session?.user?.email;
+      if (!email) return;
+
+      const { error } = await supabase.from("bucket_groups").upsert(
+        {
+          user_email: email,
+          buckets,
+          reflection,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_email" }
+      );
+
+      if (error) {
+        alert("Error saving: " + error.message);
+      } else {
+        router.push("/modules/4/success");
+      }
+    }}
+    className="px-6 py-3 bg-theme-blue text-white rounded shadow hover:bg-blue-700"
+  >
+    Save & Continue
+  </button>
+</div>
     </div>
   );
 }

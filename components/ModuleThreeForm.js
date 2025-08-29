@@ -1,15 +1,10 @@
-﻿// JavaScript source code
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
 
-
-/*──────────────────────────────────────────────────────────*/
-/* CONFIG */
-/*──────────────────────────────────────────────────────────*/
 const questionGroups = [
   {
     title: "Audience & Purpose",
@@ -33,11 +28,8 @@ export default function ModuleThreeForm() {
   const [structureChoice, setStructureChoice] = useState("");
   const [thesis, setThesis] = useState("");
 
-
-  /* helper – a “phrase” = ≤ 6 words */
   const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
 
-  /* state */
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState(Array(16).fill(""));
   const [customLabels, setCustomLabels] = useState(null);
@@ -45,11 +37,8 @@ export default function ModuleThreeForm() {
   const savingRef = useRef(false);
 
   const currentGroup = questionGroups[step];
-  const groupStartIndex = questionGroups
-    .slice(0, step)
-    .reduce((sum, g) => sum + g.questions.length, 0);
+  const groupStartIndex = questionGroups.slice(0, step).reduce((sum, g) => sum + g.questions.length, 0);
 
-  /*────────────────────────── Prefill */
   useEffect(() => {
     const fetchExisting = async () => {
       const email = session?.user?.email;
@@ -60,12 +49,12 @@ export default function ModuleThreeForm() {
         .eq("user_email", email)
         .single();
 
-     if (data) {
-  setResponses(data.responses);
-  generateCustomLabels(data.responses);
-  if (data.thesis) setThesis(data.thesis);
-  if (data.updated_at) setLastSaved(new Date(data.updated_at));
-}
+      if (data) {
+        setResponses(data.responses);
+        generateCustomLabels(data.responses);
+        if (data.thesis) setThesis(data.thesis);
+        if (data.updated_at) setLastSaved(new Date(data.updated_at));
+      }
     };
     fetchExisting();
   }, [session]);
@@ -76,7 +65,6 @@ export default function ModuleThreeForm() {
     setResponses(updated);
   };
 
-  /*────────────────────────── Dynamic labels */
   const generateCustomLabels = (prefill = responses) => {
     const [sa, sp, la, lp] = [
       prefill[0] || "the speech audience",
@@ -100,7 +88,6 @@ export default function ModuleThreeForm() {
     ]);
   };
 
-  /*────────────────────────── Autosave */
   useEffect(() => {
     if (!session?.user?.email) return;
     const id = setInterval(async () => {
@@ -118,39 +105,39 @@ export default function ModuleThreeForm() {
     return () => clearInterval(id);
   }, [responses, thesis, session]);
 
-  /*────────────────────────── Submit */
   const handleSubmit = async () => {
-  const email = session?.user?.email;
-  if (!email) {
-    alert("You must be signed in to save your responses.");
-    return;
-  }
+    const email = session?.user?.email;
+    if (!email) {
+      alert("You must be signed in to save your responses.");
+      return;
+    }
 
-  const { error } = await supabase.from("module3_responses").upsert({
-  user_email: email,
-  responses,
-  thesis,
-  created_at: new Date().toISOString(),
-});
+    const { error } = await supabase.from("module3_responses").upsert({
+      user_email: email,
+      responses,
+      thesis,
+      created_at: new Date().toISOString(),
+    });
 
+    if (error) {
+      alert("Something went wrong: " + error.message);
+    } else {
+      router.push("/modules/3/success");
+    }
+  };
 
-  if (error) {
-    alert("Something went wrong: " + error.message);
-  } else {
-    router.push("/modules/3/success");
-  }
-};
-
-
-  /*────────────────────────── UI */
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h2 className="text-2xl font-bold">{currentGroup.title}</h2>
+    <div className="max-w-3xl mx-auto p-6 space-y-8 bg-theme-light rounded shadow">
+      <h2 className="text-3xl font-extrabold text-theme-green text-center">
+        {currentGroup.title}
+      </h2>
 
       {step === 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">🎬 Thesis Statement Walkthrough</h3>
-          <video width="100%" height="360" controls>
+          <h3 className="text-lg font-semibold text-theme-blue mb-2">
+  🎬 Thesis Statement Walkthrough
+</h3>
+          <video width="100%" height="360" controls className="rounded shadow">
             <source src="/videos/thesis-intro.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -158,8 +145,8 @@ export default function ModuleThreeForm() {
       )}
 
       {currentGroup.questions.map((q, i) => (
-        <div key={i} className="mb-4">
-          <label className="block font-semibold mb-1">
+        <div key={i} className="bg-white p-4 rounded shadow mb-4">
+          <label className="block font-semibold text-theme-dark mb-1">
             {step > 0 && customLabels ? customLabels[groupStartIndex + i - 4] : q}
           </label>
           <textarea
@@ -168,98 +155,71 @@ export default function ModuleThreeForm() {
             className="w-full border rounded p-2 min-h-[80px]"
           />
           {step === 0 && i < 4 && responses[groupStartIndex + i] && !isPhrase(responses[groupStartIndex + i]) && (
-            <p className="text-xs text-red-600 mt-1">Keep it short—just a phrase.</p>
+            <p className="text-xs text-theme-red mt-1">Keep it short—just a phrase.</p>
           )}
         </div>
       ))}
 
       {step === questionGroups.length - 1 && (
-  <div className="mt-6 space-y-6">
-    <h3 className="text-lg font-semibold mb-4">📌 Write Your Thesis Statement</h3>
+        <div className="mt-6 bg-white p-4 rounded shadow space-y-6">
+          <h3 className="text-lg font-semibold text-theme-dark mb-4">📌 Write Your Thesis Statement</h3>
 
-    {/* Structure choice */}
-    <div className="space-y-2">
-      <label className="block font-semibold mb-1">Choose your structure:</label>
-      <div className="space-y-1">
-        <label className="block">
-          <input
-            type="radio"
-            name="structure"
-            value="similarities-then-differences"
-            checked={structureChoice === "similarities-then-differences"}
-            onChange={(e) => setStructureChoice(e.target.value)}
-          />
-          <span className="ml-2">Primarily Similarities, then Differences</span>
-        </label>
-        <label className="block">
-          <input
-            type="radio"
-            name="structure"
-            value="differences-then-similarities"
-            checked={structureChoice === "differences-then-similarities"}
-            onChange={(e) => setStructureChoice(e.target.value)}
-          />
-          <span className="ml-2">Primarily Differences, then Similarities</span>
-        </label>
-        <label className="block">
-          <input
-            type="radio"
-            name="structure"
-            value="appeals-organization"
-            checked={structureChoice === "appeals-organization"}
-            onChange={(e) => setStructureChoice(e.target.value)}
-          />
-          <span className="ml-2">Organized by Ethos/Pathos/Logos</span>
-        </label>
-      </div>
-    </div>
+          <div className="space-y-2">
+            <label className="block font-semibold text-theme-dark mb-1">Choose your structure:</label>
+            <div className="space-y-1">
+              {["similarities-then-differences", "differences-then-similarities", "appeals-organization"].map((val) => (
+                <label className="block" key={val}>
+                  <input
+                    type="radio"
+                    name="structure"
+                    value={val}
+                    checked={structureChoice === val}
+                    onChange={(e) => setStructureChoice(e.target.value)}
+                  />
+                  <span className="ml-2 capitalize">{val.replace(/-/g, " ")}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-    {/* Thesis Template */}
-    {structureChoice && (
-      <div className="mt-4">
-        <p className="font-semibold mb-1">Suggested Thesis Template:</p>
-        <div className="p-3 bg-gray-100 rounded text-sm">
-          {structureChoice === "similarities-then-differences" && (
-            <p>Although both works {`____`}, they differ in {`____`} because {`____`}.</p>
+          {structureChoice && (
+            <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
+              <p className="font-semibold mb-1">Suggested Thesis Template:</p>
+              {structureChoice === "similarities-then-differences" && (
+                <p>Although both works ___, they differ in ___ because ___.</p>
+              )}
+              {structureChoice === "differences-then-similarities" && (
+                <p>While ___ differs between the two works, both share ___ through ___.</p>
+              )}
+              {structureChoice === "appeals-organization" && (
+                <p>Dr. King uses ethos, pathos, and logos differently to address ___ in each text.</p>
+              )}
+            </div>
           )}
-          {structureChoice === "differences-then-similarities" && (
-            <p>While {`____`} differs between the two works, both share {`____`} through {`____`}.</p>
-          )}
-          {structureChoice === "appeals-organization" && (
-            <p>Dr. King uses {`ethos`}, {`pathos`}, and {`logos`} differently to address {`____`} in each text.</p>
+
+          {structureChoice && (
+            <div className="mt-4">
+              <label className="block font-semibold text-theme-dark mb-1">Your full thesis:</label>
+              <textarea
+                value={thesis}
+                onChange={(e) => setThesis(e.target.value)}
+                className="w-full border rounded p-2 min-h-[80px]"
+              />
+            </div>
           )}
         </div>
-      </div>
-    )}
+      )}
 
-    {/* Thesis Input */}
-    {structureChoice && (
-      <div className="mt-4">
-        <label className="block font-semibold mb-1">Your full thesis:</label>
-        <textarea
-          value={thesis}
-          onChange={(e) => setThesis(e.target.value)}
-          className="w-full border rounded p-2 min-h-[80px]"
-        />
-      </div>
-    )}
-  </div>
-)}
-
-
-      {/* footer */}
       <div className="flex justify-between items-center mt-4">
         {lastSaved && (
-          <span className="text-xs text-gray-500">Saved {lastSaved.toLocaleTimeString()}</span>
+          <span className="text-xs text-gray-500">Saved {lastSaved.toLocaleTimeString()}</span>
         )}
-
         <div className="ml-auto flex gap-2">
           {step > 0 && (
             <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-300 rounded">
               Back
             </button>
           )}
-
           {step < questionGroups.length - 1 ? (
             <button
               onClick={() => {
@@ -272,17 +232,16 @@ export default function ModuleThreeForm() {
                       const ans = responses[groupStartIndex + i];
                       return !ans || !isPhrase(ans);
                     })
-                  : currentGroup.questions.some(
-                      (_, i) => !responses[groupStartIndex + i]
-                    )
+                  : currentGroup.questions.some((_, i) => !responses[groupStartIndex + i])
               }
-              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
-                            Next
+              className="px-4 py-2 bg-theme-blue text-white rounded disabled:opacity-50"
+            >
+              Next
             </button>
           ) : (
             <button
               onClick={handleSubmit}
-              className="px-4 py-2 bg-green-600 text-white rounded"
+              className="px-4 py-2 bg-theme-green text-white rounded"
             >
               Submit
             </button>
@@ -292,4 +251,3 @@ export default function ModuleThreeForm() {
     </div>
   );
 }
-

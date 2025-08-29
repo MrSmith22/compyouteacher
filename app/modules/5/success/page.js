@@ -1,17 +1,28 @@
-﻿// JavaScript source code
-export default function OutlineSuccess() {
+﻿"use client";
+
+import Link from "next/link";
+
+export default function ModuleFiveSuccess() {
   return (
-    <div className="p-10 text-center">
-      <h1 className="text-2xl font-bold mb-4">🎉 Outline saved!</h1>
-      <p className="mb-6">
-        Great job — your outline is locked and ready for drafting.
-      </p>
-      <a
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-        href="/modules/6"
-      >
-        Start Module 6
-      </a>
+    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
+      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
+        <div className="text-5xl">🎉</div>
+
+        <h1 className="text-3xl font-bold text-theme-green">
+          Module 5 Complete!
+        </h1>
+
+        <p className="text-lg text-theme-dark">
+          Great work finalizing your outline! You’re ready to start drafting your essay.
+        </p>
+
+        <Link
+          href="/modules/6"
+          className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
+        >
+          Start Module 6 →
+        </Link>
+      </div>
     </div>
   );
 }
