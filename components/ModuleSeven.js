@@ -5,75 +5,197 @@ import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "../lib/supabaseClient";
 
+// Choose a supported recording format
+function pickAudioFormat() {
+  const candidates = [
+    { mime: "audio/webm;codecs=opus", ext: "webm" }, // Chrome/Edge best
+    { mime: "audio/webm", ext: "webm" },
+    { mime: "audio/mp4", ext: "m4a" },               // Safari
+    { mime: "audio/aac", ext: "m4a" }                // Safari fallback
+  ];
+  for (const c of candidates) {
+    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported?.(c.mime)) return c;
+  }
+  return { mime: "", ext: "webm" };
+}
+
 export default function ModuleSeven() {
   const { data: session } = useSession();
   const router = useRouter();
+
   const [text, setText] = useState("");
   const [locked, setLocked] = useState(false);
-
   const [recording, setRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
+
+  // NEW: mic devices and selection
+  const [devices, setDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [amp, setAmp] = useState(0); // live amplitude meter
+
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const analyserRef = useRef(null);
+  const rafRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const streamRef = useRef(null);
 
+  const email = session?.user?.email ?? null;
+
+  // Fetch draft row (use maybeSingle to avoid 406)
   useEffect(() => {
     const fetchData = async () => {
-      const email = session?.user?.email;
       if (!email) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("student_drafts")
         .select("full_text, revised, final_ready, audio_url")
         .eq("user_email", email)
-        .eq("module", 6)
-        .single();
+        .eq("module", 7)
+        .maybeSingle();
 
-      if (data?.full_text) setText(data.full_text);
-      if (data?.audio_url) setAudioURL(data.audio_url);
-      if (data?.final_ready) setLocked(true);
+      if (error) console.error("Fetch error:", error);
+      setText(data?.full_text ?? "");
+      setAudioURL(data?.audio_url ?? null);
+      setLocked(!!data?.final_ready);
     };
-
     fetchData();
-  }, [session]);
+  }, [email]);
+
+  // NEW: enumerate input devices once user has granted permission at least once
+  useEffect(() => {
+    async function loadDevices() {
+      try {
+        // Calling getUserMedia once helps reveal labels on macOS/Chrome
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch {}
+      const list = await navigator.mediaDevices.enumerateDevices();
+      const inputs = list.filter(d => d.kind === "audioinput");
+      setDevices(inputs);
+      // pick previously chosen or default
+      const saved = localStorage.getItem("chosenMicId") || "";
+      setSelectedDeviceId(saved || (inputs[0]?.deviceId ?? ""));
+    }
+    loadDevices();
+    // Update when device list changes (e.g., plug in USB mic)
+    navigator.mediaDevices?.addEventListener?.("devicechange", loadDevices);
+    return () => navigator.mediaDevices?.removeEventListener?.("devicechange", loadDevices);
+  }, []);
+
+  function stopMeter() {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    if (audioCtxRef.current) {
+      // closing audio context stops processing (keep stream for recorder)
+      audioCtxRef.current.close().catch(() => {});
+      audioCtxRef.current = null;
+    }
+    analyserRef.current = null;
+  }
+
+  function startMeter(stream) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    audioCtxRef.current = ctx;
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    source.connect(analyser);
+    analyserRef.current = analyser;
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    function tick() {
+      analyser.getByteTimeDomainData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += Math.abs(dataArray[i] - 128);
+      const amplitude = sum / dataArray.length; // 0..~?
+      setAmp(Number(amplitude.toFixed(1)));
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    tick();
+  }
 
   const startRecording = async () => {
+    if (!email) {
+      alert("Please sign in first.");
+      return;
+    }
     if (audioURL) {
       const confirmOverwrite = confirm("You already have a recording. Overwrite it?");
       if (!confirmOverwrite) return;
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
+      // Use selected device if available
+      const audioConstraints = selectedDeviceId
+        ? { deviceId: { exact: selectedDeviceId }, echoCancellation: true, noiseSuppression: true }
+        : { echoCancellation: true, noiseSuppression: true };
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+      streamRef.current = stream;
+
+      // Start live meter (visual proof of incoming audio)
+      startMeter(stream);
+
+      const chosen = pickAudioFormat();
+      const mr = new MediaRecorder(stream, chosen.mime ? { mimeType: chosen.mime } : undefined);
+      mediaRecorderRef.current = mr;
       audioChunksRef.current = [];
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      mr.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const filename = `audio-${session.user.email}-${Date.now()}.webm`;
+      mr.onstop = async () => {
+        stopMeter(); // stop the meter loop (recording ended)
 
-        const { error } = await supabase.storage
-          .from("student-audio")
-          .upload(filename, audioBlob, { contentType: "audio/webm" });
+        console.log("[Recorder] chunks:", audioChunksRef.current.length);
+        const blob = new Blob(audioChunksRef.current, { type: chosen.mime || "audio/*" });
+        console.log("[Recorder] blob.size:", blob.size);
 
-        if (error) {
-          console.error("Upload error:", error.message || error);
+        // Local playback first
+        const localUrl = URL.createObjectURL(blob);
+        setAudioURL(localUrl);
+
+        // Visible download link
+        const linkId = "download-latest-audio-ui";
+        let linkEl = document.getElementById(linkId);
+        if (!linkEl) {
+          linkEl = document.createElement("a");
+          linkEl.id = linkId;
+          linkEl.className = "inline-block underline ml-3";
+          linkEl.textContent = "⬇️ Download latest recording";
+          document.body.appendChild(linkEl);
+        }
+        linkEl.href = localUrl;
+        linkEl.download = `test-recording.${chosen.ext}`;
+
+        // Upload to Supabase (organized path)
+        const safeEmail = (email || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
+        const filename = `readaloud/${safeEmail}/${Date.now()}.${chosen.ext}`;
+
+        const { error: uploadErr } = await supabase
+          .storage.from("student-audio")
+          .upload(filename, blob, { contentType: chosen.mime || "audio/*" });
+
+        if (uploadErr) {
+          console.error("Upload error:", uploadErr);
           alert("Failed to save audio.");
           return;
         }
 
-        const { data: urlData } = supabase.storage
-          .from("student-audio")
+        const { data: urlData } = supabase
+          .storage.from("student-audio")
           .getPublicUrl(filename);
 
-        setAudioURL(urlData?.publicUrl);
+        if (urlData?.publicUrl) setAudioURL(urlData.publicUrl);
+
+        // Stop all tracks to release mic
+        stream.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
       };
 
-      mediaRecorder.start();
+      mr.start();
       setRecording(true);
     } catch (err) {
       console.error("Could not start recording:", err);
@@ -82,19 +204,20 @@ export default function ModuleSeven() {
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state !== "inactive") mr.stop();
+    setRecording(false);
   };
 
   const saveDraft = async ({ finalized = false } = {}) => {
-    const email = session?.user?.email;
-    if (!email) return;
+    if (!email) {
+      alert("Please sign in first.");
+      return;
+    }
 
-    await supabase.from("student_drafts").upsert({
+    const { error } = await supabase.from("student_drafts").upsert({
       user_email: email,
-      module: 6,
+      module: 7,
       full_text: text,
       final_text: finalized ? text : null,
       revised: !finalized,
@@ -102,6 +225,12 @@ export default function ModuleSeven() {
       audio_url: audioURL || null,
       updated_at: new Date().toISOString(),
     });
+
+    if (error) {
+      console.error("Save error:", error);
+      alert("Save failed.");
+      return;
+    }
 
     if (finalized) {
       setLocked(true);
@@ -111,7 +240,17 @@ export default function ModuleSeven() {
     }
   };
 
-  if (!session) return <p className="p-6">Loading...</p>;
+  if (!session) {
+    return (
+      <div className="p-6 space-y-3">
+        <h1 className="text-2xl font-semibold">Please sign in</h1>
+        <p className="text-theme-dark">You need to be signed in to use Module 7.</p>
+        <a className="inline-block bg-theme-blue text-white px-4 py-2 rounded" href="/api/auth/signin">
+          Sign in
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -119,6 +258,35 @@ export default function ModuleSeven() {
       <p className="text-theme-dark">
         Make final edits to your essay and record yourself reading it aloud.
       </p>
+
+      {/* NEW: Mic picker + live meter */}
+      <div className="flex items-center gap-3">
+        <label className="text-sm">Microphone:</label>
+        <select
+          className="border rounded px-2 py-1"
+          value={selectedDeviceId}
+          onChange={(e) => {
+            setSelectedDeviceId(e.target.value);
+            localStorage.setItem("chosenMicId", e.target.value);
+          }}
+        >
+          {devices.map((d) => (
+            <option key={d.deviceId} value={d.deviceId}>
+              {d.label || `Mic ${d.deviceId.slice(0,6)}…`}
+            </option>
+          ))}
+        </select>
+        <div className="text-sm">Live level: {amp}</div>
+        <div
+          className="h-2 bg-gray-200 rounded w-40 overflow-hidden"
+          title="live input amplitude"
+        >
+          <div
+            className="h-2 bg-green-500"
+            style={{ width: Math.min(100, Math.round(amp)) + "%" }}
+          />
+        </div>
+      </div>
 
       <textarea
         className="w-full min-h-[300px] border p-4 rounded"
@@ -137,9 +305,7 @@ export default function ModuleSeven() {
           <button
             onClick={startRecording}
             disabled={locked}
-            className={`${
-              locked ? "opacity-60 cursor-not-allowed" : ""
-            } bg-theme-red text-white px-4 py-2 rounded mr-2`}
+            className={`${locked ? "opacity-60 cursor-not-allowed" : ""} bg-theme-red text-white px-4 py-2 rounded mr-2`}
           >
             🎙️ Start Recording
           </button>
@@ -156,31 +322,34 @@ export default function ModuleSeven() {
           <div className="mt-4">
             <p className="text-sm font-medium">▶️ Your Recording:</p>
             <audio controls src={audioURL} className="mt-2" />
+            <div className="mt-2">
+              <a id="download-latest-audio-ui" href={audioURL} download="test-recording" className="underline">
+                ⬇️ Download latest recording
+              </a>
+            </div>
           </div>
         )}
       </section>
 
       {!locked && (
         <div className="flex flex-wrap gap-4 mt-6">
-          <button
-            onClick={() => saveDraft()}
-            className="bg-theme-blue text-white px-6 py-3 rounded shadow"
-          >
+          <button onClick={() => saveDraft()} className="bg-theme-blue text-white px-6 py-3 rounded shadow">
             💾 Save Revision
           </button>
 
-          <button
-            onClick={() => saveDraft({ finalized: true })}
-            className="bg-theme-orange text-white px-6 py-3 rounded shadow"
-          >
+          <button onClick={() => saveDraft({ finalized: true })} className="bg-theme-orange text-white px-6 py-3 rounded shadow">
             🚀 Finalize & Continue to Module 8
           </button>
         </div>
       )}
 
       {locked && (
-        <div className="text-green-700 font-semibold mt-4">
-          ✅ Draft revision complete. You cannot make further changes.
+        <div className="text-green-700 font-semibold mt-4 space-y-2">
+          <div>✅ Draft revision complete. You cannot make further changes.</div>
+          {/* Dev-only unlock helper; remove for production */}
+          <button onClick={() => setLocked(false)} className="bg-gray-200 px-3 py-2 rounded">
+            Unlock (dev)
+          </button>
         </div>
       )}
     </div>
