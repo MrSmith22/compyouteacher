@@ -1,4 +1,4 @@
-import ModuleSystem from "../../components/ModuleSystem";
+import ModuleOne from "../../components/ModuleOne";
 
 export default function ModulesPage() {
   return (
@@ -8,7 +8,7 @@ export default function ModulesPage() {
         <p className="text-center text-lg text-gray-700">
           Work through the modules step by step to develop your rhetorical analysis.
         </p>
-        <ModuleSystem />
+        <ModuleOne />
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ const modules = [
       videoFile: "/videos/Ethos Pathos and Logos Explained.mp4",
       quiz: [
         {
-          question: "What is the main purpose of the passage?",
+          question: "What is the main purpose of the video?",
           options: [
             "To explain how to cook eggs in different ways",
             "To teach readers how to improve their public speaking voice",
@@ -23,7 +23,7 @@ const modules = [
           answer: "To introduce the concept of rhetoric and its main strategies"
         },
         {
-          question: "What does the term rhetoric refer to in the passage?",
+          question: "What does the term rhetoric refer to in the video?",
           options: [
             "The ability to speak loudly and clearly",
             "The art of effective and persuasive writing and speaking",
@@ -43,7 +43,8 @@ const modules = [
           answer: "Establishing credibility and trustworthiness"
         },
         {
-          question: "A chef on a cooking show who wears a professional uniform and describes their years of experience is using which rhetorical strategy?",
+          question:
+            "A chef on a cooking show who wears a professional uniform and describes their years of experience is using which rhetorical strategy?",
           options: ["Pathos", "Logos", "Ethos", "Satire"],
           answer: "Ethos"
         },
@@ -55,10 +56,11 @@ const modules = [
             "Listing your degrees and awards in a speech",
             "Quoting historical data to support your point"
           ],
-          answer: "Sharing a touching story about a sick puppy to encourage donations"
+          answer:
+            "Sharing a touching story about a sick puppy to encourage donations"
         },
         {
-          question: "According to the passage, why is pathos often effective in persuasion?",
+          question: "According to the video, why is pathos often effective in persuasion?",
           options: [
             "It is based on historical facts",
             "It appeals to the audience's trust",
@@ -78,12 +80,14 @@ const modules = [
           answer: "Clear evidence and logical reasoning"
         },
         {
-          question: "A dentist shows patients a study on sugar and tooth decay. This is an example of which rhetorical strategy?",
+          question:
+            "A dentist shows patients a study on sugar and tooth decay. This is an example of which rhetorical strategy?",
           options: ["Logos", "Ethos", "Pathos", "Irony"],
           answer: "Logos"
         },
         {
-          question: "Why might political candidates use fear or anger in their speeches, according to the passage?",
+          question:
+            "Why might political candidates use fear or anger in their speeches, according to the video?",
           options: [
             "To avoid logical arguments",
             "To reduce audience attention",
@@ -93,21 +97,22 @@ const modules = [
           answer: "To appeal to the audience’s emotions and influence decisions"
         },
         {
-          question: "How can someone become better at rhetoric, based on the passage?",
+          question: "How can someone become better at rhetoric, based on the video?",
           options: [
             "Memorize every persuasive technique",
             "Focus only on emotional appeals",
             "Avoid learning from others to stay original",
             "Study skilled speakers and writers and practice using rhetorical strategies"
           ],
-          answer: "Study skilled speakers and writers and practice using rhetorical strategies"
+          answer:
+            "Study skilled speakers and writers and practice using rhetorical strategies"
         }
       ]
-    },
-  },
+    }
+  }
 ];
 
-export default function ModuleSystem() {
+export default function ModuleOne() {
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const currentModule = modules[currentModuleIndex];
 
@@ -156,10 +161,7 @@ export default function ModuleSystem() {
       {/* Video */}
       <div className="mb-6">
         <video width="100%" height="315" controls>
-          <source
-            src={currentModule.content.videoFile}
-            type="video/mp4"
-          />
+          <source src={currentModule.content.videoFile} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </div>

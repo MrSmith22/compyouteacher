@@ -1,165 +1,214 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { supabase } from "../lib/supabaseClient";
+import { useEffect, useMemo, useState } from "react";
 
-const categories = ["ethos", "pathos", "logos", "audience", "purpose"];
+const SEARCH_URL =
+  "https://www.google.com/search?q=full+text+I+Have+a+Dream+speech";
+
+const URL_KEY = "m2_speech_url";
+const TEXT_KEY = "m2_speech_text";
 
 export default function ModuleTwo() {
-  const { data: session } = useSession();
+  const [step, setStep] = useState(1);
+  const [url, setUrl] = useState("");
+  const [text, setText] = useState("");
+  const [checked, setChecked] = useState(null); // null | { words: number, anchors: number }
 
-  const [entries, setEntries] = useState(() =>
-    categories.reduce((acc, key) => {
-      acc[key] = {
-        speech_note: "",
-        letter_note: "",
-        speech_quote: "",
-        letter_quotes: "",
-        letter_url: "",
-      };
-      return acc;
-    }, {})
-  );
-
-  const [status, setStatus] = useState("");
-
+  // hydrate from localStorage once
   useEffect(() => {
-    const fetchData = async () => {
-      if (!session?.user?.email) return;
+    try {
+      const u = localStorage.getItem(URL_KEY) || "";
+      const t = localStorage.getItem(TEXT_KEY) || "";
+      if (u) setUrl(u);
+      if (t) setText(t);
+    } catch {}
+  }, []);
 
-      const { data, error } = await supabase
-        .from("tchart_entries")
-        .select("*")
-        .eq("user_email", session.user.email);
+  const canContinueFrom1 = true;
+  const canContinueFrom2 = !!url;
+  const canContinueFrom3 = !!text;
 
-      if (error) {
-        console.error("Error fetching data:", error.message);
-        return;
-      }
-
-      const newEntries = { ...entries };
-      data.forEach((row) => {
-        if (newEntries[row.category]) {
-          newEntries[row.category] = {
-            speech_note: row.speech_note || "",
-            letter_note: row.letter_note || "",
-            speech_quote: row.speech_quote || "",
-            letter_quotes: row.letter_quotes || "",
-            letter_url: row.letter_url || "",
-          };
-        }
-      });
-      setEntries(newEntries);
-    };
-
-    fetchData();
-  }, [session]);
-
-  const handleChange = (cat, field) => (e) => {
-    setEntries((prev) => ({
-      ...prev,
-      [cat]: {
-        ...prev[cat],
-        [field]: e.target.value,
-      },
-    }));
+  const handleNextFrom1 = () => {
+    // open search in a new tab, move to step 2
+    window.open(SEARCH_URL, "_blank", "noopener,noreferrer");
+    setStep(2);
   };
 
-  const handleSave = async () => {
-    if (!session?.user?.email) return;
+  const saveUrl = () => {
+    localStorage.setItem(URL_KEY, url.trim());
+  };
 
-    setStatus("Saving...");
+  const saveText = () => {
+    localStorage.setItem(TEXT_KEY, text.trim());
+  };
 
-    const updates = await Promise.all(
-      categories.map(async (cat) => {
-        const entry = entries[cat];
-        const { error } = await supabase.from("tchart_entries").upsert({
-          user_email: session.user.email,
-          category: cat,
-          speech_note: entry.speech_note,
-          letter_note: entry.letter_note,
-          speech_quote: entry.speech_quote,
-          letter_quotes: entry.letter_quotes,
-          letter_url: entry.letter_url,
-          updated_at: new Date().toISOString(),
-        });
+  // super-light “did you paste the transcript?” sanity check
+  const checkPaste = () => {
+    const cleaned = text
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+    const words = cleaned.split(" ").filter(Boolean).length;
 
-        if (error) {
-          console.error(`❌ Error saving ${cat}:`, error.message);
-        }
-
-        return error;
-      })
+    const anchors = ["i have a dream", "one hundred years later"].reduce(
+      (acc, a) => acc + (cleaned.includes(a) ? 1 : 0),
+      0
     );
 
-    const anyError = updates.some((e) => e);
-    setStatus(anyError ? "❌ Error saving one or more entries." : "✅ Saved!");
+    setChecked({ words, anchors });
+  };
+
+  const openSavedTranscript = () => {
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold text-theme-green">
-        Module 2: MLK Speech vs. Letter Analysis
-      </h2>
+    <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded space-y-6">
+      <h1 className="text-3xl font-extrabold">Module 2 — Analyze the Speech</h1>
 
-      <p className="text-theme-dark">
-        Use this chart to compare the rhetorical strategies used in Dr. King's{" "}
-        <em>I Have a Dream</em> speech and{" "}
-        <em>Letter from a Birmingham Jail</em> across five categories.
-      </p>
+      {/* Step indicator */}
+      <div className="text-sm text-gray-600">Step {step} of 3</div>
 
-      {categories.map((cat) => (
-        <div key={cat} className="border-t pt-6">
-          <h3 className="text-xl font-semibold capitalize text-theme-dark mb-2">
-            {cat}
-          </h3>
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Observation from the speech"
-            value={entries[cat].speech_note}
-            onChange={handleChange(cat, "speech_note")}
-          />
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Observation from the letter"
-            value={entries[cat].letter_note}
-            onChange={handleChange(cat, "letter_note")}
-          />
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Quote from the speech"
-            value={entries[cat].speech_quote}
-            onChange={handleChange(cat, "speech_quote")}
-          />
-          <textarea
-            className="w-full border p-2 rounded mb-2"
-            rows={2}
-            placeholder="Quote from the letter"
-            value={entries[cat].letter_quotes}
-            onChange={handleChange(cat, "letter_quotes")}
-          />
-          <input
-            type="text"
-            className="w-full border p-2 rounded mb-4"
-            placeholder="URL (optional)"
-            value={entries[cat].letter_url}
-            onChange={handleChange(cat, "letter_url")}
-          />
+      {/* STEP 1: Watch video */}
+      {step === 1 && (
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            1) Watch Dr. King’s <em>I Have a Dream</em> speech below. When
+            you’re done, click <strong>Next</strong>.
+          </p>
+
+          <div className="aspect-video">
+            <iframe
+              src="https://www.youtube.com/embed/vP4iY1TtS3s"
+              title="I Have a Dream"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full rounded"
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              className="bg-theme-blue text-white px-4 py-2 rounded"
+              onClick={handleNextFrom1}
+              disabled={!canContinueFrom1}
+            >
+              Next: find the full transcript
+            </button>
+          </div>
         </div>
-      ))}
+      )}
 
-      <button
-        onClick={handleSave}
-        className="bg-theme-blue text-white px-4 py-2 rounded shadow"
-      >
-        Save My Work
-      </button>
+      {/* STEP 2: Google search + URL input */}
+      {step === 2 && (
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            A new tab with a Google search for{" "}
+            <strong>“full text I Have a Dream speech”</strong> has been opened.
+            Choose a reliable source (ideally a <code>.edu</code> or{" "}
+            <code>.gov</code> site) that contains the <strong>full transcript</strong> (no
+            summaries). Paste the URL of the page you picked below, then click{" "}
+            <strong>Save URL</strong>.
+          </p>
 
-      {status && <p className="text-sm text-gray-600 mt-2">{status}</p>}
+          <div className="flex gap-2">
+            <input
+              type="url"
+              className="flex-1 border p-2 rounded"
+              placeholder="https://example.edu/speech/full-transcript"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            <button
+              className="bg-theme-green text-white px-4 py-2 rounded"
+              onClick={saveUrl}
+              disabled={!url}
+            >
+              Save URL
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              className="text-theme-blue underline"
+              onClick={() =>
+                window.open(SEARCH_URL, "_blank", "noopener,noreferrer")
+              }
+            >
+              Re-open Google search
+            </button>
+
+            <button
+              className="ml-auto bg-theme-blue text-white px-4 py-2 rounded"
+              onClick={() => setStep(3)}
+              disabled={!canContinueFrom2}
+            >
+              Next: paste transcript
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3: Paste transcript + quick check */}
+      {step === 3 && (
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            Paste the <strong>entire transcript text only</strong> (no title,
+            page numbers, notes, or commentary). Start from the first word of
+            the speech and end with the last word.
+          </p>
+
+          <textarea
+            className="w-full h-64 border p-2 rounded font-mono"
+            placeholder="Paste the full transcript here…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+
+          <div className="flex gap-2">
+            <button
+              className="bg-theme-green text-white px-4 py-2 rounded"
+              onClick={saveText}
+              disabled={!text}
+            >
+              Save text
+            </button>
+            <button
+              className="bg-theme-blue text-white px-4 py-2 rounded"
+              onClick={checkPaste}
+              disabled={!text}
+            >
+              Check my paste
+            </button>
+            <button
+              className="ml-auto bg-gray-700 text-white px-4 py-2 rounded"
+              onClick={openSavedTranscript}
+              disabled={!text}
+            >
+              Open my saved transcript
+            </button>
+          </div>
+
+          {checked && (
+            <div className="text-sm text-gray-700 bg-gray-50 border rounded p-3">
+              <div>
+                <strong>Words detected:</strong> {checked.words}
+              </div>
+              <div>
+                <strong>Anchor phrases found:</strong> {checked.anchors} / 2
+                (looking for parts of “I have a dream”, “One hundred years
+                later”)
+              </div>
+              <div className="text-gray-600 mt-1">
+                This is a quick sanity check, not a grade. We’ll run a more
+                flexible comparison later to account for small variations.
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

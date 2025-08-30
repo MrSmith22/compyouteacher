@@ -1,4 +1,3 @@
-import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions = {
@@ -16,16 +15,15 @@ export const authOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
+      // keep your user id on the session (as you had)
       session.user.id = token.sub;
       return session;
     },
   },
-  redirect({ url, baseUrl }) {
-    return url.startsWith(baseUrl) ? url : baseUrl + "/dashboard";
-  },
+  // keep any other callbacks/settings you had – for example redirect:
+  // redirect({ url, baseUrl }) {
+  //   return url.startsWith(baseUrl) ? url : baseUrl + "/dashboard";
+  // },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };

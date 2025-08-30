@@ -1,7 +1,10 @@
-﻿"use client"; // 👈 This tells Next to treat this page as a Client Component
+﻿"use client";
+import dynamic from "next/dynamic";
 
-import ModuleEight from "@/components/ModuleEight";
+const ModuleEight = dynamic(() => import("../../../components/ModuleEight"), {
+  ssr: false,
+});
 
-export default function ModuleEightPage() {
+export default function Page() {
   return <ModuleEight />;
 }

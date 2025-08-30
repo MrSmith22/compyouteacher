@@ -11,61 +11,89 @@ export default function ModuleEight() {
 
   const [text, setText] = useState("");
   const [locked, setLocked] = useState(false);
+  const email = session?.user?.email ?? null;
 
   useEffect(() => {
-    const fetchText = async () => {
-      const email = session?.user?.email;
+    const load = async () => {
       if (!email) return;
 
-      const { data } = await supabase
+      // 1) Read from Module 7 (where the “final text” lives after revise)
+      const { data: m7, error: m7err } = await supabase
         .from("student_drafts")
         .select("full_text, final_text, final_ready")
         .eq("user_email", email)
-        .eq("module", 6)
-        .single();
+        .eq("module", 7)
+        .maybeSingle();
 
-      console.log("Module 8 loaded:", data);
+      if (m7err) console.error("Module 7 fetch error:", m7err);
 
-      if (data?.final_text) {
-        setText(data.final_text);
-      } else if (data?.full_text) {
-        setText(data.full_text); // fallback path
+      // Prefer module 7's final_text; fallback to full_text
+      const draft = m7?.final_text || m7?.full_text || "";
+      setText(draft);
+
+      // 2) Also check if Module 8 already locked
+      const { data: m8, error: m8err } = await supabase
+        .from("student_drafts")
+        .select("final_ready, final_text")
+        .eq("user_email", email)
+        .eq("module", 8)
+        .maybeSingle();
+
+      if (m8err) console.error("Module 8 fetch error:", m8err);
+
+      if (m8?.final_ready) {
+        setLocked(true);
+        // If Module 8 is already locked, show its saved text
+        if (m8?.final_text) setText(m8.final_text);
       }
-
-      if (data?.final_ready) setLocked(true);
     };
 
-    fetchText();
-  }, [session]);
+    load();
+  }, [email]);
 
-  const saveFinalText = async () => {
-    const email = session?.user?.email;
+  const saveAndLock = async () => {
     if (!email) return;
 
-    await supabase
+    // Write a row specifically for Module 8 and lock it
+    const { error } = await supabase
       .from("student_drafts")
       .upsert({
         user_email: email,
-        module: 6,
-        final_text: text,
+        module: 8,
+        full_text: text,       // keep a copy
+        final_text: text,      // lock this as final for M8
+        revised: false,
         final_ready: true,
         updated_at: new Date().toISOString(),
       });
 
-    setLocked(true);
+    if (error) {
+      console.error("Module 8 save error:", error);
+      alert("Save failed.");
+      return;
+    }
 
+    setLocked(true);
     router.push("/modules/8/success");
   };
 
-  if (!session) return <p className="p-6">Loading...</p>;
+  if (!session) {
+    return (
+      <div className="p-6 space-y-3">
+        <h1 className="text-2xl font-semibold">Please sign in</h1>
+        <a className="inline-block bg-theme-blue text-white px-4 py-2 rounded" href="/api/auth/signin">
+          Sign in
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-extrabold text-theme-blue">📝 Module 8: Final Polish</h1>
 
       <p className="text-md text-gray-700 mb-4">
-        This is your last chance to make final edits before formatting your essay in APA and exporting.
-        Focus on clarity, grammar, and flow. When ready, lock your draft and move to the next step.
+        Make last tweaks before formatting and exporting. When ready, lock this module.
       </p>
 
       <textarea
@@ -77,14 +105,14 @@ export default function ModuleEight() {
 
       {!locked ? (
         <button
-          onClick={saveFinalText}
+          onClick={saveAndLock}
           className="bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded shadow"
         >
-          ✅ I'm Done Polishing — Lock and Continue
+          ✅ Lock Module 8 & Continue
         </button>
       ) : (
         <div className="text-theme-green font-semibold">
-          ✅ Final draft locked and ready for APA formatting.
+          ✅ Module 8 locked and ready for APA formatting.
         </div>
       )}
     </div>

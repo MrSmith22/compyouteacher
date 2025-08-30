@@ -1,23 +1,7 @@
-﻿// app/modules/2/success/page.js
-"use client";
+﻿"use client";
 
-import Link from "next/link";
+import ModuleTwo from "@/components/ModuleTwo";
 
-export default function Module2Success() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <h1 className="text-3xl font-extrabold text-theme-green">Module 2 Complete!</h1>
-        <p className="text-lg text-theme-dark">
-          Great job analyzing the speech and letter. You’re ready to compare rhetorical techniques.
-        </p>
-        <Link
-          href="/modules/3"
-          className="inline-block bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded shadow transition"
-        >
-          Start Module 3 →
-        </Link>
-      </div>
-    </div>
-  );
+export default function ModuleTwoPage() {
+  return <ModuleTwo />;
 }
