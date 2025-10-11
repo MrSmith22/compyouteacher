@@ -40,3 +40,11 @@ next-env.d.ts
 # videos
 .vs/
 public/videos/*.mp4
+service-account.json
+
+# Secrets
+.env
+.env.local
+.env.*.local
+service-account.json
+
