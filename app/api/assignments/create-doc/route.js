@@ -15,7 +15,7 @@ export async function POST(request) {
 
   try {
     const serviceAccountKey = JSON.parse(
-      readFileSync(path.join(process.cwd(), "service-account.json"))
+      readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)
     );
 
     const auth = new google.auth.GoogleAuth({
