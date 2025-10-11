@@ -1,9 +1,7 @@
-// /app/api/assignments/create-doc/route.js
-
+// app/api/assignments/create-doc/route.js
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
 import { readFileSync } from "fs";
-import path from "path";
 
 export async function POST(request) {
   const body = await request.json();
@@ -14,24 +12,31 @@ export async function POST(request) {
   }
 
   try {
-    const serviceAccountKey = JSON.parse(
-      readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    );
+    // Read key from path set in .env.local:
+    // GOOGLE_APPLICATION_CREDENTIALS=/Users/jasonsmith/.keys/service-account.json
+    const raw = readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS).toString();
+    const key = JSON.parse(raw);
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: serviceAccountKey,
+    // Use JWT client explicitly (fixes invalid_grant issues)
+    const jwtClient = new google.auth.JWT({
+      email: key.client_email,
+      key: (key.private_key || "").replace(/\\n/g, "\n"), // normalize newlines
       scopes: ["https://www.googleapis.com/auth/drive"],
     });
 
-    const drive = google.drive({ version: "v3", auth });
+    // Ensure we have a valid access token
+    await jwtClient.authorize();
 
+    // Drive client
+    const drive = google.drive({ version: "v3", auth: jwtClient });
+
+    // Copy the template
     const copy = await drive.files.copy({
       fileId: templateId,
-      requestBody: {
-        name: `MLK T-Chart - ${email}`,
-      },
+      requestBody: { name: `MLK T-Chart – ${email}` },
     });
 
+    // Share with the specified user (writer)
     await drive.permissions.create({
       fileId: copy.data.id,
       requestBody: {
@@ -39,6 +44,7 @@ export async function POST(request) {
         role: "writer",
         emailAddress: email,
       },
+      sendNotificationEmail: false,
     });
 
     return NextResponse.json({
