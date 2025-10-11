@@ -111,8 +111,10 @@ export default function ModuleTwoTCharts() {
     return both ? "w-full lg:w-1/3" : "w-full lg:w-1/3";
   };
 
-  // save + redirect to Module 2 "complete"
-  const handleSave = () => {
+  // --- saving helpers ---
+
+  // 1) Save locally (unchanged behavior)
+  const saveLocalOnly = () => {
     try {
       localStorage.setItem(TCHART_KEYS.ethosSpeechQuote, ethosSpeechQuote);
       localStorage.setItem(TCHART_KEYS.ethosSpeechNote, ethosSpeechNote);
@@ -129,14 +131,61 @@ export default function ModuleTwoTCharts() {
       localStorage.setItem(TCHART_KEYS.logosLetterQuote, logosLetterQuote);
       localStorage.setItem(TCHART_KEYS.logosLetterNote, logosLetterNote);
 
-      setToast("Saved!");
+      setToast("Saved locally");
+      setTimeout(() => setToast(""), 1200);
+    } catch {
+      setToast("Local save failed");
+      setTimeout(() => setToast(""), 1500);
+    }
+  };
+
+  // 2) Build payload rows for Supabase
+  const buildEntries = () => {
+    const row = (category, type, quote, observation) => ({
+      category,
+      type,
+      quote: quote || "",
+      observation: observation || "",
+      letter_url: letterUrl || null,
+    });
+    return [
+      row("ethos", "speech", ethosSpeechQuote, ethosSpeechNote),
+      row("ethos", "letter", ethosLetterQuote, ethosLetterNote),
+      row("pathos", "speech", pathosSpeechQuote, pathosSpeechNote),
+      row("pathos", "letter", pathosLetterQuote, pathosLetterNote),
+      row("logos", "speech", logosSpeechQuote, logosSpeechNote),
+      row("logos", "letter", logosLetterQuote, logosLetterNote),
+    ];
+  };
+
+  // 3) Save to Supabase via our API route
+  const saveToSupabase = async () => {
+    try {
+      // Always keep a local copy first
+      saveLocalOnly();
+
+      const res = await fetch("/api/tchart/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries: buildEntries() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const msg = data?.error || `HTTP ${res.status}`;
+        setToast(`Server save failed: ${msg}`);
+        setTimeout(() => setToast(""), 2000);
+        return;
+      }
+
+      setToast("Saved to Supabase");
       setTimeout(() => {
         setToast("");
         router.push("/modules/2/success");
       }, 500);
-    } catch {
-      setToast("Save failed");
-      setTimeout(() => setToast(""), 1500);
+    } catch (err) {
+      setToast(`Network error: ${String(err)}`);
+      setTimeout(() => setToast(""), 2000);
     }
   };
 
@@ -395,12 +444,21 @@ export default function ModuleTwoTCharts() {
               </div>
             </fieldset>
 
-            <button
-              onClick={handleSave}
-              className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-            >
-              Save T-Charts
-            </button>
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={saveLocalOnly}
+                className="bg-gray-200 text-gray-900 px-4 py-2 rounded hover:bg-gray-300"
+              >
+                Save Locally
+              </button>
+
+              <button
+                onClick={saveToSupabase}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Save & Submit
+              </button>
+            </div>
           </section>
         </div>
 
