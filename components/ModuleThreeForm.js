@@ -27,44 +27,54 @@ export default function ModuleThreeForm() {
 
   const [structureChoice, setStructureChoice] = useState("");
   const [thesis, setThesis] = useState("");
-
-  const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
-
-  const [step, setStep] = useState(0);
   const [responses, setResponses] = useState(Array(16).fill(""));
   const [customLabels, setCustomLabels] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
+  const [loaded, setLoaded] = useState(false);
   const savingRef = useRef(false);
+  const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
 
+  const [step, setStep] = useState(0);
   const currentGroup = questionGroups[step];
-  const groupStartIndex = questionGroups.slice(0, step).reduce((sum, g) => sum + g.questions.length, 0);
+  const groupStartIndex = questionGroups
+    .slice(0, step)
+    .reduce((sum, g) => sum + g.questions.length, 0);
 
+  // ✅ Load existing data
   useEffect(() => {
     const fetchExisting = async () => {
       const email = session?.user?.email;
       if (!email) return;
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from("module3_responses")
         .select("responses, thesis, updated_at")
         .eq("user_email", email)
         .single();
 
-      if (data) {
-        setResponses(data.responses);
-        generateCustomLabels(data.responses);
+      if (!error && data) {
+        if (Array.isArray(data.responses)) {
+          setResponses(data.responses);
+          generateCustomLabels(data.responses);
+        }
         if (data.thesis) setThesis(data.thesis);
         if (data.updated_at) setLastSaved(new Date(data.updated_at));
       }
+
+      setLoaded(true);
     };
-    fetchExisting();
+
+    if (session?.user?.email) fetchExisting();
   }, [session]);
 
+  // ✅ Handle text changes
   const handleChange = (i, val) => {
     const updated = [...responses];
     updated[groupStartIndex + i] = val;
     setResponses(updated);
   };
 
+  // ✅ Dynamic question generation
   const generateCustomLabels = (prefill = responses) => {
     const [sa, sp, la, lp] = [
       prefill[0] || "the speech audience",
@@ -88,23 +98,38 @@ export default function ModuleThreeForm() {
     ]);
   };
 
+  // ✅ Autosave every 20 seconds
   useEffect(() => {
-    if (!session?.user?.email) return;
+    if (!session?.user?.email || !loaded) return;
+
     const id = setInterval(async () => {
       if (savingRef.current) return;
       savingRef.current = true;
-      await supabase.from("module3_responses").upsert({
-        user_email: session.user.email,
-        responses,
-        thesis,
-        created_at: new Date().toISOString(),
-      });
-      setLastSaved(new Date());
+
+      console.log("autosave →", { responses, thesis });
+
+      const { error } = await supabase
+        .from("module3_responses")
+        .upsert(
+          {
+            user_email: session.user.email,
+            responses,
+            thesis,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: ["user_email"] } // ✅ Corrected format
+        );
+
+      if (error) console.error("autosave error →", error);
+      else setLastSaved(new Date());
+
       savingRef.current = false;
     }, 20000);
-    return () => clearInterval(id);
-  }, [responses, thesis, session]);
 
+    return () => clearInterval(id);
+  }, [responses, thesis, session, loaded]);
+
+  // ✅ Manual Save on Submit
   const handleSubmit = async () => {
     const email = session?.user?.email;
     if (!email) {
@@ -112,12 +137,19 @@ export default function ModuleThreeForm() {
       return;
     }
 
-    const { error } = await supabase.from("module3_responses").upsert({
-      user_email: email,
-      responses,
-      thesis,
-      created_at: new Date().toISOString(),
-    });
+    console.log("manual save →", { responses, thesis });
+
+    const { error } = await supabase
+      .from("module3_responses")
+      .upsert(
+        {
+          user_email: email,
+          responses,
+          thesis,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: ["user_email"] } // ✅ Corrected format
+      );
 
     if (error) {
       alert("Something went wrong: " + error.message);
@@ -126,6 +158,7 @@ export default function ModuleThreeForm() {
     }
   };
 
+  // ✅ Render UI
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 bg-theme-light rounded shadow">
       <h2 className="text-3xl font-extrabold text-theme-green text-center">
@@ -135,8 +168,8 @@ export default function ModuleThreeForm() {
       {step === 0 && (
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-theme-blue mb-2">
-  🎬 Thesis Statement Walkthrough
-</h3>
+            🎬 Thesis Statement Walkthrough
+          </h3>
           <video width="100%" height="360" controls className="rounded shadow">
             <source src="/videos/thesis-intro.mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -154,20 +187,33 @@ export default function ModuleThreeForm() {
             onChange={(e) => handleChange(i, e.target.value)}
             className="w-full border rounded p-2 min-h-[80px]"
           />
-          {step === 0 && i < 4 && responses[groupStartIndex + i] && !isPhrase(responses[groupStartIndex + i]) && (
-            <p className="text-xs text-theme-red mt-1">Keep it short—just a phrase.</p>
-          )}
+          {step === 0 &&
+            i < 4 &&
+            responses[groupStartIndex + i] &&
+            !isPhrase(responses[groupStartIndex + i]) && (
+              <p className="text-xs text-theme-red mt-1">
+                Keep it short—just a phrase.
+              </p>
+            )}
         </div>
       ))}
 
       {step === questionGroups.length - 1 && (
         <div className="mt-6 bg-white p-4 rounded shadow space-y-6">
-          <h3 className="text-lg font-semibold text-theme-dark mb-4">📌 Write Your Thesis Statement</h3>
+          <h3 className="text-lg font-semibold text-theme-dark mb-4">
+            📌 Write Your Thesis Statement
+          </h3>
 
           <div className="space-y-2">
-            <label className="block font-semibold text-theme-dark mb-1">Choose your structure:</label>
+            <label className="block font-semibold text-theme-dark mb-1">
+              Choose your structure:
+            </label>
             <div className="space-y-1">
-              {["similarities-then-differences", "differences-then-similarities", "appeals-organization"].map((val) => (
+              {[
+                "similarities-then-differences",
+                "differences-then-similarities",
+                "appeals-organization",
+              ].map((val) => (
                 <label className="block" key={val}>
                   <input
                     type="radio"
@@ -176,7 +222,9 @@ export default function ModuleThreeForm() {
                     checked={structureChoice === val}
                     onChange={(e) => setStructureChoice(e.target.value)}
                   />
-                  <span className="ml-2 capitalize">{val.replace(/-/g, " ")}</span>
+                  <span className="ml-2 capitalize">
+                    {val.replace(/-/g, " ")}
+                  </span>
                 </label>
               ))}
             </div>
@@ -189,17 +237,25 @@ export default function ModuleThreeForm() {
                 <p>Although both works ___, they differ in ___ because ___.</p>
               )}
               {structureChoice === "differences-then-similarities" && (
-                <p>While ___ differs between the two works, both share ___ through ___.</p>
+                <p>
+                  While ___ differs between the two works, both share ___
+                  through ___.
+                </p>
               )}
               {structureChoice === "appeals-organization" && (
-                <p>Dr. King uses ethos, pathos, and logos differently to address ___ in each text.</p>
+                <p>
+                  Dr. King uses ethos, pathos, and logos differently to address
+                  ___ in each text.
+                </p>
               )}
             </div>
           )}
 
           {structureChoice && (
             <div className="mt-4">
-              <label className="block font-semibold text-theme-dark mb-1">Your full thesis:</label>
+              <label className="block font-semibold text-theme-dark mb-1">
+                Your full thesis:
+              </label>
               <textarea
                 value={thesis}
                 onChange={(e) => setThesis(e.target.value)}
@@ -212,11 +268,16 @@ export default function ModuleThreeForm() {
 
       <div className="flex justify-between items-center mt-4">
         {lastSaved && (
-          <span className="text-xs text-gray-500">Saved {lastSaved.toLocaleTimeString()}</span>
+          <span className="text-xs text-gray-500">
+            Saved {lastSaved.toLocaleTimeString()}
+          </span>
         )}
         <div className="ml-auto flex gap-2">
           {step > 0 && (
-            <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-300 rounded">
+            <button
+              onClick={() => setStep(step - 1)}
+              className="px-4 py-2 bg-gray-300 rounded"
+            >
               Back
             </button>
           )}
@@ -232,7 +293,9 @@ export default function ModuleThreeForm() {
                       const ans = responses[groupStartIndex + i];
                       return !ans || !isPhrase(ans);
                     })
-                  : currentGroup.questions.some((_, i) => !responses[groupStartIndex + i])
+                  : currentGroup.questions.some(
+                      (_, i) => !responses[groupStartIndex + i]
+                    )
               }
               className="px-4 py-2 bg-theme-blue text-white rounded disabled:opacity-50"
             >

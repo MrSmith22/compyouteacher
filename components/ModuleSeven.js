@@ -28,7 +28,7 @@ export default function ModuleSeven() {
   const [recording, setRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
 
-  // NEW: mic devices and selection
+  // mic devices and selection
   const [devices, setDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [amp, setAmp] = useState(0); // live amplitude meter
@@ -42,7 +42,20 @@ export default function ModuleSeven() {
 
   const email = session?.user?.email ?? null;
 
-  // Fetch draft row (use maybeSingle to avoid 406)
+  // Helper: load Module 6 draft
+  const loadFromModule6 = async () => {
+    if (!email) return { text: "" };
+    const { data, error } = await supabase
+      .from("student_drafts")
+      .select("full_text")
+      .eq("user_email", email)
+      .eq("module", 6)
+      .maybeSingle();
+    if (error) console.error("Module 6 fetch error:", error);
+    return { text: data?.full_text ?? "" };
+  };
+
+  // Fetch Module 7 row; if absent, fall back to Module 6
   useEffect(() => {
     const fetchData = async () => {
       if (!email) return;
@@ -54,30 +67,32 @@ export default function ModuleSeven() {
         .eq("module", 7)
         .maybeSingle();
 
-      if (error) console.error("Fetch error:", error);
-      setText(data?.full_text ?? "");
+      if (error) console.error("Module 7 fetch error:", error);
+
+      if (data?.full_text) {
+        setText(data.full_text);
+      } else {
+        const from6 = await loadFromModule6();
+        setText(from6.text);
+      }
+
       setAudioURL(data?.audio_url ?? null);
       setLocked(!!data?.final_ready);
     };
     fetchData();
   }, [email]);
 
-  // NEW: enumerate input devices once user has granted permission at least once
+  // enumerate input devices once
   useEffect(() => {
     async function loadDevices() {
-      try {
-        // Calling getUserMedia once helps reveal labels on macOS/Chrome
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch {}
+      try { await navigator.mediaDevices.getUserMedia({ audio: true }); } catch {}
       const list = await navigator.mediaDevices.enumerateDevices();
       const inputs = list.filter(d => d.kind === "audioinput");
       setDevices(inputs);
-      // pick previously chosen or default
       const saved = localStorage.getItem("chosenMicId") || "";
       setSelectedDeviceId(saved || (inputs[0]?.deviceId ?? ""));
     }
     loadDevices();
-    // Update when device list changes (e.g., plug in USB mic)
     navigator.mediaDevices?.addEventListener?.("devicechange", loadDevices);
     return () => navigator.mediaDevices?.removeEventListener?.("devicechange", loadDevices);
   }, []);
@@ -86,7 +101,6 @@ export default function ModuleSeven() {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
     if (audioCtxRef.current) {
-      // closing audio context stops processing (keep stream for recorder)
       audioCtxRef.current.close().catch(() => {});
       audioCtxRef.current = null;
     }
@@ -108,7 +122,7 @@ export default function ModuleSeven() {
       analyser.getByteTimeDomainData(dataArray);
       let sum = 0;
       for (let i = 0; i < dataArray.length; i++) sum += Math.abs(dataArray[i] - 128);
-      const amplitude = sum / dataArray.length; // 0..~?
+      const amplitude = sum / dataArray.length;
       setAmp(Number(amplitude.toFixed(1)));
       rafRef.current = requestAnimationFrame(tick);
     }
@@ -126,7 +140,6 @@ export default function ModuleSeven() {
     }
 
     try {
-      // Use selected device if available
       const audioConstraints = selectedDeviceId
         ? { deviceId: { exact: selectedDeviceId }, echoCancellation: true, noiseSuppression: true }
         : { echoCancellation: true, noiseSuppression: true };
@@ -134,7 +147,6 @@ export default function ModuleSeven() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
       streamRef.current = stream;
 
-      // Start live meter (visual proof of incoming audio)
       startMeter(stream);
 
       const chosen = pickAudioFormat();
@@ -147,30 +159,13 @@ export default function ModuleSeven() {
       };
 
       mr.onstop = async () => {
-        stopMeter(); // stop the meter loop (recording ended)
+        stopMeter();
 
-        console.log("[Recorder] chunks:", audioChunksRef.current.length);
         const blob = new Blob(audioChunksRef.current, { type: chosen.mime || "audio/*" });
-        console.log("[Recorder] blob.size:", blob.size);
-
-        // Local playback first
         const localUrl = URL.createObjectURL(blob);
         setAudioURL(localUrl);
 
-        // Visible download link
-        const linkId = "download-latest-audio-ui";
-        let linkEl = document.getElementById(linkId);
-        if (!linkEl) {
-          linkEl = document.createElement("a");
-          linkEl.id = linkId;
-          linkEl.className = "inline-block underline ml-3";
-          linkEl.textContent = "⬇️ Download latest recording";
-          document.body.appendChild(linkEl);
-        }
-        linkEl.href = localUrl;
-        linkEl.download = `test-recording.${chosen.ext}`;
-
-        // Upload to Supabase (organized path)
+        // Upload to Supabase storage
         const safeEmail = (email || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
         const filename = `readaloud/${safeEmail}/${Date.now()}.${chosen.ext}`;
 
@@ -190,7 +185,7 @@ export default function ModuleSeven() {
 
         if (urlData?.publicUrl) setAudioURL(urlData.publicUrl);
 
-        // Stop all tracks to release mic
+        // release mic
         stream.getTracks().forEach(t => t.stop());
         streamRef.current = null;
       };
@@ -252,6 +247,14 @@ export default function ModuleSeven() {
     );
   }
 
+  // Word-processor-ish props for the textarea too
+  const wp = {
+    spellCheck: true,
+    autoCorrect: "on",
+    autoCapitalize: "sentences",
+    lang: "en",
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-theme-blue">✍️ Module 7: Revise Your Draft</h1>
@@ -259,7 +262,7 @@ export default function ModuleSeven() {
         Make final edits to your essay and record yourself reading it aloud.
       </p>
 
-      {/* NEW: Mic picker + live meter */}
+      {/* Mic picker + live meter */}
       <div className="flex items-center gap-3">
         <label className="text-sm">Microphone:</label>
         <select
@@ -277,19 +280,27 @@ export default function ModuleSeven() {
           ))}
         </select>
         <div className="text-sm">Live level: {amp}</div>
-        <div
-          className="h-2 bg-gray-200 rounded w-40 overflow-hidden"
-          title="live input amplitude"
-        >
-          <div
-            className="h-2 bg-green-500"
-            style={{ width: Math.min(100, Math.round(amp)) + "%" }}
-          />
+        <div className="h-2 bg-gray-200 rounded w-40 overflow-hidden" title="live input amplitude">
+          <div className="h-2 bg-green-500" style={{ width: Math.min(100, Math.round(amp)) + "%" }} />
         </div>
       </div>
 
+      <div className="flex items-center gap-3">
+        <button
+          onClick={async () => {
+            const { text: t } = await loadFromModule6();
+            setText(t || "");
+          }}
+          className="text-sm underline text-theme-blue"
+          title="Reload your Module 6 draft into this textbox"
+        >
+          ⤵️ Load from Module 6 again
+        </button>
+      </div>
+
       <textarea
-        className="w-full min-h-[300px] border p-4 rounded"
+        className="w-full min-h-[300px] border p-4 rounded leading-7"
+        {...wp}
         value={text}
         onChange={(e) => setText(e.target.value)}
         disabled={locked}
@@ -323,7 +334,7 @@ export default function ModuleSeven() {
             <p className="text-sm font-medium">▶️ Your Recording:</p>
             <audio controls src={audioURL} className="mt-2" />
             <div className="mt-2">
-              <a id="download-latest-audio-ui" href={audioURL} download="test-recording" className="underline">
+              <a id="download-latest-audio-ui" href={audioURL} download="read-aloud" className="underline">
                 ⬇️ Download latest recording
               </a>
             </div>

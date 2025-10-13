@@ -23,7 +23,7 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
-      // 📝 Load finalized outline
+      // Load finalized outline
       const { data: outlineRow } = await supabase
         .from("student_outlines")
         .select("outline,finalized")
@@ -38,14 +38,14 @@ export default function ModuleSix() {
 
       setOutline(outlineRow.outline);
 
-      // 📝 Load T‑chart observations
+      // Load T-chart observations
       const { data: obs } = await supabase
         .from("tchart_entries")
         .select("*")
         .eq("user_email", email);
       setObservations(obs || []);
 
-      // 📝 Load draft
+      // Load draft
       const { data: draftRow } = await supabase
         .from("student_drafts")
         .select("sections,locked")
@@ -70,7 +70,7 @@ export default function ModuleSix() {
     loadData();
   }, [session]);
 
-  // 📝 Debounced autosave
+  // Debounced autosave
   useEffect(() => {
     if (!session?.user?.email || draft.length === 0) return;
 
@@ -112,6 +112,16 @@ export default function ModuleSix() {
 
   if (!outline) return <p className="p-6">Loading…</p>;
 
+  // Common props to make textareas feel like Google Docs-lite
+  const wp = {
+    spellCheck: true,
+    autoCorrect: "on",
+    autoCapitalize: "sentences",
+    lang: "en",
+    enterKeyHint: "enter",
+    className: "w-full border rounded p-3 min-h-[140px] leading-7",
+  };
+
   return (
     <div className="flex">
       <main className="flex-1 p-6 space-y-8">
@@ -126,7 +136,7 @@ export default function ModuleSix() {
         <section>
           <h2 className="text-xl font-bold mb-2">{roman(1)}. Introduction</h2>
           <textarea
-            className="w-full border rounded p-3 min-h-[120px]"
+            {...wp}
             value={draft[0] || ""}
             onChange={(e) => updateSection(0, e.target.value)}
             disabled={locked}
@@ -140,7 +150,7 @@ export default function ModuleSix() {
               {roman(i + 2)}. {b.bucket}
             </h2>
             <textarea
-              className="w-full border rounded p-3 min-h-[160px]"
+              {...wp}
               value={draft[i + 1] || ""}
               onChange={(e) => updateSection(i + 1, e.target.value)}
               disabled={locked}
@@ -154,7 +164,7 @@ export default function ModuleSix() {
             {roman(outline.body.length + 2)}. Conclusion
           </h2>
           <textarea
-            className="w-full border rounded p-3 min-h-[120px]"
+            {...wp}
             value={draft.at(-1) || ""}
             onChange={(e) => updateSection(draft.length - 1, e.target.value)}
             disabled={locked}

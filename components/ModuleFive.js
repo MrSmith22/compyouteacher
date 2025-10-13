@@ -140,9 +140,9 @@ export default function ModuleFive() {
             updated_at: new Date().toISOString(),
           });
 
-        if (error) console.error("Auto‑save failed:", error);
+        if (error) console.error("Auto-save failed:", error);
       } catch (err) {
-        console.error("Auto‑save failed:", err);
+        console.error("Auto-save failed:", err);
       }
     }, 800);
 
@@ -151,20 +151,21 @@ export default function ModuleFive() {
 
   const updatePoint = (bucketIndex, pointIndex, value) => {
     if (locked) return;
-    setOutline((prev) => {
-      const copy = [...prev];
-      copy[bucketIndex].points[pointIndex] = value;
-      return copy;
-    });
+    setOutline((prev) =>
+      prev.map((b, bi) => {
+        if (bi !== bucketIndex) return b;
+        const points = [...b.points];
+        points[pointIndex] = value;
+        return { ...b, points };
+      })
+    );
   };
 
   const updateBucketName = (bucketIndex, name) => {
     if (locked) return;
-    setOutline((prev) => {
-      const copy = [...prev];
-      copy[bucketIndex].bucket = name;
-      return copy;
-    });
+    setOutline((prev) =>
+      prev.map((b, bi) => (bi === bucketIndex ? { ...b, bucket: name } : b))
+    );
   };
 
   const removePoint = (bucketIndex, pointIndex) => {
@@ -240,13 +241,17 @@ export default function ModuleFive() {
         items={outline.map((_, i) => i.toString())}
         strategy={verticalListSortingStrategy}
       >
-        <div className={`p-6 max-w-4xl mx-auto bg-theme-light rounded shadow space-y-6 ${readonly}`}>
+        <div
+          className={`p-6 max-w-4xl mx-auto bg-theme-light rounded shadow space-y-6 ${readonly}`}
+        >
           <h1 className="text-3xl font-extrabold text-theme-blue mb-4">
-          🧩 Build Your Outline
+            🧩 Build Your Outline
           </h1>
 
           <div className="mb-6">
-            <label className="block font-semibold text-theme-dark mb-2">Thesis Statement</label>
+            <label className="block font-semibold text-theme-dark mb-2">
+              Thesis Statement
+            </label>
             <textarea
               className="w-full border rounded p-2"
               value={thesis}
@@ -259,18 +264,21 @@ export default function ModuleFive() {
             onClick={addBucket}
             className="mb-4 bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700"
           >
-            ➕ Add New Bucket
+            ➕ Add New Bucket
           </button>
 
           {outline.map((section, i) => (
             <SortableItem key={i.toString()} id={i.toString()}>
-              <div className="mb-4 border rounded p-4 bg-white shadow">
+              <div className="mb-4 border rounded p-4 bg-white shadow relative z-10">
                 <div className="flex justify-between items-center mb-2">
                   <input
                     type="text"
-                    className="font-bold text-theme-blue text-lg border-b flex-grow mr-2"
+                    className="font-bold text-theme-blue text-lg border-b flex-grow mr-2 relative z-10"
                     value={section.bucket}
                     onChange={(e) => updateBucketName(i, e.target.value)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    draggable={false}
                   />
                   <button
                     onClick={() => deleteBucket(i)}
@@ -283,13 +291,16 @@ export default function ModuleFive() {
                 </div>
 
                 {section.points.map((point, j) => (
-                  <div key={j} className="flex items-center gap-2 mb-2">
+                  <div key={j} className="flex items-center gap-2 mb-2 relative z-10">
                     <input
                       type="text"
-                      className="w-full border p-2 rounded"
+                      className="w-full border p-2 rounded relative z-10"
                       placeholder={`Supporting Detail ${j + 1}`}
                       value={point || ""}
                       onChange={(e) => updatePoint(i, j, e.target.value)}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      draggable={false}
                     />
                     <button
                       onClick={() => removePoint(i, j)}
@@ -305,28 +316,34 @@ export default function ModuleFive() {
                 <button
                   onClick={() => addPoint(i)}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="text-sm text-theme-blue mt-2 hover:underline"
+                  className="text-sm text-theme-blue mt-2 hover:underline relative z-10"
                 >
-                  ➕ Add Point
+                  ➕ Add Point
                 </button>
               </div>
             </SortableItem>
           ))}
 
           <div className="mb-10">
-            <h2 className="text-lg font-semibold mb-2 text-theme-dark">📝 Conclusion</h2>
+            <h2 className="text-lg font-semibold mb-2 text-theme-dark">
+              📝 Conclusion
+            </h2>
             <textarea
               className="w-full border rounded p-2 mb-2"
               placeholder="Restate thesis or summarize key ideas..."
               value={conclusion.summary}
-              onChange={(e) => setConclusion({ ...conclusion, summary: e.target.value })}
+              onChange={(e) =>
+                setConclusion({ ...conclusion, summary: e.target.value })
+              }
               disabled={locked}
             />
             <textarea
               className="w-full border rounded p-2"
               placeholder="Final thought or call to action..."
               value={conclusion.finalThought}
-              onChange={(e) => setConclusion({ ...conclusion, finalThought: e.target.value })}
+              onChange={(e) =>
+                setConclusion({ ...conclusion, finalThought: e.target.value })
+              }
               disabled={locked}
             />
           </div>
@@ -338,12 +355,14 @@ export default function ModuleFive() {
             }`}
             disabled={locked}
           >
-            ✅ Finalize Outline & Continue
+            ✅ Finalize Outline & Continue
           </button>
 
           {previewText && (
             <div className="mt-10 border-t pt-6">
-              <h2 className="text-lg font-semibold mb-2 text-theme-dark">🖨️ Outline Preview</h2>
+              <h2 className="text-lg font-semibold mb-2 text-theme-dark">
+                🖨️ Outline Preview
+              </h2>
               <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border">
                 {previewText}
               </pre>

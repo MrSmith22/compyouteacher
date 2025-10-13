@@ -2,36 +2,42 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
 export default function ModuleNine() {
   const { data: session } = useSession();
+  const router = useRouter();
 
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const [userAnswers, setUserAnswers] = useState([]);
+  const [review, setReview] = useState([]); // per-question report (shown inline)
+
   const [pdfFile, setPdfFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [exportUrl, setExportUrl] = useState(null);
   const [popupBlocked, setPopupBlocked] = useState(false);
 
-  const handleFileChange = (e) => setPdfFile(e.target.files[0]);
-
   const questions = [
-    { question: "What is the correct font for APA Style papers?", options: ["Times New Roman, 12 pt", "Calibri, 8 pt", "Arial, 14 pt"], answer: "Times New Roman, 12 pt" },
-    { question: "What spacing should be used in an APA-formatted paper?", options: ["Single", "1.5 spacing", "Double"], answer: "Double" },
-    { question: "Where does the title page appear in an APA paper?", options: ["At the end", "After the abstract", "As the first page"], answer: "As the first page" },
-    { question: "Which of the following is a correct in-text citation in APA?", options: ["(Smith, 2020)", "[Smith 2020]", "Smith, 2020:"], answer: "(Smith, 2020)" },
-    { question: "How should the reference page be formatted?", options: ["Double spaced, alphabetical order", "Single spaced, numbered list", "Double spaced, chronological order"], answer: "Double spaced, alphabetical order" },
-    { question: "What is the correct page header on the title page?", options: ["Title of the paper only", "Page number only", "Title and page number, right-aligned"], answer: "Title and page number, right-aligned" },
-    { question: "What belongs on the title page in APA format?", options: ["Title, author, institution, course, instructor, date", "Only the title and author name", "Title, table of contents, and date"], answer: "Title, author, institution, course, instructor, date" },
-    { question: "Which of these is a proper APA reference for a book?", options: ["Smith, J. (2020). *Writing Well*. New York: Penguin.", "Smith, J. 2020. Writing Well. Penguin.", "Writing Well by J. Smith (2020). Penguin"], answer: "Smith, J. (2020). *Writing Well*. New York: Penguin." },
-    { question: "Should APA papers include an abstract?", options: ["Yes, for most academic papers", "No, it's optional", "Only if the teacher requires it"], answer: "Yes, for most academic papers" },
-    { question: "What is the correct order for an APA paper?", options: ["Title Page → Abstract → Body → References", "Introduction → Body → References → Title Page", "Title Page → References → Body → Abstract"], answer: "Title Page → Abstract → Body → References" },
+    { q: "What is the correct font for APA Style papers?", opts: ["Times New Roman, 12 pt", "Calibri, 8 pt", "Arial, 14 pt"], a: "Times New Roman, 12 pt" },
+    { q: "What spacing should be used in an APA-formatted paper?", opts: ["Single", "1.5 spacing", "Double"], a: "Double" },
+    { q: "Where does the title page appear in an APA paper?", opts: ["At the end", "After the abstract", "As the first page"], a: "As the first page" },
+    { q: "Which of the following is a correct in-text citation in APA?", opts: ["(Smith, 2020)", "[Smith 2020]", "Smith, 2020:"], a: "(Smith, 2020)" },
+    { q: "How should the reference page be formatted?", opts: ["Double spaced, alphabetical order", "Single spaced, numbered list", "Double spaced, chronological order"], a: "Double spaced, alphabetical order" },
+    { q: "What is the correct page header on the title page?", opts: ["Title of the paper only", "Page number only", "Title and page number, right-aligned"], a: "Title and page number, right-aligned" },
+    { q: "What belongs on the title page in APA format?", opts: ["Title, author, institution, course, instructor, date", "Only the title and author name", "Title, table of contents, and date"], a: "Title, author, institution, course, instructor, date" },
+    { q: "Which of these is a proper APA reference for a book?", opts: ["Smith, J. (2020). *Writing Well*. New York: Penguin.", "Smith, J. 2020. Writing Well. Penguin.", "Writing Well by J. Smith (2020). Penguin"], a: "Smith, J. (2020). *Writing Well*. New York: Penguin." },
+    { q: "Should APA papers include an abstract?", opts: ["Yes, for most academic papers", "No, it's optional", "Only if the teacher requires it"], a: "Yes, for most academic papers" },
+    { q: "What is the correct order for an APA paper?", opts: ["Title Page → Abstract → Body → References", "Introduction → Body → References → Title Page", "Title Page → References → Body → Abstract"], a: "Title Page → Abstract → Body → References" },
   ];
 
-  const [userAnswers, setUserAnswers] = useState(Array(questions.length).fill(""));
-
   useEffect(() => {
-    // Load any previously exported doc link
+    setUserAnswers(Array(questions.length).fill(""));
+  }, []);
+
+  // Load any previously exported Google Doc link
+  useEffect(() => {
     (async () => {
       if (!session?.user?.email) return;
       const { data } = await supabase
@@ -43,18 +49,22 @@ export default function ModuleNine() {
     })();
   }, [session]);
 
-  const handleChange = (index, value) => {
-    const updated = [...userAnswers];
-    updated[index] = value;
-    setUserAnswers(updated);
+  const handleAnswer = (idx, val) => {
+    const copy = [...userAnswers];
+    copy[idx] = val;
+    setUserAnswers(copy);
   };
 
   const handleSubmit = async () => {
     let total = 0;
-    userAnswers.forEach((ans, idx) => {
-      if (ans === questions[idx].answer) total++;
+    const report = questions.map((item, i) => {
+      const selected = userAnswers[i] || "";
+      const correct = selected === item.a;
+      if (correct) total += 1;
+      return { i, question: item.q, selected, correctAnswer: item.a, correct, options: item.opts };
     });
     setScore(total);
+    setReview(report);
     setSubmitted(true);
 
     if (session?.user?.email) {
@@ -70,46 +80,127 @@ export default function ModuleNine() {
   const handleExportToGoogleDocs = async () => {
     if (!session?.user?.email) return;
 
-    const { data } = await supabase
+    const email = session.user.email;
+    let text = "";
+
+    // 1) Prefer finalized text from Module 7
+    const { data: m7 } = await supabase
       .from("student_drafts")
       .select("final_text")
-      .eq("user_email", session.user.email)
-      .eq("module", 6)
-      .single();
+      .eq("user_email", email)
+      .eq("module", 7)
+      .maybeSingle();
 
-    if (!data?.final_text) {
-      alert("Could not find your final essay text.");
+    if (m7?.final_text) {
+      text = m7.final_text;
+    } else {
+      // 2) Fall back to Module 6 draft (full_text)
+      const { data: m6 } = await supabase
+        .from("student_drafts")
+        .select("full_text")
+        .eq("user_email", email)
+        .eq("module", 6)
+        .maybeSingle();
+      if (m6?.full_text) text = m6.full_text;
+    }
+
+    if (!text) {
+      alert("Could not find your essay text yet. Finish Modules 6–7, then try again.");
       return;
     }
 
-    const response = await fetch("/api/export-to-docs", {
+    const res = await fetch("/api/export-to-docs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: data.final_text, email: session.user.email }),
+      body: JSON.stringify({ text, email }),
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
+    const result = await res.json();
+    if (!res.ok) {
       alert("Failed to export to Google Docs.");
       return;
     }
 
     setExportUrl(result.url);
 
-    // Try opening a new tab; detect popup block
     const win = window.open(result.url, "_blank");
     if (!win || win.closed || typeof win.closed === "undefined") {
       setPopupBlocked(true);
     }
   };
 
-  const handleUploadPDF = () => {
+  const handleUploadPDF = async () => {
+    if (!session?.user?.email) return;
     if (!pdfFile) {
-      alert("Please select a PDF file first.");
+      alert("Please select a PDF first.");
       return;
     }
-    alert("✅ Your PDF has been 'submitted'. This is a placeholder.");
+
+    try {
+      setUploading(true);
+
+      // Clean path + keep original filename (spaces -> underscores)
+      const safeEmail = session.user.email.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const originalName = pdfFile.name.replace(/\s+/g, "_");
+      const path = `${safeEmail}/${Date.now()}-${originalName}`;
+
+      // Upload to existing bucket: final-pdfs
+      const { error: uploadErr } = await supabase
+        .storage
+        .from("final-pdfs")
+        .upload(path, pdfFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "application/pdf",
+        });
+
+      if (uploadErr) {
+        console.error("[PDF upload error]", uploadErr);
+        alert(`Upload failed: ${uploadErr.message || "Unknown error"}`);
+        return;
+      }
+
+      // Public URL for quick access
+      const { data: pub } = supabase.storage.from("final-pdfs").getPublicUrl(path);
+      const publicUrl = pub?.publicUrl || null;
+
+  // Record a row so teachers can find it easily
+// Generate a doc_id since the column is NOT NULL in your table
+const docId =
+  (typeof crypto !== "undefined" && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `doc_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
+const { error: rowErr } = await supabase
+  .from("student_exports")
+  .insert({
+    doc_id: docId, // ✅ required by your schema
+    user_email: session.user.email,
+    module: 9,
+    kind: "final_pdf",
+    file_name: originalName,
+    storage_path: path,
+    public_url: publicUrl,          // ✅ link to the file
+    web_view_link: publicUrl || "", // ✅ satisfies NOT NULL column
+    uploaded_at: new Date().toISOString(),
+  });
+
+if (rowErr) {
+  console.error("[student_exports insert error]", rowErr);
+  alert(`Save failed: ${rowErr.message || "Unknown error"}`);
+  return;
+}
+
+console.log("✅ student_exports record inserted successfully.");
+
+// Success screen
+router.push("/modules/9/success");
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (!session) return <p className="p-6">Loading…</p>;
@@ -140,43 +231,55 @@ export default function ModuleNine() {
         </p>
       </section>
 
-      {questions.map((q, idx) => (
+      {/* QUIZ */}
+      {questions.map((item, idx) => (
         <div key={idx} className="space-y-2">
-          <p className="font-medium">{idx + 1}. {q.question}</p>
-          {q.options.map((opt, oIdx) => (
-            <label key={oIdx} className="block">
-              <input
-                type="radio"
-                name={`q-${idx}`}
-                value={opt}
-                disabled={submitted}
-                checked={userAnswers[idx] === opt}
-                onChange={() => handleChange(idx, opt)}
-                className="mr-2"
-              />
-              {opt}
-            </label>
-          ))}
+          <p className="font-medium">{idx + 1}. {item.q}</p>
+          {item.opts.map((opt, oIdx) => {
+            const chosen = userAnswers[idx];
+            const isCorrect = submitted && opt === item.a;
+            const isWrongChoice = submitted && chosen === opt && chosen !== item.a;
+
+            return (
+              <label
+                key={oIdx}
+                className={`block ${isCorrect ? "text-green-700" : ""} ${isWrongChoice ? "text-red-700" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name={`q-${idx}`}
+                  value={opt}
+                  disabled={submitted}
+                  checked={userAnswers[idx] === opt}
+                  onChange={() => handleAnswer(idx, opt)}
+                  className="mr-2"
+                />
+                {opt}
+                {submitted && isCorrect && <span className="ml-2 text-xs">✓ correct</span>}
+                {submitted && isWrongChoice && <span className="ml-2 text-xs">✗</span>}
+              </label>
+            );
+          })}
+          {submitted && userAnswers[idx] !== item.a && (
+            <div className="text-sm text-gray-700">
+              Correct answer: <span className="font-semibold">{item.a}</span>
+            </div>
+          )}
+          <hr className="my-2" />
         </div>
       ))}
 
       {!submitted ? (
-        <button
-          onClick={handleSubmit}
-          className="bg-theme-green text-white px-6 py-3 rounded shadow"
-        >
+        <button onClick={handleSubmit} className="bg-theme-green text-white px-6 py-3 rounded shadow">
           ✅ Submit Quiz
         </button>
       ) : (
-        <>
+        <div className="space-y-4">
           <div className="text-theme-green font-semibold">
             🎯 You scored {score} / {questions.length}.
           </div>
 
-          <button
-            onClick={handleExportToGoogleDocs}
-            className="bg-theme-blue text-white px-6 py-3 rounded shadow mt-4"
-          >
+          <button onClick={handleExportToGoogleDocs} className="bg-theme-blue text-white px-6 py-3 rounded shadow">
             ✍ Export Final Draft to Google Docs (APA Format)
           </button>
 
@@ -184,18 +287,10 @@ export default function ModuleNine() {
             <div className="mt-4 border rounded p-3 bg-white shadow">
               <div className="font-semibold mb-2">Your Google Doc</div>
               <div className="flex items-center gap-3">
-                <a
-                  className="text-theme-blue underline"
-                  href={exportUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a className="text-theme-blue underline" href={exportUrl} target="_blank" rel="noreferrer">
                   Open your document
                 </a>
-                <button
-                  className="px-3 py-1 border rounded"
-                  onClick={() => navigator.clipboard.writeText(exportUrl)}
-                >
+                <button className="px-3 py-1 border rounded" onClick={() => navigator.clipboard.writeText(exportUrl)}>
                   Copy link
                 </button>
               </div>
@@ -208,30 +303,31 @@ export default function ModuleNine() {
             </div>
           )}
 
+          {/* FINAL PDF UPLOAD */}
           <section className="mt-8 border p-4 rounded bg-white shadow">
             <h2 className="text-lg font-semibold mb-2 text-theme-dark">📤 Submit Final Essay as PDF</h2>
-            <p className="text-sm text-gray-600 mb-2">
-              After formatting in Google Docs, download your essay as a PDF and upload it here.
-            </p>
+            <p className="text-sm text-gray-600 mb-2">Download your Google Doc as a PDF and upload it here.</p>
 
             <input
               type="file"
               accept=".pdf"
-              onChange={handleFileChange}
+              onChange={(e) => setPdfFile(e.target.files[0] || null)}
               className="mb-2"
             />
 
             <button
               onClick={handleUploadPDF}
-              disabled={!pdfFile}
-              className={`bg-theme-orange text-white px-6 py-2 rounded shadow ${
-                !pdfFile ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              disabled={!pdfFile || uploading}
+              className={`bg-theme-orange text-white px-6 py-2 rounded shadow ${(!pdfFile || uploading) ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              📎 Upload Final PDF
+              {uploading ? "Uploading…" : "📎 Upload Final PDF"}
             </button>
+
+            {pdfFile && !uploading && (
+              <div className="text-xs text-gray-600 mt-1">Selected: {pdfFile.name}</div>
+            )}
           </section>
-        </>
+        </div>
       )}
     </div>
   );
