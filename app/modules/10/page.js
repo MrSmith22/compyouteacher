@@ -1,167 +1,262 @@
-﻿// app/modules/10/page.js  (or components/ModuleTen.js)
-// Teacher Dashboard - Phase 2 Step 1
-
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
+import useRole from "@/lib/useRole";
 
 export default function ModuleTen() {
+  const { role, loading: roleLoading } = useRole();
+
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    const loadData = async () => {
+    async function fetchData() {
+      setLoading(true);
+      setErrorMsg("");
+
       try {
-        setLoading(true);
-        setErrorMsg("");
-
-        // 1) Get all students from student_assignments (master list)
-        const { data: assignments, error: assignErr } = await supabase
+        // 1) Base table: student_assignments
+        const { data: assignments, error: aErr } = await supabase
           .from("student_assignments")
-          .select("id, user_email, assignment_name, current_module, status, updated_at")
-          .order("updated_at", { ascending: false });
+          .select("user_email, assignment_name, current_module, status")
+          .order("user_email", { ascending: true });
 
-        if (assignErr) {
-          console.error("[student_assignments error]", assignErr);
-          setErrorMsg("Could not load student assignments.");
+        if (aErr) {
+          console.error("Error fetching student_assignments:", aErr);
+          setErrorMsg(aErr.message || "Error loading assignments");
           setRows([]);
+          setLoading(false);
           return;
         }
 
-        // If nothing in student_assignments, we can stop here
         if (!assignments || assignments.length === 0) {
           setRows([]);
+          setLoading(false);
           return;
         }
 
-        // 2) Get all final PDFs from student_exports
-        const { data: exportsData, error: exportsErr } = await supabase
-          .from("student_exports")
-          .select("user_email, module, kind, file_name, public_url, uploaded_at")
-          .eq("kind", "final_pdf");
+        const emails = Array.from(
+          new Set(assignments.map((a) => a.user_email))
+        );
 
-        if (exportsErr) {
-          console.error("[student_exports error]", exportsErr);
-          // Not fatal – dashboard can still show student list
-        }
+        let exports = [];
+        let scores = [];
+        let module9 = [];
+        let apaQuiz = [];
 
-        // Build a lookup: user_email -> latest final_pdf record
-        const latestPdfByEmail = new Map();
+        if (emails.length > 0) {
+          // 2) Final PDFs and exports
+          const { data: expData, error: expErr } = await supabase
+            .from("student_exports")
+            .select(
+              "user_email, file_name, kind, public_url, uploaded_at, module"
+            )
+            .in("user_email", emails);
 
-        if (exportsData && exportsData.length > 0) {
-          // Sort by uploaded_at so the newest is last, then Map.set() will keep the newest
-          const sortedExports = [...exportsData].sort((a, b) => {
-            const tA = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0;
-            const tB = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0;
-            return tA - tB;
-          });
+          if (expErr) {
+            console.error("Error fetching student_exports:", expErr);
+          } else if (expData) {
+            exports = expData;
+          }
 
-          for (const rec of sortedExports) {
-            latestPdfByEmail.set(rec.user_email, rec);
+          // 3) Module scores (for modules that store grades here)
+          const { data: scoreData, error: scoreErr } = await supabase
+            .from("module_scores")
+            .select("user_email, module, score")
+            .in("user_email", emails);
+
+          if (scoreErr) {
+            console.error("Error fetching module_scores:", scoreErr);
+          } else if (scoreData) {
+            scores = scoreData;
+          }
+
+          // 4) Module 9 quiz results
+          const { data: m9Data, error: m9Err } = await supabase
+            .from("module9_quiz")
+            .select("user_email, score, total, submitted_at")
+            .in("user_email", emails);
+
+          if (m9Err) {
+            console.error("Error fetching module9_quiz:", m9Err);
+          } else if (m9Data) {
+            module9 = m9Data;
+          }
+
+          // 5) APA quiz results (if used in your flow)
+          const { data: apaData, error: apaErr } = await supabase
+            .from("module1_quiz_results")
+            .select("user_email, score, total, created_at")
+            .in("user_email", emails);
+
+          if (apaErr) {
+            console.error("Error fetching module1_quiz_results:", apaErr);
+          } else if (apaData) {
+            apaQuiz = apaData;
           }
         }
 
-        // 3) Merge assignments + final PDF info
+        // Group data by student
         const combined = assignments.map((a) => {
-          const pdf = latestPdfByEmail.get(a.user_email) || null;
+          const userEmail = a.user_email;
+
+          // All scores for this student
+          const userScores = scores.filter((s) => s.user_email === userEmail);
+          const modulesCompleted = userScores.length;
+
+          // Latest Module 9 quiz
+          const userM9 = module9
+            .filter((r) => r.user_email === userEmail)
+            .sort(
+              (a, b) =>
+                new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0)
+            )[0];
+
+          // Latest APA quiz
+          const userApa = apaQuiz
+            .filter((r) => r.user_email === userEmail)
+            .sort(
+              (a, b) =>
+                new Date(b.created_at || 0) - new Date(a.created_at || 0)
+            )[0];
+
+          // Final PDFs for this student
+          const userExports = exports.filter(
+            (e) => e.user_email === userEmail && e.kind === "final_pdf"
+          );
+
+          const mainPdf = userExports[0] || null;
+          const extraPdfCount = userExports.length > 1
+            ? userExports.length - 1
+            : 0;
+
           return {
-            user_email: a.user_email,
-            assignment_name: a.assignment_name,
-            current_module: a.current_module,
+            userEmail,
+            assignmentName: a.assignment_name,
+            currentModule: a.current_module,
             status: a.status,
-            updated_at: a.updated_at,
-            final_pdf_name: pdf?.file_name || null,
-            final_pdf_url: pdf?.public_url || null,
-            final_pdf_uploaded_at: pdf?.uploaded_at || null,
+            modulesCompleted,
+            moduleScores: userScores,
+            module9Quiz: userM9
+              ? { score: userM9.score, total: userM9.total }
+              : null,
+            apaQuiz: userApa
+              ? { score: userApa.score, total: userApa.total }
+              : null,
+            finalPdf: mainPdf,
+            extraPdfCount,
           };
         });
 
         setRows(combined);
+        setLoading(false);
       } catch (err) {
-        console.error("[Teacher Dashboard load error]", err);
-        setErrorMsg("Error loading data.");
-        setRows([]);
-      } finally {
+        console.error("Unexpected error loading teacher dashboard:", err);
+        setErrorMsg("Unexpected error loading data.");
         setLoading(false);
       }
-    };
+    }
 
-    loadData();
+    fetchData();
   }, []);
 
+  // Role gate
+  if (roleLoading) {
+    return <div className="p-6">Checking role…</div>;
+  }
+
+  if (role !== "teacher") {
+    return (
+      <div className="p-6 text-red-700">
+        You are signed in as a student. Only teachers can view this page.
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold text-theme-blue">
-          🧑‍🏫 Teacher Dashboard (Module 10)
-        </h1>
-        <p className="text-sm text-theme-dark">
-          View students, their current module, assignment status, and final PDF submissions.
-        </p>
-      </header>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold mb-1">
+        🧑‍🏫 Teacher Dashboard (Module 10)
+      </h1>
+      <p className="text-sm text-gray-600 mb-4">
+        View students, their current module, assignment status, quiz scores, and final PDF submissions.
+      </p>
 
-      {loading && <p>Loading dashboard…</p>}
-
-      {!loading && errorMsg && (
-        <div className="p-3 rounded bg-red-100 text-red-800 text-sm">
-          {errorMsg}
+      {errorMsg && (
+        <div className="bg-red-100 text-red-800 px-4 py-2 rounded mb-4">
+          Error loading data: {errorMsg}
         </div>
       )}
 
-      {!loading && !errorMsg && rows.length === 0 && (
-        <p className="text-sm text-gray-600">
-          No student assignment records found yet in <code>student_assignments</code>.
-        </p>
-      )}
-
-      {!loading && !errorMsg && rows.length > 0 && (
-        <div className="overflow-x-auto border rounded-lg bg-white shadow-sm">
-          <table className="min-w-full text-sm">
-            <thead className="bg-theme-light">
+      {loading ? (
+        <p>Loading student data…</p>
+      ) : rows.length === 0 ? (
+        <p>No student assignment records found yet in student_assignments.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-sm bg-white">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-3 py-2 text-left font-semibold border-b">Student Email</th>
-                <th className="px-3 py-2 text-left font-semibold border-b">Assignment</th>
-                <th className="px-3 py-2 text-left font-semibold border-b">Current Module</th>
-                <th className="px-3 py-2 text-left font-semibold border-b">Status</th>
-                <th className="px-3 py-2 text-left font-semibold border-b">Final PDF</th>
+                <th className="border px-3 py-2 text-left">Student</th>
+                <th className="border px-3 py-2 text-left">Assignment / Status</th>
+                <th className="border px-3 py-2 text-center">Current Module</th>
+                <th className="border px-3 py-2 text-center">Modules Completed</th>
+                <th className="border px-3 py-2 text-center">Rhetoric Quiz</th>
+                <th className="border px-3 py-2 text-center">Module 9 Quiz</th>
+                <th className="border px-3 py-2 text-left">Final PDF</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-3 py-2 border-b align-top">{row.user_email}</td>
-                  <td className="px-3 py-2 border-b align-top">
-                    {row.assignment_name || <span className="text-gray-400 italic">—</span>}
+              {rows.map((row) => (
+                <tr key={row.userEmail}>
+                  <td className="border px-3 py-2 align-top">
+                    <div className="font-semibold">{row.userEmail}</div>
                   </td>
-                  <td className="px-3 py-2 border-b align-top">
-                    {row.current_module ?? <span className="text-gray-400 italic">—</span>}
+                  <td className="border px-3 py-2 align-top">
+                    <div className="font-semibold">{row.assignmentName || "Essay 1"}</div>
+                    <div className="text-xs text-gray-600">
+                      Status: {row.status || "not started"}
+                    </div>
                   </td>
-                  <td className="px-3 py-2 border-b align-top">
-                    {row.status || <span className="text-gray-400 italic">not started</span>}
+                  <td className="border px-3 py-2 text-center align-top">
+                    {row.currentModule ?? "–"}
                   </td>
-                  <td className="px-3 py-2 border-b align-top">
-                    {row.final_pdf_url ? (
-                      <div className="flex flex-col gap-1">
+                  <td className="border px-3 py-2 text-center align-top">
+                    {row.modulesCompleted}
+                  </td>
+                  <td className="border px-3 py-2 text-center align-top">
+                    {row.apaQuiz
+                      ? `${row.apaQuiz.score} / ${row.apaQuiz.total}`
+                      : "No attempt yet"}
+                  </td>
+                  <td className="border px-3 py-2 text-center align-top">
+                    {row.module9Quiz
+                      ? `${row.module9Quiz.score} / ${row.module9Quiz.total}`
+                      : "No attempt yet"}
+                  </td>
+                  <td className="border px-3 py-2 align-top">
+                    {row.finalPdf ? (
+                      <div className="space-y-1">
                         <a
-                          href={row.final_pdf_url}
+                          href={row.finalPdf.public_url || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-theme-blue underline"
+                          className="text-blue-700 underline"
                         >
-                          {row.final_pdf_name || "View PDF"}
+                          {row.finalPdf.file_name || "View PDF"}
                         </a>
-                        {row.final_pdf_uploaded_at && (
-                          <span className="text-xs text-gray-500">
-                            Uploaded{" "}
-                            {new Date(row.final_pdf_uploaded_at).toLocaleString()}
-                          </span>
+                        {row.extraPdfCount > 0 && (
+                          <div className="text-xs text-gray-600">
+                            + {row.extraPdfCount} more PDF
+                            {row.extraPdfCount > 1 ? "s" : ""}
+                          </div>
                         )}
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-400">
-                        No final PDF uploaded yet
+                      <span className="text-xs text-gray-500">
+                        No final PDF uploaded
                       </span>
                     )}
                   </td>
@@ -172,15 +267,10 @@ export default function ModuleTen() {
         </div>
       )}
 
-      <section className="text-xs text-gray-500 space-y-1">
-        <div>
-          <strong>Data sources:</strong> student_assignments, student_exports
-        </div>
-        <div>
-          Next steps (Phase 2): add per-module completion & scores, and drill-down links
-          into each student’s drafts, outlines, and quizzes.
-        </div>
-      </section>
+      <div className="text-xs text-gray-500 mt-4">
+        Data sources: <code>student_assignments</code>, <code>module_scores</code>,{" "}
+        <code>module9_quiz</code>, <code>module1_quiz_results</code>, <code>student_exports</code>.
+      </div>
     </div>
   );
 }

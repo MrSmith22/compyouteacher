@@ -172,9 +172,9 @@ export default function ModuleOne() {
     }, 0);
     const percent = Math.round((correctCount / total) * 100);
 
-    // 1) Save quiz result to apa_quiz_results
+    // 1) Save quiz result to module1_quiz_results
     try {
-      const { error } = await supabase.from("apa_quiz_results").insert({
+      const { error } = await supabase.from("module1_quiz_results").insert({
         user_email: session.user.email,
         score: correctCount,
         total,
