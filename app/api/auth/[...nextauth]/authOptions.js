@@ -1,4 +1,5 @@
 import GoogleProvider from "next-auth/providers/google";
+import { logActivity } from "@/lib/logActivity";
 
 export const authOptions = {
   providers: [
@@ -18,6 +19,15 @@ export const authOptions = {
       // keep your user id on the session (as you had)
       session.user.id = token.sub;
       return session;
+    },
+  },
+    events: {
+    async signIn({ user }) {
+      if (user?.email) {
+        await logActivity(user.email, "login", {
+          metadata: { via: "google_oauth" },
+        });
+      }
     },
   },
   // keep any other callbacks/settings you had – for example redirect:

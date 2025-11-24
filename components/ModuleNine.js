@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
+import { logActivity } from "@/lib/logActivity";
 
 export default function ModuleNine() {
   const { data: session } = useSession();
@@ -74,7 +75,16 @@ export default function ModuleNine() {
         total: questions.length,
         submitted_at: new Date().toISOString(),
       });
-    }
+
+    if (session?.user?.email) {
+  await logActivity(session.user.email, "quiz_submitted", {
+    module: 9,
+    metadata: {
+      score: total,
+      total: questions.length,
+    },
+  });
+}
   };
 
   const handleExportToGoogleDocs = async () => {
@@ -192,6 +202,17 @@ if (rowErr) {
 }
 
 console.log("✅ student_exports record inserted successfully.");
+
+if (session?.user?.email) {
+  await logActivity(session.user.email, "pdf_uploaded", {
+    module: 9,
+    metadata: {
+      file_name: originalName,
+      storage_path: path,
+      public_url: publicUrl,
+    },
+  });
+}
 
 // Success screen
 router.push("/modules/9/success");

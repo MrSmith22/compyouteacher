@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { supabase } from "@/lib/supabaseClient";
+import { logActivity } from "@/lib/logActivity";
 
 const modules = [
   {
@@ -18,9 +21,10 @@ const modules = [
             "To explain how to cook eggs in different ways",
             "To teach readers how to improve their public speaking voice",
             "To introduce the concept of rhetoric and its main strategies",
-            "To describe Aristotle’s life and achievements"
+            "To describe Aristotle’s life and achievements",
           ],
-          answer: "To introduce the concept of rhetoric and its main strategies"
+          answer:
+            "To introduce the concept of rhetoric and its main strategies",
         },
         {
           question: "What does the term rhetoric refer to in the video?",
@@ -28,9 +32,10 @@ const modules = [
             "The ability to speak loudly and clearly",
             "The art of effective and persuasive writing and speaking",
             "The process of writing fictional stories",
-            "The study of ancient Greek literature"
+            "The study of ancient Greek literature",
           ],
-          answer: "The art of effective and persuasive writing and speaking"
+          answer:
+            "The art of effective and persuasive writing and speaking",
         },
         {
           question: "Which of the following best describes ethos?",
@@ -38,15 +43,16 @@ const modules = [
             "Making the audience laugh to build interest",
             "Appealing to the audience’s emotions",
             "Presenting strong data and facts",
-            "Establishing credibility and trustworthiness"
+            "Establishing credibility and trustworthiness",
           ],
-          answer: "Establishing credibility and trustworthiness"
+          answer:
+            "Establishing credibility and trustworthiness",
         },
         {
           question:
             "A chef on a cooking show who wears a professional uniform and describes their years of experience is using which rhetorical strategy?",
           options: ["Pathos", "Logos", "Ethos", "Satire"],
-          answer: "Ethos"
+          answer: "Ethos",
         },
         {
           question: "Which of these is an example of pathos?",
@@ -54,36 +60,40 @@ const modules = [
             "Explaining how a law works in logical steps",
             "Sharing a touching story about a sick puppy to encourage donations",
             "Listing your degrees and awards in a speech",
-            "Quoting historical data to support your point"
+            "Quoting historical data to support your point",
           ],
           answer:
-            "Sharing a touching story about a sick puppy to encourage donations"
+            "Sharing a touching story about a sick puppy to encourage donations",
         },
         {
-          question: "According to the video, why is pathos often effective in persuasion?",
+          question:
+            "According to the video, why is pathos often effective in persuasion?",
           options: [
             "It is based on historical facts",
             "It appeals to the audience's trust",
             "It overrides logic and creates urgency through emotion",
-            "It shows the speaker’s qualifications"
+            "It shows the speaker’s qualifications",
           ],
-          answer: "It overrides logic and creates urgency through emotion"
+          answer:
+            "It overrides logic and creates urgency through emotion",
         },
         {
-          question: "What does logos focus on when trying to persuade an audience?",
+          question:
+            "What does logos focus on when trying to persuade an audience?",
           options: [
             "Trust and reputation",
             "Humor and sarcasm",
             "Clear evidence and logical reasoning",
-            "Feelings and empathy"
+            "Feelings and empathy",
           ],
-          answer: "Clear evidence and logical reasoning"
+          answer:
+            "Clear evidence and logical reasoning",
         },
         {
           question:
             "A dentist shows patients a study on sugar and tooth decay. This is an example of which rhetorical strategy?",
           options: ["Logos", "Ethos", "Pathos", "Irony"],
-          answer: "Logos"
+          answer: "Logos",
         },
         {
           question:
@@ -92,46 +102,41 @@ const modules = [
             "To avoid logical arguments",
             "To reduce audience attention",
             "To appeal to the audience’s emotions and influence decisions",
-            "To seem more trustworthy and experienced"
+            "To seem more trustworthy and experienced",
           ],
-          answer: "To appeal to the audience’s emotions and influence decisions"
+          answer:
+            "To appeal to the audience’s emotions and influence decisions",
         },
         {
-          question: "How can someone become better at rhetoric, based on the video?",
+          question:
+            "How can someone become better at rhetoric, based on the video?",
           options: [
             "Memorize every persuasive technique",
             "Focus only on emotional appeals",
             "Avoid learning from others to stay original",
-            "Study skilled speakers and writers and practice using rhetorical strategies"
+            "Study skilled speakers and writers and practice using rhetorical strategies",
           ],
           answer:
-            "Study skilled speakers and writers and practice using rhetorical strategies"
-        }
-      ]
-    }
-  }
+            "Study skilled speakers and writers and practice using rhetorical strategies",
+        },
+      ],
+    },
+  },
 ];
 
 export default function ModuleOne() {
-  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [currentModuleIndex] = useState(0);
   const currentModule = modules[currentModuleIndex];
 
   const [userAnswers, setUserAnswers] = useState([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const handleAnswerChange = (index, value) => {
     const updatedAnswers = [...userAnswers];
     updatedAnswers[index] = value;
     setUserAnswers(updatedAnswers);
-  };
-
-  const handleSubmitQuiz = () => {
-    setQuizSubmitted(true);
-    setTimeout(() => {
-      const pct = getScore();
-      router.push(`/modules/1/success?score=${pct}`);
-    }, 1000);
   };
 
   const isQuizCorrect = (index) => {
@@ -142,11 +147,62 @@ export default function ModuleOne() {
     );
   };
 
-  const getScore = () => {
+  const getScorePercent = () => {
     const correctCount = currentModule.content.quiz.reduce((acc, q, i) => {
       return acc + (isQuizCorrect(i) ? 1 : 0);
     }, 0);
-    return Math.round((correctCount / currentModule.content.quiz.length) * 100);
+    return Math.round(
+      (correctCount / currentModule.content.quiz.length) * 100
+    );
+  };
+
+  const handleSubmitQuiz = async () => {
+    if (quizSubmitted) return;
+
+    if (!session?.user?.email) {
+      alert("You must be signed in to submit the quiz.");
+      return;
+    }
+
+    setQuizSubmitted(true);
+
+    const total = currentModule.content.quiz.length;
+    const correctCount = currentModule.content.quiz.reduce((acc, q, i) => {
+      return acc + (isQuizCorrect(i) ? 1 : 0);
+    }, 0);
+    const percent = Math.round((correctCount / total) * 100);
+
+    // 1) Save quiz result to apa_quiz_results
+    try {
+      const { error } = await supabase.from("apa_quiz_results").insert({
+        user_email: session.user.email,
+        score: correctCount,
+        total,
+        answers: userAnswers, // stored as jsonb
+      });
+
+      if (error) {
+        console.error("Error saving APA quiz result:", error);
+      }
+    } catch (err) {
+      console.error("Unexpected error saving APA quiz result:", err);
+    }
+
+    // 2) Log module completion to student_activity_log
+    try {
+      await logActivity(session.user.email, "module_completed", 1, {
+        score: correctCount,
+        total,
+        percent,
+      });
+    } catch (err) {
+      console.error("Error logging module 1 completion:", err);
+    }
+
+    // 3) Navigate to success screen
+    setTimeout(() => {
+      router.push(`/modules/1/success?score=${percent}`);
+    }, 1000);
   };
 
   return (
@@ -168,10 +224,14 @@ export default function ModuleOne() {
 
       {/* Quiz */}
       <div className="mb-4">
-        <h3 className="text-2xl font-semibold mb-4 text-theme-green">Quiz</h3>
+        <h3 className="text-2xl font-semibold mb-4 text-theme-green">
+          Quiz
+        </h3>
         {currentModule.content.quiz.map((q, index) => (
           <div key={index} className="mb-4">
-            <p className="font-medium mb-2 text-theme-dark">{q.question}</p>
+            <p className="font-medium mb-2 text-theme-dark">
+              {q.question}
+            </p>
             <select
               value={userAnswers[index] || ""}
               onChange={(e) => handleAnswerChange(index, e.target.value)}

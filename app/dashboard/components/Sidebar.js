@@ -37,7 +37,7 @@ export default function Sidebar() {
         {/* Teacher-only link */}
         {!loading && role === "teacher" && (
           <Link
-            href="/teacher"
+            href="/modules/10"
             className="block text-sm text-yellow-300 hover:text-white transition-colors"
           >
             🧑‍🏫 Teacher Dashboard

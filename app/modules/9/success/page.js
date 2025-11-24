@@ -1,24 +1,42 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { logActivity } from "@/lib/logActivity";
 
-export default function ModuleNineSuccess() {
+export default function ModuleNineSuccessPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    async function logCompletion() {
+      if (!session?.user?.email) return;
+
+      await logActivity(session.user.email, "module_completed", {
+        module: 9,
+        metadata: { source: "final_pdf_success_page" },
+      });
+    }
+
+    logCompletion();
+  }, [session]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <div className="text-5xl">📘</div>
-        <h1 className="text-2xl font-bold text-theme-green">Module 9 Complete!</h1>
-
-        <p className="text-lg text-theme-dark">
-          Your final PDF has been uploaded successfully. Your teacher will review it soon.
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white shadow rounded-lg p-8 max-w-lg w-full text-center">
+        <h1 className="text-2xl font-bold mb-2 text-theme-blue">
+          ✅ Final PDF Submitted!
+        </h1>
+        <p className="text-gray-700 mb-4">
+          Your APA-formatted essay PDF has been uploaded successfully.
         </p>
-
-        <Link
-          href="/dashboard"
-          className="inline-block bg-theme-blue text-white px-6 py-2 rounded hover:bg-blue-700 transition"
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="mt-4 px-6 py-2 rounded bg-theme-blue text-white shadow hover:opacity-90"
         >
           Return to Dashboard
-        </Link>
+        </button>
       </div>
     </div>
   );
