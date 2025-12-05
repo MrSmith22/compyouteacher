@@ -1,24 +1,35 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { logActivity } from "../lib/logActivity";
 
 export default function ModuleFour() {
   const { data: session } = useSession();
+  const router = useRouter();
+
   const [analysis, setAnalysis] = useState([]);
   const [buckets, setBuckets] = useState([]);
   const [newBucketName, setNewBucketName] = useState("");
   const [reflection, setReflection] = useState("");
   const [filter, setFilter] = useState({ strategy: "", source: "" });
-  const router = useRouter();
+
+  // guard so we only log module_started once per visit
+  const hasLoggedStartRef = useRef(false);
 
   // 📌 Load analysis + buckets + reflection
   useEffect(() => {
     const fetchData = async () => {
       const email = session?.user?.email;
       if (!email) return;
+
+      // Log module start once per visit
+      if (!hasLoggedStartRef.current) {
+        hasLoggedStartRef.current = true;
+        logActivity(email, "module_started", { module: 4 });
+      }
 
       // Load analysis
       const { data: analysisData, error: analysisError } = await supabase
@@ -29,7 +40,7 @@ export default function ModuleFour() {
       if (analysisError) {
         console.error("Error fetching analysis:", analysisError);
       } else {
-        setAnalysis(analysisData);
+        setAnalysis(analysisData || []);
       }
 
       // Load buckets + reflection
@@ -49,12 +60,25 @@ export default function ModuleFour() {
     fetchData();
   }, [session]);
 
-  // 📌 Save when buckets or reflection change
+  // helper to summarize bucket state for logs
+  const getBucketMetrics = () => {
+    const bucketCount = buckets.length;
+    const totalItems = buckets.reduce(
+      (sum, b) => sum + (Array.isArray(b.items) ? b.items.length : 0),
+      0
+    );
+    const reflectionLength = reflection.trim().length;
+    return { bucketCount, totalItems, reflectionLength };
+  };
+
+  // 📌 Save when buckets or reflection change (auto-save)
   useEffect(() => {
     const saveBuckets = async () => {
       const email = session?.user?.email;
       if (!email) return;
       if (buckets.length === 0 && reflection.trim() === "") return;
+
+      const nowIso = new Date().toISOString();
 
       const { error } = await supabase
         .from("bucket_groups")
@@ -63,29 +87,78 @@ export default function ModuleFour() {
             user_email: email,
             buckets,
             reflection,
-            updated_at: new Date().toISOString(),
+            updated_at: nowIso,
           },
           { onConflict: "user_email" }
         );
 
       if (error) {
         console.error("Error saving buckets & reflection:", error);
+      } else {
+        const metrics = getBucketMetrics();
+        // fire and forget is fine here
+        logActivity(email, "buckets_autosaved", {
+          module: 4,
+          ...metrics,
+        });
       }
     };
 
     saveBuckets();
-  }, [buckets, reflection, session]);
+  }, [buckets, reflection, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addBucket = () => {
-    if (!newBucketName) return;
-    setBuckets([...buckets, { name: newBucketName, items: [] }]);
+  const addBucket = async () => {
+    if (!newBucketName.trim()) return;
+
+    const email = session?.user?.email;
+    const trimmed = newBucketName.trim();
+
+    const updated = [...buckets, { name: trimmed, items: [] }];
+    setBuckets(updated);
     setNewBucketName("");
+
+    if (email) {
+      const metrics = {
+        bucketCount: updated.length,
+        totalItems: updated.reduce(
+          (sum, b) => sum + (Array.isArray(b.items) ? b.items.length : 0),
+          0
+        ),
+      };
+
+      await logActivity(email, "bucket_created", {
+        module: 4,
+        bucketName: trimmed,
+        ...metrics,
+      });
+    }
   };
 
-  const addToBucket = (bucketIndex, item) => {
+  const addToBucket = async (bucketIndex, item) => {
+    if (bucketIndex < 0 || bucketIndex >= buckets.length) return;
+
+    const email = session?.user?.email;
+
     const updated = [...buckets];
-    updated[bucketIndex].items.push(item);
+    const targetBucket = updated[bucketIndex];
+
+    targetBucket.items = Array.isArray(targetBucket.items)
+      ? [...targetBucket.items, item]
+      : [item];
+
+    updated[bucketIndex] = targetBucket;
     setBuckets(updated);
+
+    if (email) {
+      await logActivity(email, "bucket_item_added", {
+        module: 4,
+        bucketName: targetBucket.name,
+        bucketIndex,
+        entryId: item.id ?? null,
+        category: item.category,
+        type: item.type,
+      });
+    }
   };
 
   // ✅ Filter & map analysis
@@ -98,11 +171,14 @@ export default function ModuleFour() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-theme-dark">🧠 Group Your Ideas into Buckets</h1>
+      <h1 className="text-2xl font-bold mb-4 text-theme-dark">
+        🧠 Group Your Ideas into Buckets
+      </h1>
 
       <p className="mb-4 text-gray-700">
-        Use the filters to explore your analysis entries. Then create buckets (like paragraph ideas)
-        and add entries into them. These groupings will help you plan your outline in the next module.
+        Use the filters to explore your analysis entries. Then create buckets
+        (like paragraph ideas) and add entries into them. These groupings will
+        help you plan your outline in the next module.
       </p>
 
       {/* Filters */}
@@ -110,7 +186,9 @@ export default function ModuleFour() {
         <select
           className="border p-2 rounded"
           value={filter.strategy}
-          onChange={(e) => setFilter({ ...filter, strategy: e.target.value })}
+          onChange={(e) =>
+            setFilter({ ...filter, strategy: e.target.value })
+          }
         >
           <option value="">Filter by Strategy</option>
           <option value="ethos">Ethos</option>
@@ -123,7 +201,9 @@ export default function ModuleFour() {
         <select
           className="border p-2 rounded"
           value={filter.source}
-          onChange={(e) => setFilter({ ...filter, source: e.target.value })}
+          onChange={(e) =>
+            setFilter({ ...filter, source: e.target.value })
+          }
         >
           <option value="">Filter by Source</option>
           <option value="speech">I Have a Dream</option>
@@ -133,25 +213,44 @@ export default function ModuleFour() {
 
       {/* Analysis Entries */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2 text-theme-dark">Your Analysis Entries</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">
+          Your Analysis Entries
+        </h2>
         <ul className="space-y-2">
           {filteredAnalysis.map((entry, i) => (
-            <li key={i} className="border p-3 rounded bg-gray-50">
-              <p><strong>Category:</strong> {entry.category}</p>
-              <p><strong>Source:</strong> {entry.type}</p>
-              <p><strong>Observation:</strong> {entry.observation}</p>
-              <p><strong>Quote:</strong> {entry.quote || <em>None yet</em>}</p>
+            <li key={entry.id ?? i} className="border p-3 rounded bg-gray-50">
+              <p>
+                <strong>Category:</strong> {entry.category}
+              </p>
+              <p>
+                <strong>Source:</strong> {entry.type}
+              </p>
+              <p>
+                <strong>Observation:</strong> {entry.observation}
+              </p>
+              <p>
+                <strong>Quote:</strong>{" "}
+                {entry.quote || <em>None yet</em>}
+              </p>
               {buckets.length > 0 && (
                 <div className="mt-2">
                   <label className="mr-2">Add to bucket:</label>
                   <select
-                    onChange={(e) => addToBucket(parseInt(e.target.value), entry)}
+                    onChange={(e) => {
+                      const idx = parseInt(e.target.value, 10);
+                      if (!Number.isNaN(idx)) {
+                        addToBucket(idx, entry);
+                        e.target.value = "";
+                      }
+                    }}
                     defaultValue=""
                     className="border p-1 rounded"
                   >
                     <option value="">Select bucket</option>
                     {buckets.map((b, index) => (
-                      <option key={index} value={index}>{b.name}</option>
+                      <option key={index} value={index}>
+                        {b.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -163,7 +262,9 @@ export default function ModuleFour() {
 
       {/* Bucket Creator */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2 text-theme-dark">Create Buckets</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">
+          Create Buckets
+        </h2>
         <div className="flex gap-2">
           <input
             className="border p-2 rounded w-full"
@@ -182,15 +283,26 @@ export default function ModuleFour() {
 
       {/* Buckets */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-2 text-theme-dark">Your Buckets</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">
+          Your Buckets
+        </h2>
         {buckets.map((bucket, i) => (
-          <div key={i} className="mb-4 border p-4 rounded bg-white shadow">
-            <h3 className="font-bold text-theme-blue mb-2">{bucket.name}</h3>
+          <div
+            key={i}
+            className="mb-4 border p-4 rounded bg-white shadow"
+          >
+            <h3 className="font-bold text-theme-blue mb-2">
+              {bucket.name}
+            </h3>
             <ul className="list-disc list-inside">
-              {bucket.items.map((item, j) => (
+              {(bucket.items || []).map((item, j) => (
                 <li key={j}>
-                  <strong>{item.category} ({item.source}):</strong>{" "}
-                  {item.quote && <span className="italic">“{item.quote}”</span>}
+                  <strong>
+                    {item.category} ({item.type})
+                  </strong>
+                  {item.quote && (
+                    <span className="italic"> “{item.quote}”</span>
+                  )}
                   {item.observation && <> — {item.observation}</>}
                 </li>
               ))}
@@ -201,10 +313,12 @@ export default function ModuleFour() {
 
       {/* Final Reflection */}
       <div className="mb-10">
-        <h2 className="text-lg font-semibold mb-2 text-theme-dark">💬 Reflection</h2>
+        <h2 className="text-lg font-semibold mb-2 text-theme-dark">
+          💬 Reflection
+        </h2>
         <p className="text-sm text-gray-600 mb-2">
-          Why did you group your observations this way? Which patterns or key ideas do you think are
-          important enough to include in your essay?
+          Why did you group your observations this way? Which patterns or key
+          ideas do you think are important enough to include in your essay?
         </p>
         <textarea
           value={reflection}
@@ -213,34 +327,42 @@ export default function ModuleFour() {
           placeholder="Write your thoughts here..."
         />
       </div>
+
       {/* Save & Continue Button */}
-<div className="text-center mt-6">
-  <button
-    onClick={async () => {
-      const email = session?.user?.email;
-      if (!email) return;
+      <div className="text-center mt-6">
+        <button
+          onClick={async () => {
+            const email = session?.user?.email;
+            if (!email) return;
 
-      const { error } = await supabase.from("bucket_groups").upsert(
-        {
-          user_email: email,
-          buckets,
-          reflection,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_email" }
-      );
+            const nowIso = new Date().toISOString();
 
-      if (error) {
-        alert("Error saving: " + error.message);
-      } else {
-        router.push("/modules/4/success");
-      }
-    }}
-    className="px-6 py-3 bg-theme-blue text-white rounded shadow hover:bg-blue-700"
-  >
-    Save & Continue
-  </button>
-</div>
+            const { error } = await supabase.from("bucket_groups").upsert(
+              {
+                user_email: email,
+                buckets,
+                reflection,
+                updated_at: nowIso,
+              },
+              { onConflict: "user_email" }
+            );
+
+            if (error) {
+              alert("Error saving: " + error.message);
+            } else {
+              const metrics = getBucketMetrics();
+              await logActivity(email, "module_completed", {
+                module: 4,
+                ...metrics,
+              });
+              router.push("/modules/4/success");
+            }
+          }}
+          className="px-6 py-3 bg-theme-blue text-white rounded shadow hover:bg-blue-700"
+        >
+          Save & Continue
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,30 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { logActivity } from "@/lib/logActivity";
 
 export default function ModuleTwoVideo() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Log when Module 2 is started
+  useEffect(() => {
+    if (!session?.user?.email) return;
+
+    async function logStart() {
+      try {
+        await logActivity(session.user.email, "module_started", {
+          module: 2,
+        });
+      } catch (err) {
+        console.error("Error logging module 2 start:", err);
+      }
+    }
+
+    logStart();
+  }, [session]);
 
   const handleNext = () => {
     // open Google search in a new tab
@@ -15,6 +36,10 @@ export default function ModuleTwoVideo() {
     // navigate to the URL/transcript step in this tab
     router.push("/modules/2/source");
   };
+
+  if (status === "loading") {
+    return <div className="p-6">Loading…</div>;
+  }
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">

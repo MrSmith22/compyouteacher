@@ -1,6 +1,8 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { logActivity } from "@/lib/logActivity";
 
 const SEARCH_URL =
   "https://www.google.com/search?q=full+text+I+Have+a+Dream+speech";
@@ -9,10 +11,19 @@ const URL_KEY = "m2_speech_url";
 const TEXT_KEY = "m2_speech_text";
 
 export default function ModuleTwo() {
+  const { data: session } = useSession();
+
   const [step, setStep] = useState(1);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
   const [checked, setChecked] = useState(null); // null | { words: number, anchors: number }
+
+  // log that the student started Module 2
+  useEffect(() => {
+    if (!session?.user?.email) return;
+
+    logActivity(session.user.email, "module_started", { module: 2 });
+  }, [session]);
 
   // hydrate from localStorage once
   useEffect(() => {
@@ -42,7 +53,7 @@ export default function ModuleTwo() {
     localStorage.setItem(TEXT_KEY, text.trim());
   };
 
-  // super-light “did you paste the transcript?” sanity check
+  // super light “did you paste the transcript” sanity check
   const checkPaste = () => {
     const cleaned = text
       .replace(/\s+/g, " ")
@@ -108,9 +119,9 @@ export default function ModuleTwo() {
             A new tab with a Google search for{" "}
             <strong>“full text I Have a Dream speech”</strong> has been opened.
             Choose a reliable source (ideally a <code>.edu</code> or{" "}
-            <code>.gov</code> site) that contains the <strong>full transcript</strong> (no
-            summaries). Paste the URL of the page you picked below, then click{" "}
-            <strong>Save URL</strong>.
+            <code>.gov</code> site) that contains the{" "}
+            <strong>full transcript</strong> (no summaries). Paste the URL of
+            the page you picked below, then click <strong>Save URL</strong>.
           </p>
 
           <div className="flex gap-2">
@@ -137,7 +148,7 @@ export default function ModuleTwo() {
                 window.open(SEARCH_URL, "_blank", "noopener,noreferrer")
               }
             >
-              Re-open Google search
+              Re open Google search
             </button>
 
             <button
@@ -202,7 +213,7 @@ export default function ModuleTwo() {
                 later”)
               </div>
               <div className="text-gray-600 mt-1">
-                This is a quick sanity check, not a grade. We’ll run a more
+                This is a quick sanity check, not a grade. We will run a more
                 flexible comparison later to account for small variations.
               </div>
             </div>

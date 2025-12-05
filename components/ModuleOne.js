@@ -45,8 +45,7 @@ const modules = [
             "Presenting strong data and facts",
             "Establishing credibility and trustworthiness",
           ],
-          answer:
-            "Establishing credibility and trustworthiness",
+          answer: "Establishing credibility and trustworthiness",
         },
         {
           question:
@@ -86,8 +85,7 @@ const modules = [
             "Clear evidence and logical reasoning",
             "Feelings and empathy",
           ],
-          answer:
-            "Clear evidence and logical reasoning",
+          answer: "Clear evidence and logical reasoning",
         },
         {
           question:
@@ -147,13 +145,16 @@ export default function ModuleOne() {
     );
   };
 
-  const getScorePercent = () => {
-    const correctCount = currentModule.content.quiz.reduce((acc, q, i) => {
+  const getScoreData = () => {
+    const total = currentModule.content.quiz.length;
+
+    const correct = currentModule.content.quiz.reduce((acc, q, i) => {
       return acc + (isQuizCorrect(i) ? 1 : 0);
     }, 0);
-    return Math.round(
-      (correctCount / currentModule.content.quiz.length) * 100
-    );
+
+    const percent = Math.round((correct / total) * 100);
+
+    return { correct, total, percent };
   };
 
   const handleSubmitQuiz = async () => {
@@ -166,40 +167,51 @@ export default function ModuleOne() {
 
     setQuizSubmitted(true);
 
-    const total = currentModule.content.quiz.length;
-    const correctCount = currentModule.content.quiz.reduce((acc, q, i) => {
-      return acc + (isQuizCorrect(i) ? 1 : 0);
-    }, 0);
-    const percent = Math.round((correctCount / total) * 100);
+    const { correct, total, percent } = getScoreData();
+    const userEmail = session.user.email;
 
     // 1) Save quiz result to module1_quiz_results
     try {
       const { error } = await supabase.from("module1_quiz_results").insert({
-        user_email: session.user.email,
-        score: correctCount,
+        user_email: userEmail,
+        score: correct,
         total,
         answers: userAnswers, // stored as jsonb
       });
 
       if (error) {
-        console.error("Error saving APA quiz result:", error);
+        console.error("Error saving Module 1 quiz result:", error);
       }
     } catch (err) {
-      console.error("Unexpected error saving APA quiz result:", err);
+      console.error("Unexpected error saving Module 1 quiz result:", err);
     }
 
-    // 2) Log module completion to student_activity_log
+    // 2) Log quiz_submitted with rich metadata
     try {
-      await logActivity(session.user.email, "module_completed", 1, {
-        score: correctCount,
+      await logActivity(userEmail, "quiz_submitted", 1, {
+        quiz: "rhetoric_module1",
+        correct,
+        total,
+        percent,
+        answers: userAnswers,
+      });
+    } catch (err) {
+      console.error("Error logging quiz_submitted for Module 1:", err);
+    }
+
+    // 3) Log module_completed with summary metadata
+    try {
+      await logActivity(userEmail, "module_completed", 1, {
+        quiz: "rhetoric_module1",
+        correct,
         total,
         percent,
       });
     } catch (err) {
-      console.error("Error logging module 1 completion:", err);
+      console.error("Error logging module_completed for Module 1:", err);
     }
 
-    // 3) Navigate to success screen
+    // 4) Navigate to success screen
     setTimeout(() => {
       router.push(`/modules/1/success?score=${percent}`);
     }, 1000);

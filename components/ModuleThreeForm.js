@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
+import { logActivity } from "@/lib/logActivity";
 
 const questionGroups = [
   {
@@ -32,6 +33,8 @@ export default function ModuleThreeForm() {
   const [lastSaved, setLastSaved] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const savingRef = useRef(false);
+  const thesisStepLoggedRef = useRef(false);
+
   const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
 
   const [step, setStep] = useState(0);
@@ -66,6 +69,21 @@ export default function ModuleThreeForm() {
 
     if (session?.user?.email) fetchExisting();
   }, [session]);
+
+  // ✅ Log when the thesis step is first viewed
+  useEffect(() => {
+    const email = session?.user?.email;
+    if (!email) return;
+
+    const isThesisStep = step === questionGroups.length - 1;
+    if (isThesisStep && !thesisStepLoggedRef.current) {
+      thesisStepLoggedRef.current = true;
+      logActivity(email, "thesis_step_viewed", {
+        module: 3,
+        screen: "module3_thesis_step",
+      });
+    }
+  }, [step, session?.user?.email]);
 
   // ✅ Handle text changes
   const handleChange = (i, val) => {
@@ -117,11 +135,14 @@ export default function ModuleThreeForm() {
             thesis,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: ["user_email"] } // ✅ Corrected format
+          { onConflict: ["user_email"] }
         );
 
-      if (error) console.error("autosave error →", error);
-      else setLastSaved(new Date());
+      if (error) {
+        console.error("autosave error →", error);
+      } else {
+        setLastSaved(new Date());
+      }
 
       savingRef.current = false;
     }, 20000);
@@ -129,7 +150,7 @@ export default function ModuleThreeForm() {
     return () => clearInterval(id);
   }, [responses, thesis, session, loaded]);
 
-  // ✅ Manual Save on Submit
+  // ✅ Manual Save on Submit + activity logging
   const handleSubmit = async () => {
     const email = session?.user?.email;
     if (!email) {
@@ -148,14 +169,36 @@ export default function ModuleThreeForm() {
           thesis,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: ["user_email"] } // ✅ Corrected format
+        { onConflict: ["user_email"] }
       );
 
     if (error) {
       alert("Something went wrong: " + error.message);
-    } else {
-      router.push("/modules/3/success");
+      return;
     }
+
+    // Log thesis_saved and module_completed
+    try {
+      const answeredCount = responses.filter(
+        (r) => r && r.trim().length > 0
+      ).length;
+
+      await logActivity(email, "thesis_saved", {
+        module: 3,
+        structureChoice: structureChoice || null,
+        responsesAnswered: answeredCount,
+        thesisLength: thesis.trim().length,
+      });
+
+      await logActivity(email, "module_completed", {
+        module: 3,
+        source: "module3_submit",
+      });
+    } catch (err) {
+      console.error("Error logging Module 3 completion:", err);
+    }
+
+    router.push("/modules/3/success");
   };
 
   // ✅ Render UI
@@ -180,7 +223,9 @@ export default function ModuleThreeForm() {
       {currentGroup.questions.map((q, i) => (
         <div key={i} className="bg-white p-4 rounded shadow mb-4">
           <label className="block font-semibold text-theme-dark mb-1">
-            {step > 0 && customLabels ? customLabels[groupStartIndex + i - 4] : q}
+            {step > 0 && customLabels
+              ? customLabels[groupStartIndex + i - 4]
+              : q}
           </label>
           <textarea
             value={responses[groupStartIndex + i]}
@@ -192,7 +237,7 @@ export default function ModuleThreeForm() {
             responses[groupStartIndex + i] &&
             !isPhrase(responses[groupStartIndex + i]) && (
               <p className="text-xs text-theme-red mt-1">
-                Keep it short—just a phrase.
+                Keep it short, just a phrase.
               </p>
             )}
         </div>

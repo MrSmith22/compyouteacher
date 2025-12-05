@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { logActivity } from "@/lib/logActivity";
 
 const KEYS = {
   speechUrl: "mlk_speech_url",
@@ -19,6 +21,7 @@ function isValidHttpUrl(v) {
 
 export default function ModuleTwo_ChooseSpeech() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [url, setUrl] = useState("");
   const [urlOk, setUrlOk] = useState(false);
@@ -60,17 +63,44 @@ export default function ModuleTwo_ChooseSpeech() {
     if (!ok) return;
 
     setSaving(true);
+    const trimmedUrl = url.trim();
+    const trimmedText = text.trim();
+    const userEmail = session?.user?.email || null;
+
     try {
-      localStorage.setItem(KEYS.speechUrl, url.trim());
-      localStorage.setItem(KEYS.speechText, text.trim());
+      // Save to localStorage so the student can come back later.
+      localStorage.setItem(KEYS.speechUrl, trimmedUrl);
+      localStorage.setItem(KEYS.speechText, trimmedText);
     } catch {}
+
+    // Log activity if we know who this is
+    if (userEmail) {
+      try {
+        // A) they chose a source URL
+        await logActivity(userEmail, "speech_url_saved", {
+          module: 2,
+          item: "i_have_a_dream",
+          url: trimmedUrl,
+        });
+
+        // B) they pasted the full transcript
+        await logActivity(userEmail, "speech_transcript_saved", {
+          module: 2,
+          item: "i_have_a_dream",
+          textLength: trimmedText.length,
+          // tiny sample so you can eyeball which version they used
+          sample: trimmedText.slice(0, 120),
+        });
+      } catch (err) {
+        console.error("Error logging Module 2 speech selection:", err);
+      }
+    }
 
     // Open Google search for the Letter in a background tab,
     // then immediately bring focus back to this app tab.
     try {
       const q = encodeURIComponent("full text Letter from Birmingham Jail");
       window.open(`https://www.google.com/search?q=${q}`, "_blank", "noopener");
-      // Nudge focus back to our tab (most browsers will respect this).
       setTimeout(() => window.focus(), 100);
     } catch {}
 

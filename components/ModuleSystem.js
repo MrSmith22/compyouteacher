@@ -121,13 +121,28 @@ export default function ModuleSystem() {
     setUserAnswers(updatedAnswers);
   };
 
-  const handleSubmitQuiz = () => {
-    setQuizSubmitted(true);
-    setTimeout(() => {
-      const pct = getScore();
-      router.push(`/modules/1/success?score=${pct}`);
-    }, 1000);
-  };
+  const handleSubmitQuiz = async () => {
+  setQuizSubmitted(true);
+
+  const pct = getScore();
+
+  // 🚀 Log activity
+  try {
+    if (session?.user?.email) {
+      await logActivity(session.user.email, "quiz_submitted", {
+        module: 1,
+        score: pct
+      });
+    }
+  } catch (err) {
+    console.error("Error logging Module 1 quiz submit:", err);
+  }
+
+  // Delay so student sees correct/incorrect text
+  setTimeout(() => {
+    router.push(`/modules/1/success?score=${pct}`);
+  }, 800);
+};
 
   const isQuizCorrect = (index) => {
     return (

@@ -1,9 +1,10 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
+import { logActivity } from "../lib/logActivity";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -15,21 +16,41 @@ export default function ModuleSix() {
   const [locked, setLocked] = useState(false);
   const [sideOpen, setSideOpen] = useState(false);
 
+  // prevent duplicate "module_started" logs per visit
+  const hasLoggedStartRef = useRef(false);
+
   const roman = (n) =>
-    ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] || `${n + 1}`;
+    ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] ||
+    `${n + 1}`;
+
+  const getDraftMetrics = () => {
+    const sectionCount = draft.length;
+    const sectionWordCounts = draft.map((s) =>
+      (s || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length
+    );
+    const totalWords = sectionWordCounts.reduce((a, b) => a + b, 0);
+    return { sectionCount, sectionWordCounts, totalWords };
+  };
 
   useEffect(() => {
     const loadData = async () => {
       const email = session?.user?.email;
       if (!email) return;
 
-      // Load finalized outline
-      const { data: outlineRow } = await supabase
+      // Load finalized outline from Module 5
+      const { data: outlineRow, error: outlineError } = await supabase
         .from("student_outlines")
         .select("outline,finalized")
         .eq("user_email", email)
         .eq("module", 5)
         .single();
+
+      if (outlineError && outlineError.code !== "PGRST116") {
+        console.error("Error loading outline for Module 6:", outlineError);
+      }
 
       if (!outlineRow?.finalized) {
         alert("Finish Module 5 before starting Module 6.");
@@ -38,29 +59,44 @@ export default function ModuleSix() {
 
       setOutline(outlineRow.outline);
 
+      // Log module_started once per visit
+      if (!hasLoggedStartRef.current) {
+        hasLoggedStartRef.current = true;
+        logActivity(email, "module_started", { module: 6, hasOutline: true });
+      }
+
       // Load T-chart observations
-      const { data: obs } = await supabase
+      const { data: obs, error: obsError } = await supabase
         .from("tchart_entries")
         .select("*")
         .eq("user_email", email);
+
+      if (obsError) {
+        console.error("Error loading observations for Module 6:", obsError);
+      }
       setObservations(obs || []);
 
-      // Load draft
-      const { data: draftRow } = await supabase
+      // Load existing draft
+      const { data: draftRow, error: draftError } = await supabase
         .from("student_drafts")
         .select("sections,locked")
         .eq("user_email", email)
         .eq("module", 6)
         .single();
 
+      if (draftError && draftError.code !== "PGRST116") {
+        console.error("Error loading draft for Module 6:", draftError);
+      }
+
       if (draftRow?.sections?.length) {
         setDraft(draftRow.sections);
         setLocked(draftRow.locked === true);
       } else {
+        // Intro + one per body bucket + conclusion
         const emptySections = [
           "",
           ...(outlineRow.outline.body || []).map(() => ""),
-          ""
+          "",
         ];
         setDraft(emptySections);
         setLocked(false);
@@ -70,19 +106,38 @@ export default function ModuleSix() {
     loadData();
   }, [session]);
 
-  // Debounced autosave
+  // Debounced autosave + activity log
   useEffect(() => {
     if (!session?.user?.email || draft.length === 0) return;
 
     const id = setTimeout(async () => {
-      await supabase.from("student_drafts").upsert({
-        user_email: session.user.email,
+      const email = session.user.email;
+
+      const payload = {
+        user_email: email,
         module: 6,
         sections: draft,
         full_text: draft.join("\n\n"),
         locked,
-        updated_at: new Date().toISOString()
-      });
+        updated_at: new Date().toISOString(),
+      };
+
+      try {
+        const { error } = await supabase.from("student_drafts").upsert(payload);
+
+        if (error) {
+          console.error("Module 6 autosave error:", error);
+        } else {
+          const metrics = getDraftMetrics();
+          logActivity(email, "draft_autosaved", {
+            module: 6,
+            locked,
+            ...metrics,
+          });
+        }
+      } catch (err) {
+        console.error("Module 6 autosave failed:", err);
+      }
     }, 800);
 
     return () => clearTimeout(id);
@@ -98,15 +153,35 @@ export default function ModuleSix() {
   };
 
   const markComplete = async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+
     setLocked(true);
-    await supabase.from("student_drafts").upsert({
-      user_email: session.user.email,
+
+    const payload = {
+      user_email: email,
       module: 6,
       sections: draft,
       full_text: draft.join("\n\n"),
       locked: true,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase.from("student_drafts").upsert(payload);
+
+    if (error) {
+      alert("Error saving draft: " + error.message);
+      setLocked(false);
+      return;
+    }
+
+    const metrics = getDraftMetrics();
+    await logActivity(email, "module_completed", {
+      module: 6,
+      locked: true,
+      ...metrics,
     });
+
     router.push("/modules/6/success");
   };
 
@@ -125,11 +200,14 @@ export default function ModuleSix() {
   return (
     <div className="flex">
       <main className="flex-1 p-6 space-y-8">
-        <h1 className="text-2xl font-bold text-theme-dark mb-2">✍️ Draft Your Essay</h1>
+        <h1 className="text-2xl font-bold text-theme-dark mb-2">
+          ✍️ Draft Your Essay
+        </h1>
 
         <p className="text-gray-700">
-          Use your outline and observations to write your draft. Start with an introduction, develop
-          the body paragraphs, and finish with a conclusion. When you’re ready, mark your draft complete.
+          Use your outline and observations to write your draft. Start with an
+          introduction, develop the body paragraphs, and finish with a
+          conclusion. When you’re ready, mark your draft complete.
         </p>
 
         {/* Introduction */}

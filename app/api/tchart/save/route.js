@@ -3,15 +3,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { createClient } from "@supabase/supabase-js";
 
-// Create a Supabase client connection (server-side)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+// Supabase server client setup
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Missing Supabase env vars for tchart/save route");
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(req) {
   try {
-    // 1) Require a signed-in user
+    // Require a signed in user
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -22,9 +26,10 @@ export async function POST(req) {
 
     const user_email = session.user.email;
 
-    // 2) Read the payload from the client
+    // Read payload
     const payload = await req.json();
     const entries = payload?.entries;
+
     if (!Array.isArray(entries) || entries.length === 0) {
       return NextResponse.json(
         { ok: false, error: "No entries provided" },
@@ -32,33 +37,32 @@ export async function POST(req) {
       );
     }
 
-    // 3) Normalize & add audit fields
     const now = new Date().toISOString();
+
     const rows = entries.map((e) => ({
       user_email,
-      category: e.category,          // "ethos" | "pathos" | "logos"
-      type: e.type,                  // "speech" | "letter"
+      category: e.category,           // "ethos" | "pathos" | "logos"
+      type: e.type,                   // "speech" | "letter"
       quote: e.quote || "",
       observation: e.observation || "",
-      letter_url: e.letter_url || null, // only present for "letter"
+      letter_url: e.letter_url || null,
       updated_at: now,
     }));
 
-    // 4) UPSERT instead of INSERT
-    //    Uses the unique index (user_email, category, type)
+    // Upsert rows into tchart_entries
     const { data, error } = await supabase
       .from("tchart_entries")
       .upsert(rows, {
         onConflict: "user_email,category,type",
         ignoreDuplicates: false,
       })
-      .select(); // optional: return rows for debugging
+      .select();
 
     if (error) throw error;
 
     return NextResponse.json({ ok: true, count: data?.length ?? 0 });
   } catch (err) {
-    console.error("Save T-Chart failed:", err);
+    console.error("Save T Chart failed:", err);
     return NextResponse.json(
       { ok: false, error: String(err.message || err) },
       { status: 500 }

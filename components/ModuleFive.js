@@ -1,9 +1,10 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "../lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import { logActivity } from "../lib/logActivity";
 
 import {
   DndContext,
@@ -20,7 +21,8 @@ import {
 import { SortableItem } from "./SortableItem";
 
 const roman = (n) =>
-  ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] || `(${n + 1})`;
+  ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] ||
+  `(${n + 1})`;
 
 export default function ModuleFive() {
   const { data: session } = useSession();
@@ -28,13 +30,19 @@ export default function ModuleFive() {
 
   const [thesis, setThesis] = useState("");
   const [outline, setOutline] = useState([]);
-  const [conclusion, setConclusion] = useState({ summary: "", finalThought: "" });
+  const [conclusion, setConclusion] = useState({
+    summary: "",
+    finalThought: "",
+  });
   const [previewText, setPreviewText] = useState("");
   const [locked, setLocked] = useState(false);
 
   const readonly = locked ? "pointer-events-none opacity-60" : "";
 
   const sensors = useSensors(useSensor(PointerSensor));
+
+  // prevent duplicate module_started logs per visit
+  const hasLoggedStartRef = useRef(false);
 
   const buildOutlineText = () => {
     let out = `${roman(0)}. Introduction\n`;
@@ -57,28 +65,63 @@ export default function ModuleFive() {
     const conclNum = roman(outline.length + 1);
     out += `${conclNum}. CONCLUSION — Restates Thesis\n`;
     if (thesis.trim()) out += `   THESIS: ${thesis.trim()}\n`;
-    if (conclusion.summary.trim()) out += `   • ${conclusion.summary.trim()}\n`;
-    if (conclusion.finalThought.trim()) out += `   • ${conclusion.finalThought.trim()}\n`;
+    if (conclusion.summary.trim())
+      out += `   • ${conclusion.summary.trim()}\n`;
+    if (conclusion.finalThought.trim())
+      out += `   • ${conclusion.finalThought.trim()}\n`;
 
     return out;
   };
 
+  // helper for metrics used in logs
+  const getOutlineMetrics = () => {
+    const bucketCount = outline.length;
+    const totalPoints = outline.reduce(
+      (sum, b) => sum + (Array.isArray(b.points) ? b.points.length : 0),
+      0
+    );
+    return {
+      bucketCount,
+      totalPoints,
+      thesisLength: thesis.trim().length,
+      conclusionLength:
+        conclusion.summary.trim().length +
+        conclusion.finalThought.trim().length,
+    };
+  };
+
+  // load existing outline, module 3 thesis and buckets
   useEffect(() => {
     const loadData = async () => {
       const email = session?.user?.email;
       if (!email) return;
 
+      // log module_started once
+      if (!hasLoggedStartRef.current) {
+        hasLoggedStartRef.current = true;
+        logActivity(email, "module_started", { module: 5 });
+      }
+
       const { data, error } = await supabase
         .from("student_outlines")
-        .select("outline")
+        .select("outline, finalized")
         .eq("user_email", email)
         .eq("module", 5)
         .single();
 
+      if (error && error.code !== "PGRST116") {
+        console.error("Error loading outline:", error);
+      }
+
       if (data?.outline) {
         setThesis(data.outline.thesis || "");
         setOutline(data.outline.body || []);
-        setConclusion(data.outline.conclusion || { summary: "", finalThought: "" });
+        setConclusion(
+          data.outline.conclusion || { summary: "", finalThought: "" }
+        );
+        if (data.finalized) {
+          setLocked(true);
+        }
       }
 
       if (!data?.outline?.thesis) {
@@ -104,10 +147,12 @@ export default function ModuleFive() {
         if (bucketsData?.buckets?.length) {
           const body = bucketsData.buckets.map((b) => ({
             bucket: b.name,
-            points: b.items.map((i) => {
+            points: (b.items || []).map((i) => {
               const obs = i.observation?.trim() || "";
               const quote = i.quote?.trim() || "";
-              return `${obs}${quote ? ` — “${quote}”` : ""}`;
+              return `${obs}${
+                quote ? ` — “${quote}”` : ""
+              }`;
             }),
           }));
           setOutline(body);
@@ -118,6 +163,7 @@ export default function ModuleFive() {
     loadData();
   }, [session]);
 
+  // auto save on changes
   useEffect(() => {
     if (!session?.user?.email) return;
 
@@ -131,18 +177,24 @@ export default function ModuleFive() {
       };
 
       try {
-        const { error } = await supabase
-          .from("student_outlines")
-          .upsert({
-            user_email: email,
-            module: 5,
-            outline: outlineData,
-            updated_at: new Date().toISOString(),
-          });
+        const { error } = await supabase.from("student_outlines").upsert({
+          user_email: email,
+          module: 5,
+          outline: outlineData,
+          updated_at: new Date().toISOString(),
+        });
 
-        if (error) console.error("Auto-save failed:", error);
+        if (error) {
+          console.error("Auto save failed:", error);
+        } else {
+          const metrics = getOutlineMetrics();
+          logActivity(email, "outline_autosaved", {
+            module: 5,
+            ...metrics,
+          });
+        }
       } catch (err) {
-        console.error("Auto-save failed:", err);
+        console.error("Auto save failed:", err);
       }
     }, 800);
 
@@ -200,6 +252,7 @@ export default function ModuleFive() {
 
   useEffect(() => {
     setPreviewText(buildOutlineText());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thesis, outline, conclusion, locked]);
 
   const finalizeOutline = async () => {
@@ -208,16 +261,31 @@ export default function ModuleFive() {
     const email = session?.user?.email;
     if (!email) return;
 
-    await supabase.from("student_outlines").upsert({
+    const outlinePayload = {
+      thesis,
+      body: outline,
+      conclusion,
+    };
+
+    const { error } = await supabase.from("student_outlines").upsert({
       user_email: email,
       module: 5,
-      outline: {
-        thesis,
-        body: outline,
-        conclusion,
-      },
+      outline: outlinePayload,
       finalized: true,
       updated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      alert("Error saving outline: " + error.message);
+      setLocked(false);
+      return;
+    }
+
+    const metrics = getOutlineMetrics();
+    await logActivity(email, "module_completed", {
+      module: 5,
+      finalized: true,
+      ...metrics,
     });
 
     router.push("/modules/5/success");
@@ -291,7 +359,10 @@ export default function ModuleFive() {
                 </div>
 
                 {section.points.map((point, j) => (
-                  <div key={j} className="flex items-center gap-2 mb-2 relative z-10">
+                  <div
+                    key={j}
+                    className="flex items-center gap-2 mb-2 relative z-10"
+                  >
                     <input
                       type="text"
                       className="w-full border p-2 rounded relative z-10"
@@ -342,7 +413,10 @@ export default function ModuleFive() {
               placeholder="Final thought or call to action..."
               value={conclusion.finalThought}
               onChange={(e) =>
-                setConclusion({ ...conclusion, finalThought: e.target.value })
+                setConclusion({
+                  ...conclusion,
+                  finalThought: e.target.value,
+                })
               }
               disabled={locked}
             />
