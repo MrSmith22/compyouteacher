@@ -70,21 +70,47 @@ export default function ModuleTwoTCharts() {
       setLetterUrl(localStorage.getItem(KEYS.letterUrl) || "");
       setLetterText(localStorage.getItem(KEYS.letterText) || "");
 
-      setEthosSpeechQuote(localStorage.getItem(TCHART_KEYS.ethosSpeechQuote) || "");
-      setEthosSpeechNote(localStorage.getItem(TCHART_KEYS.ethosSpeechNote) || "");
-      setEthosLetterQuote(localStorage.getItem(TCHART_KEYS.ethosLetterQuote) || "");
-      setEthosLetterNote(localStorage.getItem(TCHART_KEYS.ethosLetterNote) || "");
+      setEthosSpeechQuote(
+        localStorage.getItem(TCHART_KEYS.ethosSpeechQuote) || ""
+      );
+      setEthosSpeechNote(
+        localStorage.getItem(TCHART_KEYS.ethosSpeechNote) || ""
+      );
+      setEthosLetterQuote(
+        localStorage.getItem(TCHART_KEYS.ethosLetterQuote) || ""
+      );
+      setEthosLetterNote(
+        localStorage.getItem(TCHART_KEYS.ethosLetterNote) || ""
+      );
 
-      setPathosSpeechQuote(localStorage.getItem(TCHART_KEYS.pathosSpeechQuote) || "");
-      setPathosSpeechNote(localStorage.getItem(TCHART_KEYS.pathosSpeechNote) || "");
-      setPathosLetterQuote(localStorage.getItem(TCHART_KEYS.pathosLetterQuote) || "");
-      setPathosLetterNote(localStorage.getItem(TCHART_KEYS.pathosLetterNote) || "");
+      setPathosSpeechQuote(
+        localStorage.getItem(TCHART_KEYS.pathosSpeechQuote) || ""
+      );
+      setPathosSpeechNote(
+        localStorage.getItem(TCHART_KEYS.pathosSpeechNote) || ""
+      );
+      setPathosLetterQuote(
+        localStorage.getItem(TCHART_KEYS.pathosLetterQuote) || ""
+      );
+      setPathosLetterNote(
+        localStorage.getItem(TCHART_KEYS.pathosLetterNote) || ""
+      );
 
-      setLogosSpeechQuote(localStorage.getItem(TCHART_KEYS.logosSpeechQuote) || "");
-      setLogosSpeechNote(localStorage.getItem(TCHART_KEYS.logosSpeechNote) || "");
-      setLogosLetterQuote(localStorage.getItem(TCHART_KEYS.logosLetterQuote) || "");
-      setLogosLetterNote(localStorage.getItem(TCHART_KEYS.logosLetterNote) || "");
-    } catch {}
+      setLogosSpeechQuote(
+        localStorage.getItem(TCHART_KEYS.logosSpeechQuote) || ""
+      );
+      setLogosSpeechNote(
+        localStorage.getItem(TCHART_KEYS.logosSpeechNote) || ""
+      );
+      setLogosLetterQuote(
+        localStorage.getItem(TCHART_KEYS.logosLetterQuote) || ""
+      );
+      setLogosLetterNote(
+        localStorage.getItem(TCHART_KEYS.logosLetterNote) || ""
+      );
+    } catch {
+      // ignore localStorage errors
+    }
   }, []);
 
   const openSourceTab = (url) => {
@@ -94,7 +120,9 @@ export default function ModuleTwoTCharts() {
       setToast("Source tab opened");
       setTimeout(() => setToast(""), 1600);
       setTimeout(() => window.focus(), 50); // nudge focus back
-    } catch {}
+    } catch {
+      // ignore
+    }
   };
 
   // layout widths
@@ -113,7 +141,7 @@ export default function ModuleTwoTCharts() {
 
   // --- saving helpers ---
 
-  // 1) Save locally (unchanged behavior)
+  // 1) Save locally
   const saveLocalOnly = () => {
     try {
       localStorage.setItem(TCHART_KEYS.ethosSpeechQuote, ethosSpeechQuote);
@@ -191,36 +219,64 @@ export default function ModuleTwoTCharts() {
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-extrabold mb-3">
-          Module 2 — Analyze the Speech & Letter
-        </h1>
-
-        {/* Instructions */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4 mb-4">
-          <p className="text-gray-800">
-            For each rhetorical appeal—<strong>Ethos</strong>, <strong>Pathos</strong>,{" "}
-            and <strong>Logos</strong>—complete all four boxes:
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Module objective card (red) */}
+        <div className="rounded-xl border border-theme-red/40 bg-theme-red/5 p-4 shadow-sm">
+          <h1 className="text-2xl font-extrabold mb-1 text-theme-red">
+            Module 2: Analyze the speech and the letter
+          </h1>
+          <p className="text-sm text-theme-dark/80">
+            In this step you will use a T-Chart to compare how{" "}
+            <em>I Have a Dream</em> and <em>Letter from Birmingham Jail</em>{" "}
+            use the three rhetorical appeals: Ethos, Pathos, and Logos.
           </p>
-          <ol className="list-decimal list-inside mt-2 text-gray-800 space-y-1">
-            <li><strong>Speech Quote</strong> — a short quote from <em>I Have a Dream</em> that shows the appeal.</li>
-            <li><strong>Speech Explanation</strong> — how the quote demonstrates the appeal in the Speech.</li>
-            <li><strong>Letter Quote</strong> — a short quote from <em>Letter from Birmingham Jail</em> that shows the same appeal.</li>
-            <li><strong>Letter Explanation</strong> — how the quote demonstrates the appeal in the Letter.</li>
+        </div>
+
+        {/* Instructions card (orange) */}
+        <div className="rounded-xl border border-theme-orange/40 bg-theme-orange/5 p-4 shadow-sm">
+          <h2 className="text-lg font-bold text-theme-orange mb-1">
+            What to do on this page
+          </h2>
+          <p className="text-sm text-theme-dark/80">
+            For each rhetorical appeal—<strong>Ethos</strong>,{" "}
+            <strong>Pathos</strong>, and <strong>Logos</strong>—complete all
+            four boxes:
+          </p>
+          <ol className="list-decimal list-inside mt-2 text-sm text-theme-dark/90 space-y-1">
+            <li>
+              <strong>Speech Quote</strong> — a short quote from{" "}
+              <em>I Have a Dream</em> that shows the appeal.
+            </li>
+            <li>
+              <strong>Speech Explanation</strong> — how the quote demonstrates
+              the appeal in the Speech.
+            </li>
+            <li>
+              <strong>Letter Quote</strong> — a short quote from{" "}
+              <em>Letter from Birmingham Jail</em> that shows the same appeal.
+            </li>
+            <li>
+              <strong>Letter Explanation</strong> — how the quote demonstrates
+              the appeal in the Letter.
+            </li>
           </ol>
-          <p className="mt-2 text-gray-800">
-            Finish <strong>Ethos</strong> first, then repeat for <strong>Pathos</strong> and <strong>Logos</strong>.
-            <span className="block text-sm text-gray-600 mt-1">
-              Tip: keep quotes short (one sentence or less) so your explanations show your thinking.
+          <p className="mt-2 text-sm text-theme-dark/80">
+            Finish <strong>Ethos</strong> first, then repeat for{" "}
+            <strong>Pathos</strong> and <strong>Logos</strong>.
+            <span className="block text-xs text-theme-dark/60 mt-1">
+              Tip: keep quotes short (one sentence or less) so your explanations
+              show your thinking.
             </span>
           </p>
         </div>
 
         {/* Controls */}
-        <div className="flex gap-3 mb-3">
+        <div className="flex flex-wrap gap-3">
           <button
-            className={`px-4 py-2 rounded font-semibold ${
-              showSpeech ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-900"
+            className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+              showSpeech
+                ? "bg-theme-blue text-white"
+                : "bg-theme-blue/10 text-theme-blue"
             }`}
             onClick={() => setShowSpeech((v) => !v)}
           >
@@ -228,235 +284,283 @@ export default function ModuleTwoTCharts() {
           </button>
 
           <button
-            className={`px-4 py-2 rounded font-semibold ${
-              showLetter ? "bg-orange-600 text-white" : "bg-orange-100 text-orange-900"
+            className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+              showLetter
+                ? "bg-theme-orange text-white"
+                : "bg-theme-orange/10 text-theme-orange"
             }`}
             onClick={() => setShowLetter((v) => !v)}
           >
             {showLetter ? "Close Letter Panel" : "Open Letter Panel"}
           </button>
-        </div>
 
-        <p className="text-sm text-gray-600 mb-6">
-          On large screens, Speech (blue), Letter (orange), and T-Chart (green) sit side-by-side.
-          On smaller screens they stack.
-        </p>
+          <p className="text-xs text-theme-dark/60 mt-2">
+            On large screens, Speech (blue), Letter (orange), and T-Chart
+            (green) can appear side-by-side. On smaller screens they stack.
+          </p>
+        </div>
 
         {/* Responsive area */}
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Speech panel */}
+          {/* Speech panel (blue) */}
           {showSpeech && (
             <section
-              className={`${getTranscriptColClass("speech")} bg-blue-50 border border-blue-200 rounded p-4`}
+              className={`${getTranscriptColClass(
+                "speech"
+              )} bg-theme-blue/5 border border-theme-blue/30 rounded-2xl p-4 shadow-sm`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-blue-900">Speech Transcript</h2>
+                <h2 className="font-bold text-theme-blue">Speech transcript</h2>
                 <button
-                  className="text-sm underline text-blue-700"
+                  className="text-xs underline text-theme-blue"
                   onClick={() => openSourceTab(speechUrl)}
                   disabled={!speechUrl}
                   title={speechUrl || "No URL saved"}
                 >
-                  Open Source Page
+                  Open source page
                 </button>
               </div>
 
               {speechText ? (
-                <div className="whitespace-pre-wrap text-sm leading-6 max-h-[70vh] overflow-auto">
+                <div className="whitespace-pre-wrap text-xs sm:text-sm leading-6 max-h-[70vh] overflow-auto bg-white border border-theme-blue/10 rounded-lg p-3">
                   {speechText}
                 </div>
               ) : (
-                <p className="text-sm text-blue-900/80">
-                  No transcript saved. Go back to <em>“Choose Your Speech Text”</em> to add it.
+                <p className="text-sm text-theme-blue/80">
+                  No transcript saved. Go back to{" "}
+                  <em>“Build an APA source for the speech”</em> to add it.
                 </p>
               )}
             </section>
           )}
 
-          {/* Letter panel */}
+          {/* Letter panel (orange) */}
           {showLetter && (
             <section
-              className={`${getTranscriptColClass("letter")} bg-orange-50 border border-orange-200 rounded p-4`}
+              className={`${getTranscriptColClass(
+                "letter"
+              )} bg-theme-orange/5 border border-theme-orange/30 rounded-2xl p-4 shadow-sm`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-orange-900">Letter Transcript</h2>
+                <h2 className="font-bold text-theme-orange">
+                  Letter transcript
+                </h2>
                 <button
-                  className="text-sm underline text-orange-700"
+                  className="text-xs underline text-theme-orange"
                   onClick={() => openSourceTab(letterUrl)}
                   disabled={!letterUrl}
                   title={letterUrl || "No URL saved"}
                 >
-                  Open Source Page
+                  Open source page
                 </button>
               </div>
 
               {letterText ? (
-                <div className="whitespace-pre-wrap text-sm leading-6 max-h-[70vh] overflow-auto">
+                <div className="whitespace-pre-wrap text-xs sm:text-sm leading-6 max-h-[70vh] overflow-auto bg-white border border-theme-orange/10 rounded-lg p-3">
                   {letterText}
                 </div>
               ) : (
-                <p className="text-sm text-orange-900/80">
-                  No transcript saved. Go back to <em>“Choose Your Letter Text”</em> to add it.
+                <p className="text-sm text-theme-orange/80">
+                  No transcript saved. Go back to{" "}
+                  <em>“Build an APA source for the letter”</em> to add it.
                 </p>
               )}
             </section>
           )}
 
-          {/* T-Chart panel */}
-          <section className={`${getTChartColClass()} bg-green-50 border border-green-200 rounded p-4`}>
-            <h2 className="font-bold text-green-900 mb-2">T-Chart — Quote & Explanation</h2>
+          {/* T-Chart panel (green container, white cards) */}
+          <section
+            className={`${getTChartColClass()} bg-theme-green/5 border border-theme-green/30 rounded-2xl p-4 shadow-sm space-y-6`}
+          >
+            <h2 className="font-bold text-theme-green mb-1">
+              T-Chart — quote and explanation
+            </h2>
 
-            {/* ETHOS */}
-            <fieldset className="mb-6">
-              <legend className="text-lg font-semibold text-gray-900 mb-1">Ethos</legend>
-              <p className="text-sm text-gray-700 mb-3">
-                Credibility: What does Dr. King say or do that makes the audience trust him?
+            {/* ETHOS card */}
+            <div className="rounded-xl bg-white border border-theme-green/30 p-4 shadow-sm">
+              <h3 className="text-lg font-semibold text-theme-dark mb-1">
+                Ethos
+              </h3>
+              <p className="text-sm text-theme-dark/80 mb-3">
+                <strong>Credibility:</strong> What does Dr. King say or do that
+                makes the audience trust him?
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-700">Ethos — Speech Quote</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Ethos — Speech quote
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={ethosSpeechQuote}
                     onChange={(e) => setEthosSpeechQuote(e.target.value)}
                     placeholder="Short quote from the Speech that shows Ethos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Ethos — Speech Explanation</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Ethos — Speech explanation
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={ethosSpeechNote}
                     onChange={(e) => setEthosSpeechNote(e.target.value)}
                     placeholder="Explain how the Speech quote demonstrates Ethos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Ethos — Letter Quote</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Ethos — Letter quote
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={ethosLetterQuote}
                     onChange={(e) => setEthosLetterQuote(e.target.value)}
                     placeholder="Short quote from the Letter that shows Ethos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Ethos — Letter Explanation</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Ethos — Letter explanation
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={ethosLetterNote}
                     onChange={(e) => setEthosLetterNote(e.target.value)}
                     placeholder="Explain how the Letter quote demonstrates Ethos"
                   />
                 </div>
               </div>
-            </fieldset>
+            </div>
 
-            {/* PATHOS */}
-            <fieldset className="mb-6">
-              <legend className="text-lg font-semibold text-gray-900 mb-1">Pathos</legend>
-              <p className="text-sm text-gray-700 mb-3">
-                Emotion: What language stirs feelings to persuade the audience?
+            {/* PATHOS card */}
+            <div className="rounded-xl bg-white border border-theme-green/30 p-4 shadow-sm">
+              <h3 className="text-lg font-semibold text-theme-dark mb-1">
+                Pathos
+              </h3>
+              <p className="text-sm text-theme-dark/80 mb-3">
+                <strong>Emotion:</strong> What language stirs feelings to
+                persuade the audience?
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-700">Pathos — Speech Quote</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Pathos — Speech quote
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={pathosSpeechQuote}
                     onChange={(e) => setPathosSpeechQuote(e.target.value)}
                     placeholder="Short quote from the Speech that shows Pathos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Pathos — Speech Explanation</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Pathos — Speech explanation
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={pathosSpeechNote}
                     onChange={(e) => setPathosSpeechNote(e.target.value)}
                     placeholder="Explain how the Speech quote demonstrates Pathos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Pathos — Letter Quote</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Pathos — Letter quote
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={pathosLetterQuote}
                     onChange={(e) => setPathosLetterQuote(e.target.value)}
                     placeholder="Short quote from the Letter that shows Pathos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Pathos — Letter Explanation</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Pathos — Letter explanation
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={pathosLetterNote}
                     onChange={(e) => setPathosLetterNote(e.target.value)}
                     placeholder="Explain how the Letter quote demonstrates Pathos"
                   />
                 </div>
               </div>
-            </fieldset>
+            </div>
 
-            {/* LOGOS */}
-            <fieldset>
-              <legend className="text-lg font-semibold text-gray-900 mb-1">Logos</legend>
-              <p className="text-sm text-gray-700 mb-3">
-                Logic & Evidence: What facts, reasons, or examples support the point?
+            {/* LOGOS card */}
+            <div className="rounded-xl bg-white border border-theme-green/30 p-4 shadow-sm">
+              <h3 className="text-lg font-semibold text-theme-dark mb-1">
+                Logos
+              </h3>
+              <p className="text-sm text-theme-dark/80 mb-3">
+                <strong>Logic and evidence:</strong> What facts, reasons, or
+                examples support the point?
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-700">Logos — Speech Quote</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Logos — Speech quote
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={logosSpeechQuote}
                     onChange={(e) => setLogosSpeechQuote(e.target.value)}
                     placeholder="Short quote from the Speech that shows Logos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Logos — Speech Explanation</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Logos — Speech explanation
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={logosSpeechNote}
                     onChange={(e) => setLogosSpeechNote(e.target.value)}
                     placeholder="Explain how the Speech quote demonstrates Logos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Logos — Letter Quote</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Logos — Letter quote
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={logosLetterQuote}
                     onChange={(e) => setLogosLetterQuote(e.target.value)}
                     placeholder="Short quote from the Letter that shows Logos"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-700">Logos — Letter Explanation</label>
+                  <label className="text-xs text-theme-dark/80 block mb-1">
+                    Logos — Letter explanation
+                  </label>
                   <textarea
-                    className="w-full h-24 border rounded p-2"
+                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
                     value={logosLetterNote}
                     onChange={(e) => setLogosLetterNote(e.target.value)}
                     placeholder="Explain how the Letter quote demonstrates Logos"
                   />
                 </div>
               </div>
-            </fieldset>
+            </div>
 
-            <div className="mt-4 flex gap-3">
+            {/* Actions */}
+            <div className="mt-2 flex flex-wrap gap-3">
               <button
                 onClick={saveLocalOnly}
-                className="bg-gray-200 text-gray-900 px-4 py-2 rounded hover:bg-gray-300"
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-theme-dark/5 text-theme-dark hover:bg-theme-dark/10"
               >
-                Save Locally
+                Save locally
               </button>
 
               <button
                 onClick={saveToSupabase}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-theme-green text-white hover:opacity-90"
               >
-                Save & Submit
+                Save and submit
               </button>
             </div>
           </section>
@@ -464,7 +568,7 @@ export default function ModuleTwoTCharts() {
 
         {/* tiny toast */}
         {toast && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-2 rounded shadow">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-theme-dark text-white text-sm px-3 py-2 rounded shadow">
             {toast}
           </div>
         )}

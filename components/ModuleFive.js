@@ -1,4 +1,5 @@
-﻿"use client";
+﻿// components/ModuleFive.js
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -29,6 +30,7 @@ export default function ModuleFive() {
   const router = useRouter();
 
   const [thesis, setThesis] = useState("");
+  const [originalThesis, setOriginalThesis] = useState("");
   const [outline, setOutline] = useState([]);
   const [conclusion, setConclusion] = useState({
     summary: "",
@@ -102,6 +104,7 @@ export default function ModuleFive() {
         logActivity(email, "module_started", { module: 5 });
       }
 
+      // 1) Try to load an existing outline
       const { data, error } = await supabase
         .from("student_outlines")
         .select("outline, finalized")
@@ -124,19 +127,25 @@ export default function ModuleFive() {
         }
       }
 
-      if (!data?.outline?.thesis) {
-        const { data: mod3 } = await supabase
-          .from("module3_responses")
-          .select("thesis")
-          .eq("user_email", email)
-          .order("created_at", { ascending: false })
-          .limit(1);
+      // 2) Always grab the latest thesis from Module 3 as a reminder
+      const { data: mod3 } = await supabase
+        .from("module3_responses")
+        .select("thesis")
+        .eq("user_email", email)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-        if (mod3?.length && mod3[0]?.thesis) {
-          setThesis(mod3[0].thesis);
+      if (mod3?.length && mod3[0]?.thesis) {
+        const latestThesis = mod3[0].thesis;
+        setOriginalThesis(latestThesis);
+
+        // If no thesis saved in outline yet, prefill from Module 3
+        if (!data?.outline?.thesis) {
+          setThesis(latestThesis);
         }
       }
 
+      // 3) If no body yet, seed from Module 4 buckets
       if (!data?.outline?.body?.length) {
         const { data: bucketsData } = await supabase
           .from("bucket_groups")
@@ -147,12 +156,11 @@ export default function ModuleFive() {
         if (bucketsData?.buckets?.length) {
           const body = bucketsData.buckets.map((b) => ({
             bucket: b.name,
+            // each item becomes a "smaller bubble" / supporting point
             points: (b.items || []).map((i) => {
               const obs = i.observation?.trim() || "";
               const quote = i.quote?.trim() || "";
-              return `${obs}${
-                quote ? ` — “${quote}”` : ""
-              }`;
+              return `${obs}${quote ? ` — “${quote}”` : ""}`;
             }),
           }));
           setOutline(body);
@@ -238,7 +246,7 @@ export default function ModuleFive() {
 
   const addBucket = () => {
     if (locked) return;
-    setOutline((prev) => [...prev, { bucket: "New Bucket", points: [""] }]);
+    setOutline((prev) => [...prev, { bucket: "New paragraph idea", points: [""] }]);
   };
 
   const addPoint = (bucketIndex) => {
@@ -294,8 +302,8 @@ export default function ModuleFive() {
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = parseInt(active.id);
-    const newIndex = parseInt(over.id);
+    const oldIndex = parseInt(active.id, 10);
+    const newIndex = parseInt(over.id, 10);
     setOutline((items) => arrayMove(items, oldIndex, newIndex));
   };
 
@@ -312,96 +320,175 @@ export default function ModuleFive() {
         <div
           className={`p-6 max-w-4xl mx-auto bg-theme-light rounded shadow space-y-6 ${readonly}`}
         >
-          <h1 className="text-3xl font-extrabold text-theme-blue mb-4">
-            🧩 Build Your Outline
-          </h1>
+          {/* Intro / teaching card */}
+          <div className="rounded-xl border border-theme-blue/30 bg-white p-4 space-y-3">
+            <h1 className="text-3xl font-extrabold text-theme-blue">
+              🧩 Build Your Outline
+            </h1>
+            <p className="text-sm text-theme-dark/80">
+              In this step you turn your thinking from <strong>Modules 3 and 4</strong> into a
+              classic essay outline.
+            </p>
+            <ol className="list-decimal list-inside text-sm text-theme-dark/80 space-y-1">
+              <li>
+                <strong>Start with your thesis.</strong> This is your big claim
+                comparing the speech and the letter.
+              </li>
+              <li>
+                <strong>Each bucket becomes a body paragraph.</strong> Rename each
+                bucket so it sounds like a paragraph idea that supports your thesis.
+              </li>
+              <li>
+                <strong>Each point is a smaller “bubble.”</strong> Use your grouped
+                observations and quotes from the buckets as A, B, C details inside each
+                paragraph.
+              </li>
+            </ol>
+            <p className="text-xs text-theme-dark/70">
+              You can drag buckets up or down to change the order of your body paragraphs.
+            </p>
+          </div>
 
-          <div className="mb-6">
-            <label className="block font-semibold text-theme-dark mb-2">
-              Thesis Statement
+          {/* Thesis section */}
+          <div className="mb-2 bg-white rounded-xl border border-theme-green/40 p-4 space-y-3">
+            <h2 className="text-lg font-semibold text-theme-green">
+              1. Thesis Check-in
+            </h2>
+
+            {originalThesis && (
+              <div className="text-xs bg-theme-light rounded p-2 mb-2 text-theme-dark">
+                <p className="font-semibold mb-1">
+                  Thesis you wrote in <span className="italic">Module 3</span>:
+                </p>
+                <p className="mb-1">{originalThesis}</p>
+                <p className="text-[11px] text-theme-dark/70 mt-1">
+                  You can keep this thesis, tweak the wording, or revise it to better match
+                  the paragraph ideas you are planning below. Just make sure it still
+                  compares the speech and letter and mentions audience, purpose, and/or
+                  appeals (ethos, pathos, logos).
+                </p>
+              </div>
+            )}
+
+            <label className="block font-semibold text-theme-dark mb-1">
+              Your thesis for this essay:
             </label>
             <textarea
-              className="w-full border rounded p-2"
+              className="w-full border rounded p-2 min-h-[80px]"
               value={thesis}
               onChange={(e) => setThesis(e.target.value)}
               disabled={locked}
             />
           </div>
 
-          <button
-            onClick={addBucket}
-            className="mb-4 bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            ➕ Add New Bucket
-          </button>
+          {/* Buckets / body paragraphs */}
+          <div className="bg-white rounded-xl border border-theme-orange/40 p-4">
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <h2 className="text-lg font-semibold text-theme-orange">
+                  2. Turn Buckets into Body Paragraphs
+                </h2>
+                <p className="text-xs text-theme-dark/70 mt-1 max-w-xl">
+                  Each card below started as a <strong>bucket in Module 4</strong>.  
+                  Rename the bucket to sound like a paragraph idea (for example:
+                  “Both texts use vivid imagery to appeal to pathos” or
+                  “The letter uses stronger logos for its professional audience”),
+                  then polish the supporting points underneath.
+                </p>
+              </div>
+              <button
+                onClick={addBucket}
+                className="bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+              >
+                ➕ Add New Paragraph Idea
+              </button>
+            </div>
 
-          {outline.map((section, i) => (
-            <SortableItem key={i.toString()} id={i.toString()}>
-              <div className="mb-4 border rounded p-4 bg-white shadow relative z-10">
-                <div className="flex justify-between items-center mb-2">
-                  <input
-                    type="text"
-                    className="font-bold text-theme-blue text-lg border-b flex-grow mr-2 relative z-10"
-                    value={section.bucket}
-                    onChange={(e) => updateBucketName(i, e.target.value)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    draggable={false}
-                  />
-                  <button
-                    onClick={() => deleteBucket(i)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="text-theme-red font-bold"
-                    title="Delete Bucket"
-                  >
-                    🗑️
-                  </button>
-                </div>
+            {outline.length === 0 && (
+              <p className="text-xs text-theme-dark/70 mb-3">
+                If you do not see any buckets yet, go back to Module 4 to group your ideas,
+                then return here.
+              </p>
+            )}
 
-                {section.points.map((point, j) => (
-                  <div
-                    key={j}
-                    className="flex items-center gap-2 mb-2 relative z-10"
-                  >
+            {outline.map((section, i) => (
+              <SortableItem key={i.toString()} id={i.toString()}>
+                <div className="mb-4 border rounded p-4 bg-white shadow relative z-10">
+                  <div className="flex justify-between items-center mb-1">
                     <input
                       type="text"
-                      className="w-full border p-2 rounded relative z-10"
-                      placeholder={`Supporting Detail ${j + 1}`}
-                      value={point || ""}
-                      onChange={(e) => updatePoint(i, j, e.target.value)}
+                      className="font-bold text-theme-blue text-lg border-b flex-grow mr-2 relative z-10"
+                      value={section.bucket}
+                      onChange={(e) => updateBucketName(i, e.target.value)}
                       onPointerDown={(e) => e.stopPropagation()}
                       onKeyDown={(e) => e.stopPropagation()}
                       draggable={false}
                     />
                     <button
-                      onClick={() => removePoint(i, j)}
+                      onClick={() => deleteBucket(i)}
                       onPointerDown={(e) => e.stopPropagation()}
-                      className="text-theme-red"
-                      title="Remove point"
+                      className="text-theme-red font-bold text-sm"
+                      title="Delete this paragraph idea"
                     >
-                      ❌
+                      🗑️
                     </button>
                   </div>
-                ))}
+                  <p className="text-[11px] text-theme-dark/60 mb-2">
+                    Tip: Make sure this bucket clearly connects back to your thesis and to
+                    specific comparisons between the speech and the letter.
+                  </p>
 
-                <button
-                  onClick={() => addPoint(i)}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="text-sm text-theme-blue mt-2 hover:underline relative z-10"
-                >
-                  ➕ Add Point
-                </button>
-              </div>
-            </SortableItem>
-          ))}
+                  {section.points.map((point, j) => (
+                    <div
+                      key={j}
+                      className="flex items-center gap-2 mb-2 relative z-10"
+                    >
+                      <input
+                        type="text"
+                        className="w-full border p-2 rounded relative z-10 text-sm"
+                        placeholder={`Supporting detail ${j + 1} (observation + evidence)`}
+                        value={point || ""}
+                        onChange={(e) => updatePoint(i, j, e.target.value)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        draggable={false}
+                      />
+                      <button
+                        onClick={() => removePoint(i, j)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="text-theme-red text-sm"
+                        title="Remove point"
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  ))}
 
-          <div className="mb-10">
-            <h2 className="text-lg font-semibold mb-2 text-theme-dark">
-              📝 Conclusion
+                  <button
+                    onClick={() => addPoint(i)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="text-xs text-theme-blue mt-1 hover:underline relative z-10"
+                  >
+                    ➕ Add another supporting detail
+                  </button>
+                </div>
+              </SortableItem>
+            ))}
+          </div>
+
+          {/* Conclusion */}
+          <div className="mb-4 bg-white rounded-xl border border-theme-blue/40 p-4">
+            <h2 className="text-lg font-semibold mb-2 text-theme-blue">
+              3. Plan Your Conclusion
             </h2>
+            <p className="text-xs text-theme-dark/70 mb-2">
+              Use the conclusion to remind readers of your main comparison and leave them
+              with a final idea about why King’s choices of audience, purpose, and appeals
+              (ethos, pathos, logos) matter.
+            </p>
             <textarea
-              className="w-full border rounded p-2 mb-2"
-              placeholder="Restate thesis or summarize key ideas..."
+              className="w-full border rounded p-2 mb-2 text-sm"
+              placeholder="Restate thesis or summarize your key comparison points..."
               value={conclusion.summary}
               onChange={(e) =>
                 setConclusion({ ...conclusion, summary: e.target.value })
@@ -409,8 +496,8 @@ export default function ModuleFive() {
               disabled={locked}
             />
             <textarea
-              className="w-full border rounded p-2"
-              placeholder="Final thought or call to action..."
+              className="w-full border rounded p-2 text-sm"
+              placeholder="Final thought or call to action for the reader..."
               value={conclusion.finalThought}
               onChange={(e) =>
                 setConclusion({
@@ -422,9 +509,10 @@ export default function ModuleFive() {
             />
           </div>
 
+          {/* Finalize + preview */}
           <button
             onClick={finalizeOutline}
-            className={`mt-6 bg-theme-orange text-white px-4 py-2 rounded shadow hover:opacity-90 ${
+            className={`mt-2 bg-theme-orange text-white px-4 py-2 rounded shadow hover:opacity-90 ${
               locked ? "opacity-50 pointer-events-none" : ""
             }`}
             disabled={locked}
@@ -433,11 +521,15 @@ export default function ModuleFive() {
           </button>
 
           {previewText && (
-            <div className="mt-10 border-t pt-6">
+            <div className="mt-8 border-t pt-4">
               <h2 className="text-lg font-semibold mb-2 text-theme-dark">
-                🖨️ Outline Preview
+                🖨️ Outline Preview (What your outline looks like on paper)
               </h2>
-              <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border">
+              <p className="text-xs text-theme-dark/70 mb-2">
+                This shows your outline in a traditional Roman-numeral format that you
+                could use to draft your essay or copy into a document.
+              </p>
+              <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border text-sm">
                 {previewText}
               </pre>
             </div>
