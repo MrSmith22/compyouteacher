@@ -70,44 +70,20 @@ export default function ModuleTwoTCharts() {
       setLetterUrl(localStorage.getItem(KEYS.letterUrl) || "");
       setLetterText(localStorage.getItem(KEYS.letterText) || "");
 
-      setEthosSpeechQuote(
-        localStorage.getItem(TCHART_KEYS.ethosSpeechQuote) || ""
-      );
-      setEthosSpeechNote(
-        localStorage.getItem(TCHART_KEYS.ethosSpeechNote) || ""
-      );
-      setEthosLetterQuote(
-        localStorage.getItem(TCHART_KEYS.ethosLetterQuote) || ""
-      );
-      setEthosLetterNote(
-        localStorage.getItem(TCHART_KEYS.ethosLetterNote) || ""
-      );
+      setEthosSpeechQuote(localStorage.getItem(TCHART_KEYS.ethosSpeechQuote) || "");
+      setEthosSpeechNote(localStorage.getItem(TCHART_KEYS.ethosSpeechNote) || "");
+      setEthosLetterQuote(localStorage.getItem(TCHART_KEYS.ethosLetterQuote) || "");
+      setEthosLetterNote(localStorage.getItem(TCHART_KEYS.ethosLetterNote) || "");
 
-      setPathosSpeechQuote(
-        localStorage.getItem(TCHART_KEYS.pathosSpeechQuote) || ""
-      );
-      setPathosSpeechNote(
-        localStorage.getItem(TCHART_KEYS.pathosSpeechNote) || ""
-      );
-      setPathosLetterQuote(
-        localStorage.getItem(TCHART_KEYS.pathosLetterQuote) || ""
-      );
-      setPathosLetterNote(
-        localStorage.getItem(TCHART_KEYS.pathosLetterNote) || ""
-      );
+      setPathosSpeechQuote(localStorage.getItem(TCHART_KEYS.pathosSpeechQuote) || "");
+      setPathosSpeechNote(localStorage.getItem(TCHART_KEYS.pathosSpeechNote) || "");
+      setPathosLetterQuote(localStorage.getItem(TCHART_KEYS.pathosLetterQuote) || "");
+      setPathosLetterNote(localStorage.getItem(TCHART_KEYS.pathosLetterNote) || "");
 
-      setLogosSpeechQuote(
-        localStorage.getItem(TCHART_KEYS.logosSpeechQuote) || ""
-      );
-      setLogosSpeechNote(
-        localStorage.getItem(TCHART_KEYS.logosSpeechNote) || ""
-      );
-      setLogosLetterQuote(
-        localStorage.getItem(TCHART_KEYS.logosLetterQuote) || ""
-      );
-      setLogosLetterNote(
-        localStorage.getItem(TCHART_KEYS.logosLetterNote) || ""
-      );
+      setLogosSpeechQuote(localStorage.getItem(TCHART_KEYS.logosSpeechQuote) || "");
+      setLogosSpeechNote(localStorage.getItem(TCHART_KEYS.logosSpeechNote) || "");
+      setLogosLetterQuote(localStorage.getItem(TCHART_KEYS.logosLetterQuote) || "");
+      setLogosLetterNote(localStorage.getItem(TCHART_KEYS.logosLetterNote) || "");
     } catch {
       // ignore localStorage errors
     }
@@ -116,10 +92,10 @@ export default function ModuleTwoTCharts() {
   const openSourceTab = (url) => {
     if (!url) return;
     try {
-      window.open(url, "_blank", "noopener"); // open without stealing focus
+      window.open(url, "_blank", "noopener");
       setToast("Source tab opened");
       setTimeout(() => setToast(""), 1600);
-      setTimeout(() => window.focus(), 50); // nudge focus back
+      setTimeout(() => window.focus(), 50);
     } catch {
       // ignore
     }
@@ -134,9 +110,8 @@ export default function ModuleTwoTCharts() {
   };
 
   const getTChartColClass = () => {
-    const both = showSpeech && showLetter;
     if (!showSpeech && !showLetter) return "w-full";
-    return both ? "w-full lg:w-1/3" : "w-full lg:w-1/3";
+    return "w-full lg:w-1/3";
   };
 
   // --- saving helpers ---
@@ -176,6 +151,7 @@ export default function ModuleTwoTCharts() {
       observation: observation || "",
       letter_url: letterUrl || null,
     });
+
     return [
       row("ethos", "speech", ethosSpeechQuote, ethosSpeechNote),
       row("ethos", "letter", ethosLetterQuote, ethosLetterNote),
@@ -186,12 +162,13 @@ export default function ModuleTwoTCharts() {
     ];
   };
 
-  // 3) Save to Supabase via our API route
+  // 3) Save to Supabase via our API route + update resume_path (with real error reporting)
   const saveToSupabase = async () => {
     try {
       // Always keep a local copy first
       saveLocalOnly();
 
+      // Save T-Chart entries
       const res = await fetch("/api/tchart/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -202,9 +179,32 @@ export default function ModuleTwoTCharts() {
       if (!res.ok || !data.ok) {
         const msg = data?.error || `HTTP ${res.status}`;
         setToast(`Server save failed: ${msg}`);
-        setTimeout(() => setToast(""), 2000);
+        setTimeout(() => setToast(""), 2500);
         return;
       }
+
+      // Update resume_path (do NOT fail silently)
+      const resumeRes = await fetch("/api/assignments/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignment_name: "MLK Essay Assignment",
+          resume_path: "/modules/2/tcharts",
+        }),
+      });
+
+      const resumeData = await resumeRes.json();
+
+      if (!resumeRes.ok || !resumeData.ok) {
+        setToast(
+          `Resume save failed: ${resumeData?.error || `HTTP ${resumeRes.status}`}`
+        );
+        setTimeout(() => setToast(""), 2500);
+        return;
+      }
+      
+      // If we got ok: true, resume was saved either by update or insert
+      // Do not block navigation based on old "updated rows" logic
 
       setToast("Saved to Supabase");
       setTimeout(() => {
@@ -213,7 +213,7 @@ export default function ModuleTwoTCharts() {
       }, 500);
     } catch (err) {
       setToast(`Network error: ${String(err)}`);
-      setTimeout(() => setToast(""), 2000);
+      setTimeout(() => setToast(""), 2500);
     }
   };
 
@@ -239,8 +239,8 @@ export default function ModuleTwoTCharts() {
           </h2>
           <p className="text-sm text-theme-dark/80">
             For each rhetorical appeal—<strong>Ethos</strong>,{" "}
-            <strong>Pathos</strong>, and <strong>Logos</strong>—complete all
-            four boxes:
+            <strong>Pathos</strong>, and <strong>Logos</strong>—complete all four
+            boxes:
           </p>
           <ol className="list-decimal list-inside mt-2 text-sm text-theme-dark/90 space-y-1">
             <li>
@@ -342,9 +342,7 @@ export default function ModuleTwoTCharts() {
               )} bg-theme-orange/5 border border-theme-orange/30 rounded-2xl p-4 shadow-sm`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-theme-orange">
-                  Letter transcript
-                </h2>
+                <h2 className="font-bold text-theme-orange">Letter transcript</h2>
                 <button
                   className="text-xs underline text-theme-orange"
                   onClick={() => openSourceTab(letterUrl)}

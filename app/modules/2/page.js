@@ -26,7 +26,23 @@ export default function ModuleTwoVideo() {
     logStart();
   }, [session]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Update resume_path to point to Module 2 landing page (in case student returns)
+    if (session?.user?.email) {
+      try {
+        await fetch("/api/assignments/resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            assignment_name: "MLK Essay Assignment",
+            resume_path: "/modules/2",
+          }),
+        });
+      } catch (err) {
+        console.warn("Error updating resume_path:", err);
+      }
+    }
+
     // open Google search in a new tab
     window.open(
       "https://www.google.com/search?q=full+text+I+Have+a+Dream+speech",

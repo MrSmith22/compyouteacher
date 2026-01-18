@@ -61,13 +61,13 @@ export default function Dashboard() {
     load();
   }, [email]);
 
-  // Determine label and target module for the main button
+  // Determine label and target path for the main button
   const getButtonState = () => {
     if (!email) {
       return {
         label: "Sign in to start",
         disabled: true,
-        module: null,
+        resumePath: null,
       };
     }
 
@@ -76,7 +76,7 @@ export default function Dashboard() {
       return {
         label: "Review Assignment",
         disabled: false,
-        module: 9,
+        resumePath: "/modules/9",
       };
     }
 
@@ -85,10 +85,23 @@ export default function Dashboard() {
       return {
         label: "Start Assignment",
         disabled: false,
-        module: 1,
+        resumePath: "/modules/1",
       };
     }
 
+    // Priority 1: Use resume_path if it exists (step-level tracking)
+    if (assignment.resume_path) {
+      // Extract module number from resume_path for display
+      const moduleMatch = assignment.resume_path.match(/\/modules\/(\d+)/);
+      const moduleNum = moduleMatch ? moduleMatch[1] : null;
+      return {
+        label: moduleNum ? `Continue Module ${moduleNum}` : "Continue Assignment",
+        disabled: false,
+        resumePath: assignment.resume_path,
+      };
+    }
+
+    // Priority 2: Fall back to current_module (backward compatibility)
     const currentModule =
       typeof assignment.current_module === "number"
         ? assignment.current_module
@@ -101,30 +114,35 @@ export default function Dashboard() {
       return {
         label: "Start Module 1",
         disabled: false,
-        module: 1,
+        resumePath: "/modules/1",
       };
     }
 
     return {
       label: `Continue with Module ${currentModule}`,
       disabled: false,
-      module: currentModule,
+      resumePath: `/modules/${currentModule}`,
     };
   };
 
   const handlePrimaryClick = async () => {
-    const { module, disabled } = getButtonState();
-    if (disabled || !email || !module) return;
+    const { resumePath, disabled } = getButtonState();
+    if (disabled || !email || !resumePath) return;
 
-    // If assignment row does not exist, create it
+    // If assignment row does not exist, create it with initial resume_path
     if (!assignment) {
       try {
+        // Extract module number from resume_path for current_module field
+        const moduleMatch = resumePath.match(/\/modules\/(\d+)/);
+        const moduleNum = moduleMatch ? parseInt(moduleMatch[1], 10) : 1;
+
         const { data, error } = await supabase
           .from("student_assignments")
           .upsert({
             user_email: email,
             assignment_name: "MLK Essay Assignment",
-            current_module: module,
+            current_module: moduleNum,
+            resume_path: resumePath,
             status: "in_progress",
             started_at: new Date().toISOString(),
           })
@@ -141,8 +159,8 @@ export default function Dashboard() {
       }
     }
 
-    // Navigate to the chosen module
-    router.push(`/modules/${module}`);
+    // Navigate to the resume path (exact step the student should be on)
+    router.push(resumePath);
   };
 
   // Session guards
@@ -209,7 +227,10 @@ export default function Dashboard() {
                     ? "Completed, final PDF submitted"
                     : assignment?.status || "Not started"}
                 </div>
-                {assignment?.current_module && !finalPdf && (
+                {assignment?.resume_path && !finalPdf && (
+                  <div>Last step: {assignment.resume_path.replace(/^\/modules\//, "")}</div>
+                )}
+                {!assignment?.resume_path && assignment?.current_module && !finalPdf && (
                   <div>Current module: {assignment.current_module}</div>
                 )}
               </div>

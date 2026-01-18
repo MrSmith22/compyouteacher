@@ -23,6 +23,10 @@ function isValidHttpUrl(v) {
   }
 }
 
+// Single line example that we will *display* with a true hanging indent
+const EXAMPLE_CITATION =
+  "King, M. L., Jr. (2010). I have a dream [Speech transcript]. NFL. https://www.nfl.com/history/ (Original work published 1963).";
+
 export default function ModuleTwo_ChooseSpeech() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -197,6 +201,24 @@ export default function ModuleTwo_ChooseSpeech() {
           });
         } catch (err) {
           console.error("Error logging Module 2 speech selection:", err);
+        }
+
+        // Update resume_path so student can resume here if they return
+        try {
+          const resumeRes = await fetch("/api/assignments/resume", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              assignment_name: "MLK Essay Assignment",
+              resume_path: "/modules/2/source",
+            }),
+          });
+          const resumeData = await resumeRes.json();
+          if (!resumeRes.ok || !resumeData.ok) {
+            console.warn("Failed to update resume_path:", resumeData?.error);
+          }
+        } catch (err) {
+          console.warn("Error updating resume_path:", err);
         }
       }
 
@@ -385,7 +407,8 @@ export default function ModuleTwo_ChooseSpeech() {
                   className="w-full border rounded px-2 py-1 text-sm border-theme-blue/40 bg-white"
                 />
                 <p className="text-xs text-theme-dark/60 mt-1">
-                  If you cannot find a year, use <span className="italic">n.d.</span> which means no date.
+                  If you cannot find a year, use{" "}
+                  <span className="italic">n.d.</span> which means no date.
                 </p>
               </div>
 
@@ -431,8 +454,8 @@ export default function ModuleTwo_ChooseSpeech() {
               </p>
             </div>
 
-            {/* Step 4 card (red) inside the flow */}
-            <div className="bg-white rounded-lg border border-theme-red/40 p-3 shadow-sm space-y-2">
+            {/* Step 4 card (red) */}
+            <div className="bg-white rounded-lg border border-theme-red/40 p-3 shadow-sm space-y-3">
               <h3 className="text-sm font-semibold text-theme-red">
                 Step 4: Type your full APA reference
               </h3>
@@ -441,17 +464,69 @@ export default function ModuleTwo_ChooseSpeech() {
                 pattern and replace the year, site name, and URL with the
                 details from your page.
               </p>
+
+              {/* Pattern (no hanging indent) */}
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 text-theme-dark">
                 King, M. L., Jr. (Year). <em>I have a dream</em> [Speech
                 transcript]. Site Name. URL (Original work published 1963).
               </p>
+
+              {/* Static example with real hanging indent */}
+              <div className="text-xs bg-white border border-theme-red/30 rounded px-2 py-2 text-theme-dark">
+                <div className="font-semibold mb-1">
+                  Example with hanging indent:
+                </div>
+                <p
+                  className="font-mono whitespace-pre-wrap leading-5"
+                  style={{ textIndent: "-1.5em", paddingLeft: "1.5em", margin: 0 }}
+                >
+                  {EXAMPLE_CITATION}
+                </p>
+              </div>
+
+              {/* Student input */}
               <textarea
                 value={citation}
                 onChange={(e) => setCitation(e.target.value)}
-                className="w-full border rounded px-3 py-2 h-24 text-sm border-theme-red/40 bg-white"
-                placeholder='Example: King, M. L., Jr. (2010). I have a dream [Speech transcript]. NPR. https://www.npr.org/... (Original work published 1963).'
+                className="w-full border rounded px-3 py-2 h-24 text-sm border-theme-red/40 bg-white font-mono"
+                placeholder="Type your own reference here as one line. The hanging-indent preview below will update automatically."
                 required
               />
+
+              {/* Live hanging indent preview of their text */}
+              {citation.trim().length > 0 && (
+                <div className="text-xs bg-theme-light border border-theme-red/20 rounded px-2 py-2 text-theme-dark">
+                  <div className="font-semibold mb-1">
+                    Your citation with hanging indent:
+                  </div>
+                  <p
+                    className="font-mono whitespace-pre-wrap leading-5"
+                    style={{
+                      textIndent: "-1.5em",
+                      paddingLeft: "1.5em",
+                      margin: 0,
+                    }}
+                  >
+                    {citation}
+                  </p>
+                </div>
+              )}
+
+              <p className="text-xs text-theme-dark/60">
+                A hanging indent keeps the{" "}
+                <span className="font-semibold">first line at the left margin</span>{" "}
+                and moves the{" "}
+                <span className="font-semibold">
+                  second line and any lines after it to the right
+                </span>
+                . The preview shows how this will look on an APA References
+                page.
+              </p>
+              <p className="text-xs text-theme-dark/60">
+                When you paste this reference into your APA References page in
+                Google Docs, you will turn on a hanging indent in the paragraph
+                settings so that it matches the preview.
+              </p>
               <p className="text-xs text-theme-dark/60">
                 You are creating an official record of this source that you will
                 reuse later in your essay reference list.

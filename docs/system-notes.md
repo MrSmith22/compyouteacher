@@ -1,8 +1,20 @@
 # The Writing Processor: System Notes
 
 ## Purpose
-This document records database structure, code paths, and observed behavior.
-This is documentation only. No fixes are applied unless explicitly stated.
+This document records the **current, observed behavior** of The Writing Processor,
+including database structure, routing, code paths, and user-facing flows.
+
+This document is **descriptive, not prescriptive**.
+It documents what *exists*, not what *should exist*.
+
+No fixes, refactors, or design decisions are implied unless explicitly stated.
+
+## Documentation rules
+- This file is the single source of truth for **current system behavior**
+- Findings describe **observed reality**, not intent or future plans
+- Each finding must include evidence from code, database state, or UI behavior
+- If behavior changes, append a new finding or update an existing one with new evidence
+- Design proposals, refactors, or engine abstractions belong in separate documents
 
 ## Current environment
 - Local dev: http://localhost:3000
@@ -153,6 +165,23 @@ Students likely should enter via /modules/1 (or /dashboard -> /modules/1), not /
 **Status**
 Documented only.
 
+### F010: /dashboard functions as the canonical student entry point
+
+**Observation**
+The intended student flow routes users from the homepage to `/dashboard`, which then controls assignment creation, continuation, and navigation into module pages.
+
+**Evidence**
+- Homepage displays “Go to Dashboard” button after sign-in
+- Student Dashboard determines whether to show “Start Assignment” or “Continue”
+- Dashboard routes students to `/modules/{current_module}`
+
+**Implication**
+Student navigation should be driven by `/dashboard`, not by visiting `/modules` directly.
+Any logic that mutates assignment state on `/modules` may conflict with dashboard-controlled flow.
+
+**Status**
+Documented only.
+
 ## Table snapshots
 
 ### exported_docs
@@ -276,7 +305,7 @@ Conclusion
 - The uniqueness rule already exists.
 
 ## Questions to answer next
-- What is the canonical student entry point: /dashboard or /modules/1
-- Does visiting /modules/1 update current_module appropriately
-- Should /modules exist at all, or should it redirect to /modules/1
-- Should code always filter student_assignments by (user_email, assignment_name)
+- Should the /modules route continue to exist now that /dashboard is the canonical entry point
+- Which route should be the single writer of student_assignments.current_module
+- Should student_assignments be scoped strictly by (user_email, assignment_name) in all reads
+- How assignment identity should be represented when supporting multiple essay workflows

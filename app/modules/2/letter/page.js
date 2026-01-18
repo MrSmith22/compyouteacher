@@ -22,6 +22,10 @@ function isValidHttpUrl(value) {
   }
 }
 
+// Single-line example that we *display* with a real hanging indent
+const EXAMPLE_CITATION =
+  "King, M. L., Jr. (n.d.). Letter from Birmingham jail [Letter transcript]. University of Pennsylvania African Studies Center. https://www.africa.upenn.edu/Articles_Gen/Letter_Birmingham.html (Original work published 1963).";
+
 export default function ModuleTwoChooseLetter() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -227,6 +231,24 @@ export default function ModuleTwoChooseLetter() {
             "Error saving letter to module2_sources:",
             upsertErr
           );
+        }
+
+        // Update resume_path so student can resume here if they return
+        try {
+          const resumeRes = await fetch("/api/assignments/resume", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              assignment_name: "MLK Essay Assignment",
+              resume_path: "/modules/2/letter",
+            }),
+          });
+          const resumeData = await resumeRes.json();
+          if (!resumeRes.ok || !resumeData.ok) {
+            console.warn("Failed to update resume_path:", resumeData?.error);
+          }
+        } catch (err) {
+          console.warn("Error updating resume_path:", err);
         }
       }
 
@@ -453,8 +475,8 @@ export default function ModuleTwoChooseLetter() {
               </p>
             </div>
 
-            {/* Step 4 card (red) inside the flow */}
-            <div className="bg-white rounded-lg border border-theme-red/40 p-3 shadow-sm space-y-2">
+            {/* Step 4 card (red) */}
+            <div className="bg-white rounded-lg border border-theme-red/40 p-3 shadow-sm space-y-3">
               <h3 className="text-sm font-semibold text-theme-red">
                 Step 4: Type your full APA reference
               </h3>
@@ -463,18 +485,74 @@ export default function ModuleTwoChooseLetter() {
                 pattern you used for the speech and replace the year, site name,
                 and URL with the details from your letter page.
               </p>
+
+              {/* Pattern sentence (no hanging indent) */}
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 text-theme-dark">
                 King, M. L., Jr. (Year). <em>Letter from Birmingham jail</em>{" "}
                 [Letter transcript]. Site Name. URL (Original work published
                 1963).
               </p>
+
+              {/* Static example with real hanging indent */}
+              <div className="text-xs bg-white border border-theme-red/30 rounded px-2 py-2 text-theme-dark">
+                <div className="font-semibold mb-1">
+                  Example with hanging indent:
+                </div>
+                <p
+                  className="font-mono whitespace-pre-wrap leading-5"
+                  style={{
+                    textIndent: "-1.5em",
+                    paddingLeft: "1.5em",
+                    margin: 0,
+                  }}
+                >
+                  {EXAMPLE_CITATION}
+                </p>
+              </div>
+
+              {/* Student input */}
               <textarea
                 value={citation}
                 onChange={(e) => setCitation(e.target.value)}
-                className="w-full border rounded px-3 py-2 h-24 text-sm border-theme-red/40 bg-white"
-                placeholder="Example: King, M. L., Jr. (n.d.). Letter from Birmingham jail [Letter transcript]. University of Pennsylvania African Studies Center. https://www.africa.upenn.edu/... (Original work published 1963)."
+                className="w-full border rounded px-3 py-2 h-24 text-sm border-theme-red/40 bg-white font-mono"
+                placeholder="Type your own reference here as one line. The hanging-indent preview below will update automatically."
                 required
               />
+
+              {/* Live preview with hanging indent */}
+              {citation.trim().length > 0 && (
+                <div className="text-xs bg-theme-light border border-theme-red/20 rounded px-2 py-2 text-theme-dark">
+                  <div className="font-semibold mb-1">
+                    Your citation with hanging indent:
+                  </div>
+                  <p
+                    className="font-mono whitespace-pre-wrap leading-5"
+                    style={{
+                      textIndent: "-1.5em",
+                      paddingLeft: "1.5em",
+                      margin: 0,
+                    }}
+                  >
+                    {citation}
+                  </p>
+                </div>
+              )}
+
+              <p className="text-xs text-theme-dark/60">
+                A hanging indent keeps the{" "}
+                <span className="font-semibold">first line at the left margin</span>{" "}
+                and moves the{" "}
+                <span className="font-semibold">
+                  second line and all later lines to the right
+                </span>
+                . The preview shows how your reference will look on an APA
+                References page.
+              </p>
+              <p className="text-xs text-theme-dark/60">
+                When you paste this reference into your APA References page in
+                Google Docs, you will turn on a hanging indent in the paragraph
+                settings so that it matches this preview.
+              </p>
               <p className="text-xs text-theme-dark/60">
                 This reference will join your speech reference in your final
                 list of sources later in the writing process.
