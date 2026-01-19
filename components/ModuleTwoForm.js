@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
+import {
+  getTChartEntries,
+  upsertTChartEntries,
+} from "@/lib/supabase/helpers/tchartEntries";
 
 const categories = ["ethos", "pathos", "logos", "audience", "purpose"];
 
@@ -26,10 +29,7 @@ export default function ModuleTwoForm() {
   useEffect(() => {
     if (!email) return;
     (async () => {
-      const { data: rows } = await supabase
-        .from("tchart_entries")
-        .select("*")
-        .eq("user_email", email);
+      const { data: rows } = await getTChartEntries({ userEmail: email });
 
       if (rows?.length) {
         const tmp = { ...blank };
@@ -94,7 +94,10 @@ const handleSave = async () => {
     }
   }
 
-  const { error } = await supabase.from("tchart_entries").upsert(entries);
+  const { error } = await upsertTChartEntries({
+    userEmail: email,
+    entries,
+  });
 
   if (error) {
     alert("Error saving data: " + error.message);

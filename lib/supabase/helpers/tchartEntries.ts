@@ -8,6 +8,13 @@ type TChartEntry = {
   letter_url?: string | null;
 };
 
+export async function getTChartEntries({ userEmail }: { userEmail: string }) {
+  return supabase
+    .from("tchart_entries")
+    .select("*")
+    .eq("user_email", userEmail);
+}
+
 export async function upsertTChartEntries({
   userEmail,
   entries,
