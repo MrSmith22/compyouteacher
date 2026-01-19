@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { supabase } from "@/lib/supabaseClient";
 import { logActivity } from "@/lib/logActivity";
+import {
+  getModule2Sources,
+  upsertModule2SpeechSource,
+} from "@/lib/supabase/helpers/module2Sources";
 
 const KEYS = {
   speechUrl: "mlk_speech_url",
@@ -46,13 +49,7 @@ export default function ModuleTwo_ChooseSpeech() {
         const email = session?.user?.email || null;
 
         if (email) {
-          const { data, error } = await supabase
-            .from("module2_sources")
-            .select(
-              "mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation"
-            )
-            .eq("user_email", email)
-            .maybeSingle();
+          const { data, error } = await getModule2Sources({ userEmail: email });
 
           if (error && error.code !== "PGRST116") {
             console.error("Error loading module2_sources:", error);
@@ -152,20 +149,14 @@ export default function ModuleTwo_ChooseSpeech() {
 
       // Save to Supabase so the data follows the student
       if (userEmail) {
-        const { error: upsertErr } = await supabase
-          .from("module2_sources")
-          .upsert(
-            {
-              user_email: userEmail,
-              mlk_url: trimmedUrl,
-              mlk_text: trimmedText,
-              mlk_site_name: trimmedSite || null,
-              mlk_transcript_year: trimmedYear || null,
-              mlk_citation: trimmedCitation,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "user_email" }
-          );
+        const { error: upsertErr } = await upsertModule2SpeechSource({
+          userEmail,
+          speechUrl: trimmedUrl,
+          speechText: trimmedText,
+          speechSiteName: trimmedSite || null,
+          speechTranscriptYear: trimmedYear || null,
+          speechCitation: trimmedCitation,
+        });
 
         if (upsertErr) {
           console.error("Error saving module2_sources:", upsertErr);

@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { supabase } from "@/lib/supabaseClient";
+import {
+  getModule2Sources,
+  upsertModule2LetterSource,
+} from "@/lib/supabase/helpers/module2Sources";
 
 const KEYS = {
   letterUrl: "mlk_letter_url",
@@ -47,13 +50,7 @@ export default function ModuleTwoChooseLetter() {
         const email = session?.user?.email || null;
 
         if (email) {
-          const { data, error } = await supabase
-            .from("module2_sources")
-            .select(
-              "lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation"
-            )
-            .eq("user_email", email)
-            .maybeSingle();
+          const { data, error } = await getModule2Sources({ userEmail: email });
 
           if (
             error &&
@@ -182,13 +179,9 @@ export default function ModuleTwoChooseLetter() {
 
       if (userEmail) {
         // Read existing speech fields so we do not lose them
-        const { data: existing, error: loadErr } = await supabase
-          .from("module2_sources")
-          .select(
-            "mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation"
-          )
-          .eq("user_email", userEmail)
-          .maybeSingle();
+        const { data: existing, error: loadErr } = await getModule2Sources({
+          userEmail,
+        });
 
         if (
           loadErr &&
@@ -201,26 +194,19 @@ export default function ModuleTwoChooseLetter() {
           );
         }
 
-        const upsertPayload = {
-          user_email: userEmail,
-          // keep existing speech data if present
-          mlk_url: existing?.mlk_url || null,
-          mlk_text: existing?.mlk_text || null,
-          mlk_site_name: existing?.mlk_site_name || null,
-          mlk_transcript_year: existing?.mlk_transcript_year || null,
-          mlk_citation: existing?.mlk_citation || null,
-          // letter data (matching your table schema)
-          lfbj_url: trimmedUrl,
-          lfbj_text: trimmedText,
-          lfbj_site_name: trimmedSiteName || null,
-          lfbj_transcript_year: trimmedYear || null,
-          lfbj_citation: trimmedCitation,
-          updated_at: new Date().toISOString(),
-        };
-
-        const { error: upsertErr } = await supabase
-          .from("module2_sources")
-          .upsert(upsertPayload, { onConflict: "user_email" });
+        const { error: upsertErr } = await upsertModule2LetterSource({
+          userEmail,
+          letterUrl: trimmedUrl,
+          letterText: trimmedText,
+          letterSiteName: trimmedSiteName || null,
+          letterTranscriptYear: trimmedYear || null,
+          letterCitation: trimmedCitation,
+          speechUrl: existing?.mlk_url || null,
+          speechText: existing?.mlk_text || null,
+          speechSiteName: existing?.mlk_site_name || null,
+          speechTranscriptYear: existing?.mlk_transcript_year || null,
+          speechCitation: existing?.mlk_citation || null,
+        });
 
         if (upsertErr) {
           console.error(
