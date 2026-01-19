@@ -1,4 +1,3 @@
-// JavaScript source code
 // app/api/outlines/route.js
 
 import { NextResponse } from "next/server";
@@ -14,7 +13,10 @@ export async function GET(req) {
   const module = Number(searchParams.get("module"));
 
   if (!email || !module) {
-    return NextResponse.json({ error: "Missing email or module" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing email or module" },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await getStudentOutline({
@@ -32,10 +34,13 @@ export async function GET(req) {
 // Handle POST request (save outline)
 export async function POST(req) {
   const body = await req.json();
-
   const { user_email, module, outline } = body;
+
   if (!user_email || !module || !outline) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
   }
 
   const { error } = await upsertStudentOutline({
