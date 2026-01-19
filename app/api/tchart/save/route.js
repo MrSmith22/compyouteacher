@@ -1,17 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { createClient } from "@supabase/supabase-js";
-
-// Supabase server client setup
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase env vars for tchart/save route");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { upsertTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 
 export async function POST(req) {
   try {
@@ -24,7 +14,7 @@ export async function POST(req) {
       );
     }
 
-    const user_email = session.user.email;
+    const userEmail = session.user.email;
 
     // Read payload
     const payload = await req.json();
@@ -37,26 +27,10 @@ export async function POST(req) {
       );
     }
 
-    const now = new Date().toISOString();
-
-    const rows = entries.map((e) => ({
-      user_email,
-      category: e.category,           // "ethos" | "pathos" | "logos"
-      type: e.type,                   // "speech" | "letter"
-      quote: e.quote || "",
-      observation: e.observation || "",
-      letter_url: e.letter_url || null,
-      updated_at: now,
-    }));
-
-    // Upsert rows into tchart_entries
-    const { data, error } = await supabase
-      .from("tchart_entries")
-      .upsert(rows, {
-        onConflict: "user_email,category,type",
-        ignoreDuplicates: false,
-      })
-      .select();
+    const { data, error } = await upsertTChartEntries({
+      userEmail,
+      entries,
+    });
 
     if (error) throw error;
 
