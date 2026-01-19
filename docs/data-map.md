@@ -133,3 +133,5 @@ If something is unclear or missing, it is marked as **UNCERTAIN**.
 - Reads/Writes: **UNCERTAIN**
 - localStorage: none
 - Progress/resume: **UNCERTAIN**
+
+

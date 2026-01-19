@@ -2,7 +2,10 @@
 // app/api/outlines/route.js
 
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import {
+  getStudentOutline,
+  upsertStudentOutline,
+} from "@/lib/supabase/helpers/studentOutlines";
 
 // Handle GET request (fetch outline)
 export async function GET(req) {
@@ -14,12 +17,10 @@ export async function GET(req) {
     return NextResponse.json({ error: "Missing email or module" }, { status: 400 });
   }
 
-  const { data, error } = await supabase
-    .from("student_outlines")
-    .select("*")
-    .eq("user_email", email)
-    .eq("module", module)
-    .single();
+  const { data, error } = await getStudentOutline({
+    userEmail: email,
+    module,
+  });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -37,11 +38,10 @@ export async function POST(req) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const { error } = await supabase.from("student_outlines").upsert({
-    user_email,
+  const { error } = await upsertStudentOutline({
+    userEmail: user_email,
     module,
     outline,
-    updated_at: new Date().toISOString(),
   });
 
   if (error) {
