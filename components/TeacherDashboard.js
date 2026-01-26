@@ -42,120 +42,114 @@ export default function TeacherDashboard() {
   // --------------------------------------------------
   // 2. Load dashboard data + logs
   // --------------------------------------------------
-  useEffect(() => {
-    if (!session?.user?.email) return;
-    if (role && role !== "teacher") return;
+ // --------------------------------------------------
+// 2. Load dashboard data + logs (via API)
+// --------------------------------------------------
+useEffect(() => {
+  if (!session?.user?.email) return;
+  if (role && role !== "teacher") return;
 
-    const load = async () => {
-      setLoading(true);
-      setError(null);
+  const load = async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const [
-          { data: assignments, error: assignErr },
-          { data: moduleScores, error: scoresErr },
-          { data: module9, error: m9Err },
-          { data: activity, error: actErr },
-          { data: exports, error: exportsErr },
-        ] = await Promise.all([
-          supabase.from("student_assignments").select("*"),
-          supabase.from("module_scores").select("*"),
-          supabase.from("module9_quiz").select("*"),
-          supabase
-            .from("student_activity_log")
-            .select("*")
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("student_exports")
-            .select("*")
-            .eq("kind", "final_pdf"),
-        ]);
+    try {
+      const res = await fetch("/api/teacher/dashboard");
 
-        if (assignErr) throw assignErr;
-
-        if (scoresErr) console.warn("module_scores error:", scoresErr);
-        if (m9Err) console.warn("module9 error:", m9Err);
-        if (actErr) console.warn("activity log error:", actErr);
-        if (exportsErr) console.warn("student_exports error:", exportsErr);
-
-        setActivityLog(activity || []);
-
-        // Build list of all known student emails
-        const emailSet = new Set();
-        (assignments || []).forEach((a) => emailSet.add(a.user_email));
-        (moduleScores || []).forEach((m) => emailSet.add(m.user_email));
-        (module9 || []).forEach((m) => emailSet.add(m.user_email));
-        (activity || []).forEach((a) => emailSet.add(a.user_email));
-        (exports || []).forEach((e) => emailSet.add(e.user_email));
-
-        const allEmails = Array.from(emailSet).filter(Boolean);
-
-        // Merge all student data into one row per student
-        const builtRows = allEmails.map((email) => {
-          const assign = (assignments || []).find(
-            (a) => a.user_email === email
-          );
-
-          const scores = (moduleScores || []).filter(
-            (r) => r.user_email === email
-          );
-          const m1Score = scores.find((s) => s.module === 1) || null;
-
-          const m9 = (module9 || []).find((r) => r.user_email === email);
-
-          const acts = (activity || []).filter(
-            (a) => a.user_email === email
-          );
-          const lastAct = acts[0] || null;
-
-          const exportRow = (exports || []).find(
-            (e) => e.user_email === email && e.module === 9
-          );
-
-          const modulesCompleted =
-            acts.filter((a) => a.action === "module_completed").length;
-
-          const currentModule =
-            assign?.current_module ??
-            lastAct?.module ??
-            (m9 ? 9 : scores.length > 0 ? 1 : 0);
-
-          return {
-            email,
-            assignmentName: assign?.assignment_name || "MLK Essay Assignment",
-            status: assign?.status || "in progress",
-            currentModule,
-            modulesCompleted,
-            rhetoricQuiz:
-              m1Score && m1Score.total
-                ? `${m1Score.score}/${m1Score.total}`
-                : m1Score?.score != null
-                ? `${m1Score.score}/10`
-                : "—",
-            module9Quiz:
-              m9 && m9.total
-                ? `${m9.score}/${m9.total}`
-                : m9?.score != null
-                ? `${m9.score}/10`
-                : "No attempt yet",
-            lastActivity: lastAct,
-            finalPdfUrl:
-              exportRow?.public_url || exportRow?.web_view_link || null,
-            finalPdfName: exportRow?.file_name || null,
-          };
-        });
-
-        setRows(builtRows);
+      // Handle auth / role failures cleanly
+      if (res.status === 401) {
+        setError("Not signed in");
         setLoading(false);
-      } catch (err) {
-        console.error("Dashboard load error:", err);
-        setError(err.message || "Unknown error");
-        setLoading(false);
+        return;
       }
-    };
+      if (res.status === 403) {
+        setError("Teacher access only");
+        setLoading(false);
+        return;
+      }
 
-    load();
-  }, [session, role]);
+      const json = await res.json();
+
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "Failed to load dashboard data");
+      }
+
+      const assignments = json.data?.assignments ?? [];
+      const moduleScores = json.data?.moduleScores ?? [];
+      const module9 = json.data?.module9 ?? [];
+      const activity = json.data?.activity ?? [];
+      const exports = json.data?.exports ?? [];
+
+      setActivityLog(activity);
+
+      // Build list of all known student emails
+      const emailSet = new Set();
+      (assignments || []).forEach((a) => emailSet.add(a.user_email));
+      (moduleScores || []).forEach((m) => emailSet.add(m.user_email));
+      (module9 || []).forEach((m) => emailSet.add(m.user_email));
+      (activity || []).forEach((a) => emailSet.add(a.user_email));
+      (exports || []).forEach((e) => emailSet.add(e.user_email));
+
+      const allEmails = Array.from(emailSet).filter(Boolean);
+
+      // Merge all student data into one row per student
+      const builtRows = allEmails.map((email) => {
+        const assign = (assignments || []).find((a) => a.user_email === email);
+
+        const scores = (moduleScores || []).filter((r) => r.user_email === email);
+        const m1Score = scores.find((s) => s.module === 1) || null;
+
+        const m9Row = (module9 || []).find((r) => r.user_email === email);
+
+        const acts = (activity || []).filter((a) => a.user_email === email);
+        const lastAct = acts[0] || null;
+
+        const exportRow = (exports || []).find(
+          (e) => e.user_email === email && e.module === 9
+        );
+
+        const modulesCompleted = acts.filter((a) => a.action === "module_completed").length;
+
+        const currentModule =
+          assign?.current_module ??
+          lastAct?.module ??
+          (m9Row ? 9 : scores.length > 0 ? 1 : 0);
+
+        return {
+          email,
+          assignmentName: assign?.assignment_name || "MLK Essay Assignment",
+          status: assign?.status || "in progress",
+          currentModule,
+          modulesCompleted,
+          rhetoricQuiz:
+            m1Score && m1Score.total
+              ? `${m1Score.score}/${m1Score.total}`
+              : m1Score?.score != null
+              ? `${m1Score.score}/10`
+              : "—",
+          module9Quiz:
+            m9Row && m9Row.total
+              ? `${m9Row.score}/${m9Row.total}`
+              : m9Row?.score != null
+              ? `${m9Row.score}/10`
+              : "No attempt yet",
+          lastActivity: lastAct,
+          finalPdfUrl: exportRow?.public_url || exportRow?.web_view_link || null,
+          finalPdfName: exportRow?.file_name || null,
+        };
+      });
+
+      setRows(builtRows);
+      setLoading(false);
+    } catch (err) {
+      console.error("Dashboard load error:", err);
+      setError(err?.message || "Unknown error");
+      setLoading(false);
+    }
+  };
+
+  load();
+}, [session, role]);
 
   // --------------------------------------------------
   // 3. Apply module filter
