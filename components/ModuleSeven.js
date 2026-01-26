@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { supabase } from "../lib/supabaseClient";
-import { logActivity } from "../lib/logActivity";
+
+import { supabase } from "@/lib/supabaseClient";
+import { logStudentActivity } from "@/lib/supabase/helpers/studentActivity";
 
 // Choose a supported recording format
 function pickAudioFormat() {
@@ -48,6 +49,20 @@ export default function ModuleSeven() {
   const hasLoggedStartRef = useRef(false);
 
   const email = session?.user?.email ?? null;
+
+  const log = async (eventType, meta = {}) => {
+    if (!email) return;
+    try {
+      await logStudentActivity({
+        userEmail: email,
+        eventType,
+        module: 7,
+        meta: { module: 7, ...meta },
+      });
+    } catch (e) {
+      console.error("Activity log failed:", e);
+    }
+  };
 
   const getTextMetrics = (value) => {
     const raw = typeof value === "string" ? value : text;
@@ -101,18 +116,17 @@ export default function ModuleSeven() {
       setAudioURL(data?.audio_url ?? null);
       setLocked(!!data?.final_ready);
 
-      // Log module_started once per visit
       if (!hasLoggedStartRef.current) {
         hasLoggedStartRef.current = true;
         const metrics = getTextMetrics(initialText);
-        logActivity(email, "module_started", {
-          module: 7,
+        await log("module_started", {
           from_module6: !data?.full_text,
           has_audio: !!data?.audio_url,
           ...metrics,
         });
       }
     };
+
     fetchData();
   }, [email]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -131,10 +145,7 @@ export default function ModuleSeven() {
     loadDevices();
     navigator.mediaDevices?.addEventListener?.("devicechange", loadDevices);
     return () =>
-      navigator.mediaDevices?.removeEventListener?.(
-        "devicechange",
-        loadDevices
-      );
+      navigator.mediaDevices?.removeEventListener?.("devicechange", loadDevices);
   }, []);
 
   function stopMeter() {
@@ -219,73 +230,74 @@ export default function ModuleSeven() {
         const blob = new Blob(audioChunksRef.current, {
           type: chosen.mime || "audio/*",
         });
+
+        // Local playback immediately
         const localUrl = URL.createObjectURL(blob);
         setAudioURL(localUrl);
 
-        // Upload to Supabase storage
-        const safeEmail = (email || "unknown").replace(
-          /[^a-zA-Z0-9._-]/g,
-          "_"
-        );
-        const filename = `readaloud/${safeEmail}/${Date.now()}.${
-          chosen.ext
-        }`;
-
-        const { error: uploadErr } = await supabase.storage
-          .from("student-audio")
-          .upload(filename, blob, {
-            contentType: chosen.mime || "audio/*",
+        try {
+          const file = new File([blob], `readaloud.${chosen.ext}`, {
+            type: chosen.mime || "audio/webm",
           });
 
-        if (uploadErr) {
-          console.error("Upload error:", uploadErr);
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("notes", "");
+          fd.append("durationSeconds", "0");
+          fd.append("module", "7");
+
+          const res = await fetch("/api/readaloud", {
+            method: "POST",
+            body: fd,
+          });
+
+          const json = await res.json();
+
+          if (!res.ok || !json.ok) {
+            throw new Error(json?.error || `Request failed (${res.status})`);
+          }
+
+          if (json.publicUrl) {
+            setAudioURL(json.publicUrl);
+
+            // Optional: store audio_url on Module 7 draft row now
+            await supabase.from("student_drafts").upsert({
+              user_email: email,
+              module: 7,
+              audio_url: json.publicUrl,
+              updated_at: new Date().toISOString(),
+            });
+          }
+
+          await log("recording_saved", {
+            filename: json.filename ?? null,
+            has_public_url: !!json.publicUrl,
+            mime: chosen.mime || null,
+          });
+        } catch (e) {
+          console.error("Save recording error:", e);
           alert("Failed to save audio.");
-          logActivity(email, "recording_failed", {
-            module: 7,
-            error: uploadErr.message,
-          });
-          // release mic
-          stream.getTracks().forEach((t) => t.stop());
+          await log("recording_failed", { error: String(e?.message || e) });
+        } finally {
+          try {
+            stream.getTracks().forEach((t) => t.stop());
+          } catch {}
           streamRef.current = null;
-          return;
         }
-
-        const { data: urlData } = supabase.storage
-          .from("student-audio")
-          .getPublicUrl(filename);
-
-        if (urlData?.publicUrl) setAudioURL(urlData.publicUrl);
-
-        // log successful recording save
-        logActivity(email, "recording_saved", {
-          module: 7,
-          path: filename,
-          mime: chosen.mime || null,
-          has_public_url: !!urlData?.publicUrl,
-        });
-
-        // release mic
-        stream.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
       };
 
       mr.start();
       setRecording(true);
 
-      // log recording start
-      logActivity(email, "recording_started", {
-        module: 7,
+      await log("recording_started", {
         device_id: selectedDeviceId || null,
       });
     } catch (err) {
       console.error("Could not start recording:", err);
       alert("Microphone access is required to record.");
-      if (email) {
-        logActivity(email, "recording_failed", {
-          module: 7,
-          error: String(err.message || err),
-        });
-      }
+      await log("recording_failed", {
+        error: String(err?.message || err),
+      });
     }
   };
 
@@ -322,17 +334,16 @@ export default function ModuleSeven() {
 
     const metrics = getTextMetrics();
     const meta = {
-      module: 7,
       has_audio: !!audioURL,
       ...metrics,
     };
 
     if (finalized) {
       setLocked(true);
-      await logActivity(email, "module_completed", meta);
+      await log("module_completed", meta);
       router.push("/modules/7/success");
     } else {
-      await logActivity(email, "revision_saved", meta);
+      await log("revision_saved", meta);
       alert("Revision saved. You can continue editing or finalize.");
     }
   };
@@ -359,7 +370,6 @@ export default function ModuleSeven() {
     );
   }
 
-  // Word processor style props for the textarea
   const wp = {
     spellCheck: true,
     autoCorrect: "on",
@@ -370,7 +380,6 @@ export default function ModuleSeven() {
   return (
     <div className="min-h-screen bg-theme-light">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* Header and overview */}
         <header className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">
           <h1 className="text-3xl font-extrabold text-theme-blue mb-1">
             ✍️ Module 7: Revise and Read Your Essay Aloud
@@ -390,7 +399,6 @@ export default function ModuleSeven() {
           </ol>
         </header>
 
-        {/* Step 1: Get draft ready */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
           <h2 className="text-xl font-bold text-theme-dark">
             Step 1: Get your draft into this box
@@ -404,13 +412,8 @@ export default function ModuleSeven() {
             onClick={async () => {
               const { text: t } = await loadFromModule6();
               setText(t || "");
-              if (email) {
-                const metrics = getTextMetrics(t || "");
-                logActivity(email, "draft_reloaded_from_module6", {
-                  module: 7,
-                  ...metrics,
-                });
-              }
+              const metrics = getTextMetrics(t || "");
+              await log("draft_reloaded_from_module6", metrics);
             }}
             className="inline-flex items-center gap-2 text-sm font-semibold text-theme-blue hover:underline"
           >
@@ -418,7 +421,6 @@ export default function ModuleSeven() {
           </button>
         </section>
 
-        {/* Step 2: Revision textbox */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
           <h2 className="text-xl font-bold text-theme-dark">
             Step 2: Revise your draft
@@ -454,7 +456,6 @@ export default function ModuleSeven() {
           />
         </section>
 
-        {/* Step 3: Recording section */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-4">
           <h2 className="text-xl font-bold text-theme-dark">
             Step 3: Record and listen to a read aloud
@@ -465,7 +466,6 @@ export default function ModuleSeven() {
             a microphone, record, and then listen.
           </p>
 
-          {/* Mic picker + live meter */}
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <label className="font-medium">Microphone:</label>
             <select
@@ -482,12 +482,10 @@ export default function ModuleSeven() {
                 </option>
               ))}
             </select>
+
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-600">Input level:</span>
-              <div
-                className="h-2 bg-gray-200 rounded w-40 overflow-hidden"
-                title="live input amplitude"
-              >
+              <div className="h-2 bg-gray-200 rounded w-40 overflow-hidden">
                 <div
                   className="h-2 bg-theme-green"
                   style={{
@@ -542,7 +540,6 @@ export default function ModuleSeven() {
           )}
         </section>
 
-        {/* Step 4: Save vs finalize */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
           <h2 className="text-xl font-bold text-theme-dark">
             Step 4: Decide what to do next
@@ -584,7 +581,6 @@ export default function ModuleSeven() {
             <div className="text-green-700 font-semibold mt-2 space-y-2 text-sm">
               <div>✅ Draft revision is marked complete for Module 7.</div>
               <div>You cannot edit this text anymore.</div>
-              {/* Dev unlock helper */}
               <button
                 onClick={() => setLocked(false)}
                 className="bg-gray-100 border border-gray-300 px-3 py-1.5 rounded-md text-xs text-gray-700"
