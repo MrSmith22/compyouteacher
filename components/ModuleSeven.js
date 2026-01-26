@@ -9,10 +9,10 @@ import { logActivity } from "../lib/logActivity";
 // Choose a supported recording format
 function pickAudioFormat() {
   const candidates = [
-    { mime: "audio/webm;codecs=opus", ext: "webm" }, // Chrome / Edge
+    { mime: "audio/webm;codecs=opus", ext: "webm" },
     { mime: "audio/webm", ext: "webm" },
-    { mime: "audio/mp4", ext: "m4a" }, // Safari
-    { mime: "audio/aac", ext: "m4a" }, // Safari fallback
+    { mime: "audio/mp4", ext: "m4a" },
+    { mime: "audio/aac", ext: "m4a" },
   ];
   for (const c of candidates) {
     if (
@@ -105,7 +105,7 @@ export default function ModuleSeven() {
       if (!hasLoggedStartRef.current) {
         hasLoggedStartRef.current = true;
         const metrics = getTextMetrics(initialText);
-        logActivity(email, "module_started", {
+        logActivity("module_started", {
           module: 7,
           from_module6: !data?.full_text,
           has_audio: !!data?.audio_url,
@@ -131,10 +131,7 @@ export default function ModuleSeven() {
     loadDevices();
     navigator.mediaDevices?.addEventListener?.("devicechange", loadDevices);
     return () =>
-      navigator.mediaDevices?.removeEventListener?.(
-        "devicechange",
-        loadDevices
-      );
+      navigator.mediaDevices?.removeEventListener?.("devicechange", loadDevices);
   }, []);
 
   function stopMeter() {
@@ -177,9 +174,7 @@ export default function ModuleSeven() {
       return;
     }
     if (audioURL) {
-      const confirmOverwrite = confirm(
-        "You already have a recording. Overwrite it?"
-      );
+      const confirmOverwrite = confirm("You already have a recording. Overwrite it?");
       if (!confirmOverwrite) return;
     }
 
@@ -223,13 +218,8 @@ export default function ModuleSeven() {
         setAudioURL(localUrl);
 
         // Upload to Supabase storage
-        const safeEmail = (email || "unknown").replace(
-          /[^a-zA-Z0-9._-]/g,
-          "_"
-        );
-        const filename = `readaloud/${safeEmail}/${Date.now()}.${
-          chosen.ext
-        }`;
+        const safeEmail = (email || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
+        const filename = `readaloud/${safeEmail}/${Date.now()}.${chosen.ext}`;
 
         const { error: uploadErr } = await supabase.storage
           .from("student-audio")
@@ -240,7 +230,7 @@ export default function ModuleSeven() {
         if (uploadErr) {
           console.error("Upload error:", uploadErr);
           alert("Failed to save audio.");
-          logActivity(email, "recording_failed", {
+          logActivity("recording_failed", {
             module: 7,
             error: uploadErr.message,
           });
@@ -256,8 +246,7 @@ export default function ModuleSeven() {
 
         if (urlData?.publicUrl) setAudioURL(urlData.publicUrl);
 
-        // log successful recording save
-        logActivity(email, "recording_saved", {
+        logActivity("recording_saved", {
           module: 7,
           path: filename,
           mime: chosen.mime || null,
@@ -272,20 +261,17 @@ export default function ModuleSeven() {
       mr.start();
       setRecording(true);
 
-      // log recording start
-      logActivity(email, "recording_started", {
+      logActivity("recording_started", {
         module: 7,
         device_id: selectedDeviceId || null,
       });
     } catch (err) {
       console.error("Could not start recording:", err);
       alert("Microphone access is required to record.");
-      if (email) {
-        logActivity(email, "recording_failed", {
-          module: 7,
-          error: String(err.message || err),
-        });
-      }
+      logActivity("recording_failed", {
+        module: 7,
+        error: String(err?.message || err),
+      });
     }
   };
 
@@ -329,10 +315,10 @@ export default function ModuleSeven() {
 
     if (finalized) {
       setLocked(true);
-      await logActivity(email, "module_completed", meta);
+      await logActivity("module_completed", meta);
       router.push("/modules/7/success");
     } else {
-      await logActivity(email, "revision_saved", meta);
+      await logActivity("revision_saved", meta);
       alert("Revision saved. You can continue editing or finalize.");
     }
   };
@@ -341,12 +327,9 @@ export default function ModuleSeven() {
     return (
       <div className="min-h-screen bg-theme-light flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-md w-full space-y-3">
-          <h1 className="text-2xl font-semibold text-theme-blue">
-            Please sign in
-          </h1>
+          <h1 className="text-2xl font-semibold text-theme-blue">Please sign in</h1>
           <p className="text-theme-dark text-sm">
-            You need to be signed in to use Module 7 and save your revisions and
-            audio recording.
+            You need to be signed in to use Module 7 and save your revisions and audio recording.
           </p>
           <a
             className="inline-block bg-theme-blue text-white px-4 py-2 rounded-md text-sm font-semibold"
@@ -370,47 +353,33 @@ export default function ModuleSeven() {
   return (
     <div className="min-h-screen bg-theme-light">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* Header and overview */}
         <header className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">
           <h1 className="text-3xl font-extrabold text-theme-blue mb-1">
             ✍️ Module 7: Revise and Read Your Essay Aloud
           </h1>
           <p className="text-gray-700 text-sm md:text-base">
-            In this step you will move from a rough draft to a more polished
-            version. You will:
+            In this step you will move from a rough draft to a more polished version. You will:
           </p>
           <ol className="list-decimal list-inside mt-2 text-sm text-gray-700 space-y-1">
             <li>Pull in your draft from Module 6 if you need it.</li>
             <li>Revise the draft in the textbox using specific checks.</li>
-            <li>
-              Record yourself reading the essay aloud, then listen for places
-              that sound confusing or awkward.
-            </li>
+            <li>Record yourself reading the essay aloud, then listen for places that sound confusing or awkward.</li>
             <li>Save your best revision and decide when it is ready to finalize.</li>
           </ol>
         </header>
 
-        {/* Step 1: Get draft ready */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
-          <h2 className="text-xl font-bold text-theme-dark">
-            Step 1: Get your draft into this box
-          </h2>
+          <h2 className="text-xl font-bold text-theme-dark">Step 1: Get your draft into this box</h2>
           <p className="text-sm text-gray-700">
-            You should already have a complete draft from Module 6. If the box
-            below is empty or you want to reload the most recent version from
-            Module 6, use this button.
+            You should already have a complete draft from Module 6. If the box below is empty or you want to
+            reload the most recent version from Module 6, use this button.
           </p>
           <button
             onClick={async () => {
               const { text: t } = await loadFromModule6();
               setText(t || "");
-              if (email) {
-                const metrics = getTextMetrics(t || "");
-                logActivity(email, "draft_reloaded_from_module6", {
-                  module: 7,
-                  ...metrics,
-                });
-              }
+              const metrics = getTextMetrics(t || "");
+              logActivity("draft_reloaded_from_module6", { module: 7, ...metrics });
             }}
             className="inline-flex items-center gap-2 text-sm font-semibold text-theme-blue hover:underline"
           >
@@ -418,32 +387,17 @@ export default function ModuleSeven() {
           </button>
         </section>
 
-        {/* Step 2: Revision textbox */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
-          <h2 className="text-xl font-bold text-theme-dark">
-            Step 2: Revise your draft
-          </h2>
+          <h2 className="text-xl font-bold text-theme-dark">Step 2: Revise your draft</h2>
           <p className="text-sm text-gray-700">
-            Use this textbox as your working copy. Make changes based on the
-            outline and observations you used earlier. As you revise, focus on:
+            Use this textbox as your working copy. Make changes based on the outline and observations you used earlier.
+            As you revise, focus on:
           </p>
           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-            <li>
-              <span className="font-semibold">Meaning:</span> Does every
-              paragraph clearly support your thesis?
-            </li>
-            <li>
-              <span className="font-semibold">Organization:</span> Do the ideas
-              follow the order you planned in your outline?
-            </li>
-            <li>
-              <span className="font-semibold">Rhetorical appeals:</span> Are you
-              clearly explaining how ethos, pathos, and logos work in each text?
-            </li>
-            <li>
-              <span className="font-semibold">Sentences and word choice:</span>{" "}
-              Are there places that are too long, repetitive, or confusing?
-            </li>
+            <li><span className="font-semibold">Meaning:</span> Does every paragraph clearly support your thesis?</li>
+            <li><span className="font-semibold">Organization:</span> Do the ideas follow the order you planned in your outline?</li>
+            <li><span className="font-semibold">Rhetorical appeals:</span> Are you clearly explaining how ethos, pathos, and logos work in each text?</li>
+            <li><span className="font-semibold">Sentences and word choice:</span> Are there places that are too long, repetitive, or confusing?</li>
           </ul>
           <textarea
             className="w-full min-h-[320px] border border-gray-200 p-4 rounded-md leading-7 focus:outline-none focus:ring-2 focus:ring-theme-blue/60"
@@ -454,18 +408,13 @@ export default function ModuleSeven() {
           />
         </section>
 
-        {/* Step 3: Recording section */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-4">
-          <h2 className="text-xl font-bold text-theme-dark">
-            Step 3: Record and listen to a read aloud
-          </h2>
+          <h2 className="text-xl font-bold text-theme-dark">Step 3: Record and listen to a read aloud</h2>
           <p className="text-sm text-gray-700">
-            Reading your essay out loud is one of the best ways to find problems
-            with flow, clarity, and punctuation. Use the controls below to pick
-            a microphone, record, and then listen.
+            Reading your essay out loud is one of the best ways to find problems with flow, clarity, and punctuation.
+            Use the controls below to pick a microphone, record, and then listen.
           </p>
 
-          {/* Mic picker + live meter */}
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <label className="font-medium">Microphone:</label>
             <select
@@ -482,17 +431,13 @@ export default function ModuleSeven() {
                 </option>
               ))}
             </select>
+
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-600">Input level:</span>
-              <div
-                className="h-2 bg-gray-200 rounded w-40 overflow-hidden"
-                title="live input amplitude"
-              >
+              <div className="h-2 bg-gray-200 rounded w-40 overflow-hidden" title="live input amplitude">
                 <div
                   className="h-2 bg-theme-green"
-                  style={{
-                    width: Math.min(100, Math.round(amp)) + "%",
-                  }}
+                  style={{ width: Math.min(100, Math.round(amp)) + "%" }}
                 />
               </div>
             </div>
@@ -521,14 +466,11 @@ export default function ModuleSeven() {
 
           {audioURL && (
             <div className="mt-4 space-y-2">
-              <p className="text-sm font-medium text-theme-dark">
-                ▶️ Your recording
-              </p>
+              <p className="text-sm font-medium text-theme-dark">▶️ Your recording</p>
               <audio controls src={audioURL} className="w-full" />
               <p className="text-xs text-gray-600">
-                As you listen, pause and mark places in your draft that sound
-                choppy, confusing, or off topic. Then scroll back up and fix
-                them.
+                As you listen, pause and mark places in your draft that sound choppy, confusing, or off topic.
+                Then scroll back up and fix them.
               </p>
               <a
                 id="download-latest-audio-ui"
@@ -542,24 +484,13 @@ export default function ModuleSeven() {
           )}
         </section>
 
-        {/* Step 4: Save vs finalize */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
-          <h2 className="text-xl font-bold text-theme-dark">
-            Step 4: Decide what to do next
-          </h2>
-          <p className="text-sm text-gray-700">
-            When you are finished revising for now, choose one of the options
-            below.
-          </p>
+          <h2 className="text-xl font-bold text-theme-dark">Step 4: Decide what to do next</h2>
+          <p className="text-sm text-gray-700">When you are finished revising for now, choose one of the options below.</p>
+
           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 mb-3">
-            <li>
-              <span className="font-semibold">Save revision</span> if you want
-              to keep working on this draft in a later session.
-            </li>
-            <li>
-              <span className="font-semibold">Finalize and continue</span> if
-              you are satisfied with this version and ready to move to Module 8.
-            </li>
+            <li><span className="font-semibold">Save revision</span> if you want to keep working on this draft in a later session.</li>
+            <li><span className="font-semibold">Finalize and continue</span> if you are satisfied with this version and ready to move to Module 8.</li>
           </ul>
 
           {!locked && (
@@ -584,7 +515,6 @@ export default function ModuleSeven() {
             <div className="text-green-700 font-semibold mt-2 space-y-2 text-sm">
               <div>✅ Draft revision is marked complete for Module 7.</div>
               <div>You cannot edit this text anymore.</div>
-              {/* Dev unlock helper */}
               <button
                 onClick={() => setLocked(false)}
                 className="bg-gray-100 border border-gray-300 px-3 py-1.5 rounded-md text-xs text-gray-700"

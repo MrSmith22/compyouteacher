@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 
 export default function ReadAloud() {
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
@@ -35,7 +34,6 @@ export default function ReadAloud() {
     if (!playUrl) return;
     setSaving(true);
     try {
-      // fetch blob from object URL
       const blob = await (await fetch(playUrl)).blob();
       const filename = `readaloud/${crypto.randomUUID()}.webm`;
 
