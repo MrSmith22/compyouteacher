@@ -1,4 +1,5 @@
-﻿"use client";
+// components/ModuleSeven.js
+"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -105,7 +106,7 @@ export default function ModuleSeven() {
       if (!hasLoggedStartRef.current) {
         hasLoggedStartRef.current = true;
         const metrics = getTextMetrics(initialText);
-        logActivity("module_started", {
+        logActivity(email, "module_started", {
           module: 7,
           from_module6: !data?.full_text,
           has_audio: !!data?.audio_url,
@@ -174,7 +175,9 @@ export default function ModuleSeven() {
       return;
     }
     if (audioURL) {
-      const confirmOverwrite = confirm("You already have a recording. Overwrite it?");
+      const confirmOverwrite = confirm(
+        "You already have a recording. Overwrite it?"
+      );
       if (!confirmOverwrite) return;
     }
 
@@ -210,65 +213,99 @@ export default function ModuleSeven() {
 
       mr.onstop = async () => {
         stopMeter();
-
+      
         const blob = new Blob(audioChunksRef.current, {
           type: chosen.mime || "audio/*",
         });
+      
+        // Local preview first (works immediately, but do NOT persist this URL)
         const localUrl = URL.createObjectURL(blob);
         setAudioURL(localUrl);
-
-        // Upload to Supabase storage
-        const safeEmail = (email || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
-        const filename = `readaloud/${safeEmail}/${Date.now()}.${chosen.ext}`;
-
-        const { error: uploadErr } = await supabase.storage
-          .from("student-audio")
-          .upload(filename, blob, {
-            contentType: chosen.mime || "audio/*",
+      
+        try {
+          // Send to server API (server handles storage)
+          const file = new File([blob], `readaloud.${chosen.ext}`, {
+            type: chosen.mime || "audio/*",
           });
-
-        if (uploadErr) {
-          console.error("Upload error:", uploadErr);
-          alert("Failed to save audio.");
-          logActivity("recording_failed", {
+      
+          const form = new FormData();
+          form.append("file", file);
+          form.append("module", "7");
+      
+          const res = await fetch("/api/readaloud", {
+            method: "POST",
+            body: form,
+          });
+      
+          const json = await res.json().catch(() => ({}));
+      
+          if (!res.ok || !json?.ok) {
+            console.error("Read aloud upload failed:", json?.error || res.statusText);
+            alert("Failed to save audio.");
+      
+            logActivity(email, "recording_failed", {
+              module: 7,
+              error: json?.error || res.statusText || "Upload failed",
+            });
+      
+            // Keep localUrl for this session, but do not persist it
+            return;
+          }
+      
+          // Success: switch UI to durable URL and persist it
+          const publicUrl = json.publicUrl || null;
+      
+          if (publicUrl) {
+            setAudioURL(publicUrl);
+          }
+      
+          logActivity(email, "recording_saved", {
             module: 7,
-            error: uploadErr.message,
+            publicUrl,
           });
-          // release mic
+      
+          // Persist ONLY if we have a durable URL and a signed in email
+          if (publicUrl && email) {
+            const { error: persistErr } = await supabase.from("student_drafts").upsert({
+              user_email: email,
+              module: 7,
+              audio_url: publicUrl,
+              // Do not overwrite student text here. Just attach audio.
+              updated_at: new Date().toISOString(),
+            });
+      
+            if (persistErr) {
+              console.error("Failed to persist audio_url:", persistErr);
+            }
+          }
+        } catch (err) {
+          console.error("Read aloud upload error:", err);
+          alert("Failed to save audio.");
+      
+          logActivity(email, "recording_failed", {
+            module: 7,
+            error: String(err?.message || err),
+          });
+      
+          // Keep localUrl for this session, but do not persist it
+        } finally {
+          // Release mic
           stream.getTracks().forEach((t) => t.stop());
           streamRef.current = null;
-          return;
         }
-
-        const { data: urlData } = supabase.storage
-          .from("student-audio")
-          .getPublicUrl(filename);
-
-        if (urlData?.publicUrl) setAudioURL(urlData.publicUrl);
-
-        logActivity("recording_saved", {
-          module: 7,
-          path: filename,
-          mime: chosen.mime || null,
-          has_public_url: !!urlData?.publicUrl,
-        });
-
-        // release mic
-        stream.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
       };
 
       mr.start();
       setRecording(true);
 
-      logActivity("recording_started", {
+      logActivity(email, "recording_started", {
         module: 7,
         device_id: selectedDeviceId || null,
       });
     } catch (err) {
       console.error("Could not start recording:", err);
       alert("Microphone access is required to record.");
-      logActivity("recording_failed", {
+      logActivity(email, "recording_failed", {
         module: 7,
         error: String(err?.message || err),
       });
@@ -294,7 +331,7 @@ export default function ModuleSeven() {
       final_text: finalized ? text : null,
       revised: !finalized,
       final_ready: finalized,
-      audio_url: audioURL || null,
+      audio_url: audioURL?.startsWith("http") ? audioURL : null,
       updated_at: new Date().toISOString(),
     };
 
@@ -315,10 +352,10 @@ export default function ModuleSeven() {
 
     if (finalized) {
       setLocked(true);
-      await logActivity("module_completed", meta);
+      await logActivity(email, "module_completed", meta);
       router.push("/modules/7/success");
     } else {
-      await logActivity("revision_saved", meta);
+      await logActivity(email, "revision_saved", meta);
       alert("Revision saved. You can continue editing or finalize.");
     }
   };
@@ -327,9 +364,12 @@ export default function ModuleSeven() {
     return (
       <div className="min-h-screen bg-theme-light flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-md w-full space-y-3">
-          <h1 className="text-2xl font-semibold text-theme-blue">Please sign in</h1>
+          <h1 className="text-2xl font-semibold text-theme-blue">
+            Please sign in
+          </h1>
           <p className="text-theme-dark text-sm">
-            You need to be signed in to use Module 7 and save your revisions and audio recording.
+            You need to be signed in to use Module 7 and save your revisions and
+            audio recording.
           </p>
           <a
             className="inline-block bg-theme-blue text-white px-4 py-2 rounded-md text-sm font-semibold"
@@ -358,28 +398,35 @@ export default function ModuleSeven() {
             ✍️ Module 7: Revise and Read Your Essay Aloud
           </h1>
           <p className="text-gray-700 text-sm md:text-base">
-            In this step you will move from a rough draft to a more polished version. You will:
+            In this step you will move from a rough draft to a more polished
+            version. You will:
           </p>
           <ol className="list-decimal list-inside mt-2 text-sm text-gray-700 space-y-1">
             <li>Pull in your draft from Module 6 if you need it.</li>
             <li>Revise the draft in the textbox using specific checks.</li>
-            <li>Record yourself reading the essay aloud, then listen for places that sound confusing or awkward.</li>
+            <li>
+              Record yourself reading the essay aloud, then listen for places
+              that sound confusing or awkward.
+            </li>
             <li>Save your best revision and decide when it is ready to finalize.</li>
           </ol>
         </header>
 
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
-          <h2 className="text-xl font-bold text-theme-dark">Step 1: Get your draft into this box</h2>
+          <h2 className="text-xl font-bold text-theme-dark">
+            Step 1: Get your draft into this box
+          </h2>
           <p className="text-sm text-gray-700">
-            You should already have a complete draft from Module 6. If the box below is empty or you want to
-            reload the most recent version from Module 6, use this button.
+            You should already have a complete draft from Module 6. If the box
+            below is empty or you want to reload the most recent version from
+            Module 6, use this button.
           </p>
           <button
             onClick={async () => {
               const { text: t } = await loadFromModule6();
               setText(t || "");
               const metrics = getTextMetrics(t || "");
-              logActivity("draft_reloaded_from_module6", { module: 7, ...metrics });
+              if (email) logActivity(email, "draft_reloaded_from_module6", { module: 7, ...metrics });
             }}
             className="inline-flex items-center gap-2 text-sm font-semibold text-theme-blue hover:underline"
           >
@@ -388,16 +435,30 @@ export default function ModuleSeven() {
         </section>
 
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
-          <h2 className="text-xl font-bold text-theme-dark">Step 2: Revise your draft</h2>
+          <h2 className="text-xl font-bold text-theme-dark">
+            Step 2: Revise your draft
+          </h2>
           <p className="text-sm text-gray-700">
-            Use this textbox as your working copy. Make changes based on the outline and observations you used earlier.
-            As you revise, focus on:
+            Use this textbox as your working copy. Make changes based on the
+            outline and observations you used earlier. As you revise, focus on:
           </p>
           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-            <li><span className="font-semibold">Meaning:</span> Does every paragraph clearly support your thesis?</li>
-            <li><span className="font-semibold">Organization:</span> Do the ideas follow the order you planned in your outline?</li>
-            <li><span className="font-semibold">Rhetorical appeals:</span> Are you clearly explaining how ethos, pathos, and logos work in each text?</li>
-            <li><span className="font-semibold">Sentences and word choice:</span> Are there places that are too long, repetitive, or confusing?</li>
+            <li>
+              <span className="font-semibold">Meaning:</span> Does every
+              paragraph clearly support your thesis?
+            </li>
+            <li>
+              <span className="font-semibold">Organization:</span> Do the ideas
+              follow the order you planned in your outline?
+            </li>
+            <li>
+              <span className="font-semibold">Rhetorical appeals:</span> Are you
+              clearly explaining how ethos, pathos, and logos work in each text?
+            </li>
+            <li>
+              <span className="font-semibold">Sentences and word choice:</span>{" "}
+              Are there places that are too long, repetitive, or confusing?
+            </li>
           </ul>
           <textarea
             className="w-full min-h-[320px] border border-gray-200 p-4 rounded-md leading-7 focus:outline-none focus:ring-2 focus:ring-theme-blue/60"
@@ -409,10 +470,13 @@ export default function ModuleSeven() {
         </section>
 
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-4">
-          <h2 className="text-xl font-bold text-theme-dark">Step 3: Record and listen to a read aloud</h2>
+          <h2 className="text-xl font-bold text-theme-dark">
+            Step 3: Record and listen to a read aloud
+          </h2>
           <p className="text-sm text-gray-700">
-            Reading your essay out loud is one of the best ways to find problems with flow, clarity, and punctuation.
-            Use the controls below to pick a microphone, record, and then listen.
+            Reading your essay out loud is one of the best ways to find problems
+            with flow, clarity, and punctuation. Use the controls below to pick a
+            microphone, record, and then listen.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -434,7 +498,10 @@ export default function ModuleSeven() {
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-600">Input level:</span>
-              <div className="h-2 bg-gray-200 rounded w-40 overflow-hidden" title="live input amplitude">
+              <div
+                className="h-2 bg-gray-200 rounded w-40 overflow-hidden"
+                title="live input amplitude"
+              >
                 <div
                   className="h-2 bg-theme-green"
                   style={{ width: Math.min(100, Math.round(amp)) + "%" }}
@@ -469,8 +536,8 @@ export default function ModuleSeven() {
               <p className="text-sm font-medium text-theme-dark">▶️ Your recording</p>
               <audio controls src={audioURL} className="w-full" />
               <p className="text-xs text-gray-600">
-                As you listen, pause and mark places in your draft that sound choppy, confusing, or off topic.
-                Then scroll back up and fix them.
+                As you listen, pause and mark places in your draft that sound choppy,
+                confusing, or off topic. Then scroll back up and fix them.
               </p>
               <a
                 id="download-latest-audio-ui"
@@ -485,12 +552,22 @@ export default function ModuleSeven() {
         </section>
 
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
-          <h2 className="text-xl font-bold text-theme-dark">Step 4: Decide what to do next</h2>
-          <p className="text-sm text-gray-700">When you are finished revising for now, choose one of the options below.</p>
+          <h2 className="text-xl font-bold text-theme-dark">
+            Step 4: Decide what to do next
+          </h2>
+          <p className="text-sm text-gray-700">
+            When you are finished revising for now, choose one of the options below.
+          </p>
 
           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 mb-3">
-            <li><span className="font-semibold">Save revision</span> if you want to keep working on this draft in a later session.</li>
-            <li><span className="font-semibold">Finalize and continue</span> if you are satisfied with this version and ready to move to Module 8.</li>
+            <li>
+              <span className="font-semibold">Save revision</span> if you want to keep
+              working on this draft in a later session.
+            </li>
+            <li>
+              <span className="font-semibold">Finalize and continue</span> if you are
+              satisfied with this version and ready to move to Module 8.
+            </li>
           </ul>
 
           {!locked && (
