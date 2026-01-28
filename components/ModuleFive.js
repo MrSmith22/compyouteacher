@@ -68,8 +68,7 @@ export default function ModuleFive() {
     const conclNum = roman(outline.length + 1);
     out += `${conclNum}. CONCLUSION — Restates Thesis\n`;
     if (thesis.trim()) out += `   THESIS: ${thesis.trim()}\n`;
-    if (conclusion.summary.trim())
-      out += `   • ${conclusion.summary.trim()}\n`;
+    if (conclusion.summary.trim()) out += `   • ${conclusion.summary.trim()}\n`;
     if (conclusion.finalThought.trim())
       out += `   • ${conclusion.finalThought.trim()}\n`;
 
@@ -105,25 +104,25 @@ export default function ModuleFive() {
         logActivity(email, "module_started", { module: 5 });
       }
 
-      // 1) Load existing outline via API
-      let data = null;
+      // 1) Load existing outline via API (NO email param)
+      let savedRow = null;
       try {
         const res = await fetch("/api/outlines?module=5");
         const json = await res.json().catch(() => ({}));
         if (res.ok && json?.ok) {
-          data = json.data ?? null;
+          savedRow = json.data ?? null;
         }
       } catch {
         // Network or parse error; skip outline load, do not crash
       }
 
-      if (data?.outline) {
-        setThesis(data.outline.thesis || "");
-        setOutline(data.outline.body || []);
+      if (savedRow?.outline) {
+        setThesis(savedRow.outline.thesis || "");
+        setOutline(savedRow.outline.body || []);
         setConclusion(
-          data.outline.conclusion || { summary: "", finalThought: "" }
+          savedRow.outline.conclusion || { summary: "", finalThought: "" }
         );
-        if (data.finalized) {
+        if (savedRow.finalized) {
           setLocked(true);
         }
       }
@@ -141,20 +140,20 @@ export default function ModuleFive() {
         setOriginalThesis(latestThesis);
 
         // If no thesis saved in outline yet, prefill from Module 3
-        if (!data?.outline?.thesis) {
+        if (!savedRow?.outline?.thesis) {
           setThesis(latestThesis);
         }
       }
 
       // 3) If no body yet, seed from Module 4 buckets
-      if (!data?.outline?.body?.length) {
+      if (!savedRow?.outline?.body?.length) {
         const { data: bucketsRows, error: bucketsErr } = await supabase
           .from("bucket_groups")
           .select("buckets, updated_at")
           .eq("user_email", email)
           .order("updated_at", { ascending: false })
           .limit(1);
-      
+
         if (bucketsErr) {
           console.error("Bucket groups fetch error:", {
             message: bucketsErr.message,
@@ -163,9 +162,9 @@ export default function ModuleFive() {
             hint: bucketsErr.hint,
           });
         }
-      
+
         const bucketsData = bucketsRows?.[0] ?? null;
-      
+
         if (bucketsData?.buckets?.length) {
           const body = bucketsData.buckets.map((b) => ({
             bucket: b.name,
@@ -202,6 +201,7 @@ export default function ModuleFive() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ module: 5, outline: outlineData }),
         });
+
         const json = await res.json().catch(() => ({}));
 
         if (res.ok && json?.ok) {
@@ -210,6 +210,8 @@ export default function ModuleFive() {
             module: 5,
             ...metrics,
           });
+        } else {
+          console.warn("Outline autosave failed:", json);
         }
       } catch {
         // Network error; do not crash UI
@@ -256,7 +258,13 @@ export default function ModuleFive() {
 
   const addBucket = () => {
     if (locked) return;
-    setOutline((prev) => [...prev, { bucket: "New paragraph idea", points: ["Add a supporting detail (observation + evidence)"] }]);
+    setOutline((prev) => [
+      ...prev,
+      {
+        bucket: "New paragraph idea",
+        points: ["Add a supporting detail (observation + evidence)"],
+      },
+    ]);
   };
 
   const addPoint = (bucketIndex) => {
@@ -354,10 +362,14 @@ export default function ModuleFive() {
           finalized: true,
         }),
       });
+
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok || !json?.ok) {
-        alert("Error saving outline: " + (json?.error || res.statusText || "Request failed"));
+        alert(
+          "Error saving outline: " +
+            (json?.error || res.statusText || "Request failed")
+        );
         setLocked(false);
         return;
       }
@@ -404,8 +416,8 @@ export default function ModuleFive() {
               🧩 Build Your Outline
             </h1>
             <p className="text-sm text-theme-dark/80">
-              In this step you turn your thinking from <strong>Modules 3 and 4</strong> into a
-              classic essay outline.
+              In this step you turn your thinking from <strong>Modules 3 and 4</strong>{" "}
+              into a classic essay outline.
             </p>
             <ol className="list-decimal list-inside text-sm text-theme-dark/80 space-y-1">
               <li>
@@ -423,7 +435,8 @@ export default function ModuleFive() {
               </li>
             </ol>
             <p className="text-xs text-theme-dark/70">
-              You can drag buckets up or down to change the order of your body paragraphs.
+              You can drag buckets up or down to change the order of your body
+              paragraphs.
             </p>
           </div>
 
@@ -440,10 +453,10 @@ export default function ModuleFive() {
                 </p>
                 <p className="mb-1">{originalThesis}</p>
                 <p className="text-[11px] text-theme-dark/70 mt-1">
-                  You can keep this thesis, tweak the wording, or revise it to better match
-                  the paragraph ideas you are planning below. Just make sure it still
-                  compares the speech and letter and mentions audience, purpose, and/or
-                  appeals (ethos, pathos, logos).
+                  You can keep this thesis, tweak the wording, or revise it to better
+                  match the paragraph ideas you are planning below. Just make sure it
+                  still compares the speech and letter and mentions audience, purpose,
+                  and or appeals (ethos, pathos, logos).
                 </p>
               </div>
             )}
@@ -467,11 +480,9 @@ export default function ModuleFive() {
                   2. Turn Buckets into Body Paragraphs
                 </h2>
                 <p className="text-xs text-theme-dark/70 mt-1 max-w-xl">
-                  Each card below started as a <strong>bucket in Module 4</strong>.  
-                  Rename the bucket to sound like a paragraph idea (for example:
-                  “Both texts use vivid imagery to appeal to pathos” or
-                  “The letter uses stronger logos for its professional audience”),
-                  then polish the supporting points underneath.
+                  Each card below started as a <strong>bucket in Module 4</strong>. Rename the
+                  bucket to sound like a paragraph idea, then polish the supporting points
+                  underneath.
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -521,16 +532,9 @@ export default function ModuleFive() {
                       🗑️
                     </button>
                   </div>
-                  <p className="text-[11px] text-theme-dark/60 mb-2">
-                    Tip: Make sure this bucket clearly connects back to your thesis and to
-                    specific comparisons between the speech and the letter.
-                  </p>
 
                   {section.points.map((point, j) => (
-                    <div
-                      key={j}
-                      className="flex items-center gap-2 mb-2 relative z-10"
-                    >
+                    <div key={j} className="flex items-center gap-2 mb-2 relative z-10">
                       <input
                         type="text"
                         className="w-full border p-2 rounded relative z-10 text-sm"
@@ -569,18 +573,11 @@ export default function ModuleFive() {
             <h2 className="text-lg font-semibold mb-2 text-theme-blue">
               3. Plan Your Conclusion
             </h2>
-            <p className="text-xs text-theme-dark/70 mb-2">
-              Use the conclusion to remind readers of your main comparison and leave them
-              with a final idea about why King’s choices of audience, purpose, and appeals
-              (ethos, pathos, logos) matter.
-            </p>
             <textarea
               className="w-full border rounded p-2 mb-2 text-sm"
               placeholder="Restate thesis or summarize your key comparison points..."
               value={conclusion.summary}
-              onChange={(e) =>
-                setConclusion({ ...conclusion, summary: e.target.value })
-              }
+              onChange={(e) => setConclusion({ ...conclusion, summary: e.target.value })}
               disabled={locked}
             />
             <textarea
@@ -613,10 +610,6 @@ export default function ModuleFive() {
               <h2 className="text-lg font-semibold mb-2 text-theme-dark">
                 🖨️ Outline Preview (What your outline looks like on paper)
               </h2>
-              <p className="text-xs text-theme-dark/70 mb-2">
-                This shows your outline in a traditional Roman-numeral format that you
-                could use to draft your essay or copy into a document.
-              </p>
               <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border text-sm">
                 {previewText}
               </pre>
