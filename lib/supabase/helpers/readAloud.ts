@@ -8,10 +8,21 @@ type SaveReadAloudArgs = {
   notes?: string;
   durationSeconds?: number | null;
   module?: number;
+  transcript?: string | null;
 };
 
 type SaveReadAloudResult =
   | { ok: true; filename: string; publicUrl: string }
+  | { ok: false; error: { message: string } };
+
+type GetLatestReadAloudArgs = {
+  supabase: SupabaseClient;
+  userEmail: string;
+  module?: number;
+};
+
+type GetLatestReadAloudResult =
+  | { ok: true; publicUrl: string | null }
   | { ok: false; error: { message: string } };
 
 function safeEmail(email: string) {
@@ -32,7 +43,10 @@ export async function saveReadAloud({
   supabase,
   userEmail,
   file,
+  notes = "",
+  durationSeconds = null,
   module = 7,
+  transcript = null,
 }: SaveReadAloudArgs): Promise<SaveReadAloudResult> {
   try {
     const ext = pickExtension(file);
@@ -58,7 +72,50 @@ export async function saveReadAloud({
       return { ok: false, error: { message: "Could not generate public URL" } };
     }
 
+    // Persist a DB row so we can reload on refresh without relying on student_drafts
+    const nowIso = new Date().toISOString();
+    const insert = await supabase.from("student_readaloud").insert({
+      user_email: userEmail,
+      module,
+      blob_url: publicUrl,
+      duration_seconds: Number.isFinite(durationSeconds as any) ? durationSeconds : null,
+      transcript,
+      notes,
+      created_at: nowIso,
+      updated_at: nowIso,
+    });
+
+    if (insert.error) {
+      return { ok: false, error: { message: insert.error.message } };
+    }
+
     return { ok: true, filename, publicUrl };
+  } catch (e: any) {
+    return { ok: false, error: { message: e?.message || "Unexpected error" } };
+  }
+}
+
+export async function getLatestReadAloud({
+  supabase,
+  userEmail,
+  module = 7,
+}: GetLatestReadAloudArgs): Promise<GetLatestReadAloudResult> {
+  try {
+    const { data, error } = await supabase
+      .from("student_readaloud")
+      .select("blob_url, updated_at, created_at")
+      .eq("user_email", userEmail)
+      .eq("module", module)
+      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      return { ok: false, error: { message: error.message } };
+    }
+
+    return { ok: true, publicUrl: data?.blob_url ?? null };
   } catch (e: any) {
     return { ok: false, error: { message: e?.message || "Unexpected error" } };
   }
