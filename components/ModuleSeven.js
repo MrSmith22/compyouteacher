@@ -279,20 +279,6 @@ useEffect(() => {
             publicUrl,
           });
       
-          // Persist ONLY if we have a durable URL and a signed in email
-          if (publicUrl && email) {
-            const { error: persistErr } = await supabase.from("student_drafts").upsert({
-              user_email: email,
-              module: 7,
-              audio_url: publicUrl,
-              // Do not overwrite student text here. Just attach audio.
-              updated_at: new Date().toISOString(),
-            });
-      
-            if (persistErr) {
-              console.error("Failed to persist audio_url:", persistErr);
-            }
-          }
         } catch (err) {
           console.error("Read aloud upload error:", err);
           alert("Failed to save audio.");
@@ -346,7 +332,6 @@ useEffect(() => {
       final_text: finalized ? text : null,
       revised: !finalized,
       final_ready: finalized,
-      audio_url: audioURL?.startsWith("http") ? audioURL : null,
       updated_at: new Date().toISOString(),
     };
 
@@ -547,23 +532,26 @@ useEffect(() => {
           </div>
 
           {audioURL && (
-            <div className="mt-4 space-y-2">
-              <p className="text-sm font-medium text-theme-dark">▶️ Your recording</p>
-              <audio controls src={audioURL} className="w-full" />
-              <p className="text-xs text-gray-600">
-                As you listen, pause and mark places in your draft that sound choppy,
-                confusing, or off topic. Then scroll back up and fix them.
-              </p>
-              <a
-                id="download-latest-audio-ui"
-                href={audioURL}
-                download="read-aloud"
-                className="inline-flex items-center gap-1 text-sm text-theme-blue underline"
-              >
-                ⬇️ Download latest recording
-              </a>
-            </div>
-          )}
+  <div className="mt-4 space-y-2">
+    <p className="text-sm font-medium text-theme-dark">▶️ Your recording</p>
+    <audio controls src={audioURL} className="w-full" />
+    <p className="text-xs text-gray-600">
+      As you listen, pause and mark places in your draft that sound choppy,
+      confusing, or off topic. Then scroll back up and fix them.
+    </p>
+
+    {audioURL.startsWith("http") && (
+      <a
+        id="download-latest-audio-ui"
+        href={audioURL}
+        download="read-aloud"
+        className="inline-flex items-center gap-1 text-sm text-theme-blue underline"
+      >
+        ⬇️ Download latest recording
+      </a>
+    )}
+  </div>
+)}
         </section>
 
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 space-y-3">
