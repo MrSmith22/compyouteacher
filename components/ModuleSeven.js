@@ -75,47 +75,62 @@ export default function ModuleSeven() {
     return { text: data?.full_text ?? "" };
   };
 
-  // Fetch Module 7 row; if absent, fall back to Module 6
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!email) return;
+// Fetch Module 7 text; load audio from readaloud API; if no text, fall back to Module 6
+useEffect(() => {
+  const fetchData = async () => {
+    if (!email) return;
 
-      const { data, error } = await supabase
-        .from("student_drafts")
-        .select("full_text, revised, final_ready, audio_url")
-        .eq("user_email", email)
-        .eq("module", 7)
-        .maybeSingle();
+    // 1) Load text state from student_drafts (Module 7), otherwise fall back to Module 6
+    const { data, error } = await supabase
+      .from("student_drafts")
+      .select("full_text, revised, final_ready")
+      .eq("user_email", email)
+      .eq("module", 7)
+      .maybeSingle();
 
-      if (error) console.error("Module 7 fetch error:", error);
+    if (error) console.error("Module 7 fetch error:", error);
 
-      let initialText = "";
+    let initialText = "";
 
-      if (data?.full_text) {
-        initialText = data.full_text;
-      } else {
-        const from6 = await loadFromModule6();
-        initialText = from6.text;
+    if (data?.full_text) {
+      initialText = data.full_text;
+    } else {
+      const from6 = await loadFromModule6();
+      initialText = from6.text;
+    }
+
+    setText(initialText);
+    setLocked(!!data?.final_ready);
+
+    // 2) Load audio from API (source of truth is student_readaloud)
+    let publicUrl = null;
+    try {
+      const res = await fetch("/api/readaloud?module=7");
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json?.ok) {
+        publicUrl = json.publicUrl ?? null;
       }
+    } catch {
+      // ignore network errors, do not crash UI
+    }
 
-      setText(initialText);
-      setAudioURL(data?.audio_url ?? null);
-      setLocked(!!data?.final_ready);
+    setAudioURL(publicUrl);
 
-      // Log module_started once per visit
-      if (!hasLoggedStartRef.current) {
-        hasLoggedStartRef.current = true;
-        const metrics = getTextMetrics(initialText);
-        logActivity(email, "module_started", {
-          module: 7,
-          from_module6: !data?.full_text,
-          has_audio: !!data?.audio_url,
-          ...metrics,
-        });
-      }
-    };
-    fetchData();
-  }, [email]); // eslint-disable-line react-hooks/exhaustive-deps
+    // 3) Log module_started once per visit
+    if (!hasLoggedStartRef.current) {
+      hasLoggedStartRef.current = true;
+      const metrics = getTextMetrics(initialText);
+      logActivity(email, "module_started", {
+        module: 7,
+        from_module6: !data?.full_text,
+        has_audio: !!publicUrl,
+        ...metrics,
+      });
+    }
+  };
+
+  fetchData();
+}, [email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // enumerate input devices once
   useEffect(() => {
@@ -346,7 +361,7 @@ export default function ModuleSeven() {
     const metrics = getTextMetrics();
     const meta = {
       module: 7,
-      has_audio: !!audioURL,
+      has_audio: !!(audioURL && audioURL.startsWith("http")),
       ...metrics,
     };
 
