@@ -1,4 +1,4 @@
-﻿// components/ModuleFive.js
+// components/ModuleFive.js
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -38,6 +38,7 @@ export default function ModuleFive() {
   });
   const [previewText, setPreviewText] = useState("");
   const [locked, setLocked] = useState(false);
+  const [isImportingBuckets, setIsImportingBuckets] = useState(false);
 
   const readonly = locked ? "pointer-events-none opacity-60" : "";
 
@@ -104,16 +105,16 @@ export default function ModuleFive() {
         logActivity(email, "module_started", { module: 5 });
       }
 
-      // 1) Try to load an existing outline
-      const { data, error } = await supabase
-        .from("student_outlines")
-        .select("outline, finalized")
-        .eq("user_email", email)
-        .eq("module", 5)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error loading outline:", error);
+      // 1) Load existing outline via API
+      let data = null;
+      try {
+        const res = await fetch("/api/outlines?module=5");
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json?.ok) {
+          data = json.data ?? null;
+        }
+      } catch {
+        // Network or parse error; skip outline load, do not crash
       }
 
       if (data?.outline) {
@@ -147,16 +148,27 @@ export default function ModuleFive() {
 
       // 3) If no body yet, seed from Module 4 buckets
       if (!data?.outline?.body?.length) {
-        const { data: bucketsData } = await supabase
+        const { data: bucketsRows, error: bucketsErr } = await supabase
           .from("bucket_groups")
-          .select("buckets")
+          .select("buckets, updated_at")
           .eq("user_email", email)
-          .single();
-
+          .order("updated_at", { ascending: false })
+          .limit(1);
+      
+        if (bucketsErr) {
+          console.error("Bucket groups fetch error:", {
+            message: bucketsErr.message,
+            code: bucketsErr.code,
+            details: bucketsErr.details,
+            hint: bucketsErr.hint,
+          });
+        }
+      
+        const bucketsData = bucketsRows?.[0] ?? null;
+      
         if (bucketsData?.buckets?.length) {
           const body = bucketsData.buckets.map((b) => ({
             bucket: b.name,
-            // each item becomes a "smaller bubble" / supporting point
             points: (b.items || []).map((i) => {
               const obs = i.observation?.trim() || "";
               const quote = i.quote?.trim() || "";
@@ -185,24 +197,22 @@ export default function ModuleFive() {
       };
 
       try {
-        const { error } = await supabase.from("student_outlines").upsert({
-          user_email: email,
-          module: 5,
-          outline: outlineData,
-          updated_at: new Date().toISOString(),
+        const res = await fetch("/api/outlines", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ module: 5, outline: outlineData }),
         });
+        const json = await res.json().catch(() => ({}));
 
-        if (error) {
-          console.error("Auto save failed:", error);
-        } else {
+        if (res.ok && json?.ok) {
           const metrics = getOutlineMetrics();
           logActivity(email, "outline_autosaved", {
             module: 5,
             ...metrics,
           });
         }
-      } catch (err) {
-        console.error("Auto save failed:", err);
+      } catch {
+        // Network error; do not crash UI
       }
     }, 800);
 
@@ -246,7 +256,7 @@ export default function ModuleFive() {
 
   const addBucket = () => {
     if (locked) return;
-    setOutline((prev) => [...prev, { bucket: "New paragraph idea", points: [""] }]);
+    setOutline((prev) => [...prev, { bucket: "New paragraph idea", points: ["Add a supporting detail (observation + evidence)"] }]);
   };
 
   const addPoint = (bucketIndex) => {
@@ -258,6 +268,62 @@ export default function ModuleFive() {
     );
   };
 
+  const importBucketsFromModule4 = async ({ force = false } = {}) => {
+    const email = session?.user?.email;
+    if (locked || !email) return;
+
+    if (outline.length > 0 && !force) {
+      const ok = window.confirm(
+        "This will replace your current paragraph cards with the latest buckets from Module 4. Continue?"
+      );
+      if (!ok) return;
+    }
+
+    setIsImportingBuckets(true);
+    try {
+      const { data: bucketsData, error } = await supabase
+        .from("bucket_groups")
+        .select("buckets, updated_at")
+        .eq("user_email", email)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Could not load buckets from Module 4:", error.message);
+        alert("Could not load buckets from Module 4.");
+        return;
+      }
+
+      if (!bucketsData?.buckets?.length) {
+        alert("No buckets found in Module 4 yet.");
+        return;
+      }
+
+      const body = bucketsData.buckets.map((b) => {
+        const points = (b.items || [])
+          .map((i) => {
+            const obs = i.observation?.trim() || "";
+            const quote = i.quote?.trim() || "";
+            return `${obs}${quote ? ` — "${quote}"` : ""}`.trim();
+          })
+          .filter(Boolean);
+        return {
+          bucket: b.name || "New paragraph idea",
+          points: points.length ? points : [""],
+        };
+      });
+
+      setOutline(body);
+      logActivity(email, "outline_reimported_from_module4", {
+        module: 5,
+        bucketCount: body.length,
+      });
+    } finally {
+      setIsImportingBuckets(false);
+    }
+  };
+
   useEffect(() => {
     setPreviewText(buildOutlineText());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -267,7 +333,10 @@ export default function ModuleFive() {
     setLocked(true);
 
     const email = session?.user?.email;
-    if (!email) return;
+    if (!email) {
+      setLocked(false);
+      return;
+    }
 
     const outlinePayload = {
       thesis,
@@ -275,16 +344,25 @@ export default function ModuleFive() {
       conclusion,
     };
 
-    const { error } = await supabase.from("student_outlines").upsert({
-      user_email: email,
-      module: 5,
-      outline: outlinePayload,
-      finalized: true,
-      updated_at: new Date().toISOString(),
-    });
+    try {
+      const res = await fetch("/api/outlines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          module: 5,
+          outline: outlinePayload,
+          finalized: true,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
 
-    if (error) {
-      alert("Error saving outline: " + error.message);
+      if (!res.ok || !json?.ok) {
+        alert("Error saving outline: " + (json?.error || res.statusText || "Request failed"));
+        setLocked(false);
+        return;
+      }
+    } catch (err) {
+      alert("Error saving outline: " + (err?.message || "Network error"));
       setLocked(false);
       return;
     }
@@ -396,12 +474,22 @@ export default function ModuleFive() {
                   then polish the supporting points underneath.
                 </p>
               </div>
-              <button
-                onClick={addBucket}
-                className="bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
-              >
-                ➕ Add New Paragraph Idea
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => importBucketsFromModule4()}
+                  disabled={locked || isImportingBuckets}
+                  className="text-sm text-theme-blue border border-theme-blue/40 rounded px-3 py-1.5 hover:bg-theme-blue/10 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {isImportingBuckets ? "Importing…" : "↺ Re import from Module 4"}
+                </button>
+                <button
+                  onClick={addBucket}
+                  className="bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+                >
+                  ➕ Add New Paragraph Idea
+                </button>
+              </div>
             </div>
 
             {outline.length === 0 && (
