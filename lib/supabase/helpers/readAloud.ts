@@ -1,4 +1,3 @@
-// lib/supabase/helpers/readAloud.ts
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type SaveReadAloudArgs = {
@@ -22,7 +21,7 @@ type GetLatestReadAloudArgs = {
 };
 
 type GetLatestReadAloudResult =
-  | { ok: true; publicUrl: string | null }
+  | { ok: true; publicUrl: string | null; durationSeconds: number | null }
   | { ok: false; error: { message: string } };
 
 function safeEmail(email: string) {
@@ -66,13 +65,12 @@ export async function saveReadAloud({
     }
 
     const { data: urlData } = supabase.storage.from("student-audio").getPublicUrl(filename);
-
     const publicUrl = urlData?.publicUrl;
+
     if (!publicUrl) {
       return { ok: false, error: { message: "Could not generate public URL" } };
     }
 
-    // Persist a DB row so we can reload on refresh without relying on student_drafts
     const nowIso = new Date().toISOString();
     const insert = await supabase.from("student_readaloud").insert({
       user_email: userEmail,
@@ -103,7 +101,7 @@ export async function getLatestReadAloud({
   try {
     const { data, error } = await supabase
       .from("student_readaloud")
-      .select("blob_url, updated_at, created_at")
+      .select("blob_url, duration_seconds, updated_at, created_at")
       .eq("user_email", userEmail)
       .eq("module", module)
       .order("updated_at", { ascending: false })
@@ -115,7 +113,15 @@ export async function getLatestReadAloud({
       return { ok: false, error: { message: error.message } };
     }
 
-    return { ok: true, publicUrl: data?.blob_url ?? null };
+    const durationRaw = (data as any)?.duration_seconds ?? null;
+    const durationSeconds =
+      typeof durationRaw === "number" && Number.isFinite(durationRaw) ? durationRaw : null;
+
+    return {
+      ok: true,
+      publicUrl: data?.blob_url ?? null,
+      durationSeconds,
+    };
   } catch (e: any) {
     return { ok: false, error: { message: e?.message || "Unexpected error" } };
   }
