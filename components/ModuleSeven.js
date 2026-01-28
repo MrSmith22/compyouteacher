@@ -184,6 +184,45 @@ useEffect(() => {
     tick();
   }
 
+  async function getBlobDurationSeconds(blob) {
+    const url = URL.createObjectURL(blob);
+    try {
+      const audio = new Audio(url);
+  
+      const duration = await new Promise((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error("duration timeout")), 4000);
+  
+        audio.addEventListener(
+          "loadedmetadata",
+          () => {
+            clearTimeout(t);
+            resolve(audio.duration);
+          },
+          { once: true }
+        );
+  
+        audio.addEventListener(
+          "error",
+          () => {
+            clearTimeout(t);
+            reject(new Error("audio load failed"));
+          },
+          { once: true }
+        );
+      });
+  
+      if (typeof duration !== "number" || !Number.isFinite(duration)) return null;
+  
+      // Never store 0 if we got a real duration
+      const seconds = Math.round(duration);
+      return Math.max(1, seconds);
+    } catch {
+      return null;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
   const startRecording = async () => {
     if (!email) {
       alert("Please sign in first.");
@@ -237,6 +276,8 @@ useEffect(() => {
         const localUrl = URL.createObjectURL(blob);
         setAudioURL(localUrl);
       
+        const durationSeconds = await getBlobDurationSeconds(blob);
+      
         try {
           // Send to server API (server handles storage)
           const file = new File([blob], `readaloud.${chosen.ext}`, {
@@ -246,6 +287,7 @@ useEffect(() => {
           const form = new FormData();
           form.append("file", file);
           form.append("module", "7");
+          if (durationSeconds !== null) form.append("durationSeconds", String(durationSeconds));
       
           const res = await fetch("/api/readaloud", {
             method: "POST",
