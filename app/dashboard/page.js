@@ -1,10 +1,11 @@
-﻿// app/dashboard/page.js
+// app/dashboard/page.js
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import DevResetStudentButton from "@/components/dev/DevResetStudentButton";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -181,6 +182,7 @@ export default function Dashboard() {
             Signed in as{" "}
             <span className="font-semibold">{session.user.email}</span>
           </p>
+          <DevResetStudentButton />
         </header>
 
         {error && (

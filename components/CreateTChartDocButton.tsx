@@ -10,7 +10,10 @@ type Props = {
   label?: string;
 };
 
-export default function CreateTChartDocButton({ email, label = "Create Google Doc" }: Props) {
+export default function CreateTChartDocButton({
+  email,
+  label = "Create Google Doc",
+}: Props) {
   const { data: session } = useSession();
   const [working, setWorking] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -25,7 +28,7 @@ export default function CreateTChartDocButton({ email, label = "Create Google Do
       return;
     }
 
-    const targetEmail = email || (session?.user?.email ?? "");
+    const targetEmail = email || session?.user?.email || "";
     if (!targetEmail) {
       setMsg("No email found. Please sign in or provide an email.");
       return;
@@ -33,6 +36,7 @@ export default function CreateTChartDocButton({ email, label = "Create Google Do
 
     try {
       setWorking(true);
+
       const res = await fetch("/api/assignments/create-doc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,15 +44,15 @@ export default function CreateTChartDocButton({ email, label = "Create Google Do
       });
 
       const data = await res.json();
+
       if (!res.ok || !data?.docUrl) {
         setMsg(data?.error || "Failed to create document");
         return;
       }
 
-      // Open the new Doc
       window.open(data.docUrl, "_blank", "noopener,noreferrer");
       setMsg("✅ Document created and opened in a new tab.");
-    } catch (err) {
+    } catch {
       setMsg("Network error. Try again.");
     } finally {
       setWorking(false);
@@ -71,6 +75,7 @@ export default function CreateTChartDocButton({ email, label = "Create Google Do
       >
         {working ? "Working..." : label}
       </button>
+
       {msg ? <span style={{ fontSize: 14 }}>{msg}</span> : null}
     </div>
   );
