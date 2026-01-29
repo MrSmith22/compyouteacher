@@ -3,92 +3,68 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
-type ResetReport = {
-  ok: boolean;
-  email?: string;
-  skipped?: boolean;
-  reason?: string;
-  deleted?: Record<string, number>;
-  storage?: Record<string, { removed: number; errors: number }>;
+type DeletedCounts = {
+  student_activity_log: number;
+  tchart_entries: number;
+  student_outlines: number;
+  student_drafts: number;
+  student_readaloud: number;
 };
 
-function normalizeEmail(raw: unknown): string {
-  if (typeof raw !== "string") return "";
-  return raw.trim().toLowerCase();
+type ResetResponse =
+  | { ok: true; email: string; deleted: DeletedCounts }
+  | { ok: false; email?: string; deleted: DeletedCounts; reason?: string };
+
+const RESET_TABLES: (keyof DeletedCounts)[] = [
+  "student_activity_log",
+  "tchart_entries",
+  "student_outlines",
+  "student_drafts",
+  "student_readaloud",
+];
+
+function createEmptyDeleted(): DeletedCounts {
+  return {
+    student_activity_log: 0,
+    tchart_entries: 0,
+    student_outlines: 0,
+    student_drafts: 0,
+    student_readaloud: 0,
+  };
 }
 
-// Your Storage folders appear to be email with "@" replaced by "_"
-function emailToFolder(email: string): string {
-  return email.replace("@", "_");
-}
-
-async function removeAllInFolder(params: {
-  supabase: ReturnType<typeof getSupabaseAdmin>;
-  bucket: string;
-  folder: string; // top level folder
-}): Promise<{ removed: number; errors: number }> {
-  const { supabase, bucket, folder } = params;
-
-  let removed = 0;
-  let errors = 0;
-
-  async function walk(path: string): Promise<void> {
-    // list contents of current path
-    const { data, error } = await supabase.storage.from(bucket).list(path, {
-      limit: 1000,
-      offset: 0,
-      sortBy: { column: "name", order: "asc" },
-    });
+async function deleteForUser(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  table: keyof DeletedCounts,
+  userEmail: string
+): Promise<{ count: number; error: boolean }> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .delete()
+      .eq("user_email", userEmail)
+      .select("id");
 
     if (error) {
-      errors += 1;
-      return;
+      return { count: 0, error: true };
     }
-
-    if (!data || data.length === 0) return;
-
-    const filesToRemove: string[] = [];
-
-    for (const item of data) {
-      const itemPath = path ? `${path}/${item.name}` : item.name;
-
-      // Supabase Storage "folders" typically come back with metadata null
-      const isFolder = item.metadata === null;
-
-      if (isFolder) {
-        await walk(itemPath);
-      } else {
-        filesToRemove.push(itemPath);
-      }
-    }
-
-    if (filesToRemove.length > 0) {
-      const { error: removeError } = await supabase.storage.from(bucket).remove(filesToRemove);
-      if (removeError) {
-        errors += 1;
-      } else {
-        removed += filesToRemove.length;
-      }
-    }
+    const count = Array.isArray(data) ? data.length : 0;
+    return { count, error: false };
+  } catch {
+    return { count: 0, error: true };
   }
-
-  // Try walking the folder. If it does not exist, list will just return empty.
-  await walk(folder);
-
-  return { removed, errors };
 }
 
 export async function POST(req: Request) {
-  const report: ResetReport = { ok: false };
+  const deleted = createEmptyDeleted();
+  let report: ResetResponse = { ok: false, deleted, reason: undefined };
 
   try {
-    // Hard stop in production
     if (process.env.NODE_ENV === "production") {
       report.reason = "disabled_in_production";
       return NextResponse.json(report, { status: 404 });
     }
 
-    // Require signed in user
     const session = await getServerSession(authOptions);
     const callerEmail = session?.user?.email;
     if (!callerEmail) {
@@ -96,7 +72,6 @@ export async function POST(req: Request) {
       return NextResponse.json(report, { status: 401 });
     }
 
-    // Require secret header
     const secret = req.headers.get("x-dev-reset-secret") ?? "";
     const expected = process.env.DEV_RESET_SECRET ?? "";
     if (!expected || secret !== expected) {
@@ -104,84 +79,33 @@ export async function POST(req: Request) {
       return NextResponse.json(report, { status: 403 });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const email = normalizeEmail(body?.email);
-
-    if (!email) {
-      report.reason = "missing_email";
-      return NextResponse.json(report, { status: 400 });
-    }
-
+    const userEmail = callerEmail.trim().toLowerCase();
     const supabase = getSupabaseAdmin();
 
-    // Tables you want wiped for a student
-    // If a table does not have user_email, it will just error and we record 0.
-    // Adjust list if you add new per student tables.
-    const deleteByUserEmailTables = [
-      "student_assignments",
-      "tchart_entries",
-      "module2_sources",
-      "module3_responses",
-      "bucket_groups",
-      "student_outlines",
-      "student_drafts",
-      "student_readaloud",
-      "student_activity_log",
-      "module_scores",
-      "module1_quiz_results",
-      "module9_quiz",
-      "student_exports",
-      "exported_docs",
-      "student_letter_urls",
-      "student_sources",
-      "user_resources",
-      "app_roles",
-      "user_roles",
-    ] as const;
-
-    const deletedCounts: Record<string, number> = {};
-
-    for (const table of deleteByUserEmailTables) {
-      try {
-        const { data, error } = await supabase
-          .from(table)
-          .delete()
-          .eq("user_email", email)
-          .select("id");
-
-        if (error) {
-          // Some tables may not have user_email. Treat as 0 and continue.
-          deletedCounts[table] = 0;
-        } else {
-          deletedCounts[table] = Array.isArray(data) ? data.length : 0;
-        }
-      } catch {
-        deletedCounts[table] = 0;
+    let anyDeleteFailed = false;
+    for (const table of RESET_TABLES) {
+      const { count, error } = await deleteForUser(supabase, table, userEmail);
+      deleted[table] = count;
+      if (error) {
+        anyDeleteFailed = true;
       }
     }
 
-    // Storage wipe: remove everything under the per user folder in each bucket
-    const folder = emailToFolder(email);
-    const buckets = ["final-pdfs", "final-submissions", "student-pdfs", "student-audio"] as const;
-
-    const storageResults: Record<string, { removed: number; errors: number }> = {};
-
-    for (const bucket of buckets) {
-      storageResults[bucket] = await removeAllInFolder({
-        supabase,
-        bucket,
-        folder,
-      });
+    if (anyDeleteFailed) {
+      report.ok = false;
+      report.email = userEmail;
+      report.deleted = deleted;
+      return NextResponse.json(report, { status: 200 });
     }
 
-    report.ok = true;
-    report.email = email;
-    report.deleted = deletedCounts;
-    report.storage = storageResults;
-
+    report = { ok: true, email: userEmail, deleted };
     return NextResponse.json(report, { status: 200 });
   } catch {
-    report.reason = "unknown_error";
-    return NextResponse.json(report, { status: 200 });
+    const errorReport: ResetResponse = {
+      ok: false,
+      deleted,
+      reason: "unknown_error",
+    };
+    return NextResponse.json(errorReport, { status: 200 });
   }
 }
