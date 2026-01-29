@@ -23,9 +23,9 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const moduleParam = searchParams.get("module");
-    const module = Number(moduleParam);
+    const moduleNumber = Number(moduleParam);
 
-    if (!moduleParam || Number.isNaN(module) || module <= 0) {
+    if (!moduleParam || Number.isNaN(moduleNumber) || moduleNumber <= 0) {
       return NextResponse.json(
         { ok: false, error: "Missing or invalid module" },
         { status: 400 }
@@ -34,7 +34,7 @@ export async function GET(req) {
 
     const { data, error } = await getStudentOutline({
       userEmail: email,
-      module,
+      module: moduleNumber,
     });
 
     if (error) {
@@ -68,11 +68,12 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { module, outline } = body;
+    const moduleRaw = body?.module;
+    const outline = body?.outline;
 
-    const moduleNum = Number(module);
+    const moduleNumber = Number(moduleRaw);
 
-    if (!module || Number.isNaN(moduleNum) || moduleNum <= 0 || !outline) {
+    if (!moduleRaw || Number.isNaN(moduleNumber) || moduleNumber <= 0 || !outline) {
       return NextResponse.json(
         { ok: false, error: "Missing required fields" },
         { status: 400 }
@@ -81,7 +82,7 @@ export async function POST(req) {
 
     const { error } = await upsertStudentOutline({
       userEmail: email,
-      module: moduleNum,
+      module: moduleNumber,
       outline,
     });
 
