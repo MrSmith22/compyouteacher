@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { clearStudentCache } from "@/lib/storage/studentCache";
 
 type DeletedCounts = {
   student_activity_log: number;
@@ -67,6 +68,11 @@ export default function DevResetStudentButton() {
 
       const data: ResetApiResult = await res.json();
       setResult(data);
+
+      if (data.ok) {
+        clearStudentCache(email);
+        window.location.reload();
+      }
     } catch (err) {
       setResult({
         error: err instanceof Error ? err.message : "Request failed",

@@ -4,18 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
+import { makeStudentKey } from "@/lib/storage/studentCache";
 import {
   getModule2Sources,
   upsertModule2SpeechSource,
 } from "@/lib/supabase/helpers/module2Sources";
-
-const KEYS = {
-  speechUrl: "mlk_speech_url",
-  speechText: "mlk_speech_text",
-  speechSiteName: "mlk_speech_site_name",
-  speechYear: "mlk_speech_year",
-  speechCitation: "mlk_speech_citation",
-};
 
 function isValidHttpUrl(v) {
   try {
@@ -76,24 +69,41 @@ export default function ModuleTwo_ChooseSpeech() {
           }
         }
 
-        // Fallback to localStorage if no Supabase record
-        try {
-          const u = localStorage.getItem(KEYS.speechUrl) || "";
-          const t = localStorage.getItem(KEYS.speechText) || "";
-          const s = localStorage.getItem(KEYS.speechSiteName) || "";
-          const y = localStorage.getItem(KEYS.speechYear) || "";
-          const c = localStorage.getItem(KEYS.speechCitation) || "";
+        // Fallback to user-scoped localStorage only when we have email
+        if (email) {
+          try {
+            const u =
+              localStorage.getItem(
+                makeStudentKey(email, ["mlk", "module2", "speechUrl"])
+              ) || "";
+            const t =
+              localStorage.getItem(
+                makeStudentKey(email, ["mlk", "module2", "speechText"])
+              ) || "";
+            const s =
+              localStorage.getItem(
+                makeStudentKey(email, ["mlk", "module2", "speechSiteName"])
+              ) || "";
+            const y =
+              localStorage.getItem(
+                makeStudentKey(email, ["mlk", "module2", "speechYear"])
+              ) || "";
+            const c =
+              localStorage.getItem(
+                makeStudentKey(email, ["mlk", "module2", "speechCitation"])
+              ) || "";
 
-          if (u) {
-            setUrl(u);
-            setUrlOk(isValidHttpUrl(u));
+            if (u) {
+              setUrl(u);
+              setUrlOk(isValidHttpUrl(u));
+            }
+            if (t) setText(t);
+            if (s) setSiteName(s);
+            if (y) setYear(y);
+            if (c) setCitation(c);
+          } catch (err) {
+            console.error("Error reading Module 2 localStorage:", err);
           }
-          if (t) setText(t);
-          if (s) setSiteName(s);
-          if (y) setYear(y);
-          if (c) setCitation(c);
-        } catch (err) {
-          console.error("Error reading Module 2 localStorage:", err);
         }
       } catch (err) {
         console.error("Unexpected error loading Module 2 speech:", err);
@@ -136,15 +146,32 @@ export default function ModuleTwo_ChooseSpeech() {
     const userEmail = session?.user?.email || null;
 
     try {
-      // Save to localStorage as a safety net
-      try {
-        localStorage.setItem(KEYS.speechUrl, trimmedUrl);
-        localStorage.setItem(KEYS.speechText, trimmedText);
-        localStorage.setItem(KEYS.speechSiteName, trimmedSite);
-        localStorage.setItem(KEYS.speechYear, trimmedYear);
-        localStorage.setItem(KEYS.speechCitation, trimmedCitation);
-      } catch (err) {
-        console.warn("Could not write Module 2 localStorage:", err);
+      // Save to user-scoped localStorage only when we have email
+      if (userEmail) {
+        try {
+          localStorage.setItem(
+            makeStudentKey(userEmail, ["mlk", "module2", "speechUrl"]),
+            trimmedUrl
+          );
+          localStorage.setItem(
+            makeStudentKey(userEmail, ["mlk", "module2", "speechText"]),
+            trimmedText
+          );
+          localStorage.setItem(
+            makeStudentKey(userEmail, ["mlk", "module2", "speechSiteName"]),
+            trimmedSite
+          );
+          localStorage.setItem(
+            makeStudentKey(userEmail, ["mlk", "module2", "speechYear"]),
+            trimmedYear
+          );
+          localStorage.setItem(
+            makeStudentKey(userEmail, ["mlk", "module2", "speechCitation"]),
+            trimmedCitation
+          );
+        } catch (err) {
+          console.warn("Could not write Module 2 localStorage:", err);
+        }
       }
 
       // Save to Supabase so the data follows the student
