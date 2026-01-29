@@ -9,13 +9,10 @@ export type StudentActivityEvent = {
 };
 
 export async function logStudentActivity(event: StudentActivityEvent) {
-  const now = new Date().toISOString();
-
   return supabase.from("student_activity_log").insert({
     user_email: event.userEmail,
-    event_type: event.eventType,
+    action: event.eventType,
     module: event.module ?? null,
-    meta: event.meta ?? null,
-    created_at: now,
+    metadata: event.meta ?? null,
   });
 }
