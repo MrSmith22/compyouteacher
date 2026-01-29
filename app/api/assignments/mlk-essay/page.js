@@ -31,7 +31,7 @@ export default function MlkEssay() {
         MLK Rhetorical Strategies Essay Assignment
       </h1>
       <p className="mb-4">
-        This is your assignment to analyze Martin Luther King's rhetorical
+        This is your assignment to analyze Martin Luther King&apos;s rhetorical
         strategies in his speeches.
       </p>
 

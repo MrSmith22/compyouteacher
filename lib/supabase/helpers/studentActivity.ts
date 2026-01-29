@@ -5,7 +5,7 @@ export type StudentActivityEvent = {
   userEmail: string;
   eventType: string;
   module?: number | null;
-  meta?: Record<string, any> | null;
+  meta?: Record<string, unknown> | null;
 };
 
 export async function logStudentActivity(event: StudentActivityEvent) {

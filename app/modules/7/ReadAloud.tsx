@@ -58,9 +58,9 @@ export default function ReadAloud() {
       if (dbErr) throw dbErr;
 
       alert("Saved!");
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert(`Save failed: ${e?.message ?? e}`);
+      alert(`Save failed: ${e instanceof Error ? e.message : e}`);
     } finally {
       setSaving(false);
     }

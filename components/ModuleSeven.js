@@ -1,6 +1,7 @@
 // components/ModuleSeven.js
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -413,12 +414,12 @@ useEffect(() => {
             You need to be signed in to use Module 7 and save your revisions and
             audio recording.
           </p>
-          <a
+          <Link
             className="inline-block bg-theme-blue text-white px-4 py-2 rounded-md text-sm font-semibold"
             href="/api/auth/signin"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </div>
     );

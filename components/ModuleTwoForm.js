@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -117,13 +117,13 @@ const handleSave = async () => {
           Module 2 — Analyze the Speech & Letter
         </h1>
         <ol className="list-decimal list-inside space-y-1 text-theme-dark">
-          <li>Watch Dr. King’s <em>I Have a Dream</em> speech below.</li>
+          <li>Watch Dr. King&apos;s <em>I Have a Dream</em> speech below.</li>
           <li>
             In a new tab, search&nbsp;
-            <code>"Letter from Birmingham Jail" full text</code> and choose a
+            <code>&quot;Letter from Birmingham Jail&quot; full text</code> and choose a
             reputable .edu or .gov site.
           </li>
-          <li>Paste that page’s URL in the box provided.</li>
+          <li>Paste that page&apos;s URL in the box provided.</li>
           <li>
             Fill in the T-Charts and add at least one direct quote for every
             observation.
