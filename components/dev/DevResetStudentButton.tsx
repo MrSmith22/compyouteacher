@@ -10,13 +10,33 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 
+type DeletedCounts = {
+  student_activity_log: number;
+  tchart_entries: number;
+  student_outlines: number;
+  student_drafts: number;
+  student_readaloud: number;
+};
+
+type ResetApiResult =
+  | { ok: true; email: string; deleted: DeletedCounts }
+  | { ok: false; email?: string; deleted: DeletedCounts; reason?: string };
+
 const SCARY_MESSAGE =
   "This will PERMANENTLY delete all assignment data, T-charts, outlines, read-aloud, activity logs, and storage files for this student. This cannot be undone. Type OK to proceed.";
+
+const TABLE_LABELS: Record<keyof DeletedCounts, string> = {
+  student_activity_log: "Activity log",
+  tchart_entries: "T-chart entries",
+  student_outlines: "Outlines",
+  student_drafts: "Drafts",
+  student_readaloud: "Read-aloud",
+};
 
 export default function DevResetStudentButton() {
   const { data: session } = useSession();
   const [working, setWorking] = useState(false);
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [result, setResult] = useState<ResetApiResult | { error: string } | null>(null);
 
   if (process.env.NODE_ENV !== "development") return null;
 
@@ -45,8 +65,8 @@ export default function DevResetStudentButton() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await res.json();
-      setResult({ status: res.status, ...data });
+      const data: ResetApiResult = await res.json();
+      setResult(data);
     } catch (err) {
       setResult({
         error: err instanceof Error ? err.message : "Request failed",
@@ -55,6 +75,9 @@ export default function DevResetStudentButton() {
       setWorking(false);
     }
   }
+
+  const hasDeleted = (r: ResetApiResult): r is ResetApiResult & { deleted: DeletedCounts } =>
+    r.deleted != null;
 
   return (
     <div className="mt-2 flex flex-col gap-2">
@@ -66,10 +89,23 @@ export default function DevResetStudentButton() {
       >
         {working ? "Resetting…" : "Dev: Reset this student"}
       </button>
-      {result !== null && (
-        <pre className="max-h-48 overflow-auto rounded border border-gray-300 bg-gray-50 p-2 text-xs">
-          {JSON.stringify(result, null, 2)}
-        </pre>
+      {result !== null && "error" in result && (
+        <p className="text-sm text-red-600">{result.error}</p>
+      )}
+      {result !== null && hasDeleted(result) && (
+        <div className="rounded border border-gray-300 bg-gray-50 p-2 text-xs">
+          <p className="mb-1.5 font-medium text-gray-700">
+            {result.ok ? "Reset complete" : "Reset completed with errors"}
+            {result.email != null && ` · ${result.email}`}
+          </p>
+          <ul className="list-inside list-disc space-y-0.5 text-gray-600">
+            {(Object.keys(result.deleted) as (keyof DeletedCounts)[]).map((key) => (
+              <li key={key}>
+                {TABLE_LABELS[key]}: {result.deleted[key]} deleted
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
