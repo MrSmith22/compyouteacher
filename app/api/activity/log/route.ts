@@ -8,55 +8,56 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     const email = session?.user?.email;
 
-    // If not signed in, do not treat as an error.
-    // Logging is best effort and should never break the app.
+    // Logging is best-effort; never block the app
     if (!email) {
       return NextResponse.json({ ok: true, skipped: true }, { status: 200 });
     }
 
     const body = await req.json().catch(() => ({}));
 
-    // Support both payload shapes:
-    // - new client helper uses: { action, module, assignment, meta, path, ts }
-    // - legacy may use: { eventType, module, meta }
-    const eventType =
-      (typeof body?.eventType === "string" && body.eventType.trim()) ||
+    // Support both legacy + current client payloads
+    const action =
       (typeof body?.action === "string" && body.action.trim()) ||
+      (typeof body?.eventType === "string" && body.eventType.trim()) ||
       "";
 
-    if (!eventType) {
-      return NextResponse.json({ ok: true, skipped: true, reason: "missing_eventType" }, { status: 200 });
+    if (!action) {
+      return NextResponse.json(
+        { ok: true, skipped: true, reason: "missing_action" },
+        { status: 200 }
+      );
     }
 
     const moduleValue = typeof body?.module === "number" ? body.module : null;
 
-    // Keep meta small and safe.
-    const meta =
-      body?.meta && typeof body.meta === "object"
-        ? body.meta
-        : null;
+    // Preferred: metadata; legacy: meta
+    const metadata =
+      body?.metadata != null && typeof body.metadata === "object"
+        ? body.metadata
+        : body?.meta != null && typeof body.meta === "object"
+          ? body.meta
+          : null;
 
     const supabase = getSupabaseAdmin();
 
     const { error } = await supabase.from("student_activity_log").insert({
       user_email: email,
-      event_type: eventType,
+      action,
       module: moduleValue,
-      meta,
-      created_at: new Date().toISOString(),
+      metadata,
     });
 
     if (error) {
-      // Never return 500 for logging. Just report "stored: false".
+      // Never surface logging failures to the client
       return NextResponse.json(
-        { ok: true, stored: false, error: error.message ?? "insert_failed" },
+        { ok: true, stored: false },
         { status: 200 }
       );
     }
 
     return NextResponse.json({ ok: true, stored: true }, { status: 200 });
-  } catch (err) {
-    // Absolute last resort: still never fail the request.
+  } catch {
+    // Absolute last-resort safety net
     return NextResponse.json({ ok: true, stored: false }, { status: 200 });
   }
 }

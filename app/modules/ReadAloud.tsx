@@ -1,11 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ReadAloud() {
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
@@ -24,7 +19,7 @@ export default function ReadAloud() {
   async function start() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
-    mr.ondataavailable = e => setChunks(prev => [...prev, e.data]);
+    mr.ondataavailable = (e) => setChunks((prev) => [...prev, e.data]);
     mr.onstop = () => {
       const blob = new Blob(chunks, { type: "audio/webm" });
       const url = URL.createObjectURL(blob);
@@ -48,9 +43,11 @@ export default function ReadAloud() {
       const res = await fetch(playUrl);
       const blob = await res.blob();
       const filename = `readaloud/${crypto.randomUUID()}.webm`;
-      const { data: storage, error: sErr } = await supabase
-        .storage.from("student-audio")               // create this bucket once
+
+      const { error: sErr } = await supabase
+        .storage.from("student-audio") // create this bucket once
         .upload(filename, blob, { contentType: "audio/webm", upsert: false });
+
       if (sErr) throw sErr;
 
       const { data: publicUrl } = supabase
@@ -58,17 +55,17 @@ export default function ReadAloud() {
         .getPublicUrl(filename);
 
       // TODO replace with your actual user email
-      const user_email = (await supabase.auth.getUser()).data.user?.email ?? "test@example.com";
+      const user_email =
+        (await supabase.auth.getUser()).data.user?.email ?? "test@example.com";
 
-      const { error: dbErr } = await supabase
-        .from("student_readaloud")
-        .insert({
-          user_email,
-          module: 7,
-          blob_url: publicUrl.publicUrl,
-          duration_seconds: 0,
-          notes: ""
-        });
+      const { error: dbErr } = await supabase.from("student_readaloud").insert({
+        user_email,
+        module: 7,
+        blob_url: publicUrl.publicUrl,
+        duration_seconds: 0,
+        notes: "",
+      });
+
       if (dbErr) throw dbErr;
       alert("Saved");
     } catch (e: unknown) {
@@ -82,16 +79,27 @@ export default function ReadAloud() {
   return (
     <div className="max-w-xl mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Read Aloud your draft</h1>
-      <p>Record yourself reading your draft. Play it back and jot quick notes on what to improve.</p>
+      <p>
+        Record yourself reading your draft. Play it back and jot quick notes on
+        what to improve.
+      </p>
 
       <div className="flex gap-3">
         {!isRecording && (
-          <button onClick={start} className="px-4 py-2 rounded-2xl shadow">Start recording</button>
+          <button onClick={start} className="px-4 py-2 rounded-2xl shadow">
+            Start recording
+          </button>
         )}
         {isRecording && (
-          <button onClick={stop} className="px-4 py-2 rounded-2xl shadow">Stop</button>
+          <button onClick={stop} className="px-4 py-2 rounded-2xl shadow">
+            Stop
+          </button>
         )}
-        <button disabled={!playUrl || saving} onClick={save} className="px-4 py-2 rounded-2xl shadow">
+        <button
+          disabled={!playUrl || saving}
+          onClick={save}
+          className="px-4 py-2 rounded-2xl shadow"
+        >
           {saving ? "Saving..." : "Save to Supabase"}
         </button>
       </div>
