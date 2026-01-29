@@ -1,8 +1,10 @@
-﻿"use client";
+﻿// components/ModuleEight.js
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 import { logActivity } from "../lib/logActivity";
 
@@ -22,6 +24,7 @@ export default function ModuleEight() {
       .trim()
       .split(/\s+/)
       .filter(Boolean).length;
+
     return {
       wordCount: words,
       charCount: raw.length,
@@ -65,15 +68,15 @@ export default function ModuleEight() {
       // Log module_started once per visit, after we know what text they see
       if (!hasLoggedStartRef.current) {
         hasLoggedStartRef.current = true;
-        if (email) {
-          const metrics = getTextMetrics(draft || m8?.final_text || "");
-          await logActivity(email, "module_started", {
-            module: 8,
-            from_module7_final: !!m7?.final_text,
-            module8_already_locked: !!m8?.final_ready,
-            ...metrics,
-          });
-        }
+
+        const metrics = getTextMetrics(m8?.final_text || draft || "");
+
+        await logActivity(email, "module_started", {
+          module: 8,
+          from_module7_final: !!m7?.final_text,
+          module8_already_locked: !!m8?.final_ready,
+          ...metrics,
+        });
       }
     };
 
@@ -120,14 +123,15 @@ export default function ModuleEight() {
             Please sign in
           </h1>
           <p className="text-sm text-gray-700 mb-4">
-            You need to be signed in to finish Module 8 and lock your final draft.
+            You need to be signed in to finish Module 8 and lock your final
+            draft.
           </p>
-          <a
-            className="inline-block bg-theme-blue text-white px-4 py-2 rounded font-semibold text-sm"
+          <Link
             href="/api/auth/signin"
+            className="inline-block bg-theme-blue text-white px-4 py-2 rounded font-semibold text-sm"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -153,22 +157,16 @@ export default function ModuleEight() {
 
           <div className="grid gap-3 md:grid-cols-3 text-xs md:text-sm">
             <div className="bg-theme-light/60 border border-theme-blue/20 rounded-lg px-3 py-2">
-              <p className="font-semibold text-theme-blue">
-                1. Global check
-              </p>
+              <p className="font-semibold text-theme-blue">1. Global check</p>
               <ul className="list-disc list-inside space-y-1 text-gray-700">
                 <li>Does your thesis clearly match what you actually wrote?</li>
                 <li>Does each body paragraph connect back to the thesis?</li>
               </ul>
             </div>
             <div className="bg-theme-light/60 border border-theme-green/20 rounded-lg px-3 py-2">
-              <p className="font-semibold text-theme-green">
-                2. Paragraph check
-              </p>
+              <p className="font-semibold text-theme-green">2. Paragraph check</p>
               <ul className="list-disc list-inside space-y-1 text-gray-700">
-                <li>
-                  Does each paragraph focus on one main idea or comparison?
-                </li>
+                <li>Does each paragraph focus on one main idea or comparison?</li>
                 <li>
                   Do you explain how ethos, pathos, and logos connect to audience
                   and purpose instead of only retelling the texts?
@@ -176,9 +174,7 @@ export default function ModuleEight() {
               </ul>
             </div>
             <div className="bg-theme-light/60 border border-theme-orange/20 rounded-lg px-3 py-2">
-              <p className="font-semibold text-theme-orange">
-                3. Sentence check
-              </p>
+              <p className="font-semibold text-theme-orange">3. Sentence check</p>
               <ul className="list-disc list-inside space-y-1 text-gray-700">
                 <li>Fix confusing or extra long sentences.</li>
                 <li>Check basic spelling, punctuation, and capitalization.</li>
@@ -188,8 +184,8 @@ export default function ModuleEight() {
 
           <p className="text-xs md:text-sm text-gray-700">
             When you click{" "}
-            <span className="font-semibold">Lock Module 8</span> the version
-            on this screen becomes your official final draft for content and
+            <span className="font-semibold">Lock Module 8</span> the version on
+            this screen becomes your official final draft for content and
             wording. You will still adjust formatting and APA style in the next
             module, but you will not come back here to change this text.
           </p>
@@ -199,9 +195,7 @@ export default function ModuleEight() {
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm text-gray-700">
           <div className="flex flex-wrap gap-4">
             <span>
-              <span className="font-semibold text-theme-blue">
-                Word count:
-              </span>{" "}
+              <span className="font-semibold text-theme-blue">Word count:</span>{" "}
               {wordCount}
             </span>
             <span>
