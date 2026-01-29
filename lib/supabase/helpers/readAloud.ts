@@ -44,7 +44,7 @@ export async function saveReadAloud({
   file,
   notes = "",
   durationSeconds = null,
-  module = 7,
+  module: moduleNumber = 7,
   transcript = null,
 }: SaveReadAloudArgs): Promise<SaveReadAloudResult> {
   try {
@@ -74,9 +74,9 @@ export async function saveReadAloud({
     const nowIso = new Date().toISOString();
     const insert = await supabase.from("student_readaloud").insert({
       user_email: userEmail,
-      module,
+      module: moduleNumber,
       blob_url: publicUrl,
-      duration_seconds: Number.isFinite(durationSeconds as any) ? durationSeconds : null,
+      duration_seconds: Number.isFinite(durationSeconds) ? durationSeconds : null,
       transcript,
       notes,
       created_at: nowIso,
@@ -88,22 +88,22 @@ export async function saveReadAloud({
     }
 
     return { ok: true, filename, publicUrl };
-  } catch (e: any) {
-    return { ok: false, error: { message: e?.message || "Unexpected error" } };
+  } catch (e: unknown) {
+    return { ok: false, error: { message: (e instanceof Error ? e.message : null) || "Unexpected error" } };
   }
 }
 
 export async function getLatestReadAloud({
   supabase,
   userEmail,
-  module = 7,
+  module: moduleNumber = 7,
 }: GetLatestReadAloudArgs): Promise<GetLatestReadAloudResult> {
   try {
     const { data, error } = await supabase
       .from("student_readaloud")
       .select("blob_url, duration_seconds, updated_at, created_at")
       .eq("user_email", userEmail)
-      .eq("module", module)
+      .eq("module", moduleNumber)
       .order("updated_at", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(1)
@@ -113,7 +113,7 @@ export async function getLatestReadAloud({
       return { ok: false, error: { message: error.message } };
     }
 
-    const durationRaw = (data as any)?.duration_seconds ?? null;
+    const durationRaw = (data as { duration_seconds?: number } | null)?.duration_seconds ?? null;
     const durationSeconds =
       typeof durationRaw === "number" && Number.isFinite(durationRaw) ? durationRaw : null;
 
@@ -122,7 +122,7 @@ export async function getLatestReadAloud({
       publicUrl: data?.blob_url ?? null,
       durationSeconds,
     };
-  } catch (e: any) {
-    return { ok: false, error: { message: e?.message || "Unexpected error" } };
+  } catch (e: unknown) {
+    return { ok: false, error: { message: (e instanceof Error ? e.message : null) || "Unexpected error" } };
   }
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
@@ -7,16 +7,6 @@ import { useSession } from "next-auth/react";
 export default function StudentResponses() {
   const { data: session } = useSession();
   const userEmail = session?.user?.email || "";
-
-  /* teacher list – add more emails as needed */
-  const allowedTeachers = ["jsmith@essex.k12.va.us"];
-  if (!allowedTeachers.includes(userEmail)) {
-    return (
-      <p className="text-red-500">
-        You do not have access to view this data.
-      </p>
-    );
-  }
 
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("");
@@ -35,6 +25,16 @@ export default function StudentResponses() {
 
     fetchRows();
   }, []);
+
+  /* teacher list – add more emails as needed */
+  const allowedTeachers = ["jsmith@essex.k12.va.us"];
+  if (!allowedTeachers.includes(userEmail)) {
+    return (
+      <p className="text-red-500">
+        You do not have access to view this data.
+      </p>
+    );
+  }
 
   /* handle feedback save */
   const saveFeedback = async (id, comment, score) => {

@@ -18,7 +18,9 @@ export type GateReason =
   | "outline_missing"
   | "module_6_not_locked";
 
-export type GateOk<TData extends Record<string, unknown> = Record<string, unknown>> = {
+export type GateOk<
+  TData extends Record<string, unknown> = Record<string, unknown>
+> = {
   ok: true;
   data?: TData;
 };
@@ -29,26 +31,43 @@ export type GateFail = {
   message: string;
 };
 
-export type GateResult<TData extends Record<string, unknown> = Record<string, unknown>> =
-  | GateOk<TData>
-  | GateFail;
+export type GateResult<
+  TData extends Record<string, unknown> = Record<string, unknown>
+> = GateOk<TData> | GateFail;
 
 type CanEnterArgs = {
   userEmail?: string | null;
   targetModule: number;
 };
 
-function normalizeOutline(raw: any): StudentOutline | null {
-  if (!raw || typeof raw !== "object") return null;
-  if (!Array.isArray(raw.body)) return null;
+type Module5OutlineRow = {
+  outline: unknown;
+  finalized: boolean;
+};
 
-  const body: OutlineBodyItem[] = raw.body
-    .filter((b: any) => b && typeof b === "object")
-    .map((b: any) => ({
-      bucket: String(b.bucket ?? "").trim(),
-      points: Array.isArray(b.points) ? b.points.map((p: any) => String(p)) : [],
-    }))
-    .filter((b: OutlineBodyItem) => b.bucket.length > 0);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeOutline(raw: unknown): StudentOutline | null {
+  if (!isRecord(raw)) return null;
+
+  const rawBody = raw.body;
+  if (!Array.isArray(rawBody)) return null;
+
+  const body: OutlineBodyItem[] = rawBody
+    .filter((b): b is Record<string, unknown> => isRecord(b))
+    .map((b) => {
+      const bucket = String(b.bucket ?? "").trim();
+
+      const pointsRaw = b.points;
+      const points = Array.isArray(pointsRaw)
+        ? pointsRaw.map((p) => String(p))
+        : [];
+
+      return { bucket, points };
+    })
+    .filter((b) => b.bucket.length > 0);
 
   if (body.length === 0) return null;
 
@@ -59,7 +78,7 @@ function normalizeOutline(raw: any): StudentOutline | null {
   return out;
 }
 
-async function getModule5OutlineRow(userEmail: string) {
+async function getModule5OutlineRow(userEmail: string): Promise<Module5OutlineRow | null> {
   const { data, error } = await supabase
     .from("student_outlines")
     .select("outline,finalized")
@@ -67,25 +86,38 @@ async function getModule5OutlineRow(userEmail: string) {
     .eq("module", 5)
     .single();
 
-  if (error && (error as any).code !== "PGRST116") throw error;
-  return data as { outline: any; finalized: boolean } | null;
+  if (error && (error as { code?: string }).code !== "PGRST116") throw error;
+
+  if (!data) return null;
+
+  const row = data as unknown;
+  if (!isRecord(row)) return null;
+
+  return {
+    outline: row.outline,
+    finalized: Boolean(row.finalized),
+  };
 }
 
-async function getDraftLocked(userEmail: string, module: number) {
+async function getDraftLocked(userEmail: string, moduleNumber: number): Promise<boolean> {
   const { data, error } = await supabase
     .from("student_drafts")
     .select("locked")
     .eq("user_email", userEmail)
-    .eq("module", module)
+    .eq("module", moduleNumber)
     .single();
 
-  if (error && (error as any).code !== "PGRST116") throw error;
-  return (data?.locked as boolean) ?? false;
+  if (error && (error as { code?: string }).code !== "PGRST116") throw error;
+
+  const row = data as unknown;
+  if (!isRecord(row)) return false;
+
+  return row.locked === true;
 }
 
-export async function canEnterModule<TData extends Record<string, unknown> = Record<string, unknown>>(
-  args: CanEnterArgs
-): Promise<GateResult<TData>> {
+export async function canEnterModule<
+  TData extends Record<string, unknown> = Record<string, unknown>
+>(args: CanEnterArgs): Promise<GateResult<TData>> {
   const { userEmail, targetModule } = args;
 
   if (!userEmail) {

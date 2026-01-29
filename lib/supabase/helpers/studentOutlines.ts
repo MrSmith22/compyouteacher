@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 export async function getStudentOutline({
   userEmail,
-  module,
+  module: moduleNumber,
 }: {
   userEmail: string;
   module: number;
@@ -11,13 +11,13 @@ export async function getStudentOutline({
     .from("student_outlines")
     .select("*")
     .eq("user_email", userEmail)
-    .eq("module", module)
+    .eq("module", moduleNumber)
     .single();
 }
 
 export async function upsertStudentOutline({
   userEmail,
-  module,
+  module: moduleNumber,
   outline,
 }: {
   userEmail: string;
@@ -26,7 +26,7 @@ export async function upsertStudentOutline({
 }) {
   return supabase.from("student_outlines").upsert({
     user_email: userEmail,
-    module,
+    module: moduleNumber,
     outline,
     updated_at: new Date().toISOString(),
   });

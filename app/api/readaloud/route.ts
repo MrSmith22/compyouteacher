@@ -16,14 +16,14 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const moduleRaw = searchParams.get("module") ?? "7";
-    const module = Number(moduleRaw);
+    const moduleNumber = Number(moduleRaw);
 
     const supabase = getSupabaseAdmin();
 
     const result = await getLatestReadAloud({
       supabase,
       userEmail: email,
-      module: Number.isFinite(module) ? module : 7,
+      module: Number.isFinite(moduleNumber) ? moduleNumber : 7,
     });
 
     if (!result.ok) {
@@ -34,10 +34,10 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ ok: true, publicUrl: result.publicUrl }, { status: 200 });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[readaloud] GET unexpected error:", e);
     return NextResponse.json(
-      { ok: false, error: e?.message ?? "Unexpected error" },
+      { ok: false, error: (e instanceof Error ? e.message : null) ?? "Unexpected error" },
       { status: 500 }
     );
   }
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   const moduleRaw = (form.get("module") as string | null) ?? "7";
 
   const durationSeconds = durationSecondsRaw ? Number(durationSecondsRaw) : null;
-  const module = moduleRaw ? Number(moduleRaw) : 7;
+  const moduleNumber = moduleRaw ? Number(moduleRaw) : 7;
 
   if (!(file instanceof File)) {
     return NextResponse.json({ ok: false, error: "Missing audio file" }, { status: 400 });
@@ -78,8 +78,8 @@ export async function POST(req: Request) {
       userEmail: email,
       file,
       notes,
-      durationSeconds: Number.isFinite(durationSeconds as any) ? durationSeconds : null,
-      module: Number.isFinite(module) ? module : 7,
+      durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : null,
+      module: Number.isFinite(moduleNumber) ? moduleNumber : 7,
     });
 
     if (!result.ok) {
@@ -94,10 +94,10 @@ export async function POST(req: Request) {
       { ok: true, publicUrl: result.publicUrl, filename: result.filename },
       { status: 200 }
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[readaloud] POST unexpected error:", e);
     return NextResponse.json(
-      { ok: false, error: e?.message ?? "Unexpected error" },
+      { ok: false, error: (e instanceof Error ? e.message : null) ?? "Unexpected error" },
       { status: 500 }
     );
   }

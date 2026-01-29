@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
@@ -187,12 +188,12 @@ useEffect(() => {
     return (
       <div className="p-6">
         <h1 className="text-xl font-bold">Please sign in</h1>
-        <a
+        <Link
           href="/api/auth/signin"
           className="bg-theme-blue text-white px-4 py-2 rounded inline-block mt-2"
         >
           Sign in
-        </a>
+        </Link>
       </div>
     );
   }
