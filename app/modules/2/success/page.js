@@ -1,9 +1,21 @@
-﻿"use client";
+"use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function ModuleTwoSuccess() {
+  const { data: session } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    advanceCurrentModuleOnSuccess({
+      userEmail: session.user.email,
+      completedModuleNumber: 2,
+    }).catch(() => {});
+  }, [session?.user?.email]);
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">

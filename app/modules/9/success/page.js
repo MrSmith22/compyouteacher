@@ -4,22 +4,27 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/logActivity";
+import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function ModuleNineSuccessPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    async function logCompletion() {
+    async function onLoad() {
       if (!session?.user?.email) return;
 
       await logActivity(session.user.email, "module_completed", {
         module: 9,
         metadata: { source: "final_pdf_success_page" },
       });
+      await advanceCurrentModuleOnSuccess({
+        userEmail: session.user.email,
+        completedModuleNumber: 9,
+      }).catch(() => {});
     }
 
-    logCompletion();
+    onLoad();
   }, [session]);
 
   return (

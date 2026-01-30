@@ -1,0 +1,181 @@
+.
+├── .env.example
+├── .env.local
+├── .eslintignore
+├── .eslintrc.json
+├── .gitignore
+├── app
+│   ├── api
+│   │   ├── activity
+│   │   │   └── log
+│   │   │       └── route.ts
+│   │   ├── assignments
+│   │   │   ├── create-doc
+│   │   │   │   └── route.js
+│   │   │   ├── mlk-essay
+│   │   │   │   └── page.js
+│   │   │   └── resume
+│   │   │       └── route.js
+│   │   ├── auth
+│   │   │   └── [...nextauth]
+│   │   │       ├── authOptions.js
+│   │   │       └── route.js
+│   │   ├── dev
+│   │   │   └── reset-student
+│   │   │       └── route.ts
+│   │   ├── drive
+│   │   │   └── route.js
+│   │   ├── export-to-docs
+│   │   │   └── route.js
+│   │   ├── outlines
+│   │   │   └── route.js
+│   │   ├── readaloud
+│   │   │   └── route.ts
+│   │   ├── role
+│   │   │   └── route.ts
+│   │   ├── tchart
+│   │   │   └── save
+│   │   │       └── route.js
+│   │   └── teacher
+│   │       └── dashboard
+│   │           └── route.ts
+│   ├── dashboard
+│   │   ├── components
+│   │   │   ├── Sidebar.js
+│   │   │   └── StudentResponses.js
+│   │   └── page.js
+│   ├── drive
+│   │   └── test
+│   │       └── page.tsx
+│   ├── favicon.ico
+│   ├── globals.css
+│   ├── layout.js
+│   ├── lib
+│   │   └── supabaseClient.js
+│   ├── modules
+│   │   ├── 1
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 10
+│   │   │   ├── page.js
+│   │   │   └── student
+│   │   │       └── [email]
+│   │   │           └── page.js
+│   │   ├── 2
+│   │   │   ├── form
+│   │   │   │   └── page.js
+│   │   │   ├── letter
+│   │   │   │   └── page.js
+│   │   │   ├── page.js
+│   │   │   ├── source
+│   │   │   │   └── page.js
+│   │   │   ├── success
+│   │   │   │   └── page.js
+│   │   │   └── tcharts
+│   │   │       └── page.js
+│   │   ├── 3
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 4
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 5
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 6
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 7
+│   │   │   ├── page.tsx
+│   │   │   ├── ReadAloud.tsx
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 8
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── 9
+│   │   │   ├── page.js
+│   │   │   └── success
+│   │   │       └── page.js
+│   │   ├── page.js
+│   │   └── ReadAloud.tsx
+│   ├── page.js
+│   └── SessionProvider.js
+├── comp-youteacher@0.1.0
+├── components
+│   ├── CreateTChartDocButton.tsx
+│   ├── dev
+│   │   └── DevResetStudentButton.tsx
+│   ├── ModuleEight.js
+│   ├── ModuleFive.js
+│   ├── ModuleFour.js
+│   ├── ModuleNine.js
+│   ├── ModuleOne.js
+│   ├── ModuleSeven.js
+│   ├── ModuleSix.js
+│   ├── ModuleSystem.js
+│   ├── ModuleThreeForm.js
+│   ├── ModuleTwo.js
+│   ├── ModuleTwoForm.js
+│   ├── SortableItem.js
+│   └── TeacherDashboard.js
+├── docs
+│   ├── architecture-overview.md
+│   ├── data-map.md
+│   ├── data-plan-draft.md
+│   ├── pedagogical-flow.md
+│   └── supabase-helpers-spec.md
+├── FETCH_HEAD
+├── GPT_MILESTONE_NOTE.md
+├── lib
+│   ├── logActivity.js
+│   ├── progression
+│   │   ├── guards.ts
+│   │   └── useModuleGate.ts
+│   ├── storage
+│   │   └── studentCache.ts
+│   ├── supabase
+│   │   ├── admin.ts
+│   │   └── helpers
+│   │       ├── module2Sources.ts
+│   │       ├── readAloud.ts
+│   │       ├── studentActivity.ts
+│   │       ├── studentAssignments.ts
+│   │       ├── studentOutlines.ts
+│   │       ├── tchartEntries.ts
+│   │       └── teacherDashboard.ts
+│   ├── supabaseClient.ts
+│   └── useRole.ts
+├── next
+├── next-env.d.ts
+├── next.config.mjs
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── postcss.config.js
+├── postcss.config.mjs
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   ├── videos
+│   │   ├── Ethos Pathos and Logos Explained.mp4
+│   │   ├── IHaveADreamSpeech.mp4
+│   │   └── thesis-intro.mp4
+│   └── window.svg
+├── README.md
+├── service-account.json
+├── tailwind.config.js
+├── tsconfig.json
+├── tsconfig.tsbuildinfo
+└── utils
+    └── googleDrive.js
+
+64 directories, 115 files

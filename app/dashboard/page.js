@@ -4,8 +4,14 @@
 import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import {
+  getStudentAssignment,
+  ensureStudentAssignmentRow,
+} from "@/lib/supabase/helpers/studentAssignments";
+import { getFinalPdfExport } from "@/lib/supabase/helpers/studentExports";
 import DevResetStudentButton from "@/components/dev/DevResetStudentButton";
+
+const ASSIGNMENT_NAME = "MLK Essay Assignment";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -28,23 +34,18 @@ export default function Dashboard() {
 
       try {
         // Student assignment row (we assume a single main essay assignment for now)
-        const { data: aRow, error: aErr } = await supabase
-          .from("student_assignments")
-          .select("*")
-          .eq("user_email", email)
-          .maybeSingle();
+        const { data: aRow, error: aErr } = await getStudentAssignment({
+          userEmail: email,
+          assignmentName: ASSIGNMENT_NAME,
+        });
 
         if (aErr) throw aErr;
         setAssignment(aRow || null);
 
         // Final PDF for Module 9
-        const { data: exportRow, error: eErr } = await supabase
-          .from("student_exports")
-          .select("*")
-          .eq("user_email", email)
-          .eq("module", 9)
-          .eq("kind", "final_pdf")
-          .maybeSingle();
+        const { data: exportRow, error: eErr } = await getFinalPdfExport({
+          userEmail: email,
+        });
 
         if (eErr) {
           console.warn("student_exports fetch error:", eErr);
@@ -120,17 +121,11 @@ export default function Dashboard() {
     // If assignment row does not exist, create it
     if (!assignment) {
       try {
-        const { data, error } = await supabase
-          .from("student_assignments")
-          .upsert({
-            user_email: email,
-            assignment_name: "MLK Essay Assignment",
-            current_module: module,
-            status: "in_progress",
-            started_at: new Date().toISOString(),
-          })
-          .select()
-          .maybeSingle();
+        const { data, error } = await ensureStudentAssignmentRow({
+          userEmail: email,
+          assignmentName: ASSIGNMENT_NAME,
+          startingModule: module,
+        });
 
         if (error) {
           console.error("Error creating student_assignments row:", error);
@@ -138,7 +133,7 @@ export default function Dashboard() {
           setAssignment(data);
         }
       } catch (err) {
-        console.error("Error in handlePrimaryClick upsert:", err);
+        console.error("Error in handlePrimaryClick:", err);
       }
     }
 

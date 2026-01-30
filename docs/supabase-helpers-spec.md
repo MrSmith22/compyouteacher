@@ -1,91 +1,109 @@
 # Supabase Helper Layer Spec (Option A)
 
-Goal: Stop writing raw Supabase queries all over the app. Create a small, reusable helper layer that components and API routes call consistently.
+Goal:
+Stop writing raw Supabase queries all over the app.
+Create a small, reusable helper layer that components and API routes call consistently.
 
 ## Principles
-- One place to read/write each kind of data.
-- Never silently swallow Supabase errors.
-- Always key by `user_email` (current system) and later we can migrate to `user_id`.
-- Keep existing tables working, do not break current flows.
+- One place to read and write each kind of data.
+- Never silently swallow Supabase errors in helpers.
+- Always key by `user_email` (current system). Later we can migrate to `user_id`.
+- Keep existing tables working and do not break current flows.
+- Progress is authoritative in `student_assignments.current_module`.
+- Progress only moves forward and must never regress.
 
 ## File locations (target)
-- `lib/supabase/` (or `lib/db/`)
-  - `client.ts` (create client once)
-  - `assignments.ts`
-  - `module2.ts`
-  - `drafts.ts`
-  - `activity.ts`
+- `lib/supabase/`
+  - `helpers/` for domain helpers
+  - `admin/` for server only service role client
+  - `client/` for browser anon client
+- `lib/storage/` for user scoped local fallback caching utilities
 
-## Helpers to implement
+## Helpers to implement or maintain
 
-### 1) Assignment progress and resume path
-**Function:** `upsertAssignmentResume({ userEmail, assignmentName, resumePath }): Promise<{ ok, row }>`
+### 1) Assignment progress
+Source of truth:
 - Table: `student_assignments`
-- Behavior:
-  - If row exists (user_email + assignment_name), update `resume_path`, `current_module`, `status`, `updated_at`
-  - If not, insert a new row
-- Notes:
-  - Derive `current_module` from resumePath like `/modules/2/tcharts` => 2
-  - Always return the saved row
-  - Never return "matched 0 rows" as success
+- Key: `user_email` plus `assignment_name`
 
-**Function:** `getAssignmentResume({ userEmail, assignmentName }): Promise<{ ok, row }>`
-- Table: `student_assignments`
-- Returns resume_path and status fields
+Required helpers:
+- `getStudentAssignment({ userEmail, assignmentName })`
+- `upsertStudentAssignment({ userEmail, assignmentName, patch })`
+- `advanceCurrentModuleOnSuccess({ userEmail, assignmentName, completedModuleNumber })`
+  - Must set `current_module` to `max(existing, completedModuleNumber + 1)`
+  - Must never decrease `current_module`
 
-### 2) Module 2 sources (speech + letter)
-**Function:** `getModule2Sources({ userEmail }): Promise<{ ok, row }>`
-- Table: `module2_sources`
-- Returns: `mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation, lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation`
+### 2) Activity logging and defensive progress updates
+Tables:
+- `student_activity_log` for audit trail
+- `student_assignments` for progress
 
-**Function:** `upsertModule2SpeechSource({ userEmail, ...speechFields }): Promise<{ ok }>`
-- Updates ONLY speech columns without wiping letter columns (preserve existing letter data)
+Helpers and routes:
+- `logStudentActivity({ userEmail, action, module, metadata })`
+- API route `POST /api/activity/log`
+  - Inserts into `student_activity_log`
+  - May defensively advance `student_assignments.current_module` based on module number, forward only
 
-**Function:** `upsertModule2LetterSource({ userEmail, ...letterFields }): Promise<{ ok }>`
-- Updates ONLY letter columns without wiping speech columns (preserve existing speech data)
+### 3) Module 2 sources
+Table:
+- `module2_sources`
 
-### 3) Module 2 rhetorical T-Chart entries
-**Function:** `saveTChartEntries({ userEmail, entries }): Promise<{ ok }>`
-- Table: `tchart_entries` (or current table used by `/api/tchart/save`)
-- Each entry includes:
-  - category: ethos/pathos/logos
-  - type: speech/letter
-  - quote
-  - observation
-  - letter_url (if applicable)
-- Behavior:
-  - Use upsert strategy so repeated saves overwrite the same logical entry
-  - The unique key should be (user_email, category, type) if possible
+Helpers:
+- `getModule2Sources({ userEmail })`
+- `upsertModule2SpeechSource({ userEmail, ...speechFields })`
+  - Updates only speech columns and preserves existing letter data
+- `upsertModule2LetterSource({ userEmail, ...letterFields })`
+  - Updates only letter columns and preserves existing speech data
 
-**Function:** `getTChartEntries({ userEmail }): Promise<{ ok, rows }>`
-- Returns all rows for the student, ordered by category then type
+Local fallback:
+- If a page needs local fallback caching, it must be user scoped via `makeStudentKey(email, parts)`.
 
-### 4) Drafts and final text
-**Function:** `getStudentDraft({ userEmail, module }): Promise<{ ok, row }>`
-- Table: `student_drafts`
-- Used in Modules 6-9
+### 4) Module 2 T Chart entries
+Table:
+- `tchart_entries`
 
-**Function:** `upsertStudentDraft({ userEmail, module, fields }): Promise<{ ok, row }>`
-- Must not break Module 8 locking behavior
-- Should support fields:
-  - full_text
-  - final_text
-  - final_ready
-  - revised
-  - updated_at
+Helpers:
+- `saveTChartEntries({ userEmail, entries })`
+  - Prefer upsert strategy so repeated saves overwrite the same logical entry
+- `getTChartEntries({ userEmail })`
 
-### 5) Activity logging
-**Function:** `logStudentActivity({ userEmail, eventType, meta }): Promise<{ ok }>`
-- Table: `student_activity` (or current activity table)
-- Stores:
-  - user_email
-  - event_type
-  - module
-  - meta JSON
-  - created_at
+### 5) Buckets
+Table:
+- `bucket_groups`
 
-## Cursor Implementation Notes
-- Cursor should implement these helpers without changing UI behavior.
-- Components and API routes should be refactored to call helpers only (no raw `.from()` calls in pages/components).
-- Add minimal unit-like checks where possible (simple runtime guards, not a full test suite yet).
+Helpers:
+- `getBucketGroups({ userEmail })`
+- `upsertBucketGroups({ userEmail, buckets, reflection })`
 
+### 6) Outlines
+Table:
+- `student_outlines`
+
+Helpers:
+- `getStudentOutline({ userEmail, module })`
+- `upsertStudentOutline({ userEmail, module, outline, finalized })`
+
+### 7) Drafts and final text
+Table:
+- `student_drafts`
+
+Helpers:
+- `getStudentDraft({ userEmail, module })`
+- `upsertStudentDraft({ userEmail, module, patch })`
+  - Must preserve lock and final ready behavior
+
+### 8) Exports and submissions
+Tables:
+- `student_exports`
+- exported docs tracking table
+
+Helpers:
+- `getFinalPdfExport({ userEmail })`
+- `upsertStudentExport({ userEmail, module, kind, ... })`
+
+## Dev reset spec
+API route:
+- `POST /api/dev/reset-student` in development only
+- Must only reset the signed in user
+- Must clear progress tables, including `student_assignments`
+- Front end dev reset button must clear user scoped localStorage keys and reload

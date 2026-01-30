@@ -1,9 +1,14 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
+import {
+  getExportedDocLink,
+  getStudentExport,
+} from "@/lib/supabase/helpers/studentExports";
+import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
 
 export default function ModuleNine() {
@@ -19,6 +24,7 @@ export default function ModuleNine() {
   const [uploading, setUploading] = useState(false);
   const [exportUrl, setExportUrl] = useState(null);
   const [popupBlocked, setPopupBlocked] = useState(false);
+  const [finalPdfRow, setFinalPdfRow] = useState(null);
 
   // track that we have already logged module_started once
   const hasLoggedStartRef = useRef(false);
@@ -120,14 +126,32 @@ export default function ModuleNine() {
   useEffect(() => {
     (async () => {
       if (!session?.user?.email) return;
-      const { data } = await supabase
-        .from("exported_docs")
-        .select("web_view_link")
-        .eq("user_email", session.user.email)
-        .maybeSingle();
+      const { data, error } = await getExportedDocLink({
+        userEmail: session.user.email,
+      });
+      if (error) console.warn(error);
       if (data?.web_view_link) setExportUrl(data.web_view_link);
     })();
   }, [session]);
+
+  // Load existing final PDF export (Module 9, kind = final_pdf)
+  useEffect(() => {
+    (async () => {
+      if (!session?.user?.email) return;
+      const result = await getStudentExport({
+        userEmail: session.user.email,
+        module: 9,
+        kind: "final_pdf",
+      });
+      if (result.error) {
+        console.warn(result.error);
+        setFinalPdfRow(null);
+        return;
+      }
+      if (result.data) setFinalPdfRow(result.data);
+      else setFinalPdfRow(null);
+    })();
+  }, [session?.user?.email]);
 
   const handleAnswer = (idx, val) => {
     const copy = [...userAnswers];
@@ -179,28 +203,7 @@ export default function ModuleNine() {
     if (!session?.user?.email) return;
 
     const email = session.user.email;
-    let text = "";
-
-    // 1) Prefer finalized text from Module 7
-    const { data: m7 } = await supabase
-      .from("student_drafts")
-      .select("final_text")
-      .eq("user_email", email)
-      .eq("module", 7)
-      .maybeSingle();
-
-    if (m7?.final_text) {
-      text = m7.final_text;
-    } else {
-      // 2) Fall back to Module 6 draft (full_text)
-      const { data: m6 } = await supabase
-        .from("student_drafts")
-        .select("full_text")
-        .eq("user_email", email)
-        .eq("module", 6)
-        .maybeSingle();
-      if (m6?.full_text) text = m6.full_text;
-    }
+    const { text } = await getFinalTextForExport({ userEmail: email });
 
     if (!text) {
       alert(
@@ -560,6 +563,22 @@ export default function ModuleNine() {
               you can find it, then upload that PDF here. This is the version
               your teacher will grade.
             </p>
+
+            {finalPdfRow && (
+              <div className="rounded-lg border border-gray-200 bg-theme-light px-4 py-3 text-sm">
+                <p className="text-gray-700">We already have a final PDF on file.</p>
+                {(finalPdfRow.public_url || finalPdfRow.web_view_link) && (
+                  <a
+                    href={finalPdfRow.public_url || finalPdfRow.web_view_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-theme-blue underline mt-1 inline-block"
+                  >
+                    Open final PDF
+                  </a>
+                )}
+              </div>
+            )}
 
             <input
               type="file"

@@ -2,36 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-/** Existing transcript keys */
-const KEYS = {
-  speechUrl: "mlk_speech_url",
-  speechText: "mlk_speech_text",
-  letterUrl: "mlk_letter_url",
-  letterText: "mlk_letter_text",
-};
-
-/** T-Chart field keys (localStorage) */
-const TCHART_KEYS = {
-  // Ethos
-  ethosSpeechQuote: "tchart_ethos_speech_quote",
-  ethosSpeechNote: "tchart_ethos_speech_note",
-  ethosLetterQuote: "tchart_ethos_letter_quote",
-  ethosLetterNote: "tchart_ethos_letter_note",
-  // Pathos
-  pathosSpeechQuote: "tchart_pathos_speech_quote",
-  pathosSpeechNote: "tchart_pathos_speech_note",
-  pathosLetterQuote: "tchart_pathos_letter_quote",
-  pathosLetterNote: "tchart_pathos_letter_note",
-  // Logos
-  logosSpeechQuote: "tchart_logos_speech_quote",
-  logosSpeechNote: "tchart_logos_speech_note",
-  logosLetterQuote: "tchart_logos_letter_quote",
-  logosLetterNote: "tchart_logos_letter_note",
-};
+import { useSession } from "next-auth/react";
+import { makeStudentKey } from "@/lib/storage/studentCache";
 
 export default function ModuleTwoTCharts() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const email = session?.user?.email ?? null;
 
   // transcripts/URLs
   const [speechUrl, setSpeechUrl] = useState("");
@@ -62,56 +39,65 @@ export default function ModuleTwoTCharts() {
   const [logosLetterQuote, setLogosLetterQuote] = useState("");
   const [logosLetterNote, setLogosLetterNote] = useState("");
 
-  // load persisted data
+  // load persisted data (user-scoped keys only when email is available)
   useEffect(() => {
+    if (!email) return;
     try {
-      setSpeechUrl(localStorage.getItem(KEYS.speechUrl) || "");
-      setSpeechText(localStorage.getItem(KEYS.speechText) || "");
-      setLetterUrl(localStorage.getItem(KEYS.letterUrl) || "");
-      setLetterText(localStorage.getItem(KEYS.letterText) || "");
+      setSpeechUrl(
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "speechUrl"])) || ""
+      );
+      setSpeechText(
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "speechText"])) || ""
+      );
+      setLetterUrl(
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "letterUrl"])) || ""
+      );
+      setLetterText(
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "letterText"])) || ""
+      );
 
       setEthosSpeechQuote(
-        localStorage.getItem(TCHART_KEYS.ethosSpeechQuote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechQuote"])) || ""
       );
       setEthosSpeechNote(
-        localStorage.getItem(TCHART_KEYS.ethosSpeechNote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechNote"])) || ""
       );
       setEthosLetterQuote(
-        localStorage.getItem(TCHART_KEYS.ethosLetterQuote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterQuote"])) || ""
       );
       setEthosLetterNote(
-        localStorage.getItem(TCHART_KEYS.ethosLetterNote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterNote"])) || ""
       );
 
       setPathosSpeechQuote(
-        localStorage.getItem(TCHART_KEYS.pathosSpeechQuote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechQuote"])) || ""
       );
       setPathosSpeechNote(
-        localStorage.getItem(TCHART_KEYS.pathosSpeechNote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechNote"])) || ""
       );
       setPathosLetterQuote(
-        localStorage.getItem(TCHART_KEYS.pathosLetterQuote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterQuote"])) || ""
       );
       setPathosLetterNote(
-        localStorage.getItem(TCHART_KEYS.pathosLetterNote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterNote"])) || ""
       );
 
       setLogosSpeechQuote(
-        localStorage.getItem(TCHART_KEYS.logosSpeechQuote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechQuote"])) || ""
       );
       setLogosSpeechNote(
-        localStorage.getItem(TCHART_KEYS.logosSpeechNote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechNote"])) || ""
       );
       setLogosLetterQuote(
-        localStorage.getItem(TCHART_KEYS.logosLetterQuote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterQuote"])) || ""
       );
       setLogosLetterNote(
-        localStorage.getItem(TCHART_KEYS.logosLetterNote) || ""
+        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterNote"])) || ""
       );
     } catch {
       // ignore localStorage errors
     }
-  }, []);
+  }, [email]);
 
   const openSourceTab = (url) => {
     if (!url) return;
@@ -141,23 +127,64 @@ export default function ModuleTwoTCharts() {
 
   // --- saving helpers ---
 
-  // 1) Save locally
+  // 1) Save locally (user-scoped keys only when email is available)
   const saveLocalOnly = () => {
+    if (!email) {
+      setToast("Sign in to save locally");
+      setTimeout(() => setToast(""), 1200);
+      return;
+    }
     try {
-      localStorage.setItem(TCHART_KEYS.ethosSpeechQuote, ethosSpeechQuote);
-      localStorage.setItem(TCHART_KEYS.ethosSpeechNote, ethosSpeechNote);
-      localStorage.setItem(TCHART_KEYS.ethosLetterQuote, ethosLetterQuote);
-      localStorage.setItem(TCHART_KEYS.ethosLetterNote, ethosLetterNote);
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechQuote"]),
+        ethosSpeechQuote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechNote"]),
+        ethosSpeechNote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterQuote"]),
+        ethosLetterQuote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterNote"]),
+        ethosLetterNote
+      );
 
-      localStorage.setItem(TCHART_KEYS.pathosSpeechQuote, pathosSpeechQuote);
-      localStorage.setItem(TCHART_KEYS.pathosSpeechNote, pathosSpeechNote);
-      localStorage.setItem(TCHART_KEYS.pathosLetterQuote, pathosLetterQuote);
-      localStorage.setItem(TCHART_KEYS.pathosLetterNote, pathosLetterNote);
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechQuote"]),
+        pathosSpeechQuote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechNote"]),
+        pathosSpeechNote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterQuote"]),
+        pathosLetterQuote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterNote"]),
+        pathosLetterNote
+      );
 
-      localStorage.setItem(TCHART_KEYS.logosSpeechQuote, logosSpeechQuote);
-      localStorage.setItem(TCHART_KEYS.logosSpeechNote, logosSpeechNote);
-      localStorage.setItem(TCHART_KEYS.logosLetterQuote, logosLetterQuote);
-      localStorage.setItem(TCHART_KEYS.logosLetterNote, logosLetterNote);
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechQuote"]),
+        logosSpeechQuote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechNote"]),
+        logosSpeechNote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterQuote"]),
+        logosLetterQuote
+      );
+      localStorage.setItem(
+        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterNote"]),
+        logosLetterNote
+      );
 
       setToast("Saved locally");
       setTimeout(() => setToast(""), 1200);

@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { logActivity } from "../lib/logActivity";
+import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -40,10 +41,24 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
-      // Load finalized outline from Module 5
+      // Gate: require current_module >= 6 (read-only check on student_assignments)
+      const { data: assignment, error: assignmentError } = await getStudentAssignment({
+        userEmail: email,
+        assignmentName: "MLK Essay Assignment",
+      });
+      if (assignmentError) {
+        console.error("Error loading assignment for Module 6:", assignmentError);
+      }
+      const currentModule = assignment?.current_module;
+      if (currentModule == null || currentModule < 6) {
+        alert("Finish Module 5 before starting Module 6.");
+        return;
+      }
+
+      // Load outline from Module 5 (for display only; no finalized gate)
       const { data: outlineRow, error: outlineError } = await supabase
         .from("student_outlines")
-        .select("outline,finalized")
+        .select("outline")
         .eq("user_email", email)
         .eq("module", 5)
         .single();
@@ -52,12 +67,7 @@ export default function ModuleSix() {
         console.error("Error loading outline for Module 6:", outlineError);
       }
 
-      if (!outlineRow?.finalized) {
-        alert("Finish Module 5 before starting Module 6.");
-        return;
-      }
-
-      setOutline(outlineRow.outline);
+      setOutline(outlineRow?.outline ?? null);
 
       // Log module start once
       if (!hasLoggedStartRef.current) {
@@ -95,7 +105,7 @@ export default function ModuleSix() {
         // Intro plus one per body bucket plus conclusion
         const emptySections = [
           "",
-          ...(outlineRow.outline.body || []).map(() => ""),
+          ...(outlineRow?.outline?.body || []).map(() => ""),
           "",
         ];
         setDraft(emptySections);

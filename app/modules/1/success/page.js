@@ -1,11 +1,23 @@
-﻿"use client";
+"use client";
 
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function Module1Success() {
+  const { data: session } = useSession();
   const params = useSearchParams();
   const score = params.get("score") ?? "-";
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    advanceCurrentModuleOnSuccess({
+      userEmail: session.user.email,
+      completedModuleNumber: 1,
+    }).catch(() => {});
+  }, [session?.user?.email]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">

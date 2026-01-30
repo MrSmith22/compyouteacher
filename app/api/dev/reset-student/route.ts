@@ -62,6 +62,8 @@ export async function POST(req: Request) {
       { key: "student_outlines", table: "student_outlines" },
       { key: "bucket_groups", table: "bucket_groups" },
       { key: "tchart_entries", table: "tchart_entries" },
+      { key: "student_exports", table: "student_exports" },
+      
 
       // Module-specific tables that can affect gating and UI
       { key: "module3_responses", table: "module3_responses" },
