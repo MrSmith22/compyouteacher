@@ -1,7 +1,7 @@
 // app/dashboard/page.js
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -16,9 +16,11 @@ export default function Dashboard() {
   const [finalPdf, setFinalPdf] = useState(null);
   const [error, setError] = useState(null);
 
+  const [highestScoreModule, setHighestScoreModule] = useState(1);
+
   const email = session?.user?.email ?? null;
 
-  // Load assignment and final PDF info for this student
+  // Load assignment, module scores, and final PDF info for this student
   useEffect(() => {
     if (!email) return;
 
@@ -27,15 +29,35 @@ export default function Dashboard() {
       setError(null);
 
       try {
-        // Student assignment row (we assume a single main essay assignment for now)
+        // Student assignment row (MLK Essay Assignment only)
         const { data: aRow, error: aErr } = await supabase
           .from("student_assignments")
           .select("*")
           .eq("user_email", email)
+          .eq("assignment_name", "MLK Essay Assignment")
           .maybeSingle();
 
         if (aErr) throw aErr;
         setAssignment(aRow || null);
+
+        // Highest module found in module_scores
+        const { data: scoreRows, error: sErr } = await supabase
+          .from("module_scores")
+          .select("module")
+          .eq("user_email", email)
+          .order("module", { ascending: false })
+          .limit(1);
+
+        if (sErr) {
+          console.warn("module_scores fetch error:", sErr);
+          setHighestScoreModule(1);
+        } else {
+          const m =
+            Array.isArray(scoreRows) && scoreRows.length > 0
+              ? Number(scoreRows[0]?.module)
+              : 1;
+          setHighestScoreModule(Number.isFinite(m) && m > 0 ? m : 1);
+        }
 
         // Final PDF for Module 9
         const { data: exportRow, error: eErr } = await supabase
@@ -53,7 +75,7 @@ export default function Dashboard() {
         setFinalPdf(exportRow || null);
       } catch (err) {
         console.error("Student dashboard load error:", err);
-        setError(err.message || "Unknown error");
+        setError(err?.message || "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -62,48 +84,78 @@ export default function Dashboard() {
     load();
   }, [email]);
 
+  // Compute derived current module
+  const derivedCurrentModule = useMemo(() => {
+    const aModule =
+      typeof assignment?.current_module === "number" ? assignment.current_module : 1;
+
+    const sModule =
+      typeof highestScoreModule === "number" ? highestScoreModule : 1;
+
+    return Math.max(aModule || 1, sModule || 1);
+  }, [assignment, highestScoreModule]);
+
+  // If assignment exists but its module is behind what we can infer, update it
+  useEffect(() => {
+    if (!email) return;
+    if (!assignment) return;
+    if (finalPdf) return;
+
+    const aModule =
+      typeof assignment.current_module === "number" ? assignment.current_module : 1;
+
+    if (derivedCurrentModule <= aModule) return;
+
+    const bump = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("student_assignments")
+          .upsert({
+            user_email: email,
+            assignment_name: assignment.assignment_name || "MLK Essay Assignment",
+            status: assignment.status || "in_progress",
+            current_module: derivedCurrentModule,
+            started_at: assignment.started_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .maybeSingle();
+
+        if (error) {
+          console.warn("Error bumping current_module:", error);
+          return;
+        }
+
+        if (data) setAssignment(data);
+      } catch (e) {
+        console.warn("Error bumping current_module:", e);
+      }
+    };
+
+    bump();
+  }, [email, assignment, derivedCurrentModule, finalPdf]);
+
   // Determine label and target module for the main button
   const getButtonState = () => {
     if (!email) {
-      return {
-        label: "Sign in to start",
-        disabled: true,
-        module: null,
-      };
+      return { label: "Sign in to start", disabled: true, module: null };
     }
 
-    // If there is a final PDF, treat the assignment as completed
     if (finalPdf) {
-      return {
-        label: "Review Assignment",
-        disabled: false,
-        module: 9,
-      };
+      return { label: "Review Assignment", disabled: false, module: 9 };
     }
 
-    // No assignment row yet
     if (!assignment) {
-      return {
-        label: "Start Assignment",
-        disabled: false,
-        module: 1,
-      };
+      return { label: "Start Assignment", disabled: false, module: 1 };
     }
 
-    const currentModule =
-      typeof assignment.current_module === "number"
-        ? assignment.current_module
-        : 1;
+    const currentModule = derivedCurrentModule || 1;
 
     if (
       (assignment.status === "not_started" || !assignment.status) &&
       currentModule === 1
     ) {
-      return {
-        label: "Start Module 1",
-        disabled: false,
-        module: 1,
-      };
+      return { label: "Start Module 1", disabled: false, module: 1 };
     }
 
     return {
@@ -128,6 +180,7 @@ export default function Dashboard() {
             current_module: module,
             status: "in_progress",
             started_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .select()
           .maybeSingle();
@@ -140,9 +193,33 @@ export default function Dashboard() {
       } catch (err) {
         console.error("Error in handlePrimaryClick upsert:", err);
       }
+    } else {
+      // Keep DB in sync if the button is sending the student past the stored module
+      const aModule =
+        typeof assignment.current_module === "number" ? assignment.current_module : 1;
+
+      if (module > aModule) {
+        try {
+          const { data, error } = await supabase
+            .from("student_assignments")
+            .upsert({
+              user_email: email,
+              assignment_name: assignment.assignment_name || "MLK Essay Assignment",
+              status: assignment.status || "in_progress",
+              current_module: module,
+              started_at: assignment.started_at || new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .select()
+            .maybeSingle();
+
+          if (!error && data) setAssignment(data);
+        } catch (e) {
+          console.warn("Error syncing current_module on click:", e);
+        }
+      }
     }
 
-    // Navigate to the chosen module
     router.push(`/modules/${module}`);
   };
 
@@ -192,9 +269,7 @@ export default function Dashboard() {
         )}
 
         {loading ? (
-          <div className="text-sm text-gray-700">
-            Loading your assignment...
-          </div>
+          <div className="text-sm text-gray-700">Loading your assignment...</div>
         ) : (
           <section className="bg-white shadow p-6 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -211,8 +286,9 @@ export default function Dashboard() {
                     ? "Completed, final PDF submitted"
                     : assignment?.status || "Not started"}
                 </div>
-                {assignment?.current_module && !finalPdf && (
-                  <div>Current module: {assignment.current_module}</div>
+
+                {!finalPdf && (
+                  <div>Current module: {derivedCurrentModule || 1}</div>
                 )}
               </div>
             </div>
