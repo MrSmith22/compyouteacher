@@ -4,12 +4,15 @@ import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
+import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
 import {
   getExportedDocLink,
   getStudentExport,
 } from "@/lib/supabase/helpers/studentExports";
 import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
+
+const ASSIGNMENT_NAME = "MLK Essay Assignment";
 
 export default function ModuleNine() {
   const { data: session } = useSession();
@@ -28,6 +31,7 @@ export default function ModuleNine() {
 
   // track that we have already logged module_started once
   const hasLoggedStartRef = useRef(false);
+  const [gateOk, setGateOk] = useState(null); // null = loading, true/false = result
 
   const questions = [
     {
@@ -110,6 +114,19 @@ export default function ModuleNine() {
   useEffect(() => {
     setUserAnswers(Array(questions.length).fill(""));
   }, []);
+
+  // Gate: require current_module >= 9
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    (async () => {
+      const { ok } = await requireModuleAccess({
+        userEmail: session.user.email,
+        assignmentName: ASSIGNMENT_NAME,
+        minModule: 9,
+      });
+      setGateOk(ok);
+    })();
+  }, [session?.user?.email]);
 
   // log module_started once when session is ready
   useEffect(() => {
@@ -312,6 +329,20 @@ export default function ModuleNine() {
   };
 
   if (!session) return <p className="p-6">Loading…</p>;
+
+  if (gateOk === false) {
+    return (
+      <div className="min-h-screen bg-theme-light flex items-center justify-center p-6">
+        <p className="text-theme-dark">
+          Finish Module 8 before starting Module 9.
+        </p>
+      </div>
+    );
+  }
+
+  if (gateOk !== true) {
+    return <p className="p-6">Loading…</p>;
+  }
 
   return (
     <div className="min-h-screen bg-theme-light">

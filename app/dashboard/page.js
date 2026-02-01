@@ -63,7 +63,7 @@ export default function Dashboard() {
     load();
   }, [email]);
 
-  // Determine label and target module for the main button
+  // Determine label and target module from current_module only (single gating source)
   const getButtonState = () => {
     if (!email) {
       return {
@@ -73,16 +73,6 @@ export default function Dashboard() {
       };
     }
 
-    // If there is a final PDF, treat the assignment as completed
-    if (finalPdf) {
-      return {
-        label: "Review Assignment",
-        disabled: false,
-        module: 9,
-      };
-    }
-
-    // No assignment row yet
     if (!assignment) {
       return {
         label: "Start Assignment",
@@ -202,11 +192,9 @@ export default function Dashboard() {
               <div className="text-xs text-gray-600 space-y-1">
                 <div>
                   Status:{" "}
-                  {finalPdf
-                    ? "Completed, final PDF submitted"
-                    : assignment?.status || "Not started"}
+                  {assignment?.status || "Not started"}
                 </div>
-                {assignment?.current_module && !finalPdf && (
+                {assignment?.current_module && (
                   <div>Current module: {assignment.current_module}</div>
                 )}
               </div>
