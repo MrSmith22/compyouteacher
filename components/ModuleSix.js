@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { logActivity } from "../lib/logActivity";
-import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
+import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -16,6 +16,7 @@ export default function ModuleSix() {
   const [draft, setDraft] = useState([]);
   const [locked, setLocked] = useState(false);
   const [sideOpen, setSideOpen] = useState(false);
+  const [gateBlocked, setGateBlocked] = useState(false);
 
   const hasLoggedStartRef = useRef(false);
 
@@ -41,17 +42,13 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
-      // Gate: require current_module >= 6 (read-only check on student_assignments)
-      const { data: assignment, error: assignmentError } = await getStudentAssignment({
+      const { ok } = await requireModuleAccess({
         userEmail: email,
         assignmentName: "MLK Essay Assignment",
+        minModule: 6,
       });
-      if (assignmentError) {
-        console.error("Error loading assignment for Module 6:", assignmentError);
-      }
-      const currentModule = assignment?.current_module;
-      if (currentModule == null || currentModule < 6) {
-        alert("Finish Module 5 before starting Module 6.");
+      if (!ok) {
+        setGateBlocked(true);
         return;
       }
 
@@ -194,6 +191,16 @@ export default function ModuleSix() {
 
     router.push("/modules/6/success");
   };
+
+  if (gateBlocked) {
+    return (
+      <div className="min-h-screen bg-theme-light flex items-center justify-center">
+        <p className="text-theme-dark">
+          Finish Module 5 before starting Module 6.
+        </p>
+      </div>
+    );
+  }
 
   if (!outline) {
     return (

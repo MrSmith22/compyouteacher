@@ -1,7 +1,12 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
+import { logActivity } from "@/lib/logActivity";
+
+const ASSIGNMENT_NAME = "MLK Essay Assignment";
 
 const modules = [
   {
@@ -108,12 +113,44 @@ const modules = [
 ];
 
 export default function ModuleSystem() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [gateOk, setGateOk] = useState(null); // null = loading, true/false = result
+
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const currentModule = modules[currentModuleIndex];
 
   const [userAnswers, setUserAnswers] = useState([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const router = useRouter();
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    (async () => {
+      const { ok } = await requireModuleAccess({
+        userEmail: session.user.email,
+        assignmentName: ASSIGNMENT_NAME,
+        minModule: 1,
+      });
+      setGateOk(ok);
+    })();
+  }, [session?.user?.email]);
+
+  if (gateOk === false) {
+    return (
+      <div className="p-4 bg-theme-light shadow rounded max-w-3xl mx-auto">
+        <p className="text-theme-dark">
+          Finish Module 0 before starting Module 1.
+        </p>
+      </div>
+    );
+  }
+  if (gateOk !== true) {
+    return (
+      <div className="p-4 bg-theme-light shadow rounded max-w-3xl mx-auto">
+        <p className="text-theme-dark">Loading…</p>
+      </div>
+    );
+  }
 
   const handleAnswerChange = (index, value) => {
     const updatedAnswers = [...userAnswers];
