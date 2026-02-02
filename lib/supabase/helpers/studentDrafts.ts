@@ -35,3 +35,24 @@ export async function getFinalTextForExport({
 
   return { text: "" };
 }
+
+/**
+ * Fetch a single draft row for a module.
+ * Uses maybeSingle so the "no row yet" case returns data: null, error: null.
+ */
+export async function getStudentDraft({
+  userEmail,
+  module,
+}: {
+  userEmail: string;
+  module: number;
+}): Promise<{ data: any | null; error: any | null }> {
+  const res = await supabase
+    .from("student_drafts")
+    .select("sections, locked")
+    .eq("user_email", userEmail)
+    .eq("module", module)
+    .maybeSingle();
+
+  return { data: res.data ?? null, error: res.error ?? null };
+}
