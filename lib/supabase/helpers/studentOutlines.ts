@@ -12,7 +12,7 @@ export async function getStudentOutline({
     .select("*")
     .eq("user_email", userEmail)
     .eq("module", moduleNumber)
-    .single();
+    .maybeSingle();
 }
 
 export async function upsertStudentOutline({
