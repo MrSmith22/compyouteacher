@@ -6,21 +6,25 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { logActivity } from "../lib/logActivity";
 import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
+import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
   const router = useRouter();
 
   const [outline, setOutline] = useState(null);
+  const [outlineLoading, setOutlineLoading] = useState(true);
+  const [outlineMissing, setOutlineMissing] = useState(false);
+
   const [observations, setObservations] = useState([]);
   const [draft, setDraft] = useState([]);
   const [locked, setLocked] = useState(false);
+
   const [sideOpen, setSideOpen] = useState(false);
   const [gateBlocked, setGateBlocked] = useState(false);
 
   const hasLoggedStartRef = useRef(false);
 
-  // Zero indexed roman helper: 0 → I, 1 → II, etc.
   const roman = (n) =>
     ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] ||
     `${n + 1}`;
@@ -42,34 +46,47 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
+      // Reset visible state for a fresh load
+      setGateBlocked(false);
+      setOutlineMissing(false);
+      setOutlineLoading(true);
+
       const { ok } = await requireModuleAccess({
         userEmail: email,
         assignmentName: "MLK Essay Assignment",
         minModule: 6,
       });
+
       if (!ok) {
         setGateBlocked(true);
+        setOutlineLoading(false);
         return;
       }
 
-      // Load outline from Module 5 (for display only; no finalized gate)
-      const { data: outlineRow, error: outlineError } = await supabase
-        .from("student_outlines")
-        .select("outline")
-        .eq("user_email", email)
-        .eq("module", 5)
-        .single();
+      // Load outline from Module 5 (for display only)
+      const { data: outlineRow, error: outlineError } = await getStudentOutline({
+        userEmail: email,
+        module: 5,
+      });
 
-      if (outlineError && outlineError.code !== "PGRST116") {
+      if (outlineError) {
         console.error("Error loading outline for Module 6:", outlineError);
       }
 
+      const hasOutline = !!outlineRow?.outline;
+
       setOutline(outlineRow?.outline ?? null);
+      setOutlineMissing(!hasOutline);
+      setOutlineLoading(false);
+
+      if (!hasOutline) {
+        return;
+      }
 
       // Log module start once
       if (!hasLoggedStartRef.current) {
         hasLoggedStartRef.current = true;
-        logActivity(email, "module_started", { module: 6, hasOutline: true });
+        logActivity(email, "module_started", { module: 6, hasOutline });
       }
 
       // Load T chart observations
@@ -202,7 +219,7 @@ export default function ModuleSix() {
     );
   }
 
-  if (!outline) {
+  if (outlineLoading) {
     return (
       <div className="min-h-screen bg-theme-light flex items-center justify-center">
         <p className="text-theme-dark">Loading…</p>
@@ -210,7 +227,31 @@ export default function ModuleSix() {
     );
   }
 
-  // Common props to make textareas feel like Google Docs lite
+  if (outlineMissing) {
+    return (
+      <div className="min-h-screen bg-theme-light flex items-center justify-center">
+        <div className="text-center max-w-md px-4 space-y-4">
+          <p className="text-theme-dark">
+            We could not find your Module 5 outline yet.
+          </p>
+          <p className="text-sm text-gray-600">
+            Once you save the outline you can return to Module 6.
+          </p>
+          <a
+            href="/modules/5"
+            className="inline-block bg-theme-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:brightness-105"
+          >
+            Go to Module 5 to build your outline
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!outline) {
+    return null;
+  }
+
   const wp = {
     spellCheck: true,
     autoCorrect: "on",
@@ -224,9 +265,7 @@ export default function ModuleSix() {
   return (
     <div className="min-h-screen bg-theme-light">
       <div className="max-w-6xl mx-auto flex">
-        {/* MAIN COLUMN */}
         <main className="flex-1 p-6 space-y-6">
-          {/* Header card */}
           <header className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 mb-2">
             <h1 className="text-3xl font-extrabold text-theme-blue mb-1">
               ✍️ Module 6: Turn Your Outline Into a Draft
@@ -274,7 +313,6 @@ export default function ModuleSix() {
             </p>
           </header>
 
-          {/* Introduction */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
             <h2 className="text-xl font-bold mb-2 text-theme-dark">
               {roman(0)}. Introduction
@@ -302,7 +340,6 @@ export default function ModuleSix() {
             />
           </section>
 
-          {/* Body paragraphs */}
           {outline.body.map((b, i) => (
             <section
               key={i}
@@ -350,7 +387,6 @@ export default function ModuleSix() {
             </section>
           ))}
 
-          {/* Conclusion */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
             <h2 className="text-xl font-bold mb-2 text-theme-dark">
               {roman(outline.body.length + 1)}. Conclusion
@@ -379,7 +415,6 @@ export default function ModuleSix() {
             />
           </section>
 
-          {/* Action row */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-2">
             <div className="text-xs text-gray-600">
               Your work saves automatically as you type. When you feel this draft
@@ -389,9 +424,7 @@ export default function ModuleSix() {
               onClick={markComplete}
               disabled={locked}
               className={`bg-theme-orange text-white px-5 py-2.5 rounded-lg shadow-md text-sm font-semibold transition ${
-                locked
-                  ? "opacity-50 pointer-events-none"
-                  : "hover:brightness-105"
+                locked ? "opacity-50 pointer-events-none" : "hover:brightness-105"
               }`}
             >
               ✅ Mark Draft Complete & Continue
@@ -399,7 +432,6 @@ export default function ModuleSix() {
           </div>
         </main>
 
-        {/* SLIDE OUT OUTLINE / NOTES PANEL */}
         <aside
           className={`fixed right-0 top-0 h-full w-[320px] bg-theme-light border-l border-gray-200 shadow-xl z-20 p-4 overflow-y-auto transition-transform duration-300 ${
             sideOpen ? "translate-x-0" : "translate-x-full"
@@ -460,7 +492,7 @@ export default function ModuleSix() {
               {observations.map((o) => (
                 <li key={o.id} className="border-b border-gray-100 pb-1">
                   <strong className="text-theme-blue">
-                    {o.category.toUpperCase()}
+                    {String(o.category || "").toUpperCase()}
                   </strong>{" "}
                   {`— `}
                   {o.observation || o.speech_note || o.letter_note}
