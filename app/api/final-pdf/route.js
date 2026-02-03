@@ -80,6 +80,7 @@ export async function POST(req) {
       public_url: publicUrl,
       web_view_link: publicUrl,
       uploaded_at: new Date().toISOString(),
+      grading_status: "ungraded",
     });
 
     if (rowErr) {

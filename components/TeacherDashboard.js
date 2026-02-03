@@ -5,6 +5,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 
 const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const gradingStatusOptions = [
+  { value: "ungraded", label: "Ungraded" },
+  { value: "in_review", label: "In review" },
+  { value: "graded", label: "Graded" },
+];
+const gradingStatusBadgeClasses = {
+  ungraded: "bg-gray-200 text-theme-dark",
+  in_review: "bg-theme-orange text-white",
+  graded: "bg-theme-green text-white",
+};
+const gradingStatusLabels = {
+  ungraded: "Ungraded",
+  in_review: "In review",
+  graded: "Graded",
+};
 
 export default function TeacherDashboard() {
   const { data: session, status } = useSession();
@@ -26,6 +41,8 @@ export default function TeacherDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notesByEmail, setNotesByEmail] = useState({});
   const [notesStatusByEmail, setNotesStatusByEmail] = useState({});
+  const [gradingStatusStatusByEmail, setGradingStatusStatusByEmail] =
+    useState({});
   const saveTimersRef = useRef({});
 
   // --------------------------------------------------
@@ -151,6 +168,10 @@ useEffect(() => {
           submittedFinalPdf: submissionInfo?.submittedFinalPdf ?? !!exportRow,
           googleDocUrl: submissionInfo?.googleDocUrl ?? null,
           submittedAt: exportRow?.uploaded_at ?? exportRow?.created_at ?? null,
+          gradingStatus:
+            submissionInfo?.gradingStatus ??
+            exportRow?.grading_status ??
+            "ungraded",
         };
       });
 
@@ -312,6 +333,52 @@ useEffect(() => {
     }, 700);
   };
 
+  const handleGradingStatusChange = async (studentEmail, nextStatus) => {
+    const previousStatus =
+      rows.find((row) => row.email === studentEmail)?.gradingStatus ??
+      "ungraded";
+    setRows((prev) =>
+      prev.map((row) =>
+        row.email === studentEmail ? { ...row, gradingStatus: nextStatus } : row
+      )
+    );
+    setGradingStatusStatusByEmail((prev) => ({
+      ...prev,
+      [studentEmail]: "Saving...",
+    }));
+
+    try {
+      const res = await fetch("/api/teacher/submissions/grade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentEmail,
+          gradingStatus: nextStatus,
+        }),
+      });
+      if (!res.ok) throw new Error("Status save failed");
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error || "Status save failed");
+      setGradingStatusStatusByEmail((prev) => ({
+        ...prev,
+        [studentEmail]: "Saved",
+      }));
+    } catch (err) {
+      console.warn("Grading status update failed:", err);
+      setRows((prev) =>
+        prev.map((row) =>
+          row.email === studentEmail
+            ? { ...row, gradingStatus: previousStatus }
+            : row
+        )
+      );
+      setGradingStatusStatusByEmail((prev) => ({
+        ...prev,
+        [studentEmail]: "Save failed",
+      }));
+    }
+  };
+
   const timeline = useMemo(() => {
     if (!selectedEmail) return [];
     let list = activityLog.filter((a) => a.user_email === selectedEmail);
@@ -458,6 +525,9 @@ useEffect(() => {
                     : idx % 2 === 0
                     ? "bg-white"
                     : "bg-gray-50";
+                const selectionAccent = isSelected
+                  ? "border-l-4 border-theme-green"
+                  : "border-l-4 border-transparent";
 
                 return (
                   <tr
@@ -466,13 +536,11 @@ useEffect(() => {
                       setSelectedEmail(row.email);
                       setDrawerOpen(true);
                     }}
-                    className={`cursor-pointer ${baseRowBg} hover:bg-theme-light transition-colors`}
+                    className={`cursor-pointer ${baseRowBg} hover:bg-theme-light transition-colors ${selectionAccent}`}
                   >
                     {/* sticky student cell */}
                     <td
-                      className={`border border-theme-light px-4 py-2 font-medium text-theme-dark sticky left-0 z-10 ${baseRowBg} ${
-                        isSelected ? "border-l-4 border-theme-green" : ""
-                      }`}
+                      className={`border border-theme-light px-4 py-2 font-medium text-theme-dark sticky left-0 z-10 ${baseRowBg} ${selectionAccent}`}
                     >
                       {row.email}
                     </td>
@@ -542,6 +610,16 @@ useEffect(() => {
                         {row.submittedFinalPdf && (
                           <span className="inline-flex w-fit items-center rounded px-2 py-0.5 text-xs font-medium text-white bg-theme-green">
                             Essay Complete
+                          </span>
+                        )}
+                        {row.submittedFinalPdf && (
+                          <span
+                            className={`inline-flex w-fit items-center rounded px-2 py-0.5 text-xs font-medium ${
+                              gradingStatusBadgeClasses[row.gradingStatus] ||
+                              "bg-gray-200 text-theme-dark"
+                            }`}
+                          >
+                            {gradingStatusLabels[row.gradingStatus] || "Ungraded"}
                           </span>
                         )}
                         <div className="flex flex-wrap gap-2">
@@ -682,6 +760,34 @@ useEffect(() => {
                   >
                     Download PDF
                   </a>
+                )}
+              </section>
+
+              <section className="space-y-2">
+                <label className="text-xs uppercase tracking-wide text-theme-muted">
+                  Grading status
+                </label>
+                <select
+                  value={selectedRow.gradingStatus}
+                  onChange={(event) =>
+                    handleGradingStatusChange(
+                      selectedRow.email,
+                      event.target.value
+                    )
+                  }
+                  disabled={!selectedRow.submittedFinalPdf}
+                  className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-theme-green disabled:bg-gray-100"
+                >
+                  {gradingStatusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                {gradingStatusStatusByEmail[selectedRow.email] && (
+                  <p className="text-xs text-theme-muted">
+                    {gradingStatusStatusByEmail[selectedRow.email]}
+                  </p>
                 )}
               </section>
 

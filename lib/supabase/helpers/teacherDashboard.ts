@@ -50,6 +50,7 @@ export type Module9SubmissionRow = {
   submittedFinalPdf: boolean;
   finalPdfUrl: string | null;
   googleDocUrl: string | null;
+  gradingStatus: "ungraded" | "in_review" | "graded";
 };
 
 /**
@@ -76,7 +77,7 @@ export async function fetchModule9SubmissionList(): Promise<{
     supabase.from("student_activity_log").select("user_email"),
     supabase
       .from("student_exports")
-      .select("user_email, public_url, web_view_link")
+      .select("user_email, public_url, web_view_link, grading_status")
       .eq("module", 9)
       .eq("kind", "final_pdf"),
     supabase.from("exported_docs").select("user_email, web_view_link"),
@@ -114,11 +115,15 @@ export async function fetchModule9SubmissionList(): Promise<{
     const finalPdfUrl =
       exportRow?.public_url ?? exportRow?.web_view_link ?? null;
     const googleDocUrl = docRow?.web_view_link ?? null;
+    const gradingStatus =
+      (exportRow?.grading_status as "ungraded" | "in_review" | "graded") ??
+      "ungraded";
     return {
       user_email,
       submittedFinalPdf,
       finalPdfUrl,
       googleDocUrl,
+      gradingStatus,
     };
   });
 
