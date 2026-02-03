@@ -29,7 +29,6 @@ export default function ModuleNine() {
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [finalPdfRow, setFinalPdfRow] = useState(null);
 
-  // track that we have already logged module_started once
   const hasLoggedStartRef = useRef(false);
   const [gateOk, setGateOk] = useState(null); // null = loading, true/false = result
 
@@ -92,11 +91,7 @@ export default function ModuleNine() {
     },
     {
       q: "Should APA papers include an abstract?",
-      opts: [
-        "Yes, for most academic papers",
-        "No, it is optional",
-        "Only if the teacher requires it",
-      ],
+      opts: ["Yes, for most academic papers", "No, it is optional", "Only if the teacher requires it"],
       a: "Yes, for most academic papers",
     },
     {
@@ -110,12 +105,10 @@ export default function ModuleNine() {
     },
   ];
 
-  // start with blank answers
   useEffect(() => {
     setUserAnswers(Array(questions.length).fill(""));
   }, []);
 
-  // Gate: require current_module >= 9
   useEffect(() => {
     if (!session?.user?.email) return;
     (async () => {
@@ -128,7 +121,6 @@ export default function ModuleNine() {
     })();
   }, [session?.user?.email]);
 
-  // log module_started once when session is ready
   useEffect(() => {
     if (!session?.user?.email) return;
     if (hasLoggedStartRef.current) return;
@@ -139,7 +131,6 @@ export default function ModuleNine() {
     });
   }, [session]);
 
-  // Load any previously exported Google Doc link
   useEffect(() => {
     (async () => {
       if (!session?.user?.email) return;
@@ -151,7 +142,6 @@ export default function ModuleNine() {
     })();
   }, [session]);
 
-  // Load existing final PDF export (Module 9, kind = final_pdf)
   useEffect(() => {
     (async () => {
       if (!session?.user?.email) return;
@@ -220,24 +210,49 @@ export default function ModuleNine() {
     if (!session?.user?.email) return;
 
     const email = session.user.email;
-    const { text } = await getFinalTextForExport({ userEmail: email });
 
-    if (!text) {
+    const exportRes = await getFinalTextForExport({ userEmail: email });
+
+    await logActivity(email, "export_to_docs_attempt", {
+      module: 9,
+      status: exportRes.status,
+      sourceModule: exportRes.sourceModule,
+      details: exportRes.details,
+    });
+
+    if (exportRes.status !== "ok" || !exportRes.text) {
+      if (exportRes.status === "missing") {
+        alert(
+          "We could not find your essay text yet. Go back to Module 7 and make sure you completed your revision, then try again."
+        );
+        return;
+      }
+
       alert(
-        "Could not find your essay text yet. Finish Modules 6 and 7, then try again."
+        "We hit a problem while trying to load your essay text. Please refresh and try again. If it keeps happening, tell your teacher."
       );
       return;
+    }
+
+    if (exportRes.sourceModule === 6) {
+      alert(
+        "We are exporting your Module 6 draft because we could not find a finalized Module 7 version yet. If you revised in Module 7, go back and finalize it first."
+      );
     }
 
     const res = await fetch("/api/export-to-docs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, email }),
+      body: JSON.stringify({ text: exportRes.text, email }),
     });
 
     const result = await res.json();
     if (!res.ok) {
       alert("Failed to export to Google Docs.");
+      await logActivity(email, "export_to_docs_failed", {
+        module: 9,
+        status: "api_failed",
+      });
       return;
     }
 
@@ -246,6 +261,9 @@ export default function ModuleNine() {
     await logActivity(email, "export_to_docs", {
       module: 9,
       url: result.url,
+      sourceModule: exportRes.sourceModule,
+      status: exportRes.status,
+      details: exportRes.details,
     });
 
     const win = window.open(result.url, "_blank");
@@ -268,7 +286,6 @@ export default function ModuleNine() {
       const originalName = pdfFile.name.replace(/\s+/g, "_");
       const path = `${safeEmail}/${Date.now()}-${originalName}`;
 
-      // Upload to existing bucket: final-pdfs
       const { error: uploadErr } = await supabase.storage
         .from("final-pdfs")
         .upload(path, pdfFile, {
@@ -283,10 +300,7 @@ export default function ModuleNine() {
         return;
       }
 
-      const { data: pub } = supabase
-        .storage
-        .from("final-pdfs")
-        .getPublicUrl(path);
+      const { data: pub } = supabase.storage.from("final-pdfs").getPublicUrl(path);
       const publicUrl = pub?.publicUrl || null;
 
       const docId =
@@ -333,9 +347,7 @@ export default function ModuleNine() {
   if (gateOk === false) {
     return (
       <div className="min-h-screen bg-theme-light flex items-center justify-center p-6">
-        <p className="text-theme-dark">
-          Finish Module 8 before starting Module 9.
-        </p>
+        <p className="text-theme-dark">Finish Module 8 before starting Module 9.</p>
       </div>
     );
   }
@@ -347,67 +359,41 @@ export default function ModuleNine() {
   return (
     <div className="min-h-screen bg-theme-light">
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
-        {/* Intro / teaching card */}
         <header className="bg-white border border-gray-200 rounded-xl shadow-sm px-5 py-4 space-y-3">
-          <h1 className="text-3xl font-extrabold text-theme-blue">
-            📘 Module 9: APA Format and Final Submission
-          </h1>
+          <h1 className="text-3xl font-extrabold text-theme-blue">📘 Module 9: APA Format and Final Submission</h1>
           <p className="text-gray-700 text-sm md:text-base">
-            In this module you will take a short APA style review quiz, move
-            your final draft into an APA formatted Google Doc, and then submit
-            a PDF of your essay. APA style is a set of rules for how the paper
-            looks on the page, not a new kind of essay. You are polishing the
-            presentation of strong thinking you have already done.
+            In this module you will take a short APA style review quiz, move your final draft into an APA formatted
+            Google Doc, and then submit a PDF of your essay. APA style is a set of rules for how the paper looks on
+            the page, not a new kind of essay. You are polishing the presentation of strong thinking you have already done.
           </p>
           <div className="bg-theme-light border border-gray-200 rounded-lg px-4 py-3 text-sm">
             <p className="font-semibold mb-1">What you will do in this module:</p>
             <ol className="list-decimal list-inside space-y-1 text-gray-700">
               <li>Review the APA checklist below.</li>
               <li>Take the APA mini quiz to check your understanding.</li>
-              <li>
-                Open the APA Google Docs template and copy your final essay into
-                that document.
-              </li>
-              <li>
-                Use the checklist to adjust font, spacing, title page, page
-                numbers, and references so they match APA rules.
-              </li>
-              <li>
-                Download the Google Doc as a PDF and upload your final paper in
-                the section at the bottom of this page.
-              </li>
+              <li>Open the APA Google Docs template and copy your final essay into that document.</li>
+              <li>Use the checklist to adjust font, spacing, title page, page numbers, and references so they match APA rules.</li>
+              <li>Download the Google Doc as a PDF and upload your final paper in the section at the bottom of this page.</li>
             </ol>
           </div>
         </header>
 
-        {/* APA checklist + template + external help */}
         <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 space-y-3 shadow-sm">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
-            <span role="img" aria-label="checklist">
-              📋
-            </span>
+            <span role="img" aria-label="checklist">📋</span>
             APA Formatting Checklist
           </h2>
           <p className="text-sm text-gray-700">
-            Use this checklist while you work in the Google Doc. Think of it as
-            a style uniform. Every student paper will not say the same thing,
-            but they all wear the same APA clothing.
+            Use this checklist while you work in the Google Doc. Think of it as a style uniform. Every student paper will not
+            say the same thing, but they all wear the same APA clothing.
           </p>
           <ul className="list-disc ml-6 text-sm space-y-1 text-gray-800">
             <li>Font: Times New Roman, size 12.</li>
             <li>Spacing: double spaced everywhere, including references.</li>
             <li>Margins: one inch on all sides.</li>
-            <li>
-              Title page: includes title, your name, school, course, teacher,
-              and date in the correct spots.
-            </li>
-            <li>
-              Page numbers: page number in the top right corner of every page.
-            </li>
-            <li>
-              References page: starts on a new page, entries in alphabetical
-              order by author last name, double spaced.
-            </li>
+            <li>Title page: includes title, your name, school, course, teacher, and date in the correct spots.</li>
+            <li>Page numbers: page number in the top right corner of every page.</li>
+            <li>References page: starts on a new page, entries in alphabetical order by author last name, double spaced.</li>
           </ul>
           <p className="text-sm text-gray-700">
             📄 Google Doc template (already set up for you):{" "}
@@ -421,15 +407,12 @@ export default function ModuleNine() {
             </a>
           </p>
           <p className="text-xs text-gray-600">
-            Open the template, click the button to make your own copy, then
-            paste your final essay into the body of that document. Replace the
-            placeholder text on the title page with your own information.
+            Open the template, click the button to make your own copy, then paste your final essay into the body of that
+            document. Replace the placeholder text on the title page with your own information.
           </p>
 
           <div className="mt-3 border-t border-gray-200 pt-3">
-            <h3 className="text-sm font-semibold text-theme-dark mb-1">
-              Need more help with APA style?
-            </h3>
+            <h3 className="text-sm font-semibold text-theme-dark mb-1">Need more help with APA style?</h3>
             <ul className="list-disc ml-6 text-xs text-gray-700 space-y-1">
               <li>
                 Official APA sample student paper:{" "}
@@ -455,25 +438,20 @@ export default function ModuleNine() {
               </li>
             </ul>
             <p className="text-xs text-gray-600 mt-1">
-              You do not have to read every word. Use the examples to double
-              check things like the title page, page numbers, in text
-              citations, and reference entries.
+              You do not have to read every word. Use the examples to double check things like the title page, page numbers,
+              in text citations, and reference entries.
             </p>
           </div>
         </section>
 
-        {/* QUIZ */}
         <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
-            <span role="img" aria-label="quiz">
-              ✏️
-            </span>
+            <span role="img" aria-label="quiz">✏️</span>
             APA Mini Quiz
           </h2>
           <p className="text-sm text-gray-700">
-            This quiz is practice. It helps you notice the biggest APA rules
-            before you format your Google Doc. If you miss some questions, use
-            the checklist and resources above to fix your paper.
+            This quiz is practice. It helps you notice the biggest APA rules before you format your Google Doc. If you miss
+            some questions, use the checklist and resources above to fix your paper.
           </p>
 
           {questions.map((item, idx) => (
@@ -484,15 +462,12 @@ export default function ModuleNine() {
               {item.opts.map((opt, oIdx) => {
                 const chosen = userAnswers[idx];
                 const isCorrect = submitted && opt === item.a;
-                const isWrongChoice =
-                  submitted && chosen === opt && chosen !== item.a;
+                const isWrongChoice = submitted && chosen === opt && chosen !== item.a;
 
                 return (
                   <label
                     key={oIdx}
-                    className={`block text-sm ${
-                      isCorrect ? "text-green-700" : ""
-                    } ${isWrongChoice ? "text-red-700" : ""}`}
+                    className={`block text-sm ${isCorrect ? "text-green-700" : ""} ${isWrongChoice ? "text-red-700" : ""}`}
                   >
                     <input
                       type="radio"
@@ -504,19 +479,14 @@ export default function ModuleNine() {
                       className="mr-2"
                     />
                     {opt}
-                    {submitted && isCorrect && (
-                      <span className="ml-2 text-xs">✓ correct</span>
-                    )}
-                    {submitted && isWrongChoice && (
-                      <span className="ml-2 text-xs">✗</span>
-                    )}
+                    {submitted && isCorrect && <span className="ml-2 text-xs">✓ correct</span>}
+                    {submitted && isWrongChoice && <span className="ml-2 text-xs">✗</span>}
                   </label>
                 );
               })}
               {submitted && userAnswers[idx] !== item.a && (
                 <div className="text-xs text-gray-700">
-                  Correct answer:{" "}
-                  <span className="font-semibold">{item.a}</span>
+                  Correct answer: <span className="font-semibold">{item.a}</span>
                 </div>
               )}
               <hr className="my-2" />
@@ -537,9 +507,8 @@ export default function ModuleNine() {
               </div>
 
               <p className="text-sm text-gray-700">
-                Next, you will send your final essay to a Google Doc that is
-                already set up in APA style. Then you will download a PDF and
-                turn it in here.
+                Next, you will send your final essay to a Google Doc that is already set up in APA style. Then you will download
+                a PDF and turn it in here.
               </p>
 
               <button
@@ -553,12 +522,7 @@ export default function ModuleNine() {
                 <div className="mt-4 border rounded-lg p-3 bg-theme-light shadow-sm text-sm">
                   <div className="font-semibold mb-2">Your Google Doc</div>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <a
-                      className="text-theme-blue underline"
-                      href={exportUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a className="text-theme-blue underline" href={exportUrl} target="_blank" rel="noreferrer">
                       Open your document
                     </a>
                     <button
@@ -570,8 +534,7 @@ export default function ModuleNine() {
                   </div>
                   {popupBlocked && (
                     <p className="text-xs text-orange-700 mt-2">
-                      If a popup blocker stopped the new tab, use the link
-                      above or allow popups for this site.
+                      If a popup blocker stopped the new tab, use the link above or allow popups for this site.
                     </p>
                   )}
                 </div>
@@ -580,19 +543,15 @@ export default function ModuleNine() {
           )}
         </section>
 
-        {/* FINAL PDF UPLOAD */}
         {submitted && (
           <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
             <h2 className="text-lg font-semibold text-theme-dark flex items-center gap-2">
-              <span role="img" aria-label="upload">
-                📤
-              </span>
+              <span role="img" aria-label="upload">📤</span>
               Submit Your Final Essay as a PDF
             </h2>
             <p className="text-sm text-gray-700">
-              In Google Docs, choose File → Download → PDF. Save the file where
-              you can find it, then upload that PDF here. This is the version
-              your teacher will grade.
+              In Google Docs, choose File → Download → PDF. Save the file where you can find it, then upload that PDF here.
+              This is the version your teacher will grade.
             </p>
 
             {finalPdfRow && (
@@ -622,18 +581,14 @@ export default function ModuleNine() {
               onClick={handleUploadPDF}
               disabled={!pdfFile || uploading}
               className={`bg-theme-orange text-white px-6 py-2 rounded shadow text-sm font-semibold ${
-                !pdfFile || uploading
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
+                !pdfFile || uploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               {uploading ? "Uploading…" : "📎 Upload Final PDF"}
             </button>
 
             {pdfFile && !uploading && (
-              <div className="text-xs text-gray-600 mt-1">
-                Selected: {pdfFile.name}
-              </div>
+              <div className="text-xs text-gray-600 mt-1">Selected: {pdfFile.name}</div>
             )}
           </section>
         )}

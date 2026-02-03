@@ -8,8 +8,32 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+function getPrivateKeyFromEnv() {
+  const raw = process.env.GOOGLE_PRIVATE_KEY || "";
+  const key = raw.replace(/\\n/g, "\n").trim();
+
+  if (!key) {
+    throw new Error("Missing GOOGLE_PRIVATE_KEY in environment variables.");
+  }
+
+  // Most common cause of "DECODER routines::unsupported"
+  if (key.includes("BEGIN ENCRYPTED PRIVATE KEY")) {
+    throw new Error(
+      "GOOGLE_PRIVATE_KEY is encrypted. Create a new Google service account JSON key and use its private_key value."
+    );
+  }
+
+  if (!key.includes("BEGIN PRIVATE KEY") || !key.includes("END PRIVATE KEY")) {
+    throw new Error(
+      "GOOGLE_PRIVATE_KEY must be an unencrypted PKCS8 key containing BEGIN PRIVATE KEY and END PRIVATE KEY."
+    );
+  }
+
+  return key;
+}
+
 function buildGoogleAuth() {
-  // Option A: Use a service account JSON file on disk (your current setup)
+  // Option A: Use a service account JSON file on disk
   const keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (keyFile) {
     return new google.auth.GoogleAuth({
@@ -21,17 +45,15 @@ function buildGoogleAuth() {
     });
   }
 
-  // Option B: Use env vars (useful for deploy later)
+  // Option B: Use env vars (recommended for deploy)
   const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const rawPrivateKey = process.env.GOOGLE_PRIVATE_KEY;
-
-  if (!clientEmail || !rawPrivateKey) {
+  if (!clientEmail) {
     throw new Error(
-      "Google service account credentials missing. Set GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY."
+      "Missing GOOGLE_SERVICE_ACCOUNT_EMAIL in environment variables."
     );
   }
 
-  const privateKey = rawPrivateKey.replace(/\\n/g, "\n");
+  const privateKey = getPrivateKeyFromEnv();
 
   return new google.auth.GoogleAuth({
     credentials: { client_email: clientEmail, private_key: privateKey },
@@ -44,7 +66,9 @@ function buildGoogleAuth() {
 
 export async function POST(req) {
   try {
-    const { text, email } = await req.json();
+    const body = await req.json().catch(() => null);
+    const text = body?.text;
+    const email = body?.email;
 
     if (!text || !email) {
       return NextResponse.json(
@@ -65,7 +89,7 @@ export async function POST(req) {
       requestBody: { title: "APA Final Essay" },
     });
 
-    const documentId = created.data.documentId;
+    const documentId = created?.data?.documentId;
     if (!documentId) {
       return NextResponse.json(
         { error: "Google Docs did not return a documentId" },
@@ -89,7 +113,10 @@ export async function POST(req) {
         sendNotificationEmail: false,
       });
     } catch (permErr) {
-      console.warn("Could not grant writer permission to user:", permErr?.message || permErr);
+      console.warn(
+        "Could not grant writer permission to user:",
+        permErr?.message || permErr
+      );
     }
 
     // 4) Make link viewable to anyone with the link (so teacher can view)
@@ -122,14 +149,15 @@ export async function POST(req) {
 
     if (upsertErr) {
       console.error("Supabase upsert error:", upsertErr);
+      // Do not fail the export if logging fails
     }
 
     return NextResponse.json({ url });
   } catch (err) {
+    const message = err?.message || "Export failed";
     console.error("Export error:", err);
-    return NextResponse.json(
-      { error: err?.message || "Export failed" },
-      { status: 500 }
-    );
+
+    // Return a clean message to the client
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
