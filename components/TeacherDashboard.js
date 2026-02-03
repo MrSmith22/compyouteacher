@@ -22,6 +22,8 @@ export default function TeacherDashboard() {
   const [submittedOnly, setSubmittedOnly] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [activityModuleFilter, setActivityModuleFilter] = useState("all");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [notesByEmail, setNotesByEmail] = useState({});
 
   // --------------------------------------------------
   // 1. Determine user role from /api/role
@@ -189,6 +191,35 @@ useEffect(() => {
   // --------------------------------------------------
   // 4. Selected student's activity timeline
   // --------------------------------------------------
+  const selectedRow = useMemo(() => {
+    if (!selectedEmail) return null;
+    return rows.find((row) => row.email === selectedEmail) || null;
+  }, [rows, selectedEmail]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setDrawerOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    if (!selectedEmail) return;
+    if (notesByEmail[selectedEmail] !== undefined) return;
+    try {
+      const stored = localStorage.getItem(`teacherNotes:${selectedEmail}`);
+      if (stored !== null) {
+        setNotesByEmail((prev) => ({ ...prev, [selectedEmail]: stored }));
+      }
+    } catch (err) {
+      console.warn("Unable to load local notes:", err);
+    }
+  }, [selectedEmail, notesByEmail]);
+
   const timeline = useMemo(() => {
     if (!selectedEmail) return [];
     let list = activityLog.filter((a) => a.user_email === selectedEmail);
@@ -338,11 +369,10 @@ useEffect(() => {
                 return (
                   <tr
                     key={row.email}
-                    onClick={() =>
-                      setSelectedEmail(
-                        selectedEmail === row.email ? null : row.email
-                      )
-                    }
+                    onClick={() => {
+                      setSelectedEmail(row.email);
+                      setDrawerOpen(true);
+                    }}
                     className={`cursor-pointer ${baseRowBg} hover:bg-yellow-50 transition-colors`}
                   >
                     {/* sticky student cell */}
@@ -466,6 +496,125 @@ useEffect(() => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* SUBMISSION DETAIL DRAWER */}
+      {drawerOpen && selectedRow && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/30 z-40"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <aside className="fixed right-0 top-0 h-full w-full sm:w-[360px] bg-white border border-gray-200 rounded-l-xl shadow-lg z-50 p-4 overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+              <h2 className="text-lg font-semibold text-theme-dark">
+                Submission Details
+              </h2>
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                className="text-theme-dark hover:text-theme-blue text-sm font-semibold"
+                aria-label="Close drawer"
+              >
+                X
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 text-sm text-theme-dark">
+              <section className="space-y-1">
+                <div className="text-xs uppercase tracking-wide text-theme-muted">
+                  Student info
+                </div>
+                <div className="font-medium">{selectedRow.email}</div>
+                <div className="text-theme-muted">
+                  Status: {selectedRow.status}
+                </div>
+                <div className="text-theme-muted">
+                  Current module: {selectedRow.currentModule ?? "0"}
+                </div>
+                <div className="text-theme-muted">
+                  Module 9 quiz: {selectedRow.module9Quiz || "No attempt yet"}
+                </div>
+              </section>
+
+              <section className="space-y-2">
+                <div className="text-xs uppercase tracking-wide text-theme-muted">
+                  Links
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedRow.googleDocUrl ? (
+                    <a
+                      href={selectedRow.googleDocUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block px-3 py-1.5 rounded text-white text-xs font-medium bg-theme-green hover:opacity-90"
+                    >
+                      Open Google Doc
+                    </a>
+                  ) : (
+                    <span className="text-theme-muted text-xs">
+                      No Google Doc link
+                    </span>
+                  )}
+                  {selectedRow.finalPdfUrl ? (
+                    <a
+                      href={selectedRow.finalPdfUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block px-3 py-1.5 rounded text-white text-xs font-medium bg-theme-blue hover:opacity-90"
+                    >
+                      Open final PDF
+                    </a>
+                  ) : (
+                    <span className="text-theme-muted text-xs">
+                      No final PDF
+                    </span>
+                  )}
+                </div>
+                {selectedRow.finalPdfUrl && (
+                  <a
+                    href={selectedRow.finalPdfUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    download
+                    className="text-theme-blue underline text-xs"
+                  >
+                    Download PDF
+                  </a>
+                )}
+              </section>
+
+              <section className="space-y-2">
+                <label className="text-xs uppercase tracking-wide text-theme-muted">
+                  Quick notes
+                </label>
+                <textarea
+                  rows={4}
+                  value={notesByEmail[selectedRow.email] ?? ""}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setNotesByEmail((prev) => ({
+                      ...prev,
+                      [selectedRow.email]: nextValue,
+                    }));
+                    try {
+                      localStorage.setItem(
+                        `teacherNotes:${selectedRow.email}`,
+                        nextValue
+                      );
+                    } catch (err) {
+                      console.warn("Unable to save local notes:", err);
+                    }
+                  }}
+                  className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-theme-green"
+                />
+                <p className="text-xs text-theme-muted">
+                  Local only on this computer for now
+                </p>
+              </section>
+            </div>
+          </aside>
+        </>
       )}
 
       {/* TIMELINE SECTION */}
