@@ -157,6 +157,7 @@ export default function Dashboard() {
   }
 
   const buttonState = getButtonState();
+  const hasFinalPdf = !!finalPdf;
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark">
@@ -192,27 +193,40 @@ export default function Dashboard() {
               <div className="text-xs text-gray-600 space-y-1">
                 <div>
                   Status:{" "}
-                  {assignment?.status || "Not started"}
+                  {hasFinalPdf ? "Essay completed" : (assignment?.status || "Not started")}
                 </div>
-                {assignment?.current_module && (
-                  <div>Current module: {assignment.current_module}</div>
+                {hasFinalPdf ? (
+                  <div>Essay completed</div>
+                ) : (
+                  assignment?.current_module != null && (
+                    <div>Current module: {assignment.current_module}</div>
+                  )
                 )}
               </div>
             </div>
 
             <div className="flex flex-col items-stretch gap-2 min-w-[190px]">
-              <button
-                type="button"
-                onClick={handlePrimaryClick}
-                disabled={buttonState.disabled}
-                className={`px-4 py-2 rounded text-sm font-semibold shadow ${
-                  buttonState.disabled
-                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                    : "bg-theme-blue text-white hover:bg-blue-700"
-                }`}
-              >
-                {buttonState.label}
-              </button>
+              {hasFinalPdf ? (
+                <span
+                  className="px-4 py-2 rounded text-sm font-semibold shadow bg-theme-green text-white cursor-default inline-block text-center"
+                  aria-label="Essay completed"
+                >
+                  Essay completed
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePrimaryClick}
+                  disabled={buttonState.disabled}
+                  className={`px-4 py-2 rounded text-sm font-semibold shadow ${
+                    buttonState.disabled
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-theme-blue text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {buttonState.label}
+                </button>
+              )}
 
               {finalPdf && (
                 <a

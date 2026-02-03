@@ -30,7 +30,10 @@ export default function ModuleNine() {
   const [finalPdfRow, setFinalPdfRow] = useState(null);
 
   const hasLoggedStartRef = useRef(false);
+  const hasLoggedSubmissionDetectedRef = useRef(false);
   const [gateOk, setGateOk] = useState(null); // null = loading, true/false = result
+
+  const alreadySubmitted = !!finalPdfRow;
 
   const questions = [
     {
@@ -160,6 +163,12 @@ export default function ModuleNine() {
     })();
   }, [session?.user?.email]);
 
+  useEffect(() => {
+    if (!session?.user?.email || !finalPdfRow || hasLoggedSubmissionDetectedRef.current) return;
+    hasLoggedSubmissionDetectedRef.current = true;
+    logActivity(session.user.email, "submission_detected", { module: 9 });
+  }, [session?.user?.email, finalPdfRow]);
+
   const handleAnswer = (idx, val) => {
     const copy = [...userAnswers];
     copy[idx] = val;
@@ -282,57 +291,44 @@ export default function ModuleNine() {
     try {
       setUploading(true);
 
-      const safeEmail = session.user.email.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const originalName = pdfFile.name.replace(/\s+/g, "_");
-      const path = `${safeEmail}/${Date.now()}-${originalName}`;
+      const formData = new FormData();
+      formData.append("file", pdfFile);
 
-      const { error: uploadErr } = await supabase.storage
-        .from("final-pdfs")
-        .upload(path, pdfFile, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: "application/pdf",
+      const res = await fetch("/api/final-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (res.status === 409) {
+        const refetch = await getStudentExport({
+          userEmail: session.user.email,
+          module: 9,
+          kind: "final_pdf",
         });
-
-      if (uploadErr) {
-        console.error("[PDF upload error]", uploadErr);
-        alert(`Upload failed: ${uploadErr.message || "Unknown error"}`);
+        if (refetch.data) setFinalPdfRow(refetch.data);
+        alert("Your final PDF has already been submitted. The page has been updated.");
         return;
       }
 
-      const { data: pub } = supabase.storage.from("final-pdfs").getPublicUrl(path);
-      const publicUrl = pub?.publicUrl || null;
-
-      const docId =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `doc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-      const { error: rowErr } = await supabase.from("student_exports").insert({
-        doc_id: docId,
-        user_email: session.user.email,
-        module: 9,
-        kind: "final_pdf",
-        file_name: originalName,
-        storage_path: path,
-        public_url: publicUrl,
-        web_view_link: publicUrl || "",
-        uploaded_at: new Date().toISOString(),
-      });
-
-      if (rowErr) {
-        console.error("[student_exports insert error]", rowErr);
-        alert(`Save failed: ${rowErr.message || "Unknown error"}`);
+      if (!res.ok) {
+        alert(result?.error || "Upload failed. Please try again.");
         return;
       }
 
       await logActivity(session.user.email, "pdf_uploaded", {
         module: 9,
-        file_name: originalName,
-        storage_path: path,
-        public_url: publicUrl,
+        file_name: pdfFile.name,
+        storage_path: result.storage_path,
+        public_url: result.publicUrl,
       });
 
+      setFinalPdfRow((prev) => ({
+        ...prev,
+        public_url: result.publicUrl,
+        web_view_link: result.webViewLink ?? result.publicUrl,
+      }));
       router.push("/modules/9/success");
     } catch (err) {
       console.error(err);
@@ -377,6 +373,35 @@ export default function ModuleNine() {
             </ol>
           </div>
         </header>
+
+        {alreadySubmitted && (
+          <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
+            <h2 className="text-lg font-semibold text-theme-dark">Submitted: Final PDF received</h2>
+            <p className="text-sm text-gray-700">Your work for this module is complete. Use the links below to open your documents.</p>
+            <div className="flex flex-wrap gap-3">
+              {(finalPdfRow?.public_url || finalPdfRow?.web_view_link) && (
+                <a
+                  href={finalPdfRow.public_url || finalPdfRow.web_view_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 rounded bg-theme-blue text-white text-sm font-semibold shadow hover:opacity-90"
+                >
+                  Open final PDF
+                </a>
+              )}
+              {exportUrl && (
+                <a
+                  href={exportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 rounded bg-theme-green text-white text-sm font-semibold shadow hover:opacity-90"
+                >
+                  Open Google Doc
+                </a>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 space-y-3 shadow-sm">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
@@ -506,44 +531,65 @@ export default function ModuleNine() {
                 🎯 You scored {score} / {questions.length}.
               </div>
 
-              <p className="text-sm text-gray-700">
-                Next, you will send your final essay to a Google Doc that is already set up in APA style. Then you will download
-                a PDF and turn it in here.
-              </p>
+              {!alreadySubmitted && (
+                <>
+                  <p className="text-sm text-gray-700">
+                    Next, you will send your final essay to a Google Doc that is already set up in APA style. Then you will download
+                    a PDF and turn it in here.
+                  </p>
 
-              <button
-                onClick={handleExportToGoogleDocs}
-                className="bg-theme-blue text-white px-6 py-3 rounded shadow text-sm font-semibold"
-              >
-                ✍ Export Final Draft to Google Docs (APA Format)
-              </button>
+                  <button
+                    onClick={handleExportToGoogleDocs}
+                    className="bg-theme-blue text-white px-6 py-3 rounded shadow text-sm font-semibold"
+                  >
+                    ✍ Export Final Draft to Google Docs (APA Format)
+                  </button>
 
-              {exportUrl && (
-                <div className="mt-4 border rounded-lg p-3 bg-theme-light shadow-sm text-sm">
-                  <div className="font-semibold mb-2">Your Google Doc</div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <a className="text-theme-blue underline" href={exportUrl} target="_blank" rel="noreferrer">
-                      Open your document
-                    </a>
-                    <button
-                      className="px-3 py-1 border rounded text-xs"
-                      onClick={() => navigator.clipboard.writeText(exportUrl)}
-                    >
-                      Copy link
-                    </button>
-                  </div>
-                  {popupBlocked && (
-                    <p className="text-xs text-orange-700 mt-2">
-                      If a popup blocker stopped the new tab, use the link above or allow popups for this site.
-                    </p>
+                  {exportUrl && (
+                    <div className="mt-4 border rounded-lg p-3 bg-theme-light shadow-sm text-sm">
+                      <div className="font-semibold mb-2">Your Google Doc</div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <a className="text-theme-blue underline" href={exportUrl} target="_blank" rel="noreferrer">
+                          Open your document
+                        </a>
+                        <button
+                          className="px-3 py-1 border rounded text-xs"
+                          onClick={() => navigator.clipboard.writeText(exportUrl)}
+                        >
+                          Copy link
+                        </button>
+                      </div>
+                      {popupBlocked && (
+                        <p className="text-xs text-orange-700 mt-2">
+                          If a popup blocker stopped the new tab, use the link above or allow popups for this site.
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
+                </>
+              )}
+              {alreadySubmitted && (
+                <p className="text-sm text-gray-700">
+                  Your final PDF has been submitted. Use the links at the top of this page to open your documents.
+                </p>
               )}
             </div>
           )}
         </section>
 
-        {submitted && (
+        {alreadySubmitted && (
+          <section className="mt-6 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="bg-theme-red text-white px-6 py-3 rounded shadow text-sm font-semibold hover:opacity-90"
+            >
+              Back to Dashboard
+            </button>
+          </section>
+        )}
+
+        {submitted && !alreadySubmitted && (
           <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
             <h2 className="text-lg font-semibold text-theme-dark flex items-center gap-2">
               <span role="img" aria-label="upload">📤</span>
@@ -553,22 +599,6 @@ export default function ModuleNine() {
               In Google Docs, choose File → Download → PDF. Save the file where you can find it, then upload that PDF here.
               This is the version your teacher will grade.
             </p>
-
-            {finalPdfRow && (
-              <div className="rounded-lg border border-gray-200 bg-theme-light px-4 py-3 text-sm">
-                <p className="text-gray-700">We already have a final PDF on file.</p>
-                {(finalPdfRow.public_url || finalPdfRow.web_view_link) && (
-                  <a
-                    href={finalPdfRow.public_url || finalPdfRow.web_view_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-theme-blue underline mt-1 inline-block"
-                  >
-                    Open final PDF
-                  </a>
-                )}
-              </div>
-            )}
 
             <input
               type="file"

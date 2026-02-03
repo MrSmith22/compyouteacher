@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { fetchTeacherDashboardData } from "@/lib/supabase/helpers/teacherDashboard";
+import {
+  fetchTeacherDashboardData,
+  fetchModule9SubmissionList,
+} from "@/lib/supabase/helpers/teacherDashboard";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -29,12 +32,21 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Teacher access only" }, { status: 403 });
   }
 
-  const { data, error } = await fetchTeacherDashboardData();
+  const [dashboardResult, submissionResult] = await Promise.all([
+    fetchTeacherDashboardData(),
+    fetchModule9SubmissionList(),
+  ]);
 
+  const { data, error } = dashboardResult;
   if (error) {
     console.error("Teacher dashboard query error:", error);
     return NextResponse.json({ ok: false, error: "Dashboard query failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, data }, { status: 200 });
+  const module9SubmissionList = submissionResult.error ? [] : (submissionResult.data ?? []);
+
+  return NextResponse.json(
+    { ok: true, data: { ...data, module9SubmissionList } },
+    { status: 200 }
+  );
 }

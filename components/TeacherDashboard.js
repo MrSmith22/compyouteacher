@@ -19,6 +19,7 @@ export default function TeacherDashboard() {
 
   // UI STATE
   const [moduleFilter, setModuleFilter] = useState("all");
+  const [submittedOnly, setSubmittedOnly] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [activityModuleFilter, setActivityModuleFilter] = useState("all");
 
@@ -80,6 +81,8 @@ useEffect(() => {
       const module9 = json.data?.module9 ?? [];
       const activity = json.data?.activity ?? [];
       const exports = json.data?.exports ?? [];
+      // Module 9 submission: submitted = student_exports row with module=9, kind=final_pdf
+      const module9SubmissionList = json.data?.module9SubmissionList ?? [];
 
       setActivityLog(activity);
 
@@ -108,6 +111,9 @@ useEffect(() => {
         const exportRow = (exports || []).find(
           (e) => e.user_email === email && e.module === 9
         );
+        const submissionInfo = module9SubmissionList.find(
+          (s) => s.user_email === email
+        );
 
         const modulesCompleted = acts.filter((a) => a.action === "module_completed").length;
 
@@ -135,8 +141,11 @@ useEffect(() => {
               ? `${m9Row.score}/10`
               : "No attempt yet",
           lastActivity: lastAct,
-          finalPdfUrl: exportRow?.public_url || exportRow?.web_view_link || null,
-          finalPdfName: exportRow?.file_name || null,
+          finalPdfUrl: submissionInfo?.finalPdfUrl ?? exportRow?.public_url ?? exportRow?.web_view_link ?? null,
+          finalPdfName: exportRow?.file_name ?? null,
+          submittedFinalPdf: submissionInfo?.submittedFinalPdf ?? !!exportRow,
+          googleDocUrl: submissionInfo?.googleDocUrl ?? null,
+          submittedAt: exportRow?.uploaded_at ?? exportRow?.created_at ?? null,
         };
       });
 
@@ -153,13 +162,29 @@ useEffect(() => {
 }, [session, role]);
 
   // --------------------------------------------------
-  // 3. Apply module filter
+  // 3. Apply module filter and "Show submitted only" (Module 9)
   // --------------------------------------------------
   const filteredRows = useMemo(() => {
-    if (moduleFilter === "all") return rows;
-    const n = Number(moduleFilter);
-    return rows.filter((r) => Number(r.currentModule) === n);
-  }, [rows, moduleFilter]);
+    let list = rows;
+    if (moduleFilter !== "all") {
+      const n = Number(moduleFilter);
+      list = list.filter((r) => Number(r.currentModule) === n);
+    }
+    if (submittedOnly) {
+      list = list.filter((r) => r.submittedFinalPdf === true);
+    }
+    // Sort: submitted (Module 9 final PDF) first, then by submitted date newest first
+    list = [...list].sort((a, b) => {
+      if (a.submittedFinalPdf !== b.submittedFinalPdf) {
+        return a.submittedFinalPdf ? -1 : 1;
+      }
+      if (a.submittedFinalPdf && b.submittedFinalPdf && a.submittedAt && b.submittedAt) {
+        return new Date(b.submittedAt) - new Date(a.submittedAt);
+      }
+      return 0;
+    });
+    return list;
+  }, [rows, moduleFilter, submittedOnly]);
 
   // --------------------------------------------------
   // 4. Selected student's activity timeline
@@ -223,22 +248,33 @@ useEffect(() => {
 
       {/* TOP FILTER BAR */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white rounded px-4 py-3 border border-theme-light">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-theme-dark">
-            Filter by current module:
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-theme-dark">
+              Filter by current module:
+            </label>
+            <select
+              value={moduleFilter}
+              onChange={(e) => setModuleFilter(e.target.value)}
+              className="border border-theme-light rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-theme-green focus:border-theme-green bg-theme-light"
+            >
+              <option value="all">All</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((m) => (
+                <option key={m} value={m}>
+                  Module {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={submittedOnly}
+              onChange={(e) => setSubmittedOnly(e.target.checked)}
+              className="rounded border-theme-light text-theme-blue focus:ring-theme-blue"
+            />
+            <span className="text-sm text-theme-dark">Show submitted only</span>
           </label>
-          <select
-            value={moduleFilter}
-            onChange={(e) => setModuleFilter(e.target.value)}
-            className="border border-theme-light rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-theme-green focus:border-theme-green bg-theme-light"
-          >
-            <option value="all">All</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((m) => (
-              <option key={m} value={m}>
-                Module {m}
-              </option>
-            ))}
-          </select>
         </div>
 
         <div className="text-xs text-theme-muted">
@@ -282,7 +318,10 @@ useEffect(() => {
                   Last Activity
                 </th>
                 <th className="px-4 py-2 border border-theme-light text-left">
-                  Final PDF
+                  Submitted At
+                </th>
+                <th className="px-4 py-2 border border-theme-light text-left">
+                  Module 9 submission
                 </th>
               </tr>
             </thead>
@@ -354,20 +393,61 @@ useEffect(() => {
                       )}
                     </td>
                     <td className="border border-theme-light px-4 py-2 text-xs">
-                      {row.finalPdfUrl ? (
-                        <a
-                          className="text-theme-blue underline font-medium"
-                          href={row.finalPdfUrl}
-                          target="_blank"
-                          rel="noreferrer"
+                      {row.submittedAt
+                        ? new Date(row.submittedAt).toLocaleString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })
+                        : "\u2014"}
+                    </td>
+                    <td className="border border-theme-light px-4 py-2 text-xs">
+                      <div className="flex flex-col gap-1.5">
+                        <span
+                          className={
+                            row.submittedFinalPdf
+                              ? "text-theme-green font-medium"
+                              : "text-theme-muted"
+                          }
                         >
-                          {row.finalPdfName || "View PDF"}
-                        </a>
-                      ) : (
-                        <span className="text-theme-muted">
-                          No final PDF uploaded
+                          {row.submittedFinalPdf ? "Submitted" : "Not submitted"}
                         </span>
-                      )}
+                        {row.submittedFinalPdf && (
+                          <span className="inline-flex w-fit items-center rounded px-2 py-0.5 text-xs font-medium text-white bg-theme-green">
+                            Essay Complete
+                          </span>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {row.finalPdfUrl ? (
+                            <a
+                              href={row.finalPdfUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-block px-2 py-1 rounded text-white text-xs font-medium bg-theme-blue hover:opacity-90"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Open final PDF
+                            </a>
+                          ) : row.submittedFinalPdf ? (
+                            <span className="text-theme-muted text-xs">
+                              No PDF link
+                            </span>
+                          ) : null}
+                          {row.googleDocUrl ? (
+                            <a
+                              href={row.googleDocUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-block px-2 py-1 rounded text-white text-xs font-medium bg-theme-green hover:opacity-90"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Open Google Doc
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -376,7 +456,7 @@ useEffect(() => {
               {filteredRows.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="border border-theme-light px-4 py-3 text-center text-theme-muted"
                   >
                     No students match this filter.
