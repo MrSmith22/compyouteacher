@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { supabase } from "@/lib/supabaseClient";
+
+const ASSIGNMENT_NAME = "MLK Essay Assignment";
 
 export default function TeacherDashboard() {
   const { data: session, status } = useSession();
@@ -24,6 +25,8 @@ export default function TeacherDashboard() {
   const [activityModuleFilter, setActivityModuleFilter] = useState("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notesByEmail, setNotesByEmail] = useState({});
+  const [notesStatusByEmail, setNotesStatusByEmail] = useState({});
+  const saveTimersRef = useRef({});
 
   // --------------------------------------------------
   // 1. Determine user role from /api/role
@@ -201,6 +204,7 @@ useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
         setDrawerOpen(false);
+        setSelectedEmail(null);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -208,17 +212,105 @@ useEffect(() => {
   }, [drawerOpen]);
 
   useEffect(() => {
-    if (!selectedEmail) return;
-    if (notesByEmail[selectedEmail] !== undefined) return;
-    try {
-      const stored = localStorage.getItem(`teacherNotes:${selectedEmail}`);
-      if (stored !== null) {
-        setNotesByEmail((prev) => ({ ...prev, [selectedEmail]: stored }));
+    if (!drawerOpen || !selectedEmail || !session?.user?.email) return;
+    let active = true;
+    const teacherEmail = session.user.email;
+    const storageKey = `teacherNotes:${teacherEmail}:${selectedEmail}:${ASSIGNMENT_NAME}`;
+
+    const loadNotes = async () => {
+      try {
+        const res = await fetch(
+          `/api/teacher/notes?studentEmail=${encodeURIComponent(
+            selectedEmail
+          )}&assignmentName=${encodeURIComponent(ASSIGNMENT_NAME)}`
+        );
+        if (!res.ok) throw new Error("Notes fetch failed");
+        const json = await res.json();
+        if (!json?.ok) throw new Error(json?.error || "Notes fetch failed");
+        if (!active) return;
+        const note = typeof json.note === "string" ? json.note : "";
+        setNotesByEmail((prev) => ({ ...prev, [selectedEmail]: note }));
+        setNotesStatusByEmail((prev) => ({ ...prev, [selectedEmail]: "Saved" }));
+        try {
+          localStorage.removeItem(storageKey);
+        } catch (err) {
+          console.warn("Unable to clear local notes:", err);
+        }
+      } catch (err) {
+        console.warn("Notes fetch failed:", err);
+        try {
+          const stored = localStorage.getItem(storageKey);
+          if (stored !== null && active) {
+            setNotesByEmail((prev) => ({ ...prev, [selectedEmail]: stored }));
+          }
+        } catch (err2) {
+          console.warn("Unable to load local notes:", err2);
+        }
+        if (active) {
+          setNotesStatusByEmail((prev) => ({
+            ...prev,
+            [selectedEmail]: "Save failed",
+          }));
+        }
       }
-    } catch (err) {
-      console.warn("Unable to load local notes:", err);
+    };
+
+    loadNotes();
+    return () => {
+      active = false;
+    };
+  }, [drawerOpen, selectedEmail, session?.user?.email]);
+
+  const handleNoteChange = (studentEmail, nextValue) => {
+    setNotesByEmail((prev) => ({ ...prev, [studentEmail]: nextValue }));
+    setNotesStatusByEmail((prev) => ({ ...prev, [studentEmail]: "Saving..." }));
+
+    const teacherEmail = session?.user?.email;
+    const storageKey = teacherEmail
+      ? `teacherNotes:${teacherEmail}:${studentEmail}:${ASSIGNMENT_NAME}`
+      : null;
+    const timers = saveTimersRef.current;
+    if (timers[studentEmail]) {
+      clearTimeout(timers[studentEmail]);
     }
-  }, [selectedEmail, notesByEmail]);
+    timers[studentEmail] = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/teacher/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentEmail,
+            assignmentName: ASSIGNMENT_NAME,
+            note: nextValue,
+          }),
+        });
+        if (!res.ok) throw new Error("Notes save failed");
+        const json = await res.json();
+        if (!json?.ok) throw new Error(json?.error || "Notes save failed");
+        setNotesStatusByEmail((prev) => ({ ...prev, [studentEmail]: "Saved" }));
+        if (storageKey) {
+          try {
+            localStorage.removeItem(storageKey);
+          } catch (err) {
+            console.warn("Unable to clear local notes:", err);
+          }
+        }
+      } catch (err) {
+        console.warn("Notes save failed:", err);
+        setNotesStatusByEmail((prev) => ({
+          ...prev,
+          [studentEmail]: "Save failed",
+        }));
+        if (storageKey) {
+          try {
+            localStorage.setItem(storageKey, nextValue);
+          } catch (err2) {
+            console.warn("Unable to save local notes:", err2);
+          }
+        }
+      }
+    }, 700);
+  };
 
   const timeline = useMemo(() => {
     if (!selectedEmail) return [];
@@ -359,8 +451,9 @@ useEffect(() => {
 
             <tbody>
               {filteredRows.map((row, idx) => {
+                const isSelected = drawerOpen && selectedEmail === row.email;
                 const baseRowBg =
-                  selectedEmail === row.email
+                  isSelected
                     ? "bg-theme-light"
                     : idx % 2 === 0
                     ? "bg-white"
@@ -373,11 +466,13 @@ useEffect(() => {
                       setSelectedEmail(row.email);
                       setDrawerOpen(true);
                     }}
-                    className={`cursor-pointer ${baseRowBg} hover:bg-yellow-50 transition-colors`}
+                    className={`cursor-pointer ${baseRowBg} hover:bg-theme-light transition-colors`}
                   >
                     {/* sticky student cell */}
                     <td
-                      className={`border border-theme-light px-4 py-2 font-medium text-theme-dark sticky left-0 z-10 ${baseRowBg}`}
+                      className={`border border-theme-light px-4 py-2 font-medium text-theme-dark sticky left-0 z-10 ${baseRowBg} ${
+                        isSelected ? "border-l-4 border-theme-green" : ""
+                      }`}
                     >
                       {row.email}
                     </td>
@@ -503,7 +598,10 @@ useEffect(() => {
         <>
           <div
             className="fixed inset-0 bg-black/30 z-40"
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => {
+              setDrawerOpen(false);
+              setSelectedEmail(null);
+            }}
           />
           <aside className="fixed right-0 top-0 h-full w-full sm:w-[360px] bg-white border border-gray-200 rounded-l-xl shadow-lg z-50 p-4 overflow-y-auto">
             <div className="flex items-center justify-between border-b border-gray-200 pb-2">
@@ -512,7 +610,10 @@ useEffect(() => {
               </h2>
               <button
                 type="button"
-                onClick={() => setDrawerOpen(false)}
+                onClick={() => {
+                  setDrawerOpen(false);
+                  setSelectedEmail(null);
+                }}
                 className="text-theme-dark hover:text-theme-blue text-sm font-semibold"
                 aria-label="Close drawer"
               >
@@ -591,26 +692,19 @@ useEffect(() => {
                 <textarea
                   rows={4}
                   value={notesByEmail[selectedRow.email] ?? ""}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setNotesByEmail((prev) => ({
-                      ...prev,
-                      [selectedRow.email]: nextValue,
-                    }));
-                    try {
-                      localStorage.setItem(
-                        `teacherNotes:${selectedRow.email}`,
-                        nextValue
-                      );
-                    } catch (err) {
-                      console.warn("Unable to save local notes:", err);
-                    }
-                  }}
+                  onChange={(event) =>
+                    handleNoteChange(selectedRow.email, event.target.value)
+                  }
                   className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-theme-green"
                 />
                 <p className="text-xs text-theme-muted">
-                  Local only on this computer for now
+                  Saved to your teacher notes with a local fallback
                 </p>
+                {notesStatusByEmail[selectedRow.email] && (
+                  <p className="text-xs text-theme-muted">
+                    {notesStatusByEmail[selectedRow.email]}
+                  </p>
+                )}
               </section>
             </div>
           </aside>
