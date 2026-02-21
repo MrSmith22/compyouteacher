@@ -20,8 +20,11 @@ export const authOptions = {
       session.user.id = token.sub;
       return session;
     },
+    redirect({ url, baseUrl }) {
+      return url.startsWith(baseUrl) ? url : baseUrl + "/dashboard";
+    },
   },
-    events: {
+  events: {
     async signIn({ user }) {
       if (user?.email) {
         await logActivity(user.email, "login", {
@@ -30,10 +33,5 @@ export const authOptions = {
       }
     },
   },
-  // keep any other callbacks/settings you had – for example redirect:
-  // redirect({ url, baseUrl }) {
-  //   return url.startsWith(baseUrl) ? url : baseUrl + "/dashboard";
-  // },
-
   secret: process.env.NEXTAUTH_SECRET,
 };

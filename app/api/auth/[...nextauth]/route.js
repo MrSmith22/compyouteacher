@@ -1,30 +1,7 @@
 import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import { authOptions } from "./authOptions";
 
-export const authOptions = {
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      authorization: {
-        params: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    }),
-  ],
-  callbacks: {
-    async session({ session, token }) {
-      session.user.id = token.sub;
-      return session;
-    },
-  },
-  redirect({ url, baseUrl }) {
-    return url.startsWith(baseUrl) ? url : baseUrl + "/dashboard";
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-};
+export const dynamic = "force-dynamic";
 
 const handler = NextAuth(authOptions);
 

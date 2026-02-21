@@ -37,30 +37,42 @@ export async function GET(req) {
     return NextResponse.json({ ok: false, error: "Teacher access only" }, { status: 403 });
   }
 
-  const [draftRes, pdfRes, docRes, quizRes] = await Promise.all([
+  const [draftRes, pdfRes, docRes, quizRes, checklistRes] = await Promise.all([
     supabase
       .from("student_drafts")
       .select("final_ready, final_text, updated_at")
       .eq("user_email", studentEmail)
       .eq("module", 8)
-      .maybeSingle(),
+      .order("updated_at", { ascending: false })
+      .limit(1),
     supabase
       .from("student_exports")
       .select("*")
       .eq("user_email", studentEmail)
       .eq("module", 9)
       .eq("kind", "final_pdf")
-      .maybeSingle(),
+      .order("uploaded_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(1),
     supabase
       .from("exported_docs")
       .select("web_view_link, created_at")
       .eq("user_email", studentEmail)
-      .maybeSingle(),
+      .order("created_at", { ascending: false })
+      .limit(1),
     supabase
       .from("module9_quiz")
       .select("score, total, submitted_at")
       .eq("user_email", studentEmail)
-      .maybeSingle()
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .then((r) => (r.error ? { data: null, error: r.error } : r)),
+    supabase
+      .from("module9_checklist")
+      .select("items, complete, updated_at")
+      .eq("user_email", studentEmail)
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .then((r) => (r.error ? { data: null, error: r.error } : r)),
   ]);
 
@@ -76,11 +88,14 @@ export async function GET(req) {
   if (quizRes.error) {
     console.warn("Student detail: module9_quiz query failed:", quizRes.error);
   }
+  if (checklistRes.error) {
+    console.warn("Student detail: module9_checklist query failed:", checklistRes.error);
+  }
 
-  const draft = draftRes.data;
-  const pdf = pdfRes.data;
-  const doc = docRes.data;
-  const quizRow = quizRes.data;
+  const draft = draftRes.data?.[0] ?? null;
+  const pdf = pdfRes.data?.[0] ?? null;
+  const doc = docRes.data?.[0] ?? null;
+  const quizRow = quizRes.data?.[0] ?? null;
 
   const pdfUrl = pdf
     ? (pdf.web_view_link || pdf.public_url) || null
@@ -111,6 +126,14 @@ export async function GET(req) {
       }
     : null;
 
+  const checklistRow = checklistRes.error ? null : (checklistRes.data?.[0] ?? null);
+  const checklist = checklistRow
+    ? {
+        complete: !!checklistRow.complete,
+        updated_at: checklistRow.updated_at ?? null,
+      }
+    : null;
+
   const payload = {
     user_email: studentEmail,
     module8: draft
@@ -133,6 +156,7 @@ export async function GET(req) {
       ? { url: docUrl, created_at: docCreatedAt }
       : null,
     quiz,
+    checklist,
   };
 
   return NextResponse.json(payload, { status: 200 });

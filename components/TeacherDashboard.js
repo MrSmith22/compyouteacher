@@ -1019,7 +1019,13 @@ useEffect(() => {
                           </p>
                         )}
                         <p className="text-xs text-theme-muted mt-2">
-                          Module 9 checklist: Not tracked (local only)
+                          {detail?.checklist
+                            ? `Checklist: ${detail.checklist.complete ? "Complete" : "Incomplete"}${
+                                detail.checklist.updated_at
+                                  ? ` — ${formatDate(detail.checklist.updated_at)}`
+                                  : ""
+                              }`
+                            : "Checklist: Not started"}
                         </p>
                       </section>
                     </div>

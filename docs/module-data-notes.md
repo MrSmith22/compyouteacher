@@ -384,6 +384,14 @@ Export metadata:
 Final PDF stored in Supabase Storage
 URL saved in export record.
 
+### Table: module9_checklist
+- user_email (primary key)
+- items (jsonb, array of 6 booleans)
+- complete (boolean, true when all 6 items checked)
+- created_at, updated_at
+
+Persistence replaces former localStorage. Teachers see checklist status (complete/incomplete, updated_at) in the student drawer.
+
 ## Logging
 student_activity_log:
 - quiz_submitted
@@ -425,6 +433,7 @@ Core Tables:
 - student_outlines
 - student_drafts
 - module9_quiz
+- module9_checklist
 - student_exports
 - student_activity_log
 

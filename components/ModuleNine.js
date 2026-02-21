@@ -9,6 +9,10 @@ import {
   getExportedDocLink,
   getStudentExport,
 } from "@/lib/supabase/helpers/studentExports";
+import {
+  getModule9Checklist,
+  upsertModule9Checklist,
+} from "@/lib/supabase/helpers/module9Checklist";
 import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
 
@@ -32,6 +36,8 @@ export default function ModuleNine() {
   const [guidedMode, setGuidedMode] = useState(true);
   const [viewedStep, setViewedStep] = useState(1);
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
+  const [checklistLoading, setChecklistLoading] = useState(true);
+  const [checklistError, setChecklistError] = useState(null);
 
   const hasLoggedStartRef = useRef(false);
   const hasLoggedSubmissionDetectedRef = useRef(false);
@@ -62,41 +68,48 @@ export default function ModuleNine() {
     "References page: starts on a new page, entries in alphabetical order by author last name, double spaced.",
   ];
 
-  const CHECKLIST_STORAGE_KEY = (email) => `wp:m9_checklist:${email}`;
   const checklistLoadedRef = useRef(false);
+  const saveDebounceRef = useRef(null);
+  const hasInitialLoadDoneRef = useRef(false);
 
   useEffect(() => {
     const email = session?.user?.email;
-    if (!email || checklistLoadedRef.current) return;
-    checklistLoadedRef.current = true;
-    try {
-      const raw = localStorage.getItem(CHECKLIST_STORAGE_KEY(email));
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length === 6) {
-        setChecklistState(parsed.map(Boolean));
-      }
-    } catch {
-      try {
-        localStorage.removeItem(CHECKLIST_STORAGE_KEY(email));
-      } catch {
-        // ignore
-      }
+    if (!email || checklistLoadedRef.current) {
+      if (!email) setChecklistLoading(false);
+      return;
     }
+    checklistLoadedRef.current = true;
+    (async () => {
+      const { data, error } = await getModule9Checklist({ userEmail: email });
+      if (error) {
+        setChecklistError(error.message ?? "Could not load checklist");
+      }
+      if (data?.items && Array.isArray(data.items) && data.items.length === 6) {
+        setChecklistState(data.items.map(Boolean));
+      }
+      setChecklistLoading(false);
+      hasInitialLoadDoneRef.current = true;
+    })();
   }, [session?.user?.email]);
 
   useEffect(() => {
     const email = session?.user?.email;
-    if (!email) return;
-    try {
-      localStorage.setItem(
-        CHECKLIST_STORAGE_KEY(email),
-        JSON.stringify(checklistState)
-      );
-    } catch {
-      // ignore
-    }
-  }, [session?.user?.email, checklistState]);
+    if (!email || checklistLoading || !hasInitialLoadDoneRef.current) return;
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    saveDebounceRef.current = setTimeout(async () => {
+      saveDebounceRef.current = null;
+      const { error } = await upsertModule9Checklist({
+        userEmail: email,
+        items: checklistState,
+      });
+      if (error) {
+        setChecklistError(error.message ?? "Could not save checklist");
+      }
+    }, 400);
+    return () => {
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    };
+  }, [session?.user?.email, checklistState, checklistLoading]);
 
   const questions = [
     {
@@ -781,6 +794,11 @@ export default function ModuleNine() {
               </label>
             ))}
           </div>
+          {checklistError && (
+            <p className="text-xs text-theme-red mt-1">
+              Checklist could not be saved: {checklistError}. Your selections are kept for this session.
+            </p>
+          )}
           {checklistComplete && (
             <p className="text-theme-green text-sm font-medium">All items confirmed. Proceed to upload your PDF.</p>
           )}
