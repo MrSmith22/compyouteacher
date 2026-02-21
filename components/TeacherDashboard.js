@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import { logActivity } from "@/lib/logActivity";
 
 const ASSIGNMENT_NAME = "MLK Essay Assignment";
 const gradingStatusOptions = [
@@ -32,6 +33,9 @@ export default function TeacherDashboard() {
   // DASHBOARD DATA
   const [rows, setRows] = useState([]);
   const [activityLog, setActivityLog] = useState([]);
+  const [overview, setOverview] = useState([]);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState(null);
 
   // UI STATE
   const [moduleFilter, setModuleFilter] = useState("all");
@@ -44,6 +48,20 @@ export default function TeacherDashboard() {
   const [gradingStatusStatusByEmail, setGradingStatusStatusByEmail] =
     useState({});
   const saveTimersRef = useRef({});
+  const hasFetchedOverviewRef = useRef(false);
+
+  // Phase 1 quick filters (client-side on overview)
+  const [overviewFilter, setOverviewFilter] = useState("all");
+  const [overviewSearch, setOverviewSearch] = useState("");
+
+  // Phase 2: per-student detail view
+  const [viewPanelOpen, setViewPanelOpen] = useState(false);
+  const [viewPanelEmail, setViewPanelEmail] = useState(null);
+  const [studentDetailByEmail, setStudentDetailByEmail] = useState({});
+  const [viewPanelLoading, setViewPanelLoading] = useState(false);
+  const [viewPanelRefreshing, setViewPanelRefreshing] = useState(false);
+  const [viewPanelError, setViewPanelError] = useState(null);
+  const [copyFeedback, setCopyFeedback] = useState(null);
 
   // --------------------------------------------------
   // 1. Determine user role from /api/role
@@ -188,6 +206,192 @@ useEffect(() => {
 }, [session, role]);
 
   // --------------------------------------------------
+  // 2b. Load Phase 1 overview (Module 10)
+  // --------------------------------------------------
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    if (role !== "teacher") {
+      hasFetchedOverviewRef.current = false;
+      return;
+    }
+    if (hasFetchedOverviewRef.current) return;
+
+    const loadOverview = async () => {
+      setOverviewLoading(true);
+      setOverviewError(null);
+      try {
+        const res = await fetch("/api/teacher/overview");
+        if (!res.ok) throw new Error("Failed to load overview");
+        const data = await res.json();
+        setOverview(Array.isArray(data) ? data : []);
+        return true;
+      } catch (err) {
+        setOverviewError(err?.message || "Overview load failed");
+        setOverview([]);
+        return false;
+      } finally {
+        setOverviewLoading(false);
+      }
+    };
+    loadOverview().then((success) => {
+      if (success) hasFetchedOverviewRef.current = true;
+    });
+  }, [session, role]);
+
+  // --------------------------------------------------
+  // 2c. Phase 2: Fetch student detail when View panel opens
+  // --------------------------------------------------
+  useEffect(() => {
+    if (!viewPanelOpen || !viewPanelEmail || !session?.user?.email) return;
+    if (viewPanelEmail in studentDetailByEmail) return; // already cached
+
+    let cancelled = false;
+    setViewPanelLoading(true);
+    setViewPanelError(null);
+
+    const fetchDetail = async () => {
+      try {
+        const res = await fetch(
+          `/api/teacher/student?email=${encodeURIComponent(viewPanelEmail)}`
+        );
+        const data = await res.json();
+        if (cancelled) return;
+
+        if (!res.ok) {
+          const errMsg = data?.error || "Failed to load student detail";
+          setViewPanelError(errMsg);
+          setStudentDetailByEmail((prev) => ({
+            ...prev,
+            [viewPanelEmail]: { error: errMsg },
+          }));
+          return;
+        }
+
+        setStudentDetailByEmail((prev) => ({
+          ...prev,
+          [viewPanelEmail]: { data },
+        }));
+      } catch (err) {
+        if (cancelled) return;
+        const errMsg = err?.message || "Failed to load student detail";
+        setViewPanelError(errMsg);
+        setStudentDetailByEmail((prev) => ({
+          ...prev,
+          [viewPanelEmail]: { error: errMsg },
+        }));
+      } finally {
+        if (!cancelled) setViewPanelLoading(false);
+      }
+    };
+
+    fetchDetail();
+    return () => {
+      cancelled = true;
+    };
+  }, [viewPanelOpen, viewPanelEmail, session?.user?.email]);
+
+  const openViewPanel = (row) => {
+    setViewPanelEmail(row.user_email);
+    setViewPanelOpen(true);
+    setViewPanelError(null);
+    logActivity("teacher_view_student", { student_email: row.user_email });
+  };
+
+  const closeViewPanel = () => {
+    setViewPanelOpen(false);
+    setViewPanelEmail(null);
+  };
+
+  const filteredOverview = useMemo(() => {
+    let list = overview;
+    if (overviewFilter !== "all") {
+      if (overviewFilter === "done") {
+        list = list.filter((r) => r.final_ready && r.has_final_pdf);
+      } else if (overviewFilter === "needs_pdf") {
+        list = list.filter((r) => r.final_ready && !r.has_final_pdf);
+      } else if (overviewFilter === "quiz_under_70") {
+        list = list.filter(
+          (r) => r.quiz_percent != null && r.quiz_percent < 70
+        );
+      } else if (overviewFilter === "in_progress") {
+        list = list.filter((r) => !r.final_ready);
+      }
+    }
+    if (overviewSearch.trim()) {
+      const s = overviewSearch.trim().toLowerCase();
+      list = list.filter((r) =>
+        (r.user_email ?? "").toLowerCase().includes(s)
+      );
+    }
+    return list;
+  }, [overview, overviewFilter, overviewSearch]);
+
+  const buildNudgeMessage = (row) => {
+    const parts = [
+      `Student: ${row.user_email}`,
+      `Locked: ${row.final_ready ? "Yes" : "No"}`,
+      `Quiz: ${row.quiz_completed ? `${row.quiz_score ?? "—"}/${row.quiz_total ?? "—"} (${row.quiz_percent ?? "—"}%)` : "Not taken"}`,
+      `PDF submitted: ${row.has_final_pdf ? "Yes" : "No"}`,
+      "",
+    ];
+    if (!row.final_ready) {
+      parts.push("Next step: Finish Module 8 and lock your final draft.");
+    } else if (row.final_ready && !row.has_final_pdf) {
+      parts.push("Next step: Export to Google Docs, download PDF, upload in Module 9.");
+    } else if (row.quiz_percent != null && row.quiz_percent < 70) {
+      parts.push("Next step: Retake quiz review, use checklist, then verify formatting.");
+    } else {
+      parts.push("You are done. Nice work.");
+    }
+    return parts.join("\n");
+  };
+
+  const copyToClipboard = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyFeedback(label);
+      setTimeout(() => setCopyFeedback(null), 1500);
+    } catch (err) {
+      console.warn("Copy failed:", err);
+    }
+  };
+
+  const refreshViewPanel = async () => {
+    if (!viewPanelEmail || !session?.user?.email) return;
+    setViewPanelRefreshing(true);
+    setViewPanelError(null);
+    logActivity("teacher_refresh_student", { student_email: viewPanelEmail });
+    try {
+      const res = await fetch(
+        `/api/teacher/student?email=${encodeURIComponent(viewPanelEmail)}`
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        const errMsg = data?.error || "Failed to refresh";
+        setViewPanelError(errMsg);
+        setStudentDetailByEmail((prev) => ({
+          ...prev,
+          [viewPanelEmail]: { error: errMsg },
+        }));
+        return;
+      }
+      setStudentDetailByEmail((prev) => ({
+        ...prev,
+        [viewPanelEmail]: { data },
+      }));
+    } catch (err) {
+      const errMsg = err?.message || "Failed to refresh";
+      setViewPanelError(errMsg);
+      setStudentDetailByEmail((prev) => ({
+        ...prev,
+        [viewPanelEmail]: { error: errMsg },
+      }));
+    } finally {
+      setViewPanelRefreshing(false);
+    }
+  };
+
+  // --------------------------------------------------
   // 3. Apply module filter and "Show submitted only" (Module 9)
   // --------------------------------------------------
   const filteredRows = useMemo(() => {
@@ -221,16 +425,20 @@ useEffect(() => {
   }, [rows, selectedEmail]);
 
   useEffect(() => {
-    if (!drawerOpen) return;
+    if (!drawerOpen && !viewPanelOpen) return;
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
-        setDrawerOpen(false);
-        setSelectedEmail(null);
+        if (viewPanelOpen) {
+          closeViewPanel();
+        } else {
+          setDrawerOpen(false);
+          setSelectedEmail(null);
+        }
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [drawerOpen]);
+  }, [drawerOpen, viewPanelOpen]);
 
   useEffect(() => {
     if (!drawerOpen || !selectedEmail || !session?.user?.email) return;
@@ -435,6 +643,393 @@ useEffect(() => {
           View progress, activity logs, quiz scores, and final PDFs for each student.
         </p>
       </header>
+
+      {/* Phase 1: Student Progress Overview */}
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold text-theme-dark">Phase 1: Student Progress Overview</h2>
+        {!overviewLoading && !overviewError && overview.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 mb-2">
+            <select
+              value={overviewFilter}
+              onChange={(e) => setOverviewFilter(e.target.value)}
+              className="border border-theme-light rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-theme-blue bg-white"
+            >
+              <option value="all">All</option>
+              <option value="needs_pdf">Needs PDF</option>
+              <option value="quiz_under_70">Quiz &lt; 70</option>
+              <option value="in_progress">In progress</option>
+              <option value="done">Done</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Search email…"
+              value={overviewSearch}
+              onChange={(e) => setOverviewSearch(e.target.value)}
+              className="border border-theme-light rounded-lg px-3 py-2 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-theme-blue"
+            />
+            {copyFeedback && (
+              <span className="text-xs text-theme-green font-medium">
+                {copyFeedback}
+              </span>
+            )}
+          </div>
+        )}
+        {overviewLoading && <div className="text-theme-muted">Loading overview…</div>}
+        {overviewError && <div className="text-theme-red font-medium">Error: {overviewError}</div>}
+        {!overviewLoading && !overviewError && (
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-theme-light">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="px-4 py-2 text-left border border-theme-light">Email</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">Current Module</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">Locked</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">Final PDF</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">Quiz</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">Ready</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">View</th>
+                  <th className="px-4 py-2 text-center border border-theme-light">Nudge</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOverview.map((row) => {
+                  const readyChip =
+                    row.final_ready && row.has_final_pdf
+                      ? { label: "Done", cls: "bg-theme-green text-white" }
+                      : row.final_ready && !row.has_final_pdf
+                        ? { label: "Needs PDF", cls: "bg-theme-orange text-white" }
+                        : { label: "In progress", cls: "bg-gray-200 text-theme-dark" };
+                  const quizText = row.quiz_completed
+                    ? `${row.quiz_score ?? "—"}/${row.quiz_total ?? "—"}${row.quiz_percent != null ? ` (${row.quiz_percent}%)` : ""}`
+                    : "Not taken";
+                  return (
+                    <tr key={row.user_email} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 border border-theme-light">{row.user_email}</td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        {row.current_module ?? "—"}
+                      </td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        {row.final_ready ? "✓" : "✗"}
+                      </td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        {row.has_final_pdf ? "✓" : "✗"}
+                      </td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        {quizText}
+                      </td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        <span
+                          className={`inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium ${readyChip.cls}`}
+                        >
+                          {readyChip.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openViewPanel(row);
+                          }}
+                          className="px-3 py-1 rounded text-sm font-medium text-white bg-theme-blue hover:opacity-90"
+                        >
+                          View
+                        </button>
+                      </td>
+                      <td className="px-4 py-2 border border-theme-light text-center">
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            await copyToClipboard(buildNudgeMessage(row), "Copied");
+                          }}
+                          className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-theme-dark hover:bg-gray-200"
+                        >
+                          Copy Nudge
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredOverview.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-3 text-center text-theme-muted border border-theme-light"
+                    >
+                      {overview.length === 0
+                        ? "No students in overview."
+                        : "No students match this filter."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Phase 2: Student Detail View Panel */}
+      {viewPanelOpen && viewPanelEmail && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/30 z-40"
+            onClick={closeViewPanel}
+            aria-hidden="true"
+          />
+          <aside className="fixed right-0 top-0 h-full w-full sm:w-[420px] bg-white border border-gray-200 rounded-l-xl shadow-lg z-50 p-4 overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+              <h2 className="text-lg font-semibold text-theme-dark truncate pr-2">
+                {viewPanelEmail}
+              </h2>
+              <button
+                type="button"
+                onClick={closeViewPanel}
+                className="shrink-0 text-theme-dark hover:text-theme-blue text-sm font-semibold p-1"
+                aria-label="Close panel"
+              >
+                ✕
+              </button>
+            </div>
+
+            {viewPanelLoading && (
+              <div className="text-theme-muted text-sm">Loading…</div>
+            )}
+            {(viewPanelError || studentDetailByEmail[viewPanelEmail]?.error) && (
+              <div className="text-theme-red font-medium text-sm mb-4">
+                Error: {viewPanelError || studentDetailByEmail[viewPanelEmail]?.error}
+              </div>
+            )}
+
+            {!viewPanelLoading && (
+              <>
+                {(() => {
+                  const overviewRow = overview.find(
+                    (r) => r.user_email === viewPanelEmail
+                  );
+                  const cached = studentDetailByEmail[viewPanelEmail];
+                  const detail = cached?.data;
+                  const locked =
+                    detail?.module8?.final_ready ?? overviewRow?.final_ready ?? false;
+                  const hasPdf = !!detail?.final_pdf?.url;
+                  const hasDoc = !!detail?.google_doc?.url;
+
+                  const formatDate = (val) =>
+                    val ? new Date(val).toLocaleString() : null;
+
+                  const sizeBytes = detail?.final_pdf?.file_size;
+                  const pdfMb =
+                    typeof sizeBytes === "number" && Number.isFinite(sizeBytes)
+                      ? (sizeBytes / (1024 * 1024)).toFixed(1)
+                      : null;
+
+                  return (
+                    <div className="space-y-4 text-sm">
+                      {/* Actions row */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            copyToClipboard(viewPanelEmail, "Email copied")
+                          }
+                          className="px-2 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-theme-dark hover:bg-gray-200"
+                        >
+                          Copy Email
+                        </button>
+                        <button
+                          type="button"
+                          onClick={refreshViewPanel}
+                          disabled={viewPanelRefreshing}
+                          className="px-2 py-1.5 rounded-lg text-xs font-medium bg-theme-blue text-white hover:opacity-90 disabled:opacity-60"
+                        >
+                          {viewPanelRefreshing ? "Refreshing…" : "Refresh"}
+                        </button>
+                        {copyFeedback && (
+                          <span className="text-xs text-theme-green font-medium">
+                            {copyFeedback}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Status chips */}
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium bg-gray-100 text-theme-dark">
+                          Module {overviewRow?.current_module ?? "—"}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${
+                            locked ? "bg-theme-green text-white" : "bg-gray-200 text-theme-dark"
+                          }`}
+                        >
+                          {locked ? "Locked" : "Not locked"}
+                        </span>
+                      </div>
+
+                      {/* Module 8 Locked Final Text */}
+                      <section>
+                        <div className="text-xs uppercase tracking-wide text-theme-muted mb-2">
+                          Module 8 Locked Final Text
+                        </div>
+                        {detail?.module8?.final_text ? (
+                          <>
+                            {detail.module8.updated_at && (
+                              <p className="text-xs text-theme-muted mb-1">
+                                Last updated: {formatDate(detail.module8.updated_at)}
+                              </p>
+                            )}
+                            <pre className="bg-gray-50 border border-theme-light rounded-xl p-4 text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">
+                              {detail.module8.final_text}
+                            </pre>
+                          </>
+                        ) : (
+                          <p className="text-theme-muted">No locked draft found.</p>
+                        )}
+                      </section>
+
+                      {/* Module 9 Quiz */}
+                      <section>
+                        <div className="text-xs uppercase tracking-wide text-theme-muted mb-2">
+                          Module 9 Quiz
+                        </div>
+                        {detail?.quiz ? (
+                          <>
+                            <p className="text-theme-dark">
+                              Score: {detail.quiz.score}/{detail.quiz.total}
+                              {detail.quiz.percent != null
+                                ? ` (${detail.quiz.percent}%)`
+                                : ""}
+                            </p>
+                            {detail.quiz.submitted_at && (
+                              <p className="text-xs text-theme-muted">
+                                Submitted: {formatDate(detail.quiz.submitted_at)}
+                              </p>
+                            )}
+                            <p className="text-xs text-theme-muted mt-1 italic">
+                              {detail.quiz.percent != null && detail.quiz.percent < 70
+                                ? "Likely needs APA help. Consider conferencing before accepting final formatting."
+                                : "Quiz indicates basic APA readiness."}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-theme-muted">Quiz not submitted yet.</p>
+                        )}
+                      </section>
+
+                      {/* Module 9 Submission Links */}
+                      <section>
+                        <div className="text-xs uppercase tracking-wide text-theme-muted mb-2">
+                          Module 9 Submission Links
+                        </div>
+                        <div className="mb-2">
+                          {hasPdf ? (
+                            <span className="text-theme-green font-medium">
+                              Submitted
+                            </span>
+                          ) : (
+                            <span className="text-theme-red font-medium">
+                              Not submitted yet
+                            </span>
+                          )}
+                          {hasPdf &&
+                            (detail.final_pdf.uploaded_at ?? detail.final_pdf.created_at) && (
+                              <span className="text-theme-muted text-xs ml-2">
+                                Uploaded:{" "}
+                                {formatDate(
+                                  detail.final_pdf.uploaded_at ??
+                                    detail.final_pdf.created_at
+                                )}
+                              </span>
+                            )}
+                        </div>
+                        {!hasPdf && hasDoc && (
+                          <p className="text-amber-700 text-xs mb-2">
+                            Student exported doc but did not upload PDF yet.
+                          </p>
+                        )}
+                        {hasPdf && !hasDoc && (
+                          <p className="text-amber-700 text-xs mb-2">
+                            Student uploaded PDF but export link not found. They
+                            may have used the template manually.
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {detail?.final_pdf?.url ? (
+                            <>
+                              <a
+                                href={detail.final_pdf.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-block px-3 py-2 rounded-xl text-white text-sm font-medium bg-theme-blue hover:opacity-90 shadow-sm"
+                              >
+                                Final PDF
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  copyToClipboard(
+                                    detail.final_pdf.url,
+                                    "PDF link copied"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg text-xs font-medium bg-gray-100 text-theme-dark hover:bg-gray-200"
+                              >
+                                Copy link
+                              </button>
+                            </>
+                          ) : null}
+                          {detail?.google_doc?.url ? (
+                            <>
+                              <a
+                                href={detail.google_doc.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-block px-3 py-2 rounded-xl text-white text-sm font-medium bg-theme-green hover:opacity-90 shadow-sm"
+                              >
+                                Google Doc
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  copyToClipboard(
+                                    detail.google_doc.url,
+                                    "Doc link copied"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg text-xs font-medium bg-gray-100 text-theme-dark hover:bg-gray-200"
+                              >
+                                Copy link
+                              </button>
+                            </>
+                          ) : null}
+                          {!hasPdf && !hasDoc && (
+                            <p className="text-theme-muted">
+                              No submission links found.
+                            </p>
+                          )}
+                        </div>
+                        {detail?.final_pdf?.file_name && (
+                          <p className="text-xs text-theme-muted mt-2">
+                            File: {detail.final_pdf.file_name}
+                            {pdfMb != null ? ` (${pdfMb} MB)` : ""}
+                          </p>
+                        )}
+                        {detail?.google_doc?.created_at && (
+                          <p className="text-xs text-theme-muted mt-1">
+                            Doc created: {formatDate(detail.google_doc.created_at)}
+                          </p>
+                        )}
+                        <p className="text-xs text-theme-muted mt-2">
+                          Module 9 checklist: Not tracked (local only)
+                        </p>
+                      </section>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+          </aside>
+        </>
+      )}
 
       {/* TOP FILTER BAR */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white rounded px-4 py-3 border border-theme-light">
