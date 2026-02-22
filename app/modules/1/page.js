@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import ModuleOne from "@/components/ModuleOne"; // ✅ correct path
+import { useRouter } from "next/navigation";
+import ModuleOne from "@/components/ModuleOne";
 import { logActivity } from "@/lib/logActivity";
 
 export default function ModuleOnePage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Log that the student started Module 1
     async function logStart() {
       if (!session?.user?.email) return;
 
@@ -25,10 +28,39 @@ export default function ModuleOnePage() {
     logStart();
   }, [session]);
 
-  if (status === "loading") {
+  useEffect(() => {
+    async function checkPromptDone() {
+      if (!session?.user?.email) return;
+
+      setChecking(true);
+
+      try {
+        const res = await fetch("/api/module1/prompt");
+        const data = await res.json();
+
+        if (!res.ok) {
+          setChecking(false);
+          return;
+        }
+
+        const hasParaphrase = !!data?.student_paraphrase?.trim();
+        if (!hasParaphrase) {
+          router.replace("/modules/1/prompt");
+          return;
+        }
+
+        setChecking(false);
+      } catch {
+        setChecking(false);
+      }
+    }
+
+    if (status === "authenticated") checkPromptDone();
+  }, [session, status, router]);
+
+  if (status === "loading" || checking) {
     return <p className="p-6">Loading…</p>;
   }
 
-  // Render your existing Module 1 UI
   return <ModuleOne />;
 }
