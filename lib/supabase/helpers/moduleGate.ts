@@ -24,3 +24,16 @@ export async function requireModuleAccess({
     data && typeof data.current_module === "number" ? data.current_module : 0;
   return { ok: current >= minModule };
 }
+
+/**
+ * Module 2 uses multiple subroutes (analysis, tcharts, form, source, letter, success).
+ * Gate by module family: any path under /modules/2 is allowed when current_module >= 2.
+ */
+export function isPathAllowedForModule(
+  pathname: string,
+  currentModule: number
+): boolean {
+  if (currentModule < 1) return false;
+  const prefix = `/modules/${currentModule}`;
+  return pathname === prefix || pathname.startsWith(prefix + "/");
+}

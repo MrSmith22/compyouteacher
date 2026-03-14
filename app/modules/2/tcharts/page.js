@@ -1,599 +1,442 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Panel from "@/components/ui/Panel";
 import { makeStudentKey } from "@/lib/storage/studentCache";
+
+const APPEALS = ["ethos", "pathos", "logos"];
+const FALLBACK_SPEECH_URL =
+  "https://www.archives.gov/files/press/exhibits/dream-speech.pdf";
+const FALLBACK_LETTER_URL =
+  "https://kinginstitute.stanford.edu/king-papers/documents/letter-birmingham-jail";
+
+const OBSERVATION_SEP = "\n---AUDIENCE---\n";
+const OBSERVATION_SEP2 = "\n---PURPOSE---\n";
+
+function parseObservation(obs) {
+  if (!obs || typeof obs !== "string") return { why: "", audience: "", purpose: "" };
+  const i = obs.indexOf(OBSERVATION_SEP);
+  const j = obs.indexOf(OBSERVATION_SEP2);
+  if (i === -1 && j === -1) return { why: obs.trim(), audience: "", purpose: "" };
+  const why = i === -1 ? obs : obs.slice(0, i).trim();
+  const mid = i === -1 ? obs : obs.slice(i + OBSERVATION_SEP.length);
+  const audience = j === -1 ? mid.trim() : mid.slice(0, mid.indexOf(OBSERVATION_SEP2)).trim();
+  const purpose = j === -1 ? "" : mid.slice(mid.indexOf(OBSERVATION_SEP2) + OBSERVATION_SEP2.length).trim();
+  return { why, audience, purpose };
+}
+
+function buildObservation(why, audience, purpose) {
+  return [why || "", OBSERVATION_SEP, audience || "", OBSERVATION_SEP2, purpose || ""].join("");
+}
+
+const emptyAppeal = () => ({
+  speechQuote: "",
+  speechWhy: "",
+  speechAudience: "",
+  speechPurpose: "",
+  letterQuote: "",
+  letterWhy: "",
+  letterAudience: "",
+  letterPurpose: "",
+});
 
 export default function ModuleTwoTCharts() {
   const router = useRouter();
   const { data: session } = useSession();
   const email = session?.user?.email ?? null;
 
-  // transcripts/URLs
-  const [speechUrl, setSpeechUrl] = useState("");
-  const [speechText, setSpeechText] = useState("");
-  const [letterUrl, setLetterUrl] = useState("");
-  const [letterText, setLetterText] = useState("");
-
-  // panel show/hide
-  const [showSpeech, setShowSpeech] = useState(false);
-  const [showLetter, setShowLetter] = useState(false);
-
-  // toast
+  const [activeAppeal, setActiveAppeal] = useState("ethos");
+  const [sources, setSources] = useState({ speechUrl: "", letterUrl: "" });
+  const [formData, setFormData] = useState({
+    ethos: emptyAppeal(),
+    pathos: emptyAppeal(),
+    logos: emptyAppeal(),
+  });
   const [toast, setToast] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  // T-Chart state (12 fields)
-  const [ethosSpeechQuote, setEthosSpeechQuote] = useState("");
-  const [ethosSpeechNote, setEthosSpeechNote] = useState("");
-  const [ethosLetterQuote, setEthosLetterQuote] = useState("");
-  const [ethosLetterNote, setEthosLetterNote] = useState("");
+  // Load saved sources from API (for original URLs)
+  useEffect(() => {
+    if (!email) return;
+    let cancelled = false;
+    fetch("/api/module2/sources")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setSources({
+          speechUrl: data.speech_source_url || data.mlk_url || FALLBACK_SPEECH_URL,
+          letterUrl: data.letter_source_url || data.lfbj_url || FALLBACK_LETTER_URL,
+        });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [email]);
 
-  const [pathosSpeechQuote, setPathosSpeechQuote] = useState("");
-  const [pathosSpeechNote, setPathosSpeechNote] = useState("");
-  const [pathosLetterQuote, setPathosLetterQuote] = useState("");
-  const [pathosLetterNote, setPathosLetterNote] = useState("");
-
-  const [logosSpeechQuote, setLogosSpeechQuote] = useState("");
-  const [logosSpeechNote, setLogosSpeechNote] = useState("");
-  const [logosLetterQuote, setLogosLetterQuote] = useState("");
-  const [logosLetterNote, setLogosLetterNote] = useState("");
-
-  // load persisted data (user-scoped keys only when email is available)
+  // Load persisted analysis from localStorage (and support legacy Note keys)
   useEffect(() => {
     if (!email) return;
     try {
-      setSpeechUrl(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "speechUrl"])) || ""
-      );
-      setSpeechText(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "speechText"])) || ""
-      );
-      setLetterUrl(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "letterUrl"])) || ""
-      );
-      setLetterText(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "sources", "letterText"])) || ""
-      );
-
-      setEthosSpeechQuote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechQuote"])) || ""
-      );
-      setEthosSpeechNote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechNote"])) || ""
-      );
-      setEthosLetterQuote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterQuote"])) || ""
-      );
-      setEthosLetterNote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterNote"])) || ""
-      );
-
-      setPathosSpeechQuote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechQuote"])) || ""
-      );
-      setPathosSpeechNote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechNote"])) || ""
-      );
-      setPathosLetterQuote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterQuote"])) || ""
-      );
-      setPathosLetterNote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterNote"])) || ""
-      );
-
-      setLogosSpeechQuote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechQuote"])) || ""
-      );
-      setLogosSpeechNote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechNote"])) || ""
-      );
-      setLogosLetterQuote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterQuote"])) || ""
-      );
-      setLogosLetterNote(
-        localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterNote"])) || ""
-      );
-    } catch {
-      // ignore localStorage errors
-    }
+      const next = { ethos: emptyAppeal(), pathos: emptyAppeal(), logos: emptyAppeal() };
+      APPEALS.forEach((appeal) => {
+        const get = (suffix) => localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", appeal + suffix])) || "";
+        // Keys match existing: ethosSpeechQuote, ethosSpeechNote (legacy), etc.
+        next[appeal].speechQuote = get("SpeechQuote");
+        next[appeal].speechWhy = get("SpeechWhy") || get("SpeechNote"); // legacy
+        next[appeal].speechAudience = get("SpeechAudience");
+        next[appeal].speechPurpose = get("SpeechPurpose");
+        next[appeal].letterQuote = get("LetterQuote");
+        next[appeal].letterWhy = get("LetterWhy") || get("LetterNote");
+        next[appeal].letterAudience = get("LetterAudience");
+        next[appeal].letterPurpose = get("LetterPurpose");
+      });
+      setFormData(next);
+    } catch (_) {}
   }, [email]);
 
-  const openSourceTab = (url) => {
-    if (!url) return;
+  const updateAppeal = useCallback((appeal, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [appeal]: { ...prev[appeal], [field]: value },
+    }));
+  }, []);
+
+  const currentFields = formData[activeAppeal];
+  const appealIndex = APPEALS.indexOf(activeAppeal);
+  const isLastAppeal = appealIndex === APPEALS.length - 1;
+  const nextAppeal = isLastAppeal ? null : APPEALS[appealIndex + 1];
+
+  const allFilledForCurrent = [
+    currentFields.speechQuote,
+    currentFields.speechWhy,
+    currentFields.speechAudience,
+    currentFields.speechPurpose,
+    currentFields.letterQuote,
+    currentFields.letterWhy,
+    currentFields.letterAudience,
+    currentFields.letterPurpose,
+  ].every((v) => typeof v === "string" && v.trim() !== "");
+
+  const saveLocalOnly = useCallback(() => {
+    if (!email) return;
     try {
-      window.open(url, "_blank", "noopener"); // open without stealing focus
-      setToast("Source tab opened");
-      setTimeout(() => setToast(""), 1600);
-      setTimeout(() => window.focus(), 50); // nudge focus back
-    } catch {
-      // ignore
-    }
-  };
-
-  // layout widths
-  const getTranscriptColClass = (panel) => {
-    const both = showSpeech && showLetter;
-    if (both) return "w-full lg:w-1/3";
-    const thisOpen = panel === "speech" ? showSpeech : showLetter;
-    return thisOpen ? "w-full lg:w-2/3" : "hidden";
-  };
-
-  const getTChartColClass = () => {
-    const both = showSpeech && showLetter;
-    if (!showSpeech && !showLetter) return "w-full";
-    return both ? "w-full lg:w-1/3" : "w-full lg:w-1/3";
-  };
-
-  // --- saving helpers ---
-
-  // 1) Save locally (user-scoped keys only when email is available)
-  const saveLocalOnly = () => {
-    if (!email) {
-      setToast("Sign in to save locally");
-      setTimeout(() => setToast(""), 1200);
-      return;
-    }
-    try {
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechQuote"]),
-        ethosSpeechQuote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosSpeechNote"]),
-        ethosSpeechNote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterQuote"]),
-        ethosLetterQuote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "ethosLetterNote"]),
-        ethosLetterNote
-      );
-
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechQuote"]),
-        pathosSpeechQuote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosSpeechNote"]),
-        pathosSpeechNote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterQuote"]),
-        pathosLetterQuote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "pathosLetterNote"]),
-        pathosLetterNote
-      );
-
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechQuote"]),
-        logosSpeechQuote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosSpeechNote"]),
-        logosSpeechNote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterQuote"]),
-        logosLetterQuote
-      );
-      localStorage.setItem(
-        makeStudentKey(email, ["mlk", "module2", "tcharts", "logosLetterNote"]),
-        logosLetterNote
-      );
-
+      APPEALS.forEach((appeal) => {
+        const d = formData[appeal];
+        const set = (suffix, val) => localStorage.setItem(makeStudentKey(email, ["mlk", "module2", "tcharts", appeal + suffix]), val ?? "");
+        set("SpeechQuote", d.speechQuote);
+        set("SpeechWhy", d.speechWhy);
+        set("SpeechAudience", d.speechAudience);
+        set("SpeechPurpose", d.speechPurpose);
+        set("LetterQuote", d.letterQuote);
+        set("LetterWhy", d.letterWhy);
+        set("LetterAudience", d.letterAudience);
+        set("LetterPurpose", d.letterPurpose);
+      });
       setToast("Saved locally");
       setTimeout(() => setToast(""), 1200);
-    } catch {
+    } catch (_) {
       setToast("Local save failed");
       setTimeout(() => setToast(""), 1500);
     }
-  };
+  }, [email, formData]);
 
-  // 2) Build payload rows for Supabase
-  const buildEntries = () => {
-    const row = (category, type, quote, observation) => ({
+  const buildEntries = useCallback(() => {
+    const row = (category, type, quote, observation, letterUrl) => ({
       category,
       type,
       quote: quote || "",
       observation: observation || "",
       letter_url: letterUrl || null,
     });
+    const letterUrl = sources.letterUrl || null;
     return [
-      row("ethos", "speech", ethosSpeechQuote, ethosSpeechNote),
-      row("ethos", "letter", ethosLetterQuote, ethosLetterNote),
-      row("pathos", "speech", pathosSpeechQuote, pathosSpeechNote),
-      row("pathos", "letter", pathosLetterQuote, pathosLetterNote),
-      row("logos", "speech", logosSpeechQuote, logosSpeechNote),
-      row("logos", "letter", logosLetterQuote, logosLetterNote),
+      row("ethos", "speech", formData.ethos.speechQuote, buildObservation(formData.ethos.speechWhy, formData.ethos.speechAudience, formData.ethos.speechPurpose), letterUrl),
+      row("ethos", "letter", formData.ethos.letterQuote, buildObservation(formData.ethos.letterWhy, formData.ethos.letterAudience, formData.ethos.letterPurpose), letterUrl),
+      row("pathos", "speech", formData.pathos.speechQuote, buildObservation(formData.pathos.speechWhy, formData.pathos.speechAudience, formData.pathos.speechPurpose), letterUrl),
+      row("pathos", "letter", formData.pathos.letterQuote, buildObservation(formData.pathos.letterWhy, formData.pathos.letterAudience, formData.pathos.letterPurpose), letterUrl),
+      row("logos", "speech", formData.logos.speechQuote, buildObservation(formData.logos.speechWhy, formData.logos.speechAudience, formData.logos.speechPurpose), letterUrl),
+      row("logos", "letter", formData.logos.letterQuote, buildObservation(formData.logos.letterWhy, formData.logos.letterAudience, formData.logos.letterPurpose), letterUrl),
     ];
-  };
+  }, [formData, sources.letterUrl]);
 
-  // 3) Save to Supabase via our API route
-  const saveToSupabase = async () => {
+  const saveAndContinue = async () => {
+    if (!allFilledForCurrent) return;
+    setSaving(true);
+    saveLocalOnly();
     try {
-      // Always keep a local copy first
-      saveLocalOnly();
-
       const res = await fetch("/api/tchart/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entries: buildEntries() }),
       });
-
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        const msg = data?.error || `HTTP ${res.status}`;
-        setToast(`Server save failed: ${msg}`);
+        setToast(data?.error || `Save failed`);
         setTimeout(() => setToast(""), 2000);
+        setSaving(false);
         return;
       }
-
-      setToast("Saved to Supabase");
-      setTimeout(() => {
-        setToast("");
-        router.push("/modules/2/success");
-      }, 500);
+      setToast("Saved");
+      setTimeout(() => setToast(""), 1200);
+      if (isLastAppeal) {
+        setTimeout(() => router.push("/modules/2/success"), 500);
+        return;
+      }
+      setActiveAppeal(nextAppeal);
     } catch (err) {
       setToast(`Network error: ${String(err)}`);
       setTimeout(() => setToast(""), 2000);
     }
+    setSaving(false);
+  };
+
+  const openInNewTab = (url) => {
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const appealLabels = { ethos: "Ethos", pathos: "Pathos", logos: "Logos" };
+  const introCopy = {
+    ethos:
+      "Ethos is about credibility and trust. Look for moments where Dr. King presents himself as moral, responsible, experienced, or worth listening to.",
+    pathos:
+      "Pathos is about emotion. Look for words or images that stir feelings such as hope, anger, guilt, pride, fear, or compassion.",
+    logos:
+      "Logos is about logic and reasoning. Look for facts, clear claims, cause-and-effect reasoning, or examples that support King's argument.",
   };
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Module objective card (red) */}
-        <div className="rounded-xl border border-theme-red/40 bg-theme-red/5 p-4 shadow-sm">
-          <h1 className="text-2xl font-extrabold mb-1 text-theme-red">
-            Module 2: Analyze the speech and the letter
-          </h1>
-          <p className="text-sm text-theme-dark/80">
-            In this step you will use a T-Chart to compare how{" "}
-            <em>I Have a Dream</em> and <em>Letter from Birmingham Jail</em>{" "}
-            use the three rhetorical appeals: Ethos, Pathos, and Logos.
-          </p>
-        </div>
+      <div className="max-w-3xl mx-auto space-y-6">
+        <h1 className="text-2xl font-extrabold text-theme-dark text-left">
+          Module 2 Analysis
+        </h1>
 
-        {/* Instructions card (orange) */}
-        <div className="rounded-xl border border-theme-orange/40 bg-theme-orange/5 p-4 shadow-sm">
-          <h2 className="text-lg font-bold text-theme-orange mb-1">
-            What to do on this page
+        <p className="text-left text-theme-dark/90">
+          You are collecting evidence that will later help you compare how King
+          uses rhetorical strategies in both texts.
+        </p>
+
+        {/* PART 1: Source access */}
+        <Panel className="space-y-4">
+          <h2 className="text-xl font-bold text-theme-dark text-left">
+            Keep your texts open while you work
           </h2>
-          <p className="text-sm text-theme-dark/80">
-            For each rhetorical appeal—<strong>Ethos</strong>,{" "}
-            <strong>Pathos</strong>, and <strong>Logos</strong>—complete all
-            four boxes:
+          <p className="text-left text-theme-dark/90">
+            As you analyze, keep either your saved copy or the original source
+            open in another tab so you can find short, accurate quotes.
           </p>
-          <ol className="list-decimal list-inside mt-2 text-sm text-theme-dark/90 space-y-1">
-            <li>
-              <strong>Speech Quote</strong> — a short quote from{" "}
-              <em>I Have a Dream</em> that shows the appeal.
-            </li>
-            <li>
-              <strong>Speech Explanation</strong> — how the quote demonstrates
-              the appeal in the Speech.
-            </li>
-            <li>
-              <strong>Letter Quote</strong> — a short quote from{" "}
-              <em>Letter from Birmingham Jail</em> that shows the same appeal.
-            </li>
-            <li>
-              <strong>Letter Explanation</strong> — how the quote demonstrates
-              the appeal in the Letter.
-            </li>
-          </ol>
-          <p className="mt-2 text-sm text-theme-dark/80">
-            Finish <strong>Ethos</strong> first, then repeat for{" "}
-            <strong>Pathos</strong> and <strong>Logos</strong>.
-            <span className="block text-xs text-theme-dark/60 mt-1">
-              Tip: keep quotes short (one sentence or less) so your explanations
-              show your thinking.
-            </span>
-          </p>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-wrap gap-3">
-          <button
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${
-              showSpeech
-                ? "bg-theme-blue text-white"
-                : "bg-theme-blue/10 text-theme-blue"
-            }`}
-            onClick={() => setShowSpeech((v) => !v)}
-          >
-            {showSpeech ? "Close Speech Panel" : "Open Speech Panel"}
-          </button>
-
-          <button
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${
-              showLetter
-                ? "bg-theme-orange text-white"
-                : "bg-theme-orange/10 text-theme-orange"
-            }`}
-            onClick={() => setShowLetter((v) => !v)}
-          >
-            {showLetter ? "Close Letter Panel" : "Open Letter Panel"}
-          </button>
-
-          <p className="text-xs text-theme-dark/60 mt-2">
-            On large screens, Speech (blue), Letter (orange), and T-Chart
-            (green) can appear side-by-side. On smaller screens they stack.
-          </p>
-        </div>
-
-        {/* Responsive area */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Speech panel (blue) */}
-          {showSpeech && (
-            <section
-              className={`${getTranscriptColClass(
-                "speech"
-              )} bg-theme-blue/5 border border-theme-blue/30 rounded-2xl p-4 shadow-sm`}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => openInNewTab("/texts/speech")}
+              className="text-left bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
             >
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-theme-blue">Speech transcript</h2>
-                <button
-                  className="text-xs underline text-theme-blue"
-                  onClick={() => openSourceTab(speechUrl)}
-                  disabled={!speechUrl}
-                  title={speechUrl || "No URL saved"}
-                >
-                  Open source page
-                </button>
-              </div>
-
-              {speechText ? (
-                <div className="whitespace-pre-wrap text-xs sm:text-sm leading-6 max-h-[70vh] overflow-auto bg-white border border-theme-blue/10 rounded-lg p-3">
-                  {speechText}
-                </div>
-              ) : (
-                <p className="text-sm text-theme-blue/80">
-                  No transcript saved. Go back to{" "}
-                  <em>“Build an APA source for the speech”</em> to add it.
-                </p>
-              )}
-            </section>
-          )}
-
-          {/* Letter panel (orange) */}
-          {showLetter && (
-            <section
-              className={`${getTranscriptColClass(
-                "letter"
-              )} bg-theme-orange/5 border border-theme-orange/30 rounded-2xl p-4 shadow-sm`}
+              Open My Saved Speech Copy
+            </button>
+            <button
+              type="button"
+              onClick={() => openInNewTab(sources.speechUrl || FALLBACK_SPEECH_URL)}
+              className="text-left bg-theme-blue/90 text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
             >
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-theme-orange">
-                  Letter transcript
-                </h2>
-                <button
-                  className="text-xs underline text-theme-orange"
-                  onClick={() => openSourceTab(letterUrl)}
-                  disabled={!letterUrl}
-                  title={letterUrl || "No URL saved"}
-                >
-                  Open source page
-                </button>
-              </div>
+              Open Original Speech Source
+            </button>
+            <button
+              type="button"
+              onClick={() => openInNewTab("/texts/letter")}
+              className="text-left bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+            >
+              Open My Saved Letter Copy
+            </button>
+            <button
+              type="button"
+              onClick={() => openInNewTab(sources.letterUrl || FALLBACK_LETTER_URL)}
+              className="text-left bg-theme-blue/90 text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+            >
+              Open Original Letter Source
+            </button>
+          </div>
+        </Panel>
 
-              {letterText ? (
-                <div className="whitespace-pre-wrap text-xs sm:text-sm leading-6 max-h-[70vh] overflow-auto bg-white border border-theme-orange/10 rounded-lg p-3">
-                  {letterText}
-                </div>
-              ) : (
-                <p className="text-sm text-theme-orange/80">
-                  No transcript saved. Go back to{" "}
-                  <em>“Build an APA source for the letter”</em> to add it.
-                </p>
-              )}
-            </section>
-          )}
-
-          {/* T-Chart panel (green container, white cards) */}
-          <section
-            className={`${getTChartColClass()} bg-theme-green/5 border border-theme-green/30 rounded-2xl p-4 shadow-sm space-y-6`}
-          >
-            <h2 className="font-bold text-theme-green mb-1">
-              T-Chart — quote and explanation
-            </h2>
-
-            {/* ETHOS card */}
-            <div className="rounded-xl bg-white border border-theme-green/30 p-4 shadow-sm">
-              <h3 className="text-lg font-semibold text-theme-dark mb-1">
-                Ethos
-              </h3>
-              <p className="text-sm text-theme-dark/80 mb-3">
-                <strong>Credibility:</strong> What does Dr. King say or do that
-                makes the audience trust him?
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Ethos — Speech quote
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={ethosSpeechQuote}
-                    onChange={(e) => setEthosSpeechQuote(e.target.value)}
-                    placeholder="Short quote from the Speech that shows Ethos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Ethos — Speech explanation
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={ethosSpeechNote}
-                    onChange={(e) => setEthosSpeechNote(e.target.value)}
-                    placeholder="Explain how the Speech quote demonstrates Ethos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Ethos — Letter quote
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={ethosLetterQuote}
-                    onChange={(e) => setEthosLetterQuote(e.target.value)}
-                    placeholder="Short quote from the Letter that shows Ethos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Ethos — Letter explanation
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={ethosLetterNote}
-                    onChange={(e) => setEthosLetterNote(e.target.value)}
-                    placeholder="Explain how the Letter quote demonstrates Ethos"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* PATHOS card */}
-            <div className="rounded-xl bg-white border border-theme-green/30 p-4 shadow-sm">
-              <h3 className="text-lg font-semibold text-theme-dark mb-1">
-                Pathos
-              </h3>
-              <p className="text-sm text-theme-dark/80 mb-3">
-                <strong>Emotion:</strong> What language stirs feelings to
-                persuade the audience?
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Pathos — Speech quote
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={pathosSpeechQuote}
-                    onChange={(e) => setPathosSpeechQuote(e.target.value)}
-                    placeholder="Short quote from the Speech that shows Pathos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Pathos — Speech explanation
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={pathosSpeechNote}
-                    onChange={(e) => setPathosSpeechNote(e.target.value)}
-                    placeholder="Explain how the Speech quote demonstrates Pathos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Pathos — Letter quote
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={pathosLetterQuote}
-                    onChange={(e) => setPathosLetterQuote(e.target.value)}
-                    placeholder="Short quote from the Letter that shows Pathos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Pathos — Letter explanation
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={pathosLetterNote}
-                    onChange={(e) => setPathosLetterNote(e.target.value)}
-                    placeholder="Explain how the Letter quote demonstrates Pathos"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* LOGOS card */}
-            <div className="rounded-xl bg-white border border-theme-green/30 p-4 shadow-sm">
-              <h3 className="text-lg font-semibold text-theme-dark mb-1">
-                Logos
-              </h3>
-              <p className="text-sm text-theme-dark/80 mb-3">
-                <strong>Logic and evidence:</strong> What facts, reasons, or
-                examples support the point?
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Logos — Speech quote
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={logosSpeechQuote}
-                    onChange={(e) => setLogosSpeechQuote(e.target.value)}
-                    placeholder="Short quote from the Speech that shows Logos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Logos — Speech explanation
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={logosSpeechNote}
-                    onChange={(e) => setLogosSpeechNote(e.target.value)}
-                    placeholder="Explain how the Speech quote demonstrates Logos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Logos — Letter quote
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={logosLetterQuote}
-                    onChange={(e) => setLogosLetterQuote(e.target.value)}
-                    placeholder="Short quote from the Letter that shows Logos"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-theme-dark/80 block mb-1">
-                    Logos — Letter explanation
-                  </label>
-                  <textarea
-                    className="w-full h-24 border border-theme-dark/10 rounded-lg p-2 text-sm bg-white"
-                    value={logosLetterNote}
-                    onChange={(e) => setLogosLetterNote(e.target.value)}
-                    placeholder="Explain how the Letter quote demonstrates Logos"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-2 flex flex-wrap gap-3">
-              <button
-                onClick={saveLocalOnly}
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-theme-dark/5 text-theme-dark hover:bg-theme-dark/10"
-              >
-                Save locally
-              </button>
-
-              <button
-                onClick={saveToSupabase}
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-theme-green text-white hover:opacity-90"
-              >
-                Save and submit
-              </button>
-            </div>
-          </section>
+        {/* PART 2: Progress and one appeal at a time */}
+        <div className="flex flex-wrap items-center gap-2 text-left">
+          <span className="text-sm font-medium text-theme-dark/80">
+            Appeal {appealIndex + 1} of {APPEALS.length}: {appealLabels[activeAppeal]}
+          </span>
+          {APPEALS.map((a, i) => (
+            <button
+              key={a}
+              type="button"
+              onClick={() => setActiveAppeal(a)}
+              className={`text-sm px-2 py-1 rounded ${
+                activeAppeal === a
+                  ? "bg-theme-blue text-white"
+                  : "bg-theme-dark/10 text-theme-dark/80 hover:bg-theme-dark/20"
+              }`}
+            >
+              {i + 1}. {appealLabels[a]}
+            </button>
+          ))}
         </div>
 
-        {/* tiny toast */}
+        {/* A. Appeal intro card */}
+        <Panel className="space-y-3">
+          <h2 className="text-xl font-bold text-theme-dark text-left">
+            {appealLabels[activeAppeal]}
+          </h2>
+          <p className="text-left text-theme-dark/90">
+            {introCopy[activeAppeal]}
+          </p>
+          <p className="text-left text-theme-dark/90">
+            Your job is to find one strong example from the speech and one
+            strong example from the letter.
+          </p>
+        </Panel>
+
+        {/* B. Speech task card */}
+        <Panel className="space-y-4">
+          <h3 className="text-lg font-bold text-theme-dark text-left">
+            {appealLabels[activeAppeal]} in the Speech
+          </h3>
+          <p className="text-left text-theme-dark/90 text-sm">
+            Read the speech and choose a short quote that clearly shows{" "}
+            {appealLabels[activeAppeal]}.
+          </p>
+          <div className="space-y-3 text-left">
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                Quote from the Speech
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.speechQuote}
+                onChange={(e) => updateAppeal(activeAppeal, "speechQuote", e.target.value)}
+                placeholder="Short quote from the speech"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                Why does this quote show {appealLabels[activeAppeal]}?
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.speechWhy}
+                onChange={(e) => updateAppeal(activeAppeal, "speechWhy", e.target.value)}
+                placeholder="Explain how this quote demonstrates the appeal"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                What effect might this have on King&apos;s audience?
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.speechAudience}
+                onChange={(e) => updateAppeal(activeAppeal, "speechAudience", e.target.value)}
+                placeholder="Consider the audience&apos;s response"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                How does this help King accomplish his purpose?
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.speechPurpose}
+                onChange={(e) => updateAppeal(activeAppeal, "speechPurpose", e.target.value)}
+                placeholder="Connect to King&apos;s purpose"
+              />
+            </div>
+          </div>
+        </Panel>
+
+        {/* C. Letter task card */}
+        <Panel className="space-y-4">
+          <h3 className="text-lg font-bold text-theme-dark text-left">
+            {appealLabels[activeAppeal]} in the Letter
+          </h3>
+          <p className="text-left text-theme-dark/90 text-sm">
+            Read the letter and choose a short quote that clearly shows{" "}
+            {appealLabels[activeAppeal]}.
+          </p>
+          <div className="space-y-3 text-left">
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                Quote from the Letter
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.letterQuote}
+                onChange={(e) => updateAppeal(activeAppeal, "letterQuote", e.target.value)}
+                placeholder="Short quote from the letter"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                Why does this quote show {appealLabels[activeAppeal]}?
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.letterWhy}
+                onChange={(e) => updateAppeal(activeAppeal, "letterWhy", e.target.value)}
+                placeholder="Explain how this quote demonstrates the appeal"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                What effect might this have on King&apos;s audience?
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.letterAudience}
+                onChange={(e) => updateAppeal(activeAppeal, "letterAudience", e.target.value)}
+                placeholder="Consider the audience&apos;s response"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                How does this help King accomplish his purpose?
+              </label>
+              <textarea
+                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                value={currentFields.letterPurpose}
+                onChange={(e) => updateAppeal(activeAppeal, "letterPurpose", e.target.value)}
+                placeholder="Connect to King&apos;s purpose"
+              />
+            </div>
+          </div>
+        </Panel>
+
+        {/* D. Continue control */}
+        <Panel className="space-y-3">
+          {!allFilledForCurrent && (
+            <p className="text-left text-sm text-theme-dark/80">
+              Complete all eight fields above for {appealLabels[activeAppeal]} to
+              continue.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={saveAndContinue}
+              disabled={!allFilledForCurrent || saving}
+              className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLastAppeal
+                ? "Save and Finish Module 2 Analysis"
+                : `Save and Continue to ${nextAppeal ? appealLabels[nextAppeal] : ""}`}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/modules/2")}
+              className="text-theme-blue font-medium underline"
+            >
+              Back to Module 2
+            </button>
+          </div>
+        </Panel>
+
         {toast && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-theme-dark text-white text-sm px-3 py-2 rounded shadow">
             {toast}
