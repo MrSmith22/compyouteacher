@@ -1,38 +1,144 @@
-﻿"use client";
+"use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
+import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
+import { parseModule2Observation } from "@/lib/parseModule2Observation";
 
-const questionGroups = [
-  {
-    title: "Audience & Purpose",
-    questions: [
-      "What is the audience of the speech? (Use a short phrase, not a full sentence.)",
-      "What is the purpose of the speech? (Use a short phrase, not a full sentence.)",
-      "What is the audience of the letter? (Use a short phrase, not a full sentence.)",
-      "What is the purpose of the letter? (Use a short phrase, not a full sentence.)",
-    ],
-  },
+const APPEAL_CATEGORIES = ["ethos", "pathos", "logos"];
+
+const appealGroups = [
   {
     title: "Speech: Appeals Adapted to Audience",
-    questions: ["", "", ""],
+    sourceType: "speech",
+    showTchart: true,
   },
   {
     title: "Speech: Appeals Adapted to Purpose",
-    questions: ["", "", ""],
+    sourceType: "speech",
+    showTchart: true,
   },
   {
     title: "Letter: Appeals Adapted to Audience",
-    questions: ["", "", ""],
+    sourceType: "letter",
+    showTchart: true,
   },
   {
     title: "Letter: Appeals Adapted to Purpose",
-    questions: ["", "", ""],
+    sourceType: "letter",
+    showTchart: true,
   },
 ];
+
+const guidedFields = [
+  {
+    title: "Speech — Audience",
+    responseIndex: 0,
+    label:
+      "Who is Dr. King primarily addressing in the I Have a Dream speech?",
+    hint: "Use a short phrase only (about six words or fewer), not a full sentence.",
+  },
+  {
+    title: "Letter — Audience",
+    responseIndex: 2,
+    label: "Who is the Letter from Birmingham Jail mainly written for?",
+    hint: "Short phrase only (about six words or fewer).",
+  },
+  {
+    title: "Speech — Purpose",
+    responseIndex: 1,
+    label: "What is King trying to accomplish in the speech?",
+    hint: "Short phrase only (about six words or fewer).",
+  },
+  {
+    title: "Letter — Purpose",
+    responseIndex: 3,
+    label: "What is King trying to accomplish in the letter?",
+    hint: "Short phrase only (about six words or fewer).",
+  },
+];
+
+const WELCOME_STEP = 0;
+const GUIDED_START = 1;
+const GUIDED_END = 4;
+const APPEAL_STEP_START = 5;
+const THESIS_STEP = APPEAL_STEP_START + appealGroups.length;
+
+function normalizeResponses(arr) {
+  const next = Array.isArray(arr) ? [...arr] : [];
+  while (next.length < 16) next.push("");
+  return next.slice(0, 16);
+}
+
+function buildTchartLookup(rows) {
+  const map = {};
+  for (const row of rows || []) {
+    if (!APPEAL_CATEGORIES.includes(row.category)) continue;
+    const key = `${row.category}-${row.type}`;
+    map[key] = row;
+  }
+  return map;
+}
+
+function TChartScaffoldCard({ category, sourceType, row }) {
+  const parsed = parseModule2Observation(row?.observation);
+  const quote = (row?.quote || "").trim();
+  const hasBody =
+    quote ||
+    parsed.main ||
+    parsed.audience ||
+    parsed.purpose ||
+    (row?.observation || "").trim();
+
+  if (!hasBody) {
+    return (
+      <div className="rounded-lg border border-dashed border-theme-blue/30 bg-theme-light/90 p-3 text-left text-xs text-theme-dark/75">
+        No saved Module 2 note for this appeal yet. You can still answer here,
+        or go back to Module 2 to add a quote and observation.
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 p-3 text-left text-xs space-y-2 text-theme-dark/90">
+      <p className="font-semibold text-theme-blue capitalize">
+        Module 2 · {category} · {sourceType}
+      </p>
+      {quote ? (
+        <p>
+          <span className="font-semibold text-theme-dark">Quote: </span>
+          <span className="italic">&ldquo;{quote}&rdquo;</span>
+        </p>
+      ) : null}
+      {parsed.main ? (
+        <p>
+          <span className="font-semibold text-theme-dark">Your explanation: </span>
+          {parsed.main}
+        </p>
+      ) : row?.observation?.trim() && !quote ? (
+        <p>
+          <span className="font-semibold text-theme-dark">Your note: </span>
+          {row.observation.trim()}
+        </p>
+      ) : null}
+      {parsed.audience ? (
+        <p>
+          <span className="font-semibold text-theme-dark">Audience effect: </span>
+          {parsed.audience}
+        </p>
+      ) : null}
+      {parsed.purpose ? (
+        <p>
+          <span className="font-semibold text-theme-dark">Purpose connection: </span>
+          {parsed.purpose}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 export default function ModuleThreeForm() {
   const router = useRouter();
@@ -40,63 +146,109 @@ export default function ModuleThreeForm() {
 
   const [structureChoice, setStructureChoice] = useState("");
   const [thesis, setThesis] = useState("");
-  const [responses, setResponses] = useState(Array(16).fill(""));
+  const [responses, setResponses] = useState(() => normalizeResponses([]));
   const [customLabels, setCustomLabels] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [tchartRows, setTchartRows] = useState([]);
   const savingRef = useRef(false);
   const thesisStepLoggedRef = useRef(false);
 
   const isPhrase = (txt = "") => txt.trim().split(/\s+/).length <= 6;
 
-  // step 0..4 = question groups, step 5 = thesis planning page
-  const [step, setStep] = useState(0);
-  const isThesisStep = step === questionGroups.length;
+  const [step, setStep] = useState(WELCOME_STEP);
+  const isWelcomeStep = step === WELCOME_STEP;
+  const isGuidedStep = step >= GUIDED_START && step <= GUIDED_END;
+  const isAppealStep = step >= APPEAL_STEP_START && step < THESIS_STEP;
+  const isThesisStep = step === THESIS_STEP;
 
-  const currentGroup =
-    step < questionGroups.length ? questionGroups[step] : null;
+  const appealStepIndex = isAppealStep ? step - APPEAL_STEP_START : -1;
+  const currentAppealGroup =
+    isAppealStep && appealGroups[appealStepIndex]
+      ? appealGroups[appealStepIndex]
+      : null;
 
   const groupStartIndex =
-    step < questionGroups.length
-      ? questionGroups
-          .slice(0, step)
-          .reduce((sum, g) => sum + g.questions.length, 0)
-      : 0;
+    isAppealStep && currentAppealGroup
+      ? 4 + appealStepIndex * 3
+      : isGuidedStep
+        ? guidedFields[step - GUIDED_START].responseIndex
+        : 0;
 
-  // handy shortcuts for earlier work
+  const tchartLookup = useMemo(
+    () => buildTchartLookup(tchartRows),
+    [tchartRows]
+  );
+
   const speechAudience = responses[0] || "the speech audience";
   const speechPurpose = responses[1] || "the speech purpose";
   const letterAudience = responses[2] || "the letter audience";
   const letterPurpose = responses[3] || "the letter purpose";
 
-  // Load existing data
+  const generateCustomLabels = useCallback((prefill) => {
+    const r = normalizeResponses(prefill);
+    const [sa, sp, la, lp] = [
+      r[0] || "the speech audience",
+      r[1] || "the speech purpose",
+      r[2] || "the letter audience",
+      r[3] || "the letter purpose",
+    ];
+    setCustomLabels([
+      `In the speech, how does King use Ethos when speaking to ${sa}?`,
+      `In the speech, how does King use Pathos when speaking to ${sa}?`,
+      `In the speech, how does King use Logos when speaking to ${sa}?`,
+      `In the speech, how does King use Ethos to support his purpose of ${sp}?`,
+      `In the speech, how does King use Pathos to support his purpose of ${sp}?`,
+      `In the speech, how does King use Logos to support his purpose of ${sp}?`,
+      `In the letter, how does King use Ethos when speaking to ${la}?`,
+      `In the letter, how does King use Pathos when speaking to ${la}?`,
+      `In the letter, how does King use Logos when speaking to ${la}?`,
+      `In the letter, how does King use Ethos to support his purpose of ${lp}?`,
+      `In the letter, how does King use Pathos to support his purpose of ${lp}?`,
+      `In the letter, how does King use Logos to support his purpose of ${lp}?`,
+    ]);
+  }, []);
+
   useEffect(() => {
     const fetchExisting = async () => {
       const email = session?.user?.email;
-      if (!email) return;
+      if (!email) {
+        setLoaded(true);
+        return;
+      }
 
-      const { data, error } = await supabase
-        .from("module3_responses")
-        .select("responses, thesis, updated_at")
-        .eq("user_email", email)
-        .single();
+      const [{ data: m3, error: m3Error }, tchartResult] = await Promise.all([
+        supabase
+          .from("module3_responses")
+          .select("responses, thesis, updated_at, structure_choice")
+          .eq("user_email", email)
+          .maybeSingle(),
+        getTChartEntries({ userEmail: email }),
+      ]);
 
-      if (!error && data) {
-        if (Array.isArray(data.responses)) {
-          setResponses(data.responses);
-          generateCustomLabels(data.responses);
+      if (tchartResult?.data) {
+        setTchartRows(tchartResult.data);
+      }
+
+      if (!m3Error && m3) {
+        if (Array.isArray(m3.responses)) {
+          const norm = normalizeResponses(m3.responses);
+          setResponses(norm);
+          generateCustomLabels(norm);
         }
-        if (data.thesis) setThesis(data.thesis);
-        if (data.updated_at) setLastSaved(new Date(data.updated_at));
+        if (m3.thesis) setThesis(m3.thesis);
+        if (m3.structure_choice != null && m3.structure_choice !== "") {
+          setStructureChoice(m3.structure_choice);
+        }
+        if (m3.updated_at) setLastSaved(new Date(m3.updated_at));
       }
 
       setLoaded(true);
     };
 
-    if (session?.user?.email) fetchExisting();
-  }, [session]);
+    fetchExisting();
+  }, [session?.user?.email, generateCustomLabels]);
 
-  // Log when the thesis step is first viewed
   useEffect(() => {
     const email = session?.user?.email;
     if (!email) return;
@@ -110,41 +262,17 @@ export default function ModuleThreeForm() {
     }
   }, [isThesisStep, session?.user?.email]);
 
-  const handleChange = (i, val) => {
+  const handleChangeAtIndex = (idx, val) => {
     const updated = [...responses];
-    updated[groupStartIndex + i] = val;
+    updated[idx] = val;
     setResponses(updated);
   };
 
-  // Dynamic question generation based on audience/purpose phrases
-  const generateCustomLabels = (prefill = responses) => {
-    const [sa, sp, la, lp] = [
-      prefill[0] || "the speech audience",
-      prefill[1] || "the speech purpose",
-      prefill[2] || "the letter audience",
-      prefill[3] || "the letter purpose",
-    ];
-    setCustomLabels([
-      // speech audience
-      `In the speech, how does King use Ethos when speaking to ${sa}?`,
-      `In the speech, how does King use Pathos when speaking to ${sa}?`,
-      `In the speech, how does King use Logos when speaking to ${sa}?`,
-      // speech purpose
-      `In the speech, how does King use Ethos to support his purpose of ${sp}?`,
-      `In the speech, how does King use Pathos to support his purpose of ${sp}?`,
-      `In the speech, how does King use Logos to support his purpose of ${sp}?`,
-      // letter audience
-      `In the letter, how does King use Ethos when speaking to ${la}?`,
-      `In the letter, how does King use Pathos when speaking to ${la}?`,
-      `In the letter, how does King use Logos when speaking to ${la}?`,
-      // letter purpose
-      `In the letter, how does King use Ethos to support his purpose of ${lp}?`,
-      `In the letter, how does King use Pathos to support his purpose of ${lp}?`,
-      `In the letter, how does King use Logos to support his purpose of ${lp}?`,
-    ]);
+  const handleAppealChange = (i, val) => {
+    const idx = groupStartIndex + i;
+    handleChangeAtIndex(idx, val);
   };
 
-  // Autosave every 20 seconds
   useEffect(() => {
     if (!session?.user?.email || !loaded) return;
 
@@ -159,6 +287,7 @@ export default function ModuleThreeForm() {
             user_email: session.user.email,
             responses,
             thesis,
+            structure_choice: structureChoice || null,
             updated_at: new Date().toISOString(),
           },
           { onConflict: ["user_email"] }
@@ -174,7 +303,7 @@ export default function ModuleThreeForm() {
     }, 20000);
 
     return () => clearInterval(id);
-  }, [responses, thesis, session, loaded]);
+  }, [responses, thesis, structureChoice, session, loaded]);
 
   const handleSubmit = async () => {
     const email = session?.user?.email;
@@ -190,6 +319,7 @@ export default function ModuleThreeForm() {
           user_email: email,
           responses,
           thesis,
+          structure_choice: structureChoice || null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: ["user_email"] }
@@ -223,97 +353,181 @@ export default function ModuleThreeForm() {
     router.push("/modules/3/success");
   };
 
-  // ---------------- render ----------------
+  const canGoNext = () => {
+    if (isWelcomeStep) return true;
+    if (isGuidedStep) {
+      const field = guidedFields[step - GUIDED_START];
+      const ans = responses[field.responseIndex];
+      return ans && isPhrase(ans);
+    }
+    if (isAppealStep && currentAppealGroup) {
+      for (let i = 0; i < 3; i++) {
+        if (!responses[groupStartIndex + i]?.trim()) return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const goNext = () => {
+    if (step === GUIDED_END) {
+      setResponses((prev) => {
+        generateCustomLabels(prev);
+        return prev;
+      });
+    }
+    setStep((s) => s + 1);
+  };
+
+  const goBack = () => setStep(step - 1);
 
   if (!loaded) {
     return (
       <div className="max-w-3xl mx-auto p-6 bg-theme-light rounded shadow">
-        <p className="text-sm text-theme-dark/80">Loading your work...</p>
+        <p className="text-sm text-theme-dark/80 text-left">
+          Loading your work...
+        </p>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 bg-theme-light rounded shadow">
-      {/* header */}
-      {!isThesisStep && currentGroup && (
-        <div className="rounded-xl border border-theme-blue/30 bg-white p-4 shadow-sm">
-          <h2 className="text-2xl font-extrabold text-theme-blue mb-2 text-center">
-            {currentGroup.title}
+      {/* Welcome */}
+      {isWelcomeStep && (
+        <div className="rounded-xl border border-theme-blue/30 bg-white p-4 shadow-sm space-y-4 text-left">
+          <h2 className="text-2xl font-extrabold text-theme-blue">
+            Welcome to Module 3
           </h2>
-
-          {step === 0 && (
-            <>
-              <p className="text-sm text-theme-dark/80 mb-3 text-center">
-                First capture your big picture ideas. Use short phrases to name
-                the audience and purpose for each text. These four phrases will
-                become the base of your whole essay.
-              </p>
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold text-theme-green mb-2">
-                  🎬 Thesis Statement Walkthrough
-                </h3>
-                <video
-                  width="100%"
-                  height="360"
-                  controls
-                  className="rounded shadow"
-                >
-                  <source src="/videos/thesis-intro.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            </>
-          )}
-
-          {step > 0 && (
-            <p className="text-sm text-theme-dark/80 text-center">
-              Now zoom in on one text at a time. For each rhetorical appeal{" "}
-              <span className="font-semibold">
-                (Ethos, Pathos, Logos: credibility, emotion, and logic)
-              </span>{" "}
-              explain how King shapes it for the audience or purpose you already
-              named.
-            </p>
-          )}
+          <p className="text-sm text-theme-dark/85 leading-relaxed">
+            In Module 2 you collected trustworthy texts and recorded{" "}
+            <span className="font-semibold">Ethos</span>,{" "}
+            <span className="font-semibold">Pathos</span>, and{" "}
+            <span className="font-semibold">Logos</span> with quotes. In this
+            module you will name each text&apos;s{" "}
+            <span className="font-semibold">audience</span> and{" "}
+            <span className="font-semibold">purpose</span>, explain how King&apos;s
+            appeals reach that audience and serve that purpose, and draft a{" "}
+            <span className="font-semibold">comparative thesis</span>. Your Module
+            2 notes will appear beside the connection questions so you are not
+            working from memory alone.
+          </p>
+          <div>
+            <h3 className="text-sm font-semibold text-theme-green mb-2">
+              Thesis statement walkthrough (optional)
+            </h3>
+            <video width="100%" height="360" controls className="rounded shadow">
+              <source src="/videos/thesis-intro.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </div>
       )}
 
-      {/* question cards for steps 0–4 */}
-      {!isThesisStep &&
-        currentGroup &&
-        currentGroup.questions.map((q, i) => (
-          <div key={i} className="bg-white p-4 rounded shadow mb-4">
-            <label className="block font-semibold text-theme-dark mb-1">
-              {step > 0 && customLabels
-                ? customLabels[groupStartIndex + i - 4]
-                : q}
-            </label>
-            <textarea
-              value={responses[groupStartIndex + i]}
-              onChange={(e) => handleChange(i, e.target.value)}
-              className="w-full border rounded p-2 min-h-[80px]"
-            />
-            {step === 0 &&
-              i < 4 &&
-              responses[groupStartIndex + i] &&
-              !isPhrase(responses[groupStartIndex + i]) && (
-                <p className="text-xs text-theme-red mt-1">
-                  Keep it short, just a phrase.
-                </p>
-              )}
-          </div>
-        ))}
+      {/* Guided audience / purpose — one field per step */}
+      {isGuidedStep && (
+        <div className="rounded-xl border border-theme-blue/30 bg-white p-4 shadow-sm space-y-3 text-left">
+          <h2 className="text-2xl font-extrabold text-theme-blue">
+            {guidedFields[step - GUIDED_START].title}
+          </h2>
+          <p className="text-sm text-theme-dark/85 leading-relaxed">
+            Take this one piece at a time. A clear phrase here will anchor the
+            rest of your essay.
+          </p>
+          <p className="text-xs text-theme-dark/70">
+            Tip: Picture who would be in the room or who would open the letter.
+            Then name that group in plain language.
+          </p>
+        </div>
+      )}
 
-      {/* thesis structure + writing step */}
+      {isGuidedStep && (
+        <div className="bg-white p-4 rounded shadow space-y-2 text-left">
+          <label className="block font-semibold text-theme-dark">
+            {guidedFields[step - GUIDED_START].label}
+          </label>
+          <p className="text-xs text-theme-dark/75">
+            {guidedFields[step - GUIDED_START].hint}
+          </p>
+          <textarea
+            value={responses[guidedFields[step - GUIDED_START].responseIndex]}
+            onChange={(e) =>
+              handleChangeAtIndex(
+                guidedFields[step - GUIDED_START].responseIndex,
+                e.target.value
+              )
+            }
+            className="w-full border rounded p-2 min-h-[80px]"
+          />
+          {responses[guidedFields[step - GUIDED_START].responseIndex] &&
+            !isPhrase(
+              responses[guidedFields[step - GUIDED_START].responseIndex]
+            ) && (
+              <p className="text-xs text-theme-red">
+                Keep it short—just a phrase (about six words or fewer).
+              </p>
+            )}
+        </div>
+      )}
+
+      {/* Appeal groups with Module 2 scaffold */}
+      {isAppealStep && currentAppealGroup && (
+        <div className="rounded-xl border border-theme-blue/30 bg-white p-4 shadow-sm space-y-3 text-left">
+          <h2 className="text-2xl font-extrabold text-theme-blue">
+            {currentAppealGroup.title}
+          </h2>
+          <p className="text-sm text-theme-dark/85 leading-relaxed">
+            Below each prompt you&apos;ll see what you saved in Module 2 for that
+            appeal. Use it as evidence while you explain how King shapes{" "}
+            <span className="font-semibold">Ethos</span>,{" "}
+            <span className="font-semibold">Pathos</span>, and{" "}
+            <span className="font-semibold">Logos</span> for the audience or
+            purpose you named earlier.
+          </p>
+        </div>
+      )}
+
+      {isAppealStep &&
+        currentAppealGroup &&
+        APPEAL_CATEGORIES.map((cat, i) => {
+          const labelIdx = groupStartIndex + i - 4;
+          const prompt =
+            customLabels && customLabels[labelIdx] != null
+              ? customLabels[labelIdx]
+              : "";
+          const row = tchartLookup[`${cat}-${currentAppealGroup.sourceType}`];
+
+          return (
+            <div key={`${cat}-${i}`} className="bg-white p-4 rounded shadow space-y-3">
+              {currentAppealGroup.showTchart ? (
+                <TChartScaffoldCard
+                  category={cat}
+                  sourceType={currentAppealGroup.sourceType}
+                  row={row}
+                />
+              ) : null}
+              <div className="text-left">
+                <label className="block font-semibold text-theme-dark mb-1">
+                  {prompt}
+                </label>
+                <textarea
+                  value={responses[groupStartIndex + i]}
+                  onChange={(e) => handleAppealChange(i, e.target.value)}
+                  className="w-full border rounded p-2 min-h-[80px]"
+                />
+              </div>
+            </div>
+          );
+        })}
+
+      {/* Thesis */}
       {isThesisStep && (
         <div className="space-y-6">
-          {/* recap card */}
-          <div className="rounded-xl border border-theme-green/40 bg-white p-4 shadow-sm">
-            <h2 className="text-2xl font-extrabold text-theme-green mb-2 text-center">
+          <div className="rounded-xl border border-theme-green/40 bg-white p-4 shadow-sm text-left">
+            <h2 className="text-2xl font-extrabold text-theme-green mb-2">
               Plan and Write Your Thesis
             </h2>
-            <p className="text-sm text-theme-dark/80 mb-3">
+            <p className="text-sm text-theme-dark/80 mb-3 leading-relaxed">
               Your thesis should grow out of thinking you have already done. Use
               the recap below as a reminder of your ideas about{" "}
               <span className="font-semibold">audience</span>,{" "}
@@ -362,7 +576,7 @@ export default function ModuleThreeForm() {
               </div>
             </div>
 
-            <div className="mt-3 rounded-lg bg-theme-light p-3 text-xs text-theme-dark/80 space-y-1">
+            <div className="mt-3 rounded-lg bg-theme-light p-3 text-xs text-theme-dark/80 space-y-1 text-left">
               <p className="font-semibold">Possible similarities</p>
               <ul className="list-disc list-inside">
                 <li>
@@ -396,12 +610,11 @@ export default function ModuleThreeForm() {
             </div>
           </div>
 
-          {/* choose structure */}
-          <div className="bg-white p-4 rounded shadow space-y-4">
+          <div className="bg-white p-4 rounded shadow space-y-4 text-left">
             <h3 className="text-lg font-semibold text-theme-dark">
               Step 1. Choose how your essay will be organized
             </h3>
-            <p className="text-sm text-theme-dark/80">
+            <p className="text-sm text-theme-dark/80 leading-relaxed">
               Pick the pattern that matches the opinion you are starting to
               form. Remember that the word{" "}
               <span className="font-semibold">appeals</span> means{" "}
@@ -413,79 +626,73 @@ export default function ModuleThreeForm() {
             </p>
 
             <div className="space-y-3">
-              <label className="block rounded-lg border border-theme-blue/30 bg-theme-blue/5 p-3 cursor-pointer">
-                <div className="flex items-start gap-2">
-                  <input
-                    type="radio"
-                    name="structure"
-                    value="similarities-then-differences"
-                    checked={structureChoice === "similarities-then-differences"}
-                    onChange={(e) => setStructureChoice(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="ml-6">
-                  <p className="font-semibold text-sm">
+              <label className="flex gap-3 rounded-lg border border-theme-blue/30 bg-theme-blue/5 p-3 cursor-pointer text-left">
+                <input
+                  type="radio"
+                  name="structure"
+                  value="similarities-then-differences"
+                  checked={structureChoice === "similarities-then-differences"}
+                  onChange={(e) => setStructureChoice(e.target.value)}
+                  className="mt-1 shrink-0"
+                />
+                <span>
+                  <span className="font-semibold text-sm block">
                     Similarities then differences
-                  </p>
-                  <p className="text-xs text-theme-dark/80">
+                  </span>
+                  <span className="text-xs text-theme-dark/80">
                     Use this if you think the speech and letter share important
                     things in common in audience, purpose, or rhetorical
                     appeals, but also have clear differences that matter.
-                  </p>
-                </div>
+                  </span>
+                </span>
               </label>
 
-              <label className="block rounded-lg border border-theme-gold/40 bg-theme-gold/5 p-3 cursor-pointer">
-                <div className="flex items-start gap-2">
-                  <input
-                    type="radio"
-                    name="structure"
-                    value="differences-then-similarities"
-                    checked={structureChoice === "differences-then-similarities"}
-                    onChange={(e) => setStructureChoice(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="ml-6">
-                  <p className="font-semibold text-sm">
+              <label className="flex gap-3 rounded-lg border border-theme-gold/40 bg-theme-gold/5 p-3 cursor-pointer text-left">
+                <input
+                  type="radio"
+                  name="structure"
+                  value="differences-then-similarities"
+                  checked={structureChoice === "differences-then-similarities"}
+                  onChange={(e) => setStructureChoice(e.target.value)}
+                  className="mt-1 shrink-0"
+                />
+                <span>
+                  <span className="font-semibold text-sm block">
                     Differences then similarities
-                  </p>
-                  <p className="text-xs text-theme-dark/80">
+                  </span>
+                  <span className="text-xs text-theme-dark/80">
                     Use this if you want to start by showing how the texts are
                     different in audience, purpose, or appeals, and then show
                     how they still connect or work toward a similar idea.
-                  </p>
-                </div>
+                  </span>
+                </span>
               </label>
 
-              <label className="block rounded-lg border border-theme-green/40 bg-theme-green/5 p-3 cursor-pointer">
-                <div className="flex items-start gap-2">
-                  <input
-                    type="radio"
-                    name="structure"
-                    value="appeals-organization"
-                    checked={structureChoice === "appeals-organization"}
-                    onChange={(e) => setStructureChoice(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="ml-6">
-                  <p className="font-semibold text-sm">
+              <label className="flex gap-3 rounded-lg border border-theme-green/40 bg-theme-green/5 p-3 cursor-pointer text-left">
+                <input
+                  type="radio"
+                  name="structure"
+                  value="appeals-organization"
+                  checked={structureChoice === "appeals-organization"}
+                  onChange={(e) => setStructureChoice(e.target.value)}
+                  className="mt-1 shrink-0"
+                />
+                <span>
+                  <span className="font-semibold text-sm block">
                     Appeals organization
-                  </p>
-                  <p className="text-xs text-theme-dark/80">
+                  </span>
+                  <span className="text-xs text-theme-dark/80">
                     Use this if you want each body paragraph to focus on one
                     rhetorical appeal at a time. For example, one paragraph for
                     Ethos in both texts, one for Pathos, and one for Logos,
                     always linking back to audience and purpose.
-                  </p>
-                </div>
+                  </span>
+                </span>
               </label>
             </div>
 
             {structureChoice && (
-              <div className="mt-4 p-3 bg-theme-light rounded text-sm">
+              <div className="mt-4 p-3 bg-theme-light rounded text-sm text-left">
                 <p className="font-semibold mb-1">Suggested thesis frame</p>
                 {structureChoice === "similarities-then-differences" && (
                   <p>
@@ -518,20 +725,16 @@ export default function ModuleThreeForm() {
             )}
           </div>
 
-          {/* thesis box */}
           {structureChoice && (
-            <div className="bg-white p-4 rounded shadow space-y-3">
+            <div className="bg-white p-4 rounded shadow space-y-3 text-left">
               <h3 className="text-lg font-semibold text-theme-dark">
                 Step 2. Write your full thesis
               </h3>
-              <p className="text-sm text-theme-dark/80">
+              <p className="text-sm text-theme-dark/80 leading-relaxed">
                 Use the frame above as a helper, but put the thesis in your own
                 words. Make sure you mention both texts, connect to audience and
                 purpose, and refer to rhetorical appeals{" "}
-                <span className="font-semibold">
-                  (Ethos, Pathos, Logos)
-                </span>
-                .
+                <span className="font-semibold">(Ethos, Pathos, Logos)</span>.
               </p>
               <textarea
                 value={thesis}
@@ -543,7 +746,6 @@ export default function ModuleThreeForm() {
         </div>
       )}
 
-      {/* footer / navigation */}
       <div className="flex justify-between items-center mt-4">
         {lastSaved && (
           <span className="text-xs text-gray-500">
@@ -551,9 +753,10 @@ export default function ModuleThreeForm() {
           </span>
         )}
         <div className="ml-auto flex gap-2">
-          {step > 0 && (
+          {step > WELCOME_STEP && (
             <button
-              onClick={() => setStep(step - 1)}
+              type="button"
+              onClick={goBack}
               className="px-4 py-2 bg-gray-300 rounded"
             >
               Back
@@ -562,20 +765,9 @@ export default function ModuleThreeForm() {
 
           {!isThesisStep && (
             <button
-              onClick={() => {
-                if (step === 0) generateCustomLabels();
-                setStep(step + 1);
-              }}
-              disabled={
-                step === 0
-                  ? currentGroup?.questions.some((_, i) => {
-                      const ans = responses[groupStartIndex + i];
-                      return !ans || !isPhrase(ans);
-                    })
-                  : currentGroup?.questions.some(
-                      (_, i) => !responses[groupStartIndex + i]
-                    )
-              }
+              type="button"
+              onClick={goNext}
+              disabled={!canGoNext()}
               className="px-4 py-2 bg-theme-blue text-white rounded disabled:opacity-50"
             >
               Next
@@ -584,6 +776,7 @@ export default function ModuleThreeForm() {
 
           {isThesisStep && (
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={!structureChoice || !thesis.trim()}
               className="px-4 py-2 bg-theme-green text-white rounded disabled:opacity-50"
