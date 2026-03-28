@@ -8,6 +8,22 @@ import { logActivity } from "@/lib/logActivity";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 
+const FALLBACK_SPEECH_SOURCE_URL =
+  "https://www.archives.gov/files/press/exhibits/dream-speech.pdf";
+const FALLBACK_LETTER_SOURCE_URL =
+  "https://kinginstitute.stanford.edu/king-papers/documents/letter-birmingham-jail";
+
+const AUDIENCE_TIP =
+  "Tip: Picture who would be in the room or who would open the letter. Then name that group in plain language.";
+const PURPOSE_TIP =
+  "Tip: Think about what King is trying to make this audience understand, believe, feel, or do.";
+/** Guided audience/purpose steps (speech- or letter-specific) */
+const GROUNDING_REMINDER_GUIDED =
+  "Keep the text open while you work so your answer stays grounded in King’s actual words.";
+/** Appeal-analysis steps (unchanged from prior polish) */
+const GROUNDING_REMINDER_APPEAL =
+  "Keep the text open while you work so you can stay grounded in King’s actual words and choose accurate evidence.";
+
 const APPEAL_CATEGORIES = ["ethos", "pathos", "logos"];
 
 const appealGroups = [
@@ -35,6 +51,8 @@ const appealGroups = [
 
 const guidedFields = [
   {
+    focus: "audience",
+    textSource: "speech",
     title: "Speech — Audience",
     responseIndex: 0,
     label:
@@ -42,18 +60,24 @@ const guidedFields = [
     hint: "Use a short phrase only (about six words or fewer), not a full sentence.",
   },
   {
+    focus: "audience",
+    textSource: "letter",
     title: "Letter — Audience",
     responseIndex: 2,
     label: "Who is the Letter from Birmingham Jail mainly written for?",
     hint: "Short phrase only (about six words or fewer).",
   },
   {
+    focus: "purpose",
+    textSource: "speech",
     title: "Speech — Purpose",
     responseIndex: 1,
     label: "What is King trying to accomplish in the speech?",
     hint: "Short phrase only (about six words or fewer).",
   },
   {
+    focus: "purpose",
+    textSource: "letter",
     title: "Letter — Purpose",
     responseIndex: 3,
     label: "What is King trying to accomplish in the letter?",
@@ -81,6 +105,82 @@ function buildTchartLookup(rows) {
     map[key] = row;
   }
   return map;
+}
+
+function openUrlInNewTab(href) {
+  if (!href) return;
+  window.open(href, "_blank", "noopener,noreferrer");
+}
+
+function AnalysisSourceAccess({
+  variant,
+  speechOriginalUrl,
+  letterOriginalUrl,
+  reminderText = GROUNDING_REMINDER_APPEAL,
+  useOpenLabels = false,
+}) {
+  const showSpeech = variant === "speech" || variant === "both";
+  const showLetter = variant === "letter" || variant === "both";
+
+  const btnClass =
+    "text-left text-sm font-medium px-3 py-2 rounded-md border border-theme-blue/40 bg-white text-theme-dark hover:bg-theme-blue/10 transition shadow-sm";
+
+  const speechSaved = useOpenLabels
+    ? "Open My Saved Speech Copy"
+    : "My Saved Speech Copy";
+  const speechOrig = useOpenLabels
+    ? "Open Original Speech Source"
+    : "Original Speech Source";
+  const letterSaved = useOpenLabels
+    ? "Open My Saved Letter Copy"
+    : "My Saved Letter Copy";
+  const letterOrig = useOpenLabels
+    ? "Open Original Letter Source"
+    : "Original Letter Source";
+
+  return (
+    <div className="rounded-lg border border-theme-blue/20 bg-theme-light/80 p-3 space-y-3 text-left">
+      <p className="text-xs text-theme-dark/85 leading-relaxed">{reminderText}</p>
+      <div className="flex flex-wrap gap-2">
+        {showSpeech ? (
+          <>
+            <button
+              type="button"
+              className={btnClass}
+              onClick={() => openUrlInNewTab("/texts/speech")}
+            >
+              {speechSaved}
+            </button>
+            <button
+              type="button"
+              className={btnClass}
+              onClick={() => openUrlInNewTab(speechOriginalUrl)}
+            >
+              {speechOrig}
+            </button>
+          </>
+        ) : null}
+        {showLetter ? (
+          <>
+            <button
+              type="button"
+              className={btnClass}
+              onClick={() => openUrlInNewTab("/texts/letter")}
+            >
+              {letterSaved}
+            </button>
+            <button
+              type="button"
+              className={btnClass}
+              onClick={() => openUrlInNewTab(letterOriginalUrl)}
+            >
+              {letterOrig}
+            </button>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function TChartScaffoldCard({ category, sourceType, row }) {
@@ -151,6 +251,12 @@ export default function ModuleThreeForm() {
   const [lastSaved, setLastSaved] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [tchartRows, setTchartRows] = useState([]);
+  const [speechOriginalUrl, setSpeechOriginalUrl] = useState(
+    FALLBACK_SPEECH_SOURCE_URL
+  );
+  const [letterOriginalUrl, setLetterOriginalUrl] = useState(
+    FALLBACK_LETTER_SOURCE_URL
+  );
   const savingRef = useRef(false);
   const thesisStepLoggedRef = useRef(false);
 
@@ -217,17 +323,55 @@ export default function ModuleThreeForm() {
         return;
       }
 
-      const [{ data: m3, error: m3Error }, tchartResult] = await Promise.all([
+      const [m3Result, tchartResult, sourcesRes] = await Promise.all([
         supabase
           .from("module3_responses")
           .select("responses, thesis, updated_at, structure_choice")
           .eq("user_email", email)
           .maybeSingle(),
         getTChartEntries({ userEmail: email }),
+        fetch("/api/module2/sources"),
       ]);
 
-      if (tchartResult?.data) {
-        setTchartRows(tchartResult.data);
+      const { data: m3, error: m3Error } = m3Result;
+
+      const chartData = tchartResult?.data || [];
+      if (chartData.length) {
+        setTchartRows(chartData);
+      }
+
+      let letterUrlFromTchart = "";
+      for (const row of chartData) {
+        const u = (row.letter_url || "").trim();
+        if (u.startsWith("https://")) {
+          letterUrlFromTchart = u;
+          break;
+        }
+      }
+
+      if (sourcesRes.ok) {
+        try {
+          const src = await sourcesRes.json();
+          if (src && !src.error) {
+            const speech =
+              src.speech_source_url ||
+              src.mlk_url ||
+              FALLBACK_SPEECH_SOURCE_URL;
+            const letter =
+              src.letter_source_url ||
+              src.lfbj_url ||
+              letterUrlFromTchart ||
+              FALLBACK_LETTER_SOURCE_URL;
+            setSpeechOriginalUrl(speech);
+            setLetterOriginalUrl(letter);
+          } else if (letterUrlFromTchart) {
+            setLetterOriginalUrl(letterUrlFromTchart);
+          }
+        } catch {
+          if (letterUrlFromTchart) setLetterOriginalUrl(letterUrlFromTchart);
+        }
+      } else if (letterUrlFromTchart) {
+        setLetterOriginalUrl(letterUrlFromTchart);
       }
 
       if (!m3Error && m3) {
@@ -435,9 +579,17 @@ export default function ModuleThreeForm() {
             rest of your essay.
           </p>
           <p className="text-xs text-theme-dark/70">
-            Tip: Picture who would be in the room or who would open the letter.
-            Then name that group in plain language.
+            {guidedFields[step - GUIDED_START].focus === "audience"
+              ? AUDIENCE_TIP
+              : PURPOSE_TIP}
           </p>
+          <AnalysisSourceAccess
+            variant={guidedFields[step - GUIDED_START].textSource}
+            speechOriginalUrl={speechOriginalUrl}
+            letterOriginalUrl={letterOriginalUrl}
+            reminderText={GROUNDING_REMINDER_GUIDED}
+            useOpenLabels
+          />
         </div>
       )}
 
@@ -484,6 +636,13 @@ export default function ModuleThreeForm() {
             <span className="font-semibold">Logos</span> for the audience or
             purpose you named earlier.
           </p>
+          <AnalysisSourceAccess
+            variant={currentAppealGroup.sourceType}
+            speechOriginalUrl={speechOriginalUrl}
+            letterOriginalUrl={letterOriginalUrl}
+            reminderText={GROUNDING_REMINDER_APPEAL}
+            useOpenLabels={false}
+          />
         </div>
       )}
 
