@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Panel from "@/components/ui/Panel";
 import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
 import { isPathAllowedForModule } from "@/lib/supabase/helpers/moduleGate";
 
@@ -66,7 +67,22 @@ export default function ModuleTwoLayout({ children }) {
   }
 
   if (!session) {
-    return null;
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
+        <Panel className="max-w-md w-full space-y-3 text-center">
+          <h1 className="text-xl font-bold text-theme-dark">Please sign in</h1>
+          <p className="text-sm text-theme-dark/80">
+            Sign in to access Module 2 activities.
+          </p>
+          <a
+            href="/api/auth/signin"
+            className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+          >
+            Sign in
+          </a>
+        </Panel>
+      </div>
+    );
   }
 
   if (pathname?.startsWith("/modules/2") && allowed === null) {

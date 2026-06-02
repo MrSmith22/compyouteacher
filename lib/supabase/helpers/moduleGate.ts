@@ -27,13 +27,16 @@ export async function requireModuleAccess({
 
 /**
  * Module 2 uses multiple subroutes (analysis, tcharts, form, source, letter, success).
- * Gate by module family: any path under /modules/2 is allowed when current_module >= 2.
+ * Gate by module family: any path under /modules/N is allowed when current_module >= N.
  */
 export function isPathAllowedForModule(
   pathname: string,
   currentModule: number
 ): boolean {
   if (currentModule < 1) return false;
-  const prefix = `/modules/${currentModule}`;
-  return pathname === prefix || pathname.startsWith(prefix + "/");
+  const match = pathname.match(/^\/modules\/(\d+)(?:\/|$)/);
+  if (!match) return false;
+  const pathModule = Number(match[1]);
+  if (!Number.isFinite(pathModule) || pathModule < 1) return false;
+  return currentModule >= pathModule;
 }

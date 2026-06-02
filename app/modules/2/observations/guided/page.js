@@ -1,20 +1,75 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
 import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments/mlkRhetoricalAnalysis";
 
 const ASSIGNMENT = mlkRhetoricalAnalysisAssignment;
-const PASSAGES = ASSIGNMENT.guidedPassages;
+const PASSAGES = ASSIGNMENT?.guidedPassages ?? [];
 const TOTAL = PASSAGES.length;
+const CONFIG_OK = Boolean(ASSIGNMENT?.assignmentId && TOTAL > 0);
 
 const STRATEGY_LABELS = {
   ethos: "Ethos",
   pathos: "Pathos",
   logos: "Logos",
 };
+
+const STRATEGY_SCAFFOLDING = {
+  ethos: {
+    definition: "Ethos is about credibility and trust.",
+    lookFor:
+      "Look for how King presents himself as trustworthy, moral, knowledgeable, fair, religious, patriotic, or connected to respected ideas.",
+    keyQuestion: "Why should this audience believe him?",
+    observationPrompt:
+      "What do you notice about how King builds credibility or earns trust here?",
+    observationPlaceholder: "King builds credibility here by…",
+    sentenceStarter: "King builds credibility here by…",
+    audienceHint: "How might credibility or trust affect this audience?",
+    purposeHint:
+      "How might building trust help King accomplish his purpose with this audience?",
+    essentialQuestionHint:
+      "How does King’s credibility work differently with this audience than with another?",
+  },
+  pathos: {
+    definition: "Pathos is about emotion.",
+    lookFor:
+      "Look for words or images that make the audience feel hope, anger, sadness, urgency, guilt, pride, or sympathy.",
+    keyQuestion: "What feeling is King trying to create?",
+    observationPrompt:
+      "What do you notice about how King creates emotion here?",
+    observationPlaceholder: "King creates emotion here by…",
+    sentenceStarter: "King creates emotion here by…",
+    audienceHint: "What might this make the audience feel?",
+    purposeHint:
+      "How might this emotion help King accomplish his purpose with this audience?",
+    essentialQuestionHint:
+      "How does King use emotion differently with this audience than with another?",
+  },
+  logos: {
+    definition: "Logos is about reasoning.",
+    lookFor:
+      "Look for definitions, examples, cause and effect, comparisons, facts, or logical explanations.",
+    keyQuestion: "How is King trying to make his argument make sense?",
+    observationPrompt:
+      "What do you notice about how King uses reasoning or explanation here?",
+    observationPlaceholder: "King uses reasoning here by…",
+    sentenceStarter: "King uses reasoning here by…",
+    audienceHint:
+      "How might this reasoning help the audience understand his argument?",
+    purposeHint:
+      "How might this logical explanation help King accomplish his purpose?",
+    essentialQuestionHint:
+      "How does King’s reasoning work differently with this audience than with another?",
+  },
+};
+
+function getStrategyScaffolding(strategy) {
+  return STRATEGY_SCAFFOLDING[strategy] ?? null;
+}
 
 const SOURCE_TYPE_LABELS = {
   speech: "Speech",
@@ -71,6 +126,8 @@ export default function GuidedObservationsPage() {
   const email = session?.user?.email ?? null;
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [fetchKey, setFetchKey] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fieldsByPassageId, setFieldsByPassageId] = useState({});
   const [savedPassageIds, setSavedPassageIds] = useState(new Set());
@@ -81,6 +138,7 @@ export default function GuidedObservationsPage() {
   const currentPassage = PASSAGES[currentIndex];
   const currentFields = fieldsByPassageId[currentPassage?.id] ?? emptyFields();
   const strategyLabel = STRATEGY_LABELS[currentPassage?.strategy] ?? "";
+  const strategyScaffolding = getStrategyScaffolding(currentPassage?.strategy);
   const sourceTitle = currentPassage
     ? sourceTitleForType(currentPassage.sourceType)
     : "";
@@ -90,20 +148,37 @@ export default function GuidedObservationsPage() {
   }, [savedPassageIds]);
 
   useEffect(() => {
-    if (!email) return;
+    console.log("[guided-observations] session status:", status);
+    console.log("[guided-observations] guided passage count:", TOTAL);
+    console.log("[guided-observations] config ok:", CONFIG_OK);
+  }, [status]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!email) {
+      console.log("[guided-observations] no email on session; skipping fetch");
+      setLoading(false);
+      return;
+    }
 
     let cancelled = false;
 
     (async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const res = await fetch("/api/module2/observations/guided");
+        console.log("[guided-observations] API response status:", res.status);
         const json = await res.json();
 
         if (cancelled) return;
 
         if (!res.ok || !json.ok) {
-          setToast(json?.error || "Could not load saved observations");
+          const message = json?.error || "Could not load saved observations";
+          console.error("[guided-observations] API error:", message);
+          setLoadError(message);
+          setToast(message);
           setTimeout(() => setToast(""), 2500);
           return;
         }
@@ -133,7 +208,10 @@ export default function GuidedObservationsPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setToast(`Network error: ${String(err)}`);
+          console.error("[guided-observations] fetch error:", err);
+          const message = `Network error: ${String(err)}`;
+          setLoadError(message);
+          setToast(message);
           setTimeout(() => setToast(""), 2500);
         }
       } finally {
@@ -144,7 +222,7 @@ export default function GuidedObservationsPage() {
     return () => {
       cancelled = true;
     };
-  }, [email]);
+  }, [email, status, fetchKey]);
 
   const updateField = useCallback((passageId, key, value) => {
     setFieldsByPassageId((prev) => ({
@@ -206,16 +284,99 @@ export default function GuidedObservationsPage() {
     setSaving(false);
   };
 
-  if (status === "loading" || (status === "authenticated" && loading)) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-        <p className="text-sm text-theme-dark/80">Loading…</p>
+        <p className="text-sm text-theme-dark/80">Loading guided observations…</p>
       </div>
     );
   }
 
-  if (!session) {
-    return null;
+  if (status === "unauthenticated" || !session) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
+        <Panel className="max-w-md w-full space-y-3 text-center">
+          <h1 className="text-xl font-bold text-theme-dark">Please sign in</h1>
+          <p className="text-sm text-theme-dark/80">
+            You need to be signed in to complete guided observations.
+          </p>
+          <Link
+            href="/api/auth/signin"
+            className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+          >
+            Sign in
+          </Link>
+        </Panel>
+      </div>
+    );
+  }
+
+  if (!CONFIG_OK) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6">
+        <div className="max-w-3xl mx-auto">
+          <Panel className="space-y-3 border-l-4 border-theme-red">
+            <h1 className="text-xl font-bold text-theme-dark">
+              Guided observations unavailable
+            </h1>
+            <p className="text-sm text-theme-dark/80">
+              Assignment configuration is missing or has no guided passages.
+              Expected {TOTAL} passages; check{" "}
+              <code className="text-xs">lib/assignments/mlkRhetoricalAnalysis.ts</code>.
+            </p>
+          </Panel>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
+        <p className="text-sm text-theme-dark/80">
+          Loading saved guided observations…
+        </p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6">
+        <div className="max-w-3xl mx-auto">
+          <Panel className="space-y-3 border-l-4 border-theme-red">
+            <h1 className="text-xl font-bold text-theme-dark">
+              Could not load guided observations
+            </h1>
+            <p className="text-sm text-theme-dark/80">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => setFetchKey((k) => k + 1)}
+              className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+            >
+              Try again
+            </button>
+          </Panel>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentPassage) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6">
+        <div className="max-w-3xl mx-auto">
+          <Panel className="space-y-3 border-l-4 border-theme-red">
+            <h1 className="text-xl font-bold text-theme-dark">
+              No guided passage available
+            </h1>
+            <p className="text-sm text-theme-dark/80">
+              Passage index {currentIndex + 1} of {TOTAL} is out of range.
+            </p>
+          </Panel>
+        </div>
+      </div>
+    );
   }
 
   if (showComplete || allPassagesSaved) {
@@ -319,10 +480,28 @@ export default function GuidedObservationsPage() {
             Your Observation
           </h2>
 
+          {strategyScaffolding && (
+            <div className="text-left bg-theme-blue/5 border border-theme-blue/20 rounded-lg p-4 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-blue">
+                Strategy reminder — {strategyLabel}
+              </p>
+              <p className="text-sm text-theme-dark/90">
+                {strategyScaffolding.definition}
+              </p>
+              <p className="text-sm text-theme-dark/90">
+                {strategyScaffolding.lookFor}
+              </p>
+              <p className="text-sm font-medium text-theme-dark">
+                Ask yourself: {strategyScaffolding.keyQuestion}
+              </p>
+            </div>
+          )}
+
           <div className="space-y-3 text-left">
             <div>
               <label className="block text-sm font-medium text-theme-dark/90 mb-1">
-                What do you notice about how King uses {strategyLabel}?
+                {strategyScaffolding?.observationPrompt ??
+                  `What do you notice about how King uses ${strategyLabel}?`}
               </label>
               <textarea
                 className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
@@ -334,11 +513,16 @@ export default function GuidedObservationsPage() {
                     e.target.value
                   )
                 }
-                placeholder={`This quote uses ${strategyLabel.toLowerCase()} because…`}
+                placeholder={
+                  strategyScaffolding?.observationPlaceholder ??
+                  `This quote uses ${strategyLabel.toLowerCase()} because…`
+                }
               />
               <p className="text-xs text-theme-dark/70 mt-1">
-                Sentence starter: &ldquo;This quote uses {strategyLabel.toLowerCase()}{" "}
-                because King…&rdquo;
+                Sentence starter: &ldquo;
+                {strategyScaffolding?.sentenceStarter ??
+                  `This quote uses ${strategyLabel.toLowerCase()} because King…`}
+                &rdquo;
               </p>
             </div>
 
@@ -361,8 +545,13 @@ export default function GuidedObservationsPage() {
               <p className="text-xs text-theme-dark/70 mt-1">
                 Sentence starter: &ldquo;King wants his audience to feel…&rdquo;
               </p>
+              {strategyScaffolding?.audienceHint && (
+                <p className="text-xs text-theme-dark/60 mt-1">
+                  {strategyLabel} hint: {strategyScaffolding.audienceHint}
+                </p>
+              )}
               <p className="text-xs text-theme-dark/60 mt-1">
-                Hint: {audienceHintForType(currentPassage.sourceType)}
+                Audience: {audienceHintForType(currentPassage.sourceType)}
               </p>
             </div>
 
@@ -386,8 +575,13 @@ export default function GuidedObservationsPage() {
                 Sentence starter: &ldquo;By using {strategyLabel.toLowerCase()},
                 King…&rdquo;
               </p>
+              {strategyScaffolding?.purposeHint && (
+                <p className="text-xs text-theme-dark/60 mt-1">
+                  {strategyLabel} hint: {strategyScaffolding.purposeHint}
+                </p>
+              )}
               <p className="text-xs text-theme-dark/60 mt-1">
-                Hint: {purposeHintForType(currentPassage.sourceType)}
+                Purpose: {purposeHintForType(currentPassage.sourceType)}
               </p>
             </div>
 
@@ -412,6 +606,11 @@ export default function GuidedObservationsPage() {
                 {strategyLabel.toLowerCase()} differently with this audience
                 because…&rdquo;
               </p>
+              {strategyScaffolding?.essentialQuestionHint && (
+                <p className="text-xs text-theme-dark/60 mt-1">
+                  {strategyLabel} hint: {strategyScaffolding.essentialQuestionHint}
+                </p>
+              )}
             </div>
           </div>
         </Panel>
