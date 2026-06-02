@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 type TChartEntry = {
   category: string;
@@ -10,6 +11,14 @@ type TChartEntry = {
 
 export async function getTChartEntries({ userEmail }: { userEmail: string }) {
   return supabase
+    .from("tchart_entries")
+    .select("*")
+    .eq("user_email", userEmail);
+}
+
+/** Same projection as {@link getTChartEntries}; uses the service role for server-side loads (e.g. RSC). */
+export async function getTChartEntriesAdmin({ userEmail }: { userEmail: string }) {
+  return getSupabaseAdmin()
     .from("tchart_entries")
     .select("*")
     .eq("user_email", userEmail);

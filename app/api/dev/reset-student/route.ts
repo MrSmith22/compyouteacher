@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       { key: "student_drafts", table: "student_drafts" },
       { key: "student_outlines", table: "student_outlines" },
       { key: "bucket_groups", table: "bucket_groups" },
+      { key: "student_buckets", table: "student_buckets" },
       { key: "tchart_entries", table: "tchart_entries" },
       { key: "student_exports", table: "student_exports" },
       

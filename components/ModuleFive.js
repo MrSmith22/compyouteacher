@@ -20,6 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableItem } from "./SortableItem";
+import { outlineBodyFromStudentBuckets } from "@/lib/module4/mapStudentBucketsToOutline";
 
 const roman = (n) =>
   ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] ||
@@ -145,36 +146,60 @@ export default function ModuleFive() {
         }
       }
 
-      // 3) If no body yet, seed from Module 4 buckets
+      // 3) If no body yet, seed from Module 4 (student_buckets, then legacy bucket_groups)
       if (!savedRow?.outline?.body?.length) {
-        const { data: bucketsRows, error: bucketsErr } = await supabase
-          .from("bucket_groups")
-          .select("buckets, updated_at")
+        const { data: m4Row, error: m4Err } = await supabase
+          .from("student_buckets")
+          .select("buckets")
           .eq("user_email", email)
-          .order("updated_at", { ascending: false })
-          .limit(1);
+          .eq("module", 4)
+          .maybeSingle();
 
-        if (bucketsErr) {
-          console.error("Bucket groups fetch error:", {
-            message: bucketsErr.message,
-            code: bucketsErr.code,
-            details: bucketsErr.details,
-            hint: bucketsErr.hint,
-          });
+        if (m4Err) {
+          console.error("student_buckets fetch error:", m4Err);
         }
 
-        const bucketsData = bucketsRows?.[0] ?? null;
+        if (m4Row?.buckets?.length) {
+          const { data: tchartData } = await supabase
+            .from("tchart_entries")
+            .select("*")
+            .eq("user_email", email);
 
-        if (bucketsData?.buckets?.length) {
-          const body = bucketsData.buckets.map((b) => ({
-            bucket: b.name,
-            points: (b.items || []).map((i) => {
-              const obs = i.observation?.trim() || "";
-              const quote = i.quote?.trim() || "";
-              return `${obs}${quote ? ` — “${quote}”` : ""}`;
-            }),
-          }));
-          setOutline(body);
+          const body = outlineBodyFromStudentBuckets(
+            m4Row.buckets,
+            tchartData || []
+          );
+          if (body.length) setOutline(body);
+        } else {
+          const { data: bucketsRows, error: bucketsErr } = await supabase
+            .from("bucket_groups")
+            .select("buckets, updated_at")
+            .eq("user_email", email)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+
+          if (bucketsErr) {
+            console.error("Bucket groups fetch error:", {
+              message: bucketsErr.message,
+              code: bucketsErr.code,
+              details: bucketsErr.details,
+              hint: bucketsErr.hint,
+            });
+          }
+
+          const bucketsData = bucketsRows?.[0] ?? null;
+
+          if (bucketsData?.buckets?.length) {
+            const body = bucketsData.buckets.map((b) => ({
+              bucket: b.name,
+              points: (b.items || []).map((i) => {
+                const obs = i.observation?.trim() || "";
+                const quote = i.quote?.trim() || "";
+                return `${obs}${quote ? ` — “${quote}”` : ""}`;
+              }),
+            }));
+            setOutline(body);
+          }
         }
       }
     };
@@ -289,38 +314,66 @@ export default function ModuleFive() {
 
     setIsImportingBuckets(true);
     try {
-      const { data: bucketsData, error } = await supabase
-        .from("bucket_groups")
-        .select("buckets, updated_at")
+      const { data: m4Row, error: m4Err } = await supabase
+        .from("student_buckets")
+        .select("buckets")
         .eq("user_email", email)
-        .order("updated_at", { ascending: false })
-        .limit(1)
+        .eq("module", 4)
         .maybeSingle();
 
-      if (error) {
-        console.error("Could not load buckets from Module 4:", error.message);
-        alert("Could not load buckets from Module 4.");
-        return;
+      if (m4Err) {
+        console.error("Could not load Module 4 student_buckets:", m4Err.message);
       }
 
-      if (!bucketsData?.buckets?.length) {
+      let body = [];
+
+      if (m4Row?.buckets?.length) {
+        const { data: tchartData } = await supabase
+          .from("tchart_entries")
+          .select("*")
+          .eq("user_email", email);
+        body = outlineBodyFromStudentBuckets(m4Row.buckets, tchartData || []);
+      }
+
+      if (!body.length) {
+        const { data: bucketsData, error } = await supabase
+          .from("bucket_groups")
+          .select("buckets, updated_at")
+          .eq("user_email", email)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Could not load buckets from Module 4:", error.message);
+          alert("Could not load buckets from Module 4.");
+          return;
+        }
+
+        if (!bucketsData?.buckets?.length) {
+          alert("No buckets found in Module 4 yet.");
+          return;
+        }
+
+        body = bucketsData.buckets.map((b) => {
+          const points = (b.items || [])
+            .map((i) => {
+              const obs = i.observation?.trim() || "";
+              const quote = i.quote?.trim() || "";
+              return `${obs}${quote ? ` — "${quote}"` : ""}`.trim();
+            })
+            .filter(Boolean);
+          return {
+            bucket: b.name || "New paragraph idea",
+            points: points.length ? points : [""],
+          };
+        });
+      }
+
+      if (!body.length) {
         alert("No buckets found in Module 4 yet.");
         return;
       }
-
-      const body = bucketsData.buckets.map((b) => {
-        const points = (b.items || [])
-          .map((i) => {
-            const obs = i.observation?.trim() || "";
-            const quote = i.quote?.trim() || "";
-            return `${obs}${quote ? ` — "${quote}"` : ""}`.trim();
-          })
-          .filter(Boolean);
-        return {
-          bucket: b.name || "New paragraph idea",
-          points: points.length ? points : [""],
-        };
-      });
 
       setOutline(body);
       logActivity(email, "outline_reimported_from_module4", {
