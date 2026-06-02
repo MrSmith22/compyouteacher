@@ -94,6 +94,7 @@ export async function POST(req) {
       });
 
     if (findError) {
+      console.error("[guided-observations POST] find error:", findError);
       return NextResponse.json(
         { ok: false, error: findError.message },
         { status: 500 }
@@ -104,6 +105,7 @@ export async function POST(req) {
       const { data, error } = await updateStudentObservation(existing.id, fields);
 
       if (error) {
+        console.error("[guided-observations POST] update error:", error);
         return NextResponse.json(
           { ok: false, error: error.message },
           { status: 500 }
@@ -120,6 +122,7 @@ export async function POST(req) {
     });
 
     if (error) {
+      console.error("[guided-observations POST] insert error:", error);
       return NextResponse.json(
         { ok: false, error: error.message },
         { status: 500 }
@@ -128,6 +131,7 @@ export async function POST(req) {
 
     return NextResponse.json({ ok: true, data, updated: false }, { status: 200 });
   } catch (err) {
+    console.error("[guided-observations POST] exception:", err);
     return NextResponse.json(
       { ok: false, error: err?.message || "Server error" },
       { status: 500 }

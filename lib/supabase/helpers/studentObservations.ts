@@ -1,4 +1,8 @@
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+function observationsDb() {
+  return getSupabaseAdmin();
+}
 
 export type StudentObservationRow = {
   id: string;
@@ -75,7 +79,7 @@ export async function getStudentObservations({
   userEmail: string;
   assignmentId: string;
 }) {
-  return supabase
+  return observationsDb()
     .from("student_observations")
     .select("*")
     .eq("user_email", userEmail)
@@ -92,7 +96,7 @@ export async function getStudentObservationBySourceId({
   assignmentId: string;
   sourceId: string;
 }) {
-  return supabase
+  return observationsDb()
     .from("student_observations")
     .select("*")
     .eq("user_email", userEmail)
@@ -106,7 +110,7 @@ export async function saveStudentObservation(
 ) {
   const now = new Date().toISOString();
 
-  return supabase
+  return observationsDb()
     .from("student_observations")
     .insert({
       ...rowFromInsert(observation),
@@ -121,7 +125,7 @@ export async function updateStudentObservation(
   id: string,
   updates: StudentObservationUpdate
 ) {
-  return supabase
+  return observationsDb()
     .from("student_observations")
     .update({
       ...updates,
@@ -133,5 +137,5 @@ export async function updateStudentObservation(
 }
 
 export async function deleteStudentObservation(id: string) {
-  return supabase.from("student_observations").delete().eq("id", id);
+  return observationsDb().from("student_observations").delete().eq("id", id);
 }
