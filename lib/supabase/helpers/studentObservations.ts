@@ -83,6 +83,24 @@ export async function getStudentObservations({
     .order("created_at", { ascending: true });
 }
 
+export async function getStudentObservationBySourceId({
+  userEmail,
+  assignmentId,
+  sourceId,
+}: {
+  userEmail: string;
+  assignmentId: string;
+  sourceId: string;
+}) {
+  return supabase
+    .from("student_observations")
+    .select("*")
+    .eq("user_email", userEmail)
+    .eq("assignment_id", assignmentId)
+    .eq("source_id", sourceId)
+    .maybeSingle();
+}
+
 export async function saveStudentObservation(
   observation: StudentObservationInsert
 ) {
