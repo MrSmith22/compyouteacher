@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
+import { parseModule2Observation } from "@/lib/parseModule2Observation";
+import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import { makeStudentKey } from "@/lib/storage/studentCache";
 
 const APPEALS = ["ethos", "pathos", "logos"];
@@ -14,18 +16,6 @@ const FALLBACK_LETTER_URL =
 
 const OBSERVATION_SEP = "\n---AUDIENCE---\n";
 const OBSERVATION_SEP2 = "\n---PURPOSE---\n";
-
-function parseObservation(obs) {
-  if (!obs || typeof obs !== "string") return { why: "", audience: "", purpose: "" };
-  const i = obs.indexOf(OBSERVATION_SEP);
-  const j = obs.indexOf(OBSERVATION_SEP2);
-  if (i === -1 && j === -1) return { why: obs.trim(), audience: "", purpose: "" };
-  const why = i === -1 ? obs : obs.slice(0, i).trim();
-  const mid = i === -1 ? obs : obs.slice(i + OBSERVATION_SEP.length);
-  const audience = j === -1 ? mid.trim() : mid.slice(0, mid.indexOf(OBSERVATION_SEP2)).trim();
-  const purpose = j === -1 ? "" : mid.slice(mid.indexOf(OBSERVATION_SEP2) + OBSERVATION_SEP2.length).trim();
-  return { why, audience, purpose };
-}
 
 function buildObservation(why, audience, purpose) {
   return [why || "", OBSERVATION_SEP, audience || "", OBSERVATION_SEP2, purpose || ""].join("");
@@ -41,6 +31,52 @@ const emptyAppeal = () => ({
   letterAudience: "",
   letterPurpose: "",
 });
+
+function formDataFromTchartRows(rows) {
+  const next = {
+    ethos: emptyAppeal(),
+    pathos: emptyAppeal(),
+    logos: emptyAppeal(),
+  };
+
+  for (const row of rows || []) {
+    const appeal = row?.category;
+    if (!APPEALS.includes(appeal)) continue;
+
+    const parsed = parseModule2Observation(row?.observation);
+    if (row.type === "speech") {
+      next[appeal].speechQuote = row.quote || "";
+      next[appeal].speechWhy = parsed.main || "";
+      next[appeal].speechAudience = parsed.audience || "";
+      next[appeal].speechPurpose = parsed.purpose || "";
+    } else if (row.type === "letter") {
+      next[appeal].letterQuote = row.quote || "";
+      next[appeal].letterWhy = parsed.main || "";
+      next[appeal].letterAudience = parsed.audience || "";
+      next[appeal].letterPurpose = parsed.purpose || "";
+    }
+  }
+
+  return next;
+}
+
+function formDataFromLocalStorage(email) {
+  const next = { ethos: emptyAppeal(), pathos: emptyAppeal(), logos: emptyAppeal() };
+  APPEALS.forEach((appeal) => {
+    const get = (suffix) =>
+      localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", appeal + suffix])) ||
+      "";
+    next[appeal].speechQuote = get("SpeechQuote");
+    next[appeal].speechWhy = get("SpeechWhy") || get("SpeechNote");
+    next[appeal].speechAudience = get("SpeechAudience");
+    next[appeal].speechPurpose = get("SpeechPurpose");
+    next[appeal].letterQuote = get("LetterQuote");
+    next[appeal].letterWhy = get("LetterWhy") || get("LetterNote");
+    next[appeal].letterAudience = get("LetterAudience");
+    next[appeal].letterPurpose = get("LetterPurpose");
+  });
+  return next;
+}
 
 export default function ModuleTwoTCharts() {
   const router = useRouter();
@@ -74,25 +110,33 @@ export default function ModuleTwoTCharts() {
     return () => { cancelled = true; };
   }, [email]);
 
-  // Load persisted analysis from localStorage (and support legacy Note keys)
+  // Load persisted analysis: Supabase first, then localStorage fallback
   useEffect(() => {
     if (!email) return;
-    try {
-      const next = { ethos: emptyAppeal(), pathos: emptyAppeal(), logos: emptyAppeal() };
-      APPEALS.forEach((appeal) => {
-        const get = (suffix) => localStorage.getItem(makeStudentKey(email, ["mlk", "module2", "tcharts", appeal + suffix])) || "";
-        // Keys match existing: ethosSpeechQuote, ethosSpeechNote (legacy), etc.
-        next[appeal].speechQuote = get("SpeechQuote");
-        next[appeal].speechWhy = get("SpeechWhy") || get("SpeechNote"); // legacy
-        next[appeal].speechAudience = get("SpeechAudience");
-        next[appeal].speechPurpose = get("SpeechPurpose");
-        next[appeal].letterQuote = get("LetterQuote");
-        next[appeal].letterWhy = get("LetterWhy") || get("LetterNote");
-        next[appeal].letterAudience = get("LetterAudience");
-        next[appeal].letterPurpose = get("LetterPurpose");
-      });
-      setFormData(next);
-    } catch (_) {}
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data: rows, error } = await getTChartEntries({ userEmail: email });
+        if (cancelled) return;
+
+        if (!error && Array.isArray(rows) && rows.length > 0) {
+          setFormData(formDataFromTchartRows(rows));
+          return;
+        }
+      } catch (_) {
+        if (cancelled) return;
+      }
+
+      try {
+        setFormData(formDataFromLocalStorage(email));
+      } catch (_) {}
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [email]);
 
   const updateAppeal = useCallback((appeal, field, value) => {
