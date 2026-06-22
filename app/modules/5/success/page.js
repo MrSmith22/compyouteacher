@@ -7,8 +7,9 @@ import {
   advanceCurrentModuleOnSuccess,
   ensureStudentAssignmentRow,
 } from "@/lib/supabase/helpers/studentAssignments";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 export default function ModuleFiveSuccess() {
   const { data: session } = useSession();

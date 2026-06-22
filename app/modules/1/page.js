@@ -11,6 +11,7 @@ export default function ModuleOnePage() {
   const router = useRouter();
 
   const [checking, setChecking] = useState(true);
+  const [savedStudentParaphrase, setSavedStudentParaphrase] = useState("");
 
   useEffect(() => {
     async function logStart() {
@@ -43,12 +44,13 @@ export default function ModuleOnePage() {
           return;
         }
 
-        const hasParaphrase = !!data?.student_paraphrase?.trim();
-        if (!hasParaphrase) {
+        const paraphrase = (data?.student_paraphrase || "").trim();
+        if (!paraphrase) {
           router.replace("/modules/1/prompt");
           return;
         }
 
+        setSavedStudentParaphrase(paraphrase);
         setChecking(false);
       } catch {
         setChecking(false);
@@ -62,5 +64,5 @@ export default function ModuleOnePage() {
     return <p className="p-6">Loading…</p>;
   }
 
-  return <ModuleOne />;
+  return <ModuleOne savedStudentParaphrase={savedStudentParaphrase} />;
 }

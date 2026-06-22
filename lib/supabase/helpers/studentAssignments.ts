@@ -1,6 +1,5 @@
+import { DEFAULT_ASSIGNMENT_NAME } from "@/lib/assignments";
 import { supabase } from "../../supabaseClient";
-
-const DEFAULT_ASSIGNMENT_NAME = "MLK Essay Assignment";
 const MAX_MODULE = 10;
 
 /**

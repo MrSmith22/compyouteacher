@@ -7,9 +7,12 @@ import {
   saveStudentObservation,
   updateStudentObservation,
 } from "@/lib/supabase/helpers/studentObservations";
-import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments/mlkRhetoricalAnalysis";
+import {
+  MLK_ASSIGNMENT_ID,
+  mlkRhetoricalAnalysisAssignment,
+} from "@/lib/assignments";
 
-const ASSIGNMENT_ID = mlkRhetoricalAnalysisAssignment.assignmentId;
+const ASSIGNMENT_ID = MLK_ASSIGNMENT_ID;
 const GUIDED_SOURCE_IDS = new Set(
   mlkRhetoricalAnalysisAssignment.guidedPassages.map((p) => p.id)
 );

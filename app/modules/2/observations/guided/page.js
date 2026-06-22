@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
-import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments/mlkRhetoricalAnalysis";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 
-const ASSIGNMENT = mlkRhetoricalAnalysisAssignment;
+const ASSIGNMENT = mlkAssignmentDefinition;
 const PASSAGES = ASSIGNMENT?.guidedPassages ?? [];
 const TOTAL = PASSAGES.length;
 const CONFIG_OK = Boolean(ASSIGNMENT?.assignmentId && TOTAL > 0);

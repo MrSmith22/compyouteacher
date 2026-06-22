@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import { logActivity } from "../lib/logActivity";
 import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
 import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -53,7 +54,7 @@ export default function ModuleSix() {
 
       const { ok } = await requireModuleAccess({
         userEmail: email,
-        assignmentName: "MLK Essay Assignment",
+        assignmentName: MLK_ASSIGNMENT_NAME,
         minModule: 6,
       });
 

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import ModuleOne from "@/components/ModuleOne";
 import { logActivity } from "@/lib/logActivity";
 import { supabase } from "@/lib/supabaseClient";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
 export default function ModulesPage() {
   const { data: session } = useSession();
@@ -28,7 +29,7 @@ export default function ModulesPage() {
           .from("student_assignments")
           .select("id")
           .eq("user_email", email)
-          .eq("assignment_name", "MLK Essay Assignment")
+          .eq("assignment_name", MLK_ASSIGNMENT_NAME)
           .maybeSingle();
 
         if (selectError) {
@@ -41,7 +42,7 @@ export default function ModulesPage() {
             .from("student_assignments")
             .insert({
               user_email: email,
-              assignment_name: "MLK Essay Assignment",
+              assignment_name: MLK_ASSIGNMENT_NAME,
               current_module: 1,
               status: "in progress",
             });

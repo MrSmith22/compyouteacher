@@ -6,8 +6,9 @@ import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
 import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
 import { isPathAllowedForModule } from "@/lib/supabase/helpers/moduleGate";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 /**
  * Module 2 has multiple subroutes (/, /analysis, /tcharts, /form, /source, /letter, /success).

@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const gradingStatusOptions = [
   { value: "ungraded", label: "Ungraded" },
   { value: "in_review", label: "In review" },
@@ -164,7 +165,7 @@ useEffect(() => {
 
         return {
           email,
-          assignmentName: assign?.assignment_name || "MLK Essay Assignment",
+          assignmentName: assign?.assignment_name || MLK_ASSIGNMENT_NAME,
           status: assign?.status || "in progress",
           currentModule,
           modulesCompleted,

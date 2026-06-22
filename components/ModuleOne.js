@@ -140,13 +140,15 @@ const modules = [
   },
 ];
 
-export default function ModuleOne() {
+export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const [currentModuleIndex] = useState(0);
   const currentModule = modules[currentModuleIndex];
 
+  const hasSavedParaphrase = !!savedStudentParaphrase.trim();
+
   const [assignmentBreakdown, setAssignmentBreakdown] = useState("");
   const [breakdownSaved, setBreakdownSaved] = useState(false);
-  const [breakdownConfirmed, setBreakdownConfirmed] = useState(false);
+  const [breakdownConfirmed, setBreakdownConfirmed] = useState(hasSavedParaphrase);
 
   const [userAnswers, setUserAnswers] = useState([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
@@ -296,8 +298,22 @@ Part of becoming a stronger writer is learning how to use precise language to th
         </p>
       </div>
 
-      {/* Assignment Breakdown step - before video and quiz */}
-      {!breakdownConfirmed && (
+      {hasSavedParaphrase && (
+        <div className="mb-6 p-4 rounded border border-theme-green/30 bg-white">
+          <h3 className="text-lg font-semibold text-theme-dark mb-2">
+            Your assignment understanding
+          </h3>
+          <p className="text-sm text-theme-muted mb-2">
+            You already explained this assignment in your own words during Step 1.
+          </p>
+          <p className="p-3 rounded bg-theme-light border border-gray-200 text-theme-dark whitespace-pre-line">
+            {savedStudentParaphrase}
+          </p>
+        </div>
+      )}
+
+      {/* Assignment Breakdown step - before video and quiz (legacy fallback only) */}
+      {!breakdownConfirmed && !hasSavedParaphrase && (
         <div className="mb-6 p-4 rounded border border-theme-blue/30 bg-white">
           <h3 className="text-xl font-semibold text-theme-blue mb-3">
             Assignment Breakdown

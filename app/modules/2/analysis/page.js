@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
 import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 export default function ModuleTwoAnalysisPage() {
   const router = useRouter();
@@ -167,7 +168,7 @@ export default function ModuleTwoAnalysisPage() {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        assignment_name: "MLK Essay Assignment",
+                        assignment_name: MLK_ASSIGNMENT_NAME,
                         resume_path: "/modules/2/tcharts",
                       }),
                     });

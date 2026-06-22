@@ -5,8 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
 import { logActivity } from "@/lib/logActivity";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 const modules = [
   {

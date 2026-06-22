@@ -10,8 +10,9 @@ import {
 } from "@/lib/supabase/helpers/studentAssignments";
 import { getFinalPdfExport } from "@/lib/supabase/helpers/studentExports";
 import DevResetStudentButton from "@/components/dev/DevResetStudentButton";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -184,7 +185,7 @@ export default function Dashboard() {
         ) : (
           <section className="bg-white shadow p-6 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h3 className="text-xl font-bold mb-2">MLK Essay Assignment</h3>
+              <h3 className="text-xl font-bold mb-2">{ASSIGNMENT_NAME}</h3>
               <p className="text-sm text-gray-700 mb-3">
                 A guided writing process that moves from rhetorical analysis to
                 a polished argumentative essay.

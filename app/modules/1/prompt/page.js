@@ -52,6 +52,9 @@ const PROMPT_MC = {
   },
 };
 
+/** Question 5: open-ended paraphrase — length only, no keyword matching. */
+const PARAPHRASE_MIN_LENGTH = 25;
+
 function nudge(field, value) {
   const mc = PROMPT_MC[field];
   if (mc) {
@@ -72,13 +75,14 @@ function nudge(field, value) {
     return mc.wrongNudge;
   }
 
-  const v = (value || "").toLowerCase();
-
   if (field === "student_paraphrase") {
-    if (!v) return "Write the assignment in your own words in one or two sentences.";
-    if (v.length < 35) return "Make it a little more complete. Include both texts and the rhetorical lens.";
-    const hasBothTexts = v.includes("speech") && v.includes("letter");
-    if (!hasBothTexts) return "Your paraphrase should mention both the speech and the letter.";
+    const trimmed = (value || "").trim();
+    if (!trimmed) {
+      return "Write the assignment in your own words in one or two sentences.";
+    }
+    if (trimmed.length < PARAPHRASE_MIN_LENGTH) {
+      return `Add a little more detail (at least ${PARAPHRASE_MIN_LENGTH} characters).`;
+    }
     return null;
   }
 
@@ -133,13 +137,13 @@ export default function ModuleOnePromptPage() {
   }, [taskVerb, taskType, analysisFocus, requiredAngle, studentParaphrase]);
 
   const canContinue = useMemo(() => {
+    const paraphrase = studentParaphrase.trim();
     return (
       !nudges.taskVerb &&
       !nudges.taskType &&
       !nudges.analysisFocus &&
       !nudges.requiredAngle &&
-      !nudges.studentParaphrase &&
-      studentParaphrase.trim().length > 0
+      paraphrase.length >= PARAPHRASE_MIN_LENGTH
     );
   }, [nudges, studentParaphrase]);
 
@@ -332,6 +336,12 @@ Your goal is not to summarize what King says, but to explain how and why he says
           <label className="font-medium text-theme-dark">
             5) In your own words, what is this essay asking you to do?
           </label>
+          <p className="text-sm text-theme-dark/70 mt-1">
+            Write one or two sentences in your own words. There is no single
+            right phrasing—describe what you think the essay is asking you to do.
+            You might mention the texts, rhetorical appeals, or audience and
+            purpose if that helps you explain your thinking.
+          </p>
           <textarea
             value={studentParaphrase}
             onChange={(e) => setStudentParaphrase(e.target.value)}

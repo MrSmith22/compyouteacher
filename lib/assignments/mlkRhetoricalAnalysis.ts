@@ -1,3 +1,5 @@
+import { MLK_ASSIGNMENT_ID } from "./identity";
+
 export type RhetoricalStrategy = "ethos" | "pathos" | "logos";
 
 export type SourceType = "speech" | "letter";
@@ -29,7 +31,7 @@ export type MlkRhetoricalAnalysisAssignment = {
 };
 
 export const mlkRhetoricalAnalysisAssignment: MlkRhetoricalAnalysisAssignment = {
-  assignmentId: "mlk-rhetorical-analysis",
+  assignmentId: MLK_ASSIGNMENT_ID,
   title: "Comparing King's Speech and Letter",
   essentialQuestion:
     "How do King's rhetorical choices help him achieve different purposes with different audiences?",

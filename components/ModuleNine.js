@@ -15,8 +15,9 @@ import {
 } from "@/lib/supabase/helpers/module9Checklist";
 import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
-const ASSIGNMENT_NAME = "MLK Essay Assignment";
+const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 export default function ModuleNine() {
   const { data: session } = useSession();

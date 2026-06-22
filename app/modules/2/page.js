@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import Panel from "@/components/ui/Panel";
 import ProgressDots from "@/components/ui/ProgressDots";
+import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 
 const STAGE_LABELS = [
   "Welcome",
@@ -691,7 +692,7 @@ export default function ModuleTwoSourcePage() {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                          assignment_name: "MLK Essay Assignment",
+                          assignment_name: MLK_ASSIGNMENT_NAME,
                           resume_path: "/modules/2/analysis",
                         }),
                       });

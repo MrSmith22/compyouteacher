@@ -20,7 +20,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("module1_prompt_breakdown")
       .select(
-        "task_verb, task_type, analysis_focus, required_angle, student_paraphrase, updated_at"
+        "task_verb, task_type, analysis_focus, required_angle, student_paraphrase, response_text, updated_at"
       )
       .eq("user_email", email)
       .maybeSingle();
@@ -30,7 +30,18 @@ export async function GET() {
       return NextResponse.json({ error: "Could not load prompt breakdown" }, { status: 500 });
     }
 
-    return NextResponse.json(data ?? null);
+    if (!data) {
+      return NextResponse.json(null);
+    }
+
+    const studentParaphrase =
+      normalizeString(data.student_paraphrase) ||
+      normalizeString(data.response_text);
+
+    return NextResponse.json({
+      ...data,
+      student_paraphrase: studentParaphrase,
+    });
   } catch (err) {
     console.error("module1_prompt_breakdown GET error:", err);
     return NextResponse.json({ error: "Could not load prompt breakdown" }, { status: 500 });
@@ -52,13 +63,16 @@ export async function POST(req) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const studentParaphrase = normalizeString(body?.student_paraphrase);
+
   const payload = {
     user_email: email,
     task_verb: normalizeString(body?.task_verb),
     task_type: normalizeString(body?.task_type),
     analysis_focus: normalizeString(body?.analysis_focus),
     required_angle: normalizeString(body?.required_angle),
-    student_paraphrase: normalizeString(body?.student_paraphrase),
+    student_paraphrase: studentParaphrase,
+    response_text: studentParaphrase,
     updated_at: new Date().toISOString(),
   };
 
