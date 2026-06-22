@@ -91,18 +91,25 @@ export async function getStudentObservationBySourceId({
   userEmail,
   assignmentId,
   sourceId,
+  observationStage,
 }: {
   userEmail: string;
   assignmentId: string;
   sourceId: string;
+  observationStage?: string;
 }) {
-  return observationsDb()
+  let query = observationsDb()
     .from("student_observations")
     .select("*")
     .eq("user_email", userEmail)
     .eq("assignment_id", assignmentId)
-    .eq("source_id", sourceId)
-    .maybeSingle();
+    .eq("source_id", sourceId);
+
+  if (observationStage) {
+    query = query.eq("observation_stage", observationStage);
+  }
+
+  return query.maybeSingle();
 }
 
 export async function saveStudentObservation(

@@ -10,6 +10,9 @@ import {
 import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments/mlkRhetoricalAnalysis";
 
 const ASSIGNMENT_ID = mlkRhetoricalAnalysisAssignment.assignmentId;
+const GUIDED_SOURCE_IDS = new Set(
+  mlkRhetoricalAnalysisAssignment.guidedPassages.map((p) => p.id)
+);
 
 // GET /api/module2/observations/guided
 export async function GET() {
@@ -37,7 +40,10 @@ export async function GET() {
     }
 
     const guided = (data ?? []).filter(
-      (row) => row.observation_stage === "guided"
+      (row) =>
+        row.observation_stage === "guided" &&
+        row.source_id &&
+        GUIDED_SOURCE_IDS.has(row.source_id)
     );
 
     return NextResponse.json({ ok: true, data: guided }, { status: 200 });
@@ -72,6 +78,13 @@ export async function POST(req) {
       );
     }
 
+    if (!GUIDED_SOURCE_IDS.has(sourceId)) {
+      return NextResponse.json(
+        { ok: false, error: "Invalid guided observation source_id" },
+        { status: 400 }
+      );
+    }
+
     const fields = {
       source_id: sourceId,
       source_title: body?.source_title ?? null,
@@ -91,6 +104,7 @@ export async function POST(req) {
         userEmail: email,
         assignmentId: ASSIGNMENT_ID,
         sourceId,
+        observationStage: "guided",
       });
 
     if (findError) {

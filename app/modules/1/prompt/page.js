@@ -6,34 +6,73 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 
+const PROMPT_MC = {
+  task_verb: {
+    label: "1) What are the main action word(s) in this assignment?",
+    choices: ["Summarize", "Persuade", "Compare and contrast", "Describe"],
+    correct: "Compare and contrast",
+    emptyNudge: "Pick the main action word(s) the assignment asks you to do.",
+    wrongNudge: "This assignment is compare and contrast. Your action word(s) should reflect that.",
+  },
+  task_type: {
+    label: "2) What are you producing?",
+    choices: [
+      "A poem",
+      "A compare and contrast essay",
+      "A speech",
+      "A book report",
+    ],
+    correct: "A compare and contrast essay",
+    emptyNudge: "Name what you are producing. Example: compare and contrast essay.",
+    wrongNudge: "You are writing an essay, not just answers or a summary.",
+  },
+  analysis_focus: {
+    label: "3) What are you comparing?",
+    choices: [
+      "Martin Luther King Jr. and Malcolm X",
+      "Two historical events",
+      "How Dr. King uses rhetorical appeals in two texts",
+      "The civil rights movement and World War II",
+    ],
+    correct: "How Dr. King uses rhetorical appeals in two texts",
+    emptyNudge: "What are you comparing? Think: King’s rhetoric in the speech and the letter.",
+    wrongNudge: "Include both texts: the speech and the letter.",
+  },
+  required_angle: {
+    label: "4) What evidence should you use?",
+    choices: [
+      "Personal opinions only",
+      "Information from social media",
+      "Specific evidence from both works",
+      "Information from any source you choose",
+    ],
+    correct: "Specific evidence from both works",
+    emptyNudge: "What evidence should you use? Read the assignment carefully.",
+    wrongNudge: "Your essay must use specific evidence from both King texts.",
+  },
+};
+
 function nudge(field, value) {
+  const mc = PROMPT_MC[field];
+  if (mc) {
+    const v = (value || "").trim();
+    if (!v) return mc.emptyNudge;
+    if (v === mc.correct) return null;
+    if (field === "task_verb" && (v.includes("compare") || v.includes("contrast"))) {
+      return null;
+    }
+    if (field === "task_type" && v.toLowerCase().includes("essay")) return null;
+    if (
+      field === "analysis_focus" &&
+      v.toLowerCase().includes("speech") &&
+      v.toLowerCase().includes("letter")
+    ) {
+      return null;
+    }
+    return mc.wrongNudge;
+  }
+
   const v = (value || "").toLowerCase();
-
-  if (field === "task_verb") {
-    if (!v) return "Pick the main action word the teacher wants you to do.";
-    if (v.includes("compare") || v.includes("contrast")) return null;
-    return "This assignment is compare and contrast. Your verb should reflect that.";
-  }
-
-  if (field === "task_type") {
-    if (!v) return "Name what you are producing. Example: compare and contrast essay.";
-    if (v.includes("essay")) return null;
-    return "You are writing an essay, not just answers or a summary.";
-  }
-
-  if (field === "analysis_focus") {
-    if (!v) return "What are you comparing? Think: King’s rhetoric in the speech and the letter.";
-    if (v.includes("speech") && v.includes("letter")) return null;
-    return "Include both texts: the speech and the letter.";
-  }
-
-  if (field === "required_angle") {
-    if (!v) return "What is the lens? Think: ethos, pathos, logos, plus audience and purpose.";
-    const hasAppeals = v.includes("ethos") || v.includes("pathos") || v.includes("logos");
-    const hasAudiencePurpose = v.includes("audience") || v.includes("purpose");
-    if (hasAppeals && hasAudiencePurpose) return null;
-    return "Include the lens: rhetorical appeals and how they connect to audience and purpose.";
-  }
 
   if (field === "student_paraphrase") {
     if (!v) return "Write the assignment in your own words in one or two sentences.";
@@ -44,6 +83,29 @@ function nudge(field, value) {
   }
 
   return null;
+}
+
+function MultipleChoice({ name, value, choices, onChange }) {
+  return (
+    <div className="space-y-2 mt-1">
+      {choices.map((choice) => (
+        <label
+          key={choice}
+          className="flex items-start gap-2 cursor-pointer text-theme-dark"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={choice}
+            checked={value === choice}
+            onChange={(e) => onChange(e.target.value)}
+            className="mt-1"
+          />
+          <span>{choice}</span>
+        </label>
+      ))}
+    </div>
+  );
 }
 
 export default function ModuleOnePromptPage() {
@@ -219,47 +281,51 @@ Your goal is not to summarize what King says, but to explain how and why he says
 
       <div className="space-y-4">
         <div>
-          <label className="font-medium text-theme-dark">1) What is the main action word?</label>
-          <input
+          <label className="font-medium text-theme-dark">{PROMPT_MC.task_verb.label}</label>
+          <MultipleChoice
+            name="taskVerb"
             value={taskVerb}
-            onChange={(e) => setTaskVerb(e.target.value)}
-            className="border p-2 rounded w-full"
-            placeholder="Example: compare and contrast"
+            choices={PROMPT_MC.task_verb.choices}
+            onChange={setTaskVerb}
           />
           {nudges.taskVerb && <p className="text-sm text-red-600 mt-1">{nudges.taskVerb}</p>}
         </div>
 
         <div>
-          <label className="font-medium text-theme-dark">2) What are you producing?</label>
-          <input
+          <label className="font-medium text-theme-dark">{PROMPT_MC.task_type.label}</label>
+          <MultipleChoice
+            name="taskType"
             value={taskType}
-            onChange={(e) => setTaskType(e.target.value)}
-            className="border p-2 rounded w-full"
-            placeholder="Example: a compare and contrast essay"
+            choices={PROMPT_MC.task_type.choices}
+            onChange={setTaskType}
           />
           {nudges.taskType && <p className="text-sm text-red-600 mt-1">{nudges.taskType}</p>}
         </div>
 
         <div>
-          <label className="font-medium text-theme-dark">3) What are you comparing?</label>
-          <input
+          <label className="font-medium text-theme-dark">{PROMPT_MC.analysis_focus.label}</label>
+          <MultipleChoice
+            name="analysisFocus"
             value={analysisFocus}
-            onChange={(e) => setAnalysisFocus(e.target.value)}
-            className="border p-2 rounded w-full"
-            placeholder="Example: King’s rhetoric in the speech and the letter"
+            choices={PROMPT_MC.analysis_focus.choices}
+            onChange={setAnalysisFocus}
           />
-          {nudges.analysisFocus && <p className="text-sm text-red-600 mt-1">{nudges.analysisFocus}</p>}
+          {nudges.analysisFocus && (
+            <p className="text-sm text-red-600 mt-1">{nudges.analysisFocus}</p>
+          )}
         </div>
 
         <div>
-          <label className="font-medium text-theme-dark">4) What lens must you use?</label>
-          <input
+          <label className="font-medium text-theme-dark">{PROMPT_MC.required_angle.label}</label>
+          <MultipleChoice
+            name="requiredAngle"
             value={requiredAngle}
-            onChange={(e) => setRequiredAngle(e.target.value)}
-            className="border p-2 rounded w-full"
-            placeholder="Example: ethos, pathos, logos, plus audience and purpose"
+            choices={PROMPT_MC.required_angle.choices}
+            onChange={setRequiredAngle}
           />
-          {nudges.requiredAngle && <p className="text-sm text-red-600 mt-1">{nudges.requiredAngle}</p>}
+          {nudges.requiredAngle && (
+            <p className="text-sm text-red-600 mt-1">{nudges.requiredAngle}</p>
+          )}
         </div>
 
         <div>

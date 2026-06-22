@@ -11,6 +11,7 @@ const ASSIGNMENT = mlkRhetoricalAnalysisAssignment;
 const PASSAGES = ASSIGNMENT?.guidedPassages ?? [];
 const TOTAL = PASSAGES.length;
 const CONFIG_OK = Boolean(ASSIGNMENT?.assignmentId && TOTAL > 0);
+const REQUIRED_SOURCE_IDS = new Set(PASSAGES.map((p) => p.id));
 
 const STRATEGY_LABELS = {
   ethos: "Ethos",
@@ -120,6 +121,110 @@ function allFieldsFilled(fields) {
   );
 }
 
+function fieldsHaveContent(fields) {
+  return (
+    fields.studentObservation.trim().length > 0 ||
+    fields.audienceEffect.trim().length > 0 ||
+    fields.purposeConnection.trim().length > 0 ||
+    fields.essentialQuestionConnection.trim().length > 0
+  );
+}
+
+function fieldsMatch(a, b) {
+  return (
+    a.studentObservation.trim() === b.studentObservation.trim() &&
+    a.audienceEffect.trim() === b.audienceEffect.trim() &&
+    a.purposeConnection.trim() === b.purposeConnection.trim() &&
+    a.essentialQuestionConnection.trim() === b.essentialQuestionConnection.trim()
+  );
+}
+
+function buildSavedLookup(rows) {
+  const lookup = {};
+  for (const row of rows || []) {
+    if (!row?.source_id || !REQUIRED_SOURCE_IDS.has(row.source_id)) continue;
+    lookup[row.source_id] = row;
+  }
+  return lookup;
+}
+
+function allRequiredSaved(savedBySourceId) {
+  return PASSAGES.every((p) => Boolean(savedBySourceId[p.id]));
+}
+
+function observationPreview(row) {
+  const text = row?.student_observation?.trim();
+  if (!text) return "";
+  return text.length > 120 ? `${text.slice(0, 120)}…` : text;
+}
+
+function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
+  const missingCount = PASSAGES.filter((p) => !savedBySourceId[p.id]).length;
+
+  return (
+    <Panel className="space-y-4">
+      <div className="text-left">
+        <h2 className="text-lg font-bold text-theme-dark">{title}</h2>
+        <p className="text-sm text-theme-dark/80 mt-1">
+          {missingCount === 0
+            ? "All six guided observations are saved."
+            : `${missingCount} observation${missingCount === 1 ? "" : "s"} still need to be saved.`}
+        </p>
+      </div>
+      <ul className="space-y-3 text-left">
+        {PASSAGES.map((p, i) => {
+          const saved = savedBySourceId[p.id];
+          const isSaved = Boolean(saved);
+          return (
+            <li
+              key={p.id}
+              className={`rounded-lg border p-3 ${
+                isSaved
+                  ? "border-theme-green/40 bg-theme-green/5"
+                  : "border-theme-red/30 bg-theme-red/5"
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium text-theme-dark">
+                    {STRATEGY_LABELS[p.strategy]} ({SOURCE_TYPE_LABELS[p.sourceType]})
+                  </p>
+                  <p className="text-sm text-theme-dark/80">
+                    {sourceTitleForType(p.sourceType)}
+                  </p>
+                </div>
+                <span
+                  className={`text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded ${
+                    isSaved
+                      ? "bg-theme-green/20 text-theme-dark"
+                      : "bg-theme-red/20 text-theme-dark"
+                  }`}
+                >
+                  {isSaved ? "Saved" : "Missing"}
+                </span>
+              </div>
+              {isSaved && observationPreview(saved) && (
+                <p className="text-sm text-theme-dark/80 mt-2 italic">
+                  &ldquo;{observationPreview(saved)}&rdquo;
+                </p>
+              )}
+              {!isSaved && (
+                <button
+                  type="button"
+                  onClick={() => onGoToPassage(i)}
+                  className="mt-2 text-sm bg-theme-blue text-white px-3 py-1.5 rounded font-medium hover:opacity-90"
+                >
+                  Go to this observation
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </Panel>
+  );
+}
+
 export default function GuidedObservationsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -130,34 +235,49 @@ export default function GuidedObservationsPage() {
   const [fetchKey, setFetchKey] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fieldsByPassageId, setFieldsByPassageId] = useState({});
-  const [savedPassageIds, setSavedPassageIds] = useState(new Set());
-  const [showComplete, setShowComplete] = useState(false);
+  const [savedBySourceId, setSavedBySourceId] = useState({});
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [toast, setToast] = useState("");
 
   const currentPassage = PASSAGES[currentIndex];
-  const currentFields = fieldsByPassageId[currentPassage?.id] ?? emptyFields();
+  const savedFieldsForCurrent = fieldsFromObservation(
+    savedBySourceId[currentPassage?.id]
+  );
+  const currentFields =
+    fieldsByPassageId[currentPassage?.id] ?? savedFieldsForCurrent;
   const strategyLabel = STRATEGY_LABELS[currentPassage?.strategy] ?? "";
   const strategyScaffolding = getStrategyScaffolding(currentPassage?.strategy);
   const sourceTitle = currentPassage
     ? sourceTitleForType(currentPassage.sourceType)
     : "";
 
-  const allPassagesSaved = useMemo(() => {
-    return PASSAGES.every((p) => savedPassageIds.has(p.id));
-  }, [savedPassageIds]);
+  const allPassagesSaved = useMemo(
+    () => allRequiredSaved(savedBySourceId),
+    [savedBySourceId]
+  );
 
-  useEffect(() => {
-    console.log("[guided-observations] session status:", status);
-    console.log("[guided-observations] guided passage count:", TOTAL);
-    console.log("[guided-observations] config ok:", CONFIG_OK);
-  }, [status]);
+  const currentPassageIsDirty = useMemo(() => {
+    if (!currentPassage) return false;
+    const saved = savedBySourceId[currentPassage.id];
+    if (!saved) return fieldsHaveContent(currentFields);
+    return !fieldsMatch(currentFields, fieldsFromObservation(saved));
+  }, [currentPassage, currentFields, savedBySourceId]);
+
+  const loadPassageFields = useCallback(
+    (passageId) => {
+      setFieldsByPassageId((prev) => ({
+        ...prev,
+        [passageId]: fieldsFromObservation(savedBySourceId[passageId]),
+      }));
+    },
+    [savedBySourceId]
+  );
 
   useEffect(() => {
     if (status === "loading") return;
 
     if (!email) {
-      console.log("[guided-observations] no email on session; skipping fetch");
       setLoading(false);
       return;
     }
@@ -169,7 +289,6 @@ export default function GuidedObservationsPage() {
       setLoadError(null);
       try {
         const res = await fetch("/api/module2/observations/guided");
-        console.log("[guided-observations] API response status:", res.status);
         const json = await res.json();
 
         if (cancelled) return;
@@ -178,41 +297,26 @@ export default function GuidedObservationsPage() {
           const message = json?.error || "Could not load saved observations";
           console.error("[guided-observations] API error:", message);
           setLoadError(message);
-          setToast(message);
-          setTimeout(() => setToast(""), 2500);
           return;
         }
 
+        const lookup = buildSavedLookup(json.data);
         const nextFields = {};
-        const nextSaved = new Set();
-
-        for (const row of json.data || []) {
-          if (!row?.source_id) continue;
-          nextFields[row.source_id] = fieldsFromObservation(row);
-          if (allFieldsFilled(nextFields[row.source_id])) {
-            nextSaved.add(row.source_id);
+        for (const passage of PASSAGES) {
+          if (lookup[passage.id]) {
+            nextFields[passage.id] = fieldsFromObservation(lookup[passage.id]);
           }
         }
 
+        setSavedBySourceId(lookup);
         setFieldsByPassageId(nextFields);
-        setSavedPassageIds(nextSaved);
 
-        const firstIncomplete = PASSAGES.findIndex(
-          (p) => !nextSaved.has(p.id)
-        );
-        if (firstIncomplete === -1) {
-          setShowComplete(true);
-          setCurrentIndex(TOTAL - 1);
-        } else {
-          setCurrentIndex(firstIncomplete);
-        }
+        const firstIncomplete = PASSAGES.findIndex((p) => !lookup[p.id]);
+        setCurrentIndex(firstIncomplete === -1 ? TOTAL - 1 : firstIncomplete);
       } catch (err) {
         if (!cancelled) {
           console.error("[guided-observations] fetch error:", err);
-          const message = `Network error: ${String(err)}`;
-          setLoadError(message);
-          setToast(message);
-          setTimeout(() => setToast(""), 2500);
+          setLoadError(`Network error: ${String(err)}`);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -225,19 +329,55 @@ export default function GuidedObservationsPage() {
   }, [email, status, fetchKey]);
 
   const updateField = useCallback((passageId, key, value) => {
+    setSaveError(null);
     setFieldsByPassageId((prev) => ({
       ...prev,
       [passageId]: {
-        ...(prev[passageId] ?? emptyFields()),
+        ...(prev[passageId] ??
+          fieldsFromObservation(savedBySourceId[passageId])),
         [key]: value,
       },
     }));
-  }, []);
+  }, [savedBySourceId]);
 
-  const saveAndContinue = async () => {
+  const goToPassage = useCallback(
+    (index) => {
+      if (index < 0 || index >= TOTAL) return;
+      const targetPassage = PASSAGES[index];
+      setFieldsByPassageId((prev) => ({
+        ...prev,
+        [targetPassage.id]: fieldsFromObservation(savedBySourceId[targetPassage.id]),
+      }));
+      setCurrentIndex(index);
+      setSaveError(null);
+    },
+    [savedBySourceId]
+  );
+
+  const attemptPassageSwitch = useCallback(
+    (index) => {
+      if (index === currentIndex) return;
+
+      if (currentPassageIsDirty) {
+        const discard = window.confirm(
+          "You have unsaved changes on this observation. Switch passages anyway? Your unsaved work will be lost."
+        );
+        if (!discard) return;
+        if (currentPassage) {
+          loadPassageFields(currentPassage.id);
+        }
+      }
+
+      goToPassage(index);
+    },
+    [currentIndex, currentPassage, currentPassageIsDirty, goToPassage, loadPassageFields]
+  );
+
+  const saveCurrentPassage = async () => {
     if (!currentPassage || !allFieldsFilled(currentFields)) return;
 
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch("/api/module2/observations/guided", {
         method: "POST",
@@ -259,29 +399,56 @@ export default function GuidedObservationsPage() {
       const json = await res.json();
 
       if (!res.ok || !json.ok) {
-        setToast(json?.error || "Save failed");
-        setTimeout(() => setToast(""), 2500);
-        setSaving(false);
-        return;
+        const message = json?.error || "Save failed";
+        setSaveError(message);
+        setToast(message);
+        setTimeout(() => setToast(""), 3000);
+        return null;
       }
 
-      setSavedPassageIds((prev) => new Set([...prev, currentPassage.id]));
+      const savedRow = json.data;
+      const savedFields = fieldsFromObservation(savedRow);
+
+      setSavedBySourceId((prev) => ({
+        ...prev,
+        [currentPassage.id]: savedRow,
+      }));
+      setFieldsByPassageId((prev) => ({
+        ...prev,
+        [currentPassage.id]: savedFields,
+      }));
       setToast("Saved");
       setTimeout(() => setToast(""), 1200);
 
-      const isLast = currentIndex === TOTAL - 1;
-      if (isLast) {
-        setShowComplete(true);
-        setSaving(false);
-        return;
-      }
-
-      setCurrentIndex((i) => i + 1);
+      return savedRow;
     } catch (err) {
-      setToast(`Network error: ${String(err)}`);
-      setTimeout(() => setToast(""), 2500);
+      console.error("[guided-observations] save error:", err);
+      const message = `Network error: ${String(err)}`;
+      setSaveError(message);
+      setToast(message);
+      setTimeout(() => setToast(""), 3000);
+      return null;
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
+  };
+
+  const saveAndContinue = async () => {
+    const savedRow = await saveCurrentPassage();
+    if (!savedRow || !currentPassage) return;
+
+    const nextLookup = {
+      ...savedBySourceId,
+      [currentPassage.id]: savedRow,
+    };
+
+    if (allRequiredSaved(nextLookup)) {
+      return;
+    }
+
+    if (currentIndex < TOTAL - 1) {
+      goToPassage(currentIndex + 1);
+    }
   };
 
   if (status === "loading") {
@@ -379,7 +546,7 @@ export default function GuidedObservationsPage() {
     );
   }
 
-  if (showComplete || allPassagesSaved) {
+  if (allPassagesSaved) {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6">
         <div className="max-w-3xl mx-auto space-y-6">
@@ -397,9 +564,18 @@ export default function GuidedObservationsPage() {
               Guided Observations Complete
             </h1>
             <p className="text-left text-theme-dark/90">
-              You completed six guided observations. These will help you build
+              You saved all six guided observations. These will help you build
               your thesis and essay.
             </p>
+          </Panel>
+
+          <ReviewPanel
+            savedBySourceId={savedBySourceId}
+            onGoToPassage={goToPassage}
+            title="Review your observations"
+          />
+
+          <Panel>
             <button
               type="button"
               onClick={() => router.push("/modules/2/success")}
@@ -435,23 +611,40 @@ export default function GuidedObservationsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-left">
-          {PASSAGES.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setCurrentIndex(i)}
-              className={`text-sm px-2 py-1 rounded ${
-                currentIndex === i
-                  ? "bg-theme-blue text-white"
-                  : savedPassageIds.has(p.id)
-                    ? "bg-theme-green/20 text-theme-dark/90 hover:bg-theme-green/30"
-                    : "bg-theme-dark/10 text-theme-dark/80 hover:bg-theme-dark/20"
-              }`}
-            >
-              {i + 1}. {STRATEGY_LABELS[p.strategy]} ({SOURCE_TYPE_LABELS[p.sourceType]})
-            </button>
-          ))}
+          {PASSAGES.map((p, i) => {
+            const isSaved = Boolean(savedBySourceId[p.id]);
+            const isCurrent = currentIndex === i;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => attemptPassageSwitch(i)}
+                title={
+                  isSaved
+                    ? "Saved to your account"
+                    : "Not saved yet — complete and save this observation"
+                }
+                className={`text-sm px-2 py-1 rounded border ${
+                  isCurrent
+                    ? "bg-theme-blue text-white border-theme-blue"
+                    : isSaved
+                      ? "bg-theme-green/20 text-theme-dark/90 border-theme-green/40 hover:bg-theme-green/30"
+                      : "bg-theme-dark/10 text-theme-dark/80 border-transparent hover:bg-theme-dark/20"
+                }`}
+              >
+                {i + 1}. {STRATEGY_LABELS[p.strategy]} ({SOURCE_TYPE_LABELS[p.sourceType]})
+                {isSaved ? " ✓" : ""}
+              </button>
+            );
+          })}
         </div>
+
+        {currentPassageIsDirty && (
+          <p className="text-sm text-theme-dark/90 text-left bg-theme-dark/5 border border-theme-dark/10 rounded-lg px-3 py-2">
+            You have unsaved changes on this observation. Save before leaving, or
+            you will be asked to confirm if you switch passages.
+          </p>
+        )}
 
         <Panel className="space-y-4">
           <div className="flex flex-wrap gap-2 text-sm text-left">
@@ -463,6 +656,15 @@ export default function GuidedObservationsPage() {
             </span>
             <span className="bg-theme-dark/10 px-2 py-1 rounded">
               Strategy: {strategyLabel}
+            </span>
+            <span
+              className={`px-2 py-1 rounded ${
+                savedBySourceId[currentPassage.id]
+                  ? "bg-theme-green/20"
+                  : "bg-theme-dark/10"
+              }`}
+            >
+              {savedBySourceId[currentPassage.id] ? "Saved" : "Not saved yet"}
             </span>
           </div>
 
@@ -618,7 +820,12 @@ export default function GuidedObservationsPage() {
         <Panel className="space-y-3">
           {!allFieldsFilled(currentFields) && (
             <p className="text-left text-sm text-theme-dark/80">
-              Complete all four fields above to continue.
+              Complete all four fields above to save this observation.
+            </p>
+          )}
+          {saveError && (
+            <p className="text-left text-sm text-theme-red border border-theme-red/30 bg-theme-red/5 rounded-lg px-3 py-2">
+              {saveError}
             </p>
           )}
           <div className="flex flex-wrap gap-3">
@@ -628,12 +835,20 @@ export default function GuidedObservationsPage() {
               disabled={!allFieldsFilled(currentFields) || saving}
               className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {currentIndex === TOTAL - 1
-                ? "Save and Finish Guided Observations"
-                : "Save & Continue"}
+              {saving
+                ? "Saving…"
+                : currentIndex === TOTAL - 1
+                  ? "Save and Finish Guided Observations"
+                  : "Save & Continue"}
             </button>
           </div>
         </Panel>
+
+        <ReviewPanel
+          savedBySourceId={savedBySourceId}
+          onGoToPassage={attemptPassageSwitch}
+          title="Progress check"
+        />
 
         {toast && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-theme-dark text-white text-sm px-3 py-2 rounded shadow">
