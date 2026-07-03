@@ -73,24 +73,20 @@ function getStrategyScaffolding(strategy) {
 }
 
 const SOURCE_TYPE_LABELS = {
-  speech: "Speech",
-  letter: "Letter",
+  speech: ASSIGNMENT.sources.speech.label,
+  letter: ASSIGNMENT.sources.letter.label,
 };
 
 function sourceTitleForType(sourceType) {
-  return sourceType === "speech" ? ASSIGNMENT.speech.title : ASSIGNMENT.letter.title;
+  return ASSIGNMENT.sources[sourceType]?.title ?? "";
 }
 
 function audienceHintForType(sourceType) {
-  return sourceType === "speech"
-    ? ASSIGNMENT.speech.audience
-    : ASSIGNMENT.letter.audience;
+  return ASSIGNMENT.sources[sourceType]?.audience ?? "";
 }
 
 function purposeHintForType(sourceType) {
-  return sourceType === "speech"
-    ? ASSIGNMENT.speech.purpose
-    : ASSIGNMENT.letter.purpose;
+  return ASSIGNMENT.sources[sourceType]?.purpose ?? "";
 }
 
 function emptyFields() {

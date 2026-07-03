@@ -4,15 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import { makeStudentKey } from "@/lib/storage/studentCache";
 
 const APPEALS = ["ethos", "pathos", "logos"];
-const FALLBACK_SPEECH_URL =
-  "https://www.archives.gov/files/press/exhibits/dream-speech.pdf";
-const FALLBACK_LETTER_URL =
-  "https://kinginstitute.stanford.edu/king-papers/documents/letter-birmingham-jail";
+const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
+const FALLBACK_SPEECH_URL = MODULE2_SOURCES.speech.analysisFallbackUrl;
+const FALLBACK_LETTER_URL = MODULE2_SOURCES.letter.analysisFallbackUrl;
 
 const OBSERVATION_SEP = "\n---AUDIENCE---\n";
 const OBSERVATION_SEP2 = "\n---PURPOSE---\n";

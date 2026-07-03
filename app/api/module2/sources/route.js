@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
 
 // Front-end-friendly defaults for fields that don't exist in the DB (response only)
 const SPEECH_RESPONSE_DEFAULTS = {
-  speech_source_title: "I Have a Dream",
-  speech_site_name: "National Archives",
+  speech_source_title: MODULE2_SOURCES.speech.title,
+  speech_site_name: MODULE2_SOURCES.speech.apiDefaultSiteName,
   speech_author: "Martin Luther King Jr.",
 };
 
 const LETTER_RESPONSE_DEFAULTS = {
-  letter_source_title: "Letter from Birmingham Jail",
-  letter_site_name:
-    "Martin Luther King Jr. Research and Education Institute at Stanford University",
+  letter_source_title: MODULE2_SOURCES.letter.title,
+  letter_site_name: MODULE2_SOURCES.letter.apiDefaultSiteName,
   letter_author: "Martin Luther King Jr.",
 };
 

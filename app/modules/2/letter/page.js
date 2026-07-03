@@ -3,10 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import {
   getModule2Sources,
   upsertModule2LetterSource,
 } from "@/lib/supabase/helpers/module2Sources";
+
+const SPEECH_SOURCE = mlkAssignmentDefinition.sources.speech;
+const LETTER_SOURCE = mlkAssignmentDefinition.sources.letter;
 
 const KEYS = {
   letterUrl: "mlk_letter_url",
@@ -118,7 +122,7 @@ export default function ModuleTwoChooseLetter() {
     if (openedSearchRef.current) return;
     openedSearchRef.current = true;
     try {
-      const q = encodeURIComponent("full text Letter from Birmingham Jail");
+      const q = encodeURIComponent(LETTER_SOURCE.searchQuery);
       window.open(
         `https://www.google.com/search?q=${q}`,
         "_blank",
@@ -249,9 +253,10 @@ export default function ModuleTwoChooseLetter() {
           </h1>
           <p className="text-sm text-theme-dark/80">
             In this step you will choose an online transcript of{" "}
-            <em>Letter from Birmingham Jail</em> and turn it into a complete APA
+            <em>{LETTER_SOURCE.title}</em> and turn it into a complete APA
             reference. You are practicing the same structure you used for the
-            speech so that you can transfer your skills to a new text.
+            {SPEECH_SOURCE.label.toLowerCase()} so that you can transfer your
+            skills to a new text.
           </p>
         </div>
 
@@ -263,7 +268,7 @@ export default function ModuleTwoChooseLetter() {
           <p className="text-sm text-theme-dark/80">
             A new tab was opened that searched for{" "}
             <span className="font-semibold">
-              full text Letter from Birmingham Jail
+              {LETTER_SOURCE.searchQuery}
             </span>
             . You should select a page that reprints the original letter as a
             primary document, not the Atlantic magazine version.
@@ -289,7 +294,7 @@ export default function ModuleTwoChooseLetter() {
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
               onBlur={() => setTouched(true)}
-              placeholder="https://example.edu/letter-from-birmingham-jail-transcript"
+              placeholder={LETTER_SOURCE.transcriptUrlPlaceholder}
               className={`w-full border rounded-lg px-3 py-2 text-sm bg-white ${
                 urlError ? "border-theme-red" : "border-theme-dark/10"
               }`}
@@ -316,14 +321,13 @@ export default function ModuleTwoChooseLetter() {
               <div>
                 <span className="font-semibold">Start example:</span>
                 <blockquote className="italic mt-1">
-                  While confined here in the Birmingham city jail...
+                  {LETTER_SOURCE.transcriptStartExample}
                 </blockquote>
               </div>
               <div>
                 <span className="font-semibold">End example:</span>
                 <blockquote className="italic mt-1">
-                  Yours for the cause of Peace and Brotherhood, Martin Luther
-                  King, Jr.
+                  {LETTER_SOURCE.transcriptEndExample}
                 </blockquote>
               </div>
             </div>
@@ -332,7 +336,7 @@ export default function ModuleTwoChooseLetter() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 h-64 text-sm font-mono border-theme-green/40 bg-white"
-              placeholder="Paste the full letter here..."
+              placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
               required
             />
             <p className="text-xs text-theme-dark/60">
@@ -428,14 +432,14 @@ export default function ModuleTwoChooseLetter() {
                 reprinted online. Your descriptor is:
               </p>
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 inline-block text-theme-dark">
-                [Letter transcript]
+                [{LETTER_SOURCE.transcriptDescriptor}]
               </p>
               <p className="text-xs text-theme-dark/80 mt-2">
                 At the very end of the reference you record the year the letter
                 was originally written:
               </p>
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 inline-block text-theme-dark">
-                (Original work published 1963).
+                (Original work published {LETTER_SOURCE.originalWorkPublishedYear}).
               </p>
             </div>
 
@@ -450,15 +454,15 @@ export default function ModuleTwoChooseLetter() {
                 and URL with the details from your letter page.
               </p>
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 text-theme-dark">
-                King, M. L., Jr. (Year). <em>Letter from Birmingham jail</em>{" "}
-                [Letter transcript]. Site Name. URL (Original work published
-                1963).
+                King, M. L., Jr. (Year). <em>{LETTER_SOURCE.citationTitle}</em>{" "}
+                [{LETTER_SOURCE.transcriptDescriptor}]. Site Name. URL
+                (Original work published {LETTER_SOURCE.originalWorkPublishedYear}).
               </p>
               <textarea
                 value={citation}
                 onChange={(e) => setCitation(e.target.value)}
                 className="w-full border rounded px-3 py-2 h-24 text-sm border-theme-red/40 bg-white"
-                placeholder="Example: King, M. L., Jr. (n.d.). Letter from Birmingham jail [Letter transcript]. University of Pennsylvania African Studies Center. https://www.africa.upenn.edu/... (Original work published 1963)."
+                placeholder={`Example: King, M. L., Jr. (n.d.). ${LETTER_SOURCE.citationTitle} [${LETTER_SOURCE.transcriptDescriptor}]. University of Pennsylvania African Studies Center. https://www.africa.upenn.edu/... (Original work published ${LETTER_SOURCE.originalWorkPublishedYear}).`}
                 required
               />
               <p className="text-xs text-theme-dark/60">

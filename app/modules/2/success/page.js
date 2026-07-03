@@ -3,11 +3,13 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function ModuleTwoSuccess() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { speech, letter } = mlkAssignmentDefinition.sources;
 
   useEffect(() => {
     if (!session?.user?.email) return;
@@ -24,8 +26,8 @@ export default function ModuleTwoSuccess() {
           🎉 You’ve Completed Module 2!
         </h1>
         <p className="text-gray-700 mb-6">
-          Great work analyzing Dr. King’s <em>I Have a Dream</em> speech and{" "}
-          <em>Letter from Birmingham Jail</em>. You’re ready to move on.
+          Great work analyzing Dr. King’s <em>{speech.title}</em> speech and{" "}
+          <em>{letter.title}</em>. You’re ready to move on.
         </p>
         <button
           onClick={() => router.push("/modules/3")}

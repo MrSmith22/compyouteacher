@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import Panel from "@/components/ui/Panel";
 import ProgressDots from "@/components/ui/ProgressDots";
-import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
+import { MLK_ASSIGNMENT_NAME, mlkAssignmentDefinition } from "@/lib/assignments";
 
 const STAGE_LABELS = [
   "Welcome",
@@ -18,10 +18,11 @@ const STAGE_LABELS = [
   "Begin analysis",
 ];
 
-const SPEECH_URL =
-  "https://www.archives.gov/files/social-media/transcripts/transcript-march-pt3-of-3-2602934.pdf";
-const LETTER_URL =
-  "https://www.africa.upenn.edu/Articles_Gen/Letter_Birmingham.html";
+const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
+const SPEECH_SOURCE = MODULE2_SOURCES.speech;
+const LETTER_SOURCE = MODULE2_SOURCES.letter;
+const SPEECH_URL = SPEECH_SOURCE.officialSourceUrl;
+const LETTER_URL = LETTER_SOURCE.officialSourceUrl;
 
 const SPEECH_MIN_LENGTH = 500;
 const LETTER_MIN_LENGTH = 1000;
@@ -253,13 +254,12 @@ export default function ModuleTwoSourcePage() {
               <p>In this assignment, we will use two trusted archives:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>
-                  The National Archives, which preserves important documents from
-                  United States history
+                  {SPEECH_SOURCE.trustedArchiveName},{" "}
+                  {SPEECH_SOURCE.trustedArchiveDescription}
                 </li>
                 <li>
-                  The Martin Luther King Jr. Research and Education Institute at
-                  Stanford University, which maintains scholarly editions of Dr.
-                  King&apos;s writings
+                  {LETTER_SOURCE.trustedArchiveName},{" "}
+                  {LETTER_SOURCE.trustedArchiveDescription}
                 </li>
               </ul>
               <p>
@@ -352,8 +352,8 @@ export default function ModuleTwoSourcePage() {
               Get the speech
             </h2>
             <p className="text-left text-theme-dark/90">
-              First, open the official transcript of &ldquo;I Have a Dream&rdquo;
-              from the National Archives.
+              First, open the official transcript of &ldquo;{SPEECH_SOURCE.title}
+              &rdquo; from the {SPEECH_SOURCE.officialSiteName}.
             </p>
             <p className="text-left text-theme-dark/90">
               Then copy the full text and paste it into the boxes below.
@@ -372,12 +372,12 @@ export default function ModuleTwoSourcePage() {
               </p>
             </div>
             <p className="text-sm text-theme-dark/80">
-              This official National Archives transcript is accurate, but it is
-              not formatted like a classroom edition of the speech. It includes
-              some surrounding event transcript, such as speaker labels,
-              applause, singing, and narrator lines. As you work later in the
-              assignment, focus mainly on the words spoken by Dr. Martin Luther
-              King Jr.
+              This official {SPEECH_SOURCE.officialSiteName} transcript is
+              accurate, but it is not formatted like a classroom edition of the
+              speech. It includes some surrounding event transcript, such as
+              speaker labels, applause, singing, and narrator lines. As you
+              work later in the assignment, focus mainly on the words spoken by
+              Dr. Martin Luther King Jr.
             </p>
             <p className="text-sm text-theme-dark/80">
               For this assignment, copy the full source exactly as it appears.
@@ -409,7 +409,7 @@ export default function ModuleTwoSourcePage() {
               <textarea
                 value={speechFullText}
                 onChange={(e) => setSpeechFullText(e.target.value)}
-                placeholder="Paste the full transcript here…"
+                placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
                 rows={14}
                 className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
               />
@@ -419,7 +419,7 @@ export default function ModuleTwoSourcePage() {
               </p>
             </div>
             <p className="text-xs text-theme-dark/60">
-              Source text accessed through the National Archives.
+              Source text accessed through the {SPEECH_SOURCE.officialSiteName}.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
               <button
@@ -449,16 +449,15 @@ export default function ModuleTwoSourcePage() {
               Get the letter
             </h2>
             <p className="text-left text-theme-dark/90">
-              Now, open the official text of &ldquo;Letter from Birmingham
-              Jail&rdquo; from the University of Pennsylvania Africa Studies Center.
+              Now, open the official text of &ldquo;{LETTER_SOURCE.title}
+              &rdquo; from the {LETTER_SOURCE.officialSiteName}.
             </p>
             <p className="text-left text-theme-dark/90">
               Then copy the full text and paste it into the boxes below.
             </p>
             <p className="text-sm text-theme-dark/80">
-              This transcript is hosted by the University of Pennsylvania Africa
-              Studies Center, which provides historical documents for academic
-              study.
+              This transcript is hosted by the {LETTER_SOURCE.officialSiteName},
+              which provides historical documents for academic study.
             </p>
             <div className="rounded-lg border border-border-soft bg-surface-soft p-3 text-sm text-theme-dark/90 space-y-2">
               <p className="font-medium">How to copy the source:</p>
@@ -500,7 +499,7 @@ export default function ModuleTwoSourcePage() {
               <textarea
                 value={letterFullText}
                 onChange={(e) => setLetterFullText(e.target.value)}
-                placeholder="Paste the full letter here…"
+                placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
                 rows={14}
                 className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
               />
@@ -510,8 +509,7 @@ export default function ModuleTwoSourcePage() {
               </p>
             </div>
             <p className="text-xs text-theme-dark/60">
-              Source text accessed through the University of Pennsylvania Africa
-              Studies Center.
+              Source text accessed through the {LETTER_SOURCE.officialSiteName}.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
               <button
@@ -543,10 +541,10 @@ export default function ModuleTwoSourcePage() {
             <div className="grid gap-4">
               <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
                 <p className="font-semibold text-theme-dark">
-                  {sources?.speech_source_title || "I Have a Dream"}
+                  {sources?.speech_source_title || SPEECH_SOURCE.title}
                 </p>
                 <p className="text-sm text-theme-dark/80">
-                  {sources?.speech_site_name || "National Archives"}
+                  {sources?.speech_site_name || SPEECH_SOURCE.officialSiteName}
                 </p>
                 <a
                   href={sources?.speech_source_url || SPEECH_URL}
@@ -573,10 +571,10 @@ export default function ModuleTwoSourcePage() {
               </div>
               <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
                 <p className="font-semibold text-theme-dark">
-                  {sources?.letter_source_title || "Letter from Birmingham Jail"}
+                  {sources?.letter_source_title || LETTER_SOURCE.title}
                 </p>
                 <p className="text-sm text-theme-dark/80">
-                  {sources?.letter_site_name || "University of Pennsylvania Africa Studies Center"}
+                  {sources?.letter_site_name || LETTER_SOURCE.officialSiteName}
                 </p>
                 <a
                   href={sources?.letter_source_url || LETTER_URL}

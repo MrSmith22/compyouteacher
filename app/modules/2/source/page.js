@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { logActivity } from "@/lib/logActivity";
 import { makeStudentKey } from "@/lib/storage/studentCache";
 import {
   getModule2Sources,
   upsertModule2SpeechSource,
 } from "@/lib/supabase/helpers/module2Sources";
+
+const SPEECH_SOURCE = mlkAssignmentDefinition.sources.speech;
+const LETTER_SOURCE = mlkAssignmentDefinition.sources.letter;
 
 function isValidHttpUrl(v) {
   try {
@@ -220,7 +224,7 @@ export default function ModuleTwo_ChooseSpeech() {
 
       // Open search for the Letter in a background tab
       try {
-        const q = encodeURIComponent("full text Letter from Birmingham Jail");
+        const q = encodeURIComponent(LETTER_SOURCE.searchQuery);
         window.open(
           `https://www.google.com/search?q=${q}`,
           "_blank",
@@ -264,8 +268,8 @@ export default function ModuleTwo_ChooseSpeech() {
           </h1>
           <p className="text-sm text-theme-dark/80">
             In this step you will choose a full transcript of Dr. King&apos;s{" "}
-            <em>I Have a Dream</em> speech from a website and turn it into a
-            complete APA reference. You are practicing how to locate a
+            <em>{SPEECH_SOURCE.title}</em> speech from a website and turn it
+            into a complete APA reference. You are practicing how to locate a
             trustworthy source and how to follow the APA pattern exactly.
           </p>
         </div>
@@ -278,7 +282,7 @@ export default function ModuleTwo_ChooseSpeech() {
           <p className="text-sm text-theme-dark/80">
             You should have a tab open that searched for{" "}
             <span className="font-semibold">
-              full text I Have a Dream speech
+              {SPEECH_SOURCE.searchQuery}
             </span>
             . Choose a page that contains the complete speech, not a summary.
             Educational sites, government sites, and archives are usually the
@@ -299,7 +303,7 @@ export default function ModuleTwo_ChooseSpeech() {
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
               onBlur={() => setTouched(true)}
-              placeholder="https://example.edu/i-have-a-dream-transcript"
+              placeholder={SPEECH_SOURCE.transcriptUrlPlaceholder}
               className={`w-full border rounded-lg px-3 py-2 text-sm bg-white ${
                 urlError ? "border-theme-red" : "border-theme-dark/10"
               }`}
@@ -325,16 +329,13 @@ export default function ModuleTwo_ChooseSpeech() {
               <div>
                 <span className="font-semibold">Start example:</span>
                 <blockquote className="italic mt-1">
-                  I am happy to join with you today in what will go down in
-                  history as the greatest demonstration for freedom in the
-                  history of our nation.
+                  {SPEECH_SOURCE.transcriptStartExample}
                 </blockquote>
               </div>
               <div>
                 <span className="font-semibold">End example:</span>
                 <blockquote className="italic mt-1">
-                  Free at last, free at last. Thank God Almighty, we are free
-                  at last.
+                  {SPEECH_SOURCE.transcriptEndExample}
                 </blockquote>
               </div>
             </div>
@@ -343,7 +344,7 @@ export default function ModuleTwo_ChooseSpeech() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 h-56 text-sm font-mono border-theme-green/40 bg-white"
-              placeholder="Paste the full transcript here..."
+              placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
               required
             />
             <p className="text-xs text-theme-dark/60">
@@ -438,14 +439,14 @@ export default function ModuleTwo_ChooseSpeech() {
                 source, the descriptor is:
               </p>
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 inline-block text-theme-dark">
-                [Speech transcript]
+                [{SPEECH_SOURCE.transcriptDescriptor}]
               </p>
               <p className="text-xs text-theme-dark/80 mt-2">
                 At the end of the reference you remind the reader when the
                 speech was originally delivered:
               </p>
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 inline-block text-theme-dark">
-                (Original work published 1963).
+                (Original work published {SPEECH_SOURCE.originalWorkPublishedYear}).
               </p>
             </div>
 
@@ -460,14 +461,15 @@ export default function ModuleTwo_ChooseSpeech() {
                 details from your page.
               </p>
               <p className="text-xs font-mono bg-theme-light rounded px-2 py-1 text-theme-dark">
-                King, M. L., Jr. (Year). <em>I have a dream</em> [Speech
-                transcript]. Site Name. URL (Original work published 1963).
+                King, M. L., Jr. (Year). <em>{SPEECH_SOURCE.citationTitle}</em>{" "}
+                [{SPEECH_SOURCE.transcriptDescriptor}]. Site Name. URL
+                (Original work published {SPEECH_SOURCE.originalWorkPublishedYear}).
               </p>
               <textarea
                 value={citation}
                 onChange={(e) => setCitation(e.target.value)}
                 className="w-full border rounded px-3 py-2 h-24 text-sm border-theme-red/40 bg-white"
-                placeholder='Example: King, M. L., Jr. (2010). I have a dream [Speech transcript]. NPR. https://www.npr.org/... (Original work published 1963).'
+                placeholder={`Example: King, M. L., Jr. (2010). ${SPEECH_SOURCE.citationTitle} [${SPEECH_SOURCE.transcriptDescriptor}]. NPR. https://www.npr.org/... (Original work published ${SPEECH_SOURCE.originalWorkPublishedYear}).`}
                 required
               />
               <p className="text-xs text-theme-dark/60">
