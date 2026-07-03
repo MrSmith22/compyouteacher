@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Panel from "@/components/ui/Panel";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { logActivity } from "@/lib/logActivity";
 
 const PROMPT_MC = {
@@ -115,6 +116,7 @@ function MultipleChoice({ name, value, choices, onChange }) {
 export default function ModuleOnePromptPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { prompt } = mlkAssignmentDefinition;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -272,14 +274,7 @@ export default function ModuleOnePromptPage() {
       <Panel className="mb-6">
         <h3 className="text-xl font-semibold text-theme-dark mb-2">Your Essay Assignment</h3>
         <p className="text-theme-dark whitespace-pre-line">
-          {`Write a compare and contrast essay explaining how Dr. Martin Luther King Jr. uses ethos, pathos, and logos in both “I Have a Dream” and “Letter from Birmingham Jail.”
-
-In your essay, you must:
-• Compare how King uses rhetorical appeals in both texts
-• Explain how those appeals connect to audience and purpose
-• Support your ideas with specific evidence from both works
-
-Your goal is not to summarize what King says, but to explain how and why he says it the way he does.`}
+          {prompt}
         </p>
       </Panel>
 

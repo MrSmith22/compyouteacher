@@ -4,8 +4,8 @@ import { useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
+import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { logActivity } from "@/lib/logActivity";
-import { MLK_ESSAY_PROMPT } from "@/lib/assignments/mlkEssayPrompt";
 
 /** Keyword-based checklist status. Found = green only when confident; else "Check this" (gray). No red. */
 function getChecklistStatus(text) {
@@ -143,6 +143,7 @@ const modules = [
 export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const [currentModuleIndex] = useState(0);
   const currentModule = modules[currentModuleIndex];
+  const { prompt } = mlkAssignmentDefinition;
 
   const hasSavedParaphrase = !!savedStudentParaphrase.trim();
 
@@ -276,7 +277,7 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
           Essay Prompt
         </h3>
         <p className="text-theme-dark whitespace-pre-line">
-          {MLK_ESSAY_PROMPT}
+          {prompt}
         </p>
       </div>
 
