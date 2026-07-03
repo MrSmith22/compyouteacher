@@ -13,80 +13,32 @@ const TOTAL = PASSAGES.length;
 const CONFIG_OK = Boolean(ASSIGNMENT?.assignmentId && TOTAL > 0);
 const REQUIRED_SOURCE_IDS = new Set(PASSAGES.map((p) => p.id));
 
-const STRATEGY_LABELS = {
-  ethos: "Ethos",
-  pathos: "Pathos",
-  logos: "Logos",
-};
-
-const STRATEGY_SCAFFOLDING = {
-  ethos: {
-    definition: "Ethos is about credibility and trust.",
-    lookFor:
-      "Look for how King presents himself as trustworthy, moral, knowledgeable, fair, religious, patriotic, or connected to respected ideas.",
-    keyQuestion: "Why should this audience believe him?",
-    observationPrompt:
-      "What do you notice about how King builds credibility or earns trust here?",
-    observationPlaceholder: "King builds credibility here by…",
-    sentenceStarter: "King builds credibility here by…",
-    audienceHint: "How might credibility or trust affect this audience?",
-    purposeHint:
-      "How might building trust help King accomplish his purpose with this audience?",
-    essentialQuestionHint:
-      "How does King’s credibility work differently with this audience than with another?",
-  },
-  pathos: {
-    definition: "Pathos is about emotion.",
-    lookFor:
-      "Look for words or images that make the audience feel hope, anger, sadness, urgency, guilt, pride, or sympathy.",
-    keyQuestion: "What feeling is King trying to create?",
-    observationPrompt:
-      "What do you notice about how King creates emotion here?",
-    observationPlaceholder: "King creates emotion here by…",
-    sentenceStarter: "King creates emotion here by…",
-    audienceHint: "What might this make the audience feel?",
-    purposeHint:
-      "How might this emotion help King accomplish his purpose with this audience?",
-    essentialQuestionHint:
-      "How does King use emotion differently with this audience than with another?",
-  },
-  logos: {
-    definition: "Logos is about reasoning.",
-    lookFor:
-      "Look for definitions, examples, cause and effect, comparisons, facts, or logical explanations.",
-    keyQuestion: "How is King trying to make his argument make sense?",
-    observationPrompt:
-      "What do you notice about how King uses reasoning or explanation here?",
-    observationPlaceholder: "King uses reasoning here by…",
-    sentenceStarter: "King uses reasoning here by…",
-    audienceHint:
-      "How might this reasoning help the audience understand his argument?",
-    purposeHint:
-      "How might this logical explanation help King accomplish his purpose?",
-    essentialQuestionHint:
-      "How does King’s reasoning work differently with this audience than with another?",
-  },
-};
-
-function getStrategyScaffolding(strategy) {
-  return STRATEGY_SCAFFOLDING[strategy] ?? null;
-}
+const OBSERVATION_FIELD_ORDER = [
+  "studentObservation",
+  "audienceEffect",
+  "purposeConnection",
+  "essentialQuestionConnection",
+];
 
 const SOURCE_TYPE_LABELS = {
   speech: ASSIGNMENT.sources.speech.label,
   letter: ASSIGNMENT.sources.letter.label,
 };
 
-function sourceTitleForType(sourceType) {
-  return ASSIGNMENT.sources[sourceType]?.title ?? "";
+function sourceLabelForId(sourceId) {
+  return SOURCE_TYPE_LABELS[sourceId] ?? "";
 }
 
-function audienceHintForType(sourceType) {
-  return ASSIGNMENT.sources[sourceType]?.audience ?? "";
+function sourceTitleForId(sourceId) {
+  return ASSIGNMENT.sources[sourceId]?.title ?? "";
 }
 
-function purposeHintForType(sourceType) {
-  return ASSIGNMENT.sources[sourceType]?.purpose ?? "";
+function audienceHintForSourceId(sourceId) {
+  return ASSIGNMENT.sources[sourceId]?.audience ?? "";
+}
+
+function purposeHintForSourceId(sourceId) {
+  return ASSIGNMENT.sources[sourceId]?.purpose ?? "";
 }
 
 function emptyFields() {
@@ -183,10 +135,10 @@ function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium text-theme-dark">
-                    {STRATEGY_LABELS[p.strategy]} ({SOURCE_TYPE_LABELS[p.sourceType]})
+                    {p.rhetoricalStrategyLabel} ({sourceLabelForId(p.sourceId)})
                   </p>
                   <p className="text-sm text-theme-dark/80">
-                    {sourceTitleForType(p.sourceType)}
+                    {sourceTitleForId(p.sourceId)}
                   </p>
                 </div>
                 <span
@@ -242,10 +194,10 @@ export default function GuidedObservationsPage() {
   );
   const currentFields =
     fieldsByPassageId[currentPassage?.id] ?? savedFieldsForCurrent;
-  const strategyLabel = STRATEGY_LABELS[currentPassage?.strategy] ?? "";
-  const strategyScaffolding = getStrategyScaffolding(currentPassage?.strategy);
+  const strategyLabel = currentPassage?.rhetoricalStrategyLabel ?? "";
+  const strategyReminder = currentPassage?.strategyReminder ?? null;
   const sourceTitle = currentPassage
-    ? sourceTitleForType(currentPassage.sourceType)
+    ? sourceTitleForId(currentPassage.sourceId)
     : "";
 
   const allPassagesSaved = useMemo(
@@ -380,10 +332,10 @@ export default function GuidedObservationsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           source_id: currentPassage.id,
-          source_title: sourceTitleForType(currentPassage.sourceType),
-          source_type: currentPassage.sourceType,
-          quote: currentPassage.quote,
-          rhetorical_strategy: currentPassage.strategy,
+          source_title: sourceTitleForId(currentPassage.sourceId),
+          source_type: currentPassage.sourceId,
+          quote: currentPassage.quotedPassage,
+          rhetorical_strategy: currentPassage.rhetoricalStrategy,
           student_observation: currentFields.studentObservation.trim(),
           audience_effect: currentFields.audienceEffect.trim(),
           purpose_connection: currentFields.purposeConnection.trim(),
@@ -628,7 +580,7 @@ export default function GuidedObservationsPage() {
                       : "bg-theme-dark/10 text-theme-dark/80 border-transparent hover:bg-theme-dark/20"
                 }`}
               >
-                {i + 1}. {STRATEGY_LABELS[p.strategy]} ({SOURCE_TYPE_LABELS[p.sourceType]})
+                {i + 1}. {p.rhetoricalStrategyLabel} ({sourceLabelForId(p.sourceId)})
                 {isSaved ? " ✓" : ""}
               </button>
             );
@@ -648,7 +600,7 @@ export default function GuidedObservationsPage() {
               Source: {sourceTitle}
             </span>
             <span className="bg-theme-dark/10 px-2 py-1 rounded">
-              Type: {SOURCE_TYPE_LABELS[currentPassage.sourceType]}
+              Type: {sourceLabelForId(currentPassage.sourceId)}
             </span>
             <span className="bg-theme-dark/10 px-2 py-1 rounded">
               Strategy: {strategyLabel}
@@ -665,11 +617,11 @@ export default function GuidedObservationsPage() {
           </div>
 
           <blockquote className="text-left border-l-4 border-theme-blue pl-4 italic text-theme-dark/90">
-            &ldquo;{currentPassage.quote}&rdquo;
+            &ldquo;{currentPassage.quotedPassage}&rdquo;
           </blockquote>
 
           <p className="text-left text-theme-dark/90 text-sm">
-            {currentPassage.shortInstruction}
+            {currentPassage.observationQuestion}
           </p>
         </Panel>
 
@@ -678,138 +630,61 @@ export default function GuidedObservationsPage() {
             Your Observation
           </h2>
 
-          {strategyScaffolding && (
+          {strategyReminder && (
             <div className="text-left bg-theme-blue/5 border border-theme-blue/20 rounded-lg p-4 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-theme-blue">
-                Strategy reminder — {strategyLabel}
+                {strategyReminder.title}
               </p>
               <p className="text-sm text-theme-dark/90">
-                {strategyScaffolding.definition}
+                {strategyReminder.definition}
               </p>
               <p className="text-sm text-theme-dark/90">
-                {strategyScaffolding.lookFor}
+                {strategyReminder.lookFor}
               </p>
               <p className="text-sm font-medium text-theme-dark">
-                Ask yourself: {strategyScaffolding.keyQuestion}
+                Ask yourself: {strategyReminder.keyQuestion}
               </p>
             </div>
           )}
 
           <div className="space-y-3 text-left">
-            <div>
-              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
-                {strategyScaffolding?.observationPrompt ??
-                  `What do you notice about how King uses ${strategyLabel}?`}
-              </label>
-              <textarea
-                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
-                value={currentFields.studentObservation}
-                onChange={(e) =>
-                  updateField(
-                    currentPassage.id,
-                    "studentObservation",
-                    e.target.value
-                  )
-                }
-                placeholder={
-                  strategyScaffolding?.observationPlaceholder ??
-                  `This quote uses ${strategyLabel.toLowerCase()} because…`
-                }
-              />
-              <p className="text-xs text-theme-dark/70 mt-1">
-                Sentence starter: &ldquo;
-                {strategyScaffolding?.sentenceStarter ??
-                  `This quote uses ${strategyLabel.toLowerCase()} because King…`}
-                &rdquo;
-              </p>
-            </div>
+            {OBSERVATION_FIELD_ORDER.map((fieldKey) => {
+              const fieldDefinition = currentPassage.fields[fieldKey];
 
-            <div>
-              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
-                What effect might this have on King&apos;s audience?
-              </label>
-              <textarea
-                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
-                value={currentFields.audienceEffect}
-                onChange={(e) =>
-                  updateField(
-                    currentPassage.id,
-                    "audienceEffect",
-                    e.target.value
-                  )
-                }
-                placeholder="King wants his audience to feel…"
-              />
-              <p className="text-xs text-theme-dark/70 mt-1">
-                Sentence starter: &ldquo;King wants his audience to feel…&rdquo;
-              </p>
-              {strategyScaffolding?.audienceHint && (
-                <p className="text-xs text-theme-dark/60 mt-1">
-                  {strategyLabel} hint: {strategyScaffolding.audienceHint}
-                </p>
-              )}
-              <p className="text-xs text-theme-dark/60 mt-1">
-                Audience: {audienceHintForType(currentPassage.sourceType)}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
-                How does this help King accomplish his purpose?
-              </label>
-              <textarea
-                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
-                value={currentFields.purposeConnection}
-                onChange={(e) =>
-                  updateField(
-                    currentPassage.id,
-                    "purposeConnection",
-                    e.target.value
-                  )
-                }
-                placeholder={`By using ${strategyLabel.toLowerCase()}, King…`}
-              />
-              <p className="text-xs text-theme-dark/70 mt-1">
-                Sentence starter: &ldquo;By using {strategyLabel.toLowerCase()},
-                King…&rdquo;
-              </p>
-              {strategyScaffolding?.purposeHint && (
-                <p className="text-xs text-theme-dark/60 mt-1">
-                  {strategyLabel} hint: {strategyScaffolding.purposeHint}
-                </p>
-              )}
-              <p className="text-xs text-theme-dark/60 mt-1">
-                Purpose: {purposeHintForType(currentPassage.sourceType)}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-theme-dark/90 mb-1">
-                How does this connect to the essential question?
-              </label>
-              <textarea
-                className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
-                value={currentFields.essentialQuestionConnection}
-                onChange={(e) =>
-                  updateField(
-                    currentPassage.id,
-                    "essentialQuestionConnection",
-                    e.target.value
-                  )
-                }
-                placeholder={`This shows how King uses ${strategyLabel.toLowerCase()} differently with this audience because…`}
-              />
-              <p className="text-xs text-theme-dark/70 mt-1">
-                Sentence starter: &ldquo;This shows how King uses{" "}
-                {strategyLabel.toLowerCase()} differently with this audience
-                because…&rdquo;
-              </p>
-              {strategyScaffolding?.essentialQuestionHint && (
-                <p className="text-xs text-theme-dark/60 mt-1">
-                  {strategyLabel} hint: {strategyScaffolding.essentialQuestionHint}
-                </p>
-              )}
-            </div>
+              return (
+                <div key={fieldKey}>
+                  <label className="block text-sm font-medium text-theme-dark/90 mb-1">
+                    {fieldDefinition.label}
+                  </label>
+                  <textarea
+                    className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
+                    value={currentFields[fieldKey]}
+                    onChange={(e) =>
+                      updateField(currentPassage.id, fieldKey, e.target.value)
+                    }
+                    placeholder={fieldDefinition.placeholder}
+                  />
+                  <p className="text-xs text-theme-dark/70 mt-1">
+                    Sentence starter: &ldquo;{fieldDefinition.sentenceStarter}&rdquo;
+                  </p>
+                  {fieldDefinition.coachingText && (
+                    <p className="text-xs text-theme-dark/60 mt-1">
+                      {fieldDefinition.coachingText}
+                    </p>
+                  )}
+                  {fieldKey === "audienceEffect" && (
+                    <p className="text-xs text-theme-dark/60 mt-1">
+                      Audience: {audienceHintForSourceId(currentPassage.sourceId)}
+                    </p>
+                  )}
+                  {fieldKey === "purposeConnection" && (
+                    <p className="text-xs text-theme-dark/60 mt-1">
+                      Purpose: {purposeHintForSourceId(currentPassage.sourceId)}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </Panel>
 
