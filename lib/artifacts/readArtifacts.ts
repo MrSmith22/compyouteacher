@@ -11,10 +11,12 @@ import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
 import { getTChartEntriesAdmin } from "@/lib/supabase/helpers/tchartEntries";
 import { getModule3EvidenceClustersAdmin } from "@/lib/supabase/helpers/module3EvidenceClusters";
 import { getModule3PatternsAdmin } from "@/lib/supabase/helpers/module3Patterns";
+import { getModule3IdeaAdmin } from "@/lib/supabase/helpers/module3Ideas";
 import type {
   DraftArtifact,
   EvidenceArtifact,
   EvidenceClusterArtifact,
+  IdeaArtifact,
   OutlineArtifact,
   ParagraphPlanArtifact,
   PatternArtifact,
@@ -225,6 +227,34 @@ export async function listPatternArtifacts(
     evidenceIds: Array.isArray(pattern.evidenceIds) ? pattern.evidenceIds : [],
     isSelected: selectedPatternId === pattern.id,
   }));
+}
+
+export async function getIdeaArtifact(
+  userEmail: string,
+  assignmentId = DEFAULT_ASSIGNMENT_ID
+): Promise<IdeaArtifact | null> {
+  const res = await getModule3IdeaAdmin({ userEmail });
+  if (res.error) {
+    throw new Error(res.error.message || "Failed to read module 3 idea");
+  }
+
+  if (!res.idea) {
+    return null;
+  }
+
+  return {
+    id: `idea:${userEmail}`,
+    type: "idea" as const,
+    userEmail,
+    assignmentId,
+    backingTable: "student_buckets" as const,
+    createdAt: res.idea.createdAt ?? null,
+    updatedAt: res.idea.updatedAt ?? null,
+    statement: res.idea.statement,
+    whyMatters: res.idea.whyMatters,
+    clusterId: res.idea.clusterId ?? null,
+    patternId: res.idea.patternId ?? null,
+  };
 }
 
 export async function listSourceContextArtifacts(

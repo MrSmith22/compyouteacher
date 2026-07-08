@@ -10,6 +10,7 @@ export const ARTIFACT_TYPES = [
   "evidence",
   "evidence_cluster",
   "pattern",
+  "idea",
   "source_context",
   "thesis",
   "paragraph_plan",
@@ -84,6 +85,14 @@ export interface PatternArtifact extends ArtifactBase<"pattern"> {
   isSelected: boolean;
 }
 
+export interface IdeaArtifact extends ArtifactBase<"idea"> {
+  backingTable: "student_buckets";
+  statement: string;
+  whyMatters: string;
+  clusterId: string | null;
+  patternId: string | null;
+}
+
 export interface SourceContextArtifact extends ArtifactBase<"source_context"> {
   backingTable: "module2_sources";
   sourceType: "speech" | "letter";
@@ -136,6 +145,7 @@ export type AnyArtifact =
   | EvidenceArtifact
   | EvidenceClusterArtifact
   | PatternArtifact
+  | IdeaArtifact
   | SourceContextArtifact
   | ThesisArtifact
   | ParagraphPlanArtifact
@@ -195,6 +205,7 @@ export interface ArtifactPayloadMap {
   evidence: EvidenceArtifactPayload;
   evidence_cluster: ArtifactPayload<EvidenceClusterArtifact>;
   pattern: ArtifactPayload<PatternArtifact>;
+  idea: ArtifactPayload<IdeaArtifact>;
   source_context: SourceContextArtifactPayload;
   thesis: ThesisArtifactPayload;
   paragraph_plan: ParagraphPlanArtifactPayload;

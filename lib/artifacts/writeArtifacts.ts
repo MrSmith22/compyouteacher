@@ -11,6 +11,7 @@ export type EvidenceClusterWriteInput = {
 
 const API_PATH = "/api/module3/evidence-clusters";
 const PATTERN_API_PATH = "/api/module3/patterns";
+const IDEA_API_PATH = "/api/module3/ideas";
 
 function errorMessage(error: unknown) {
   if (error && typeof error === "object" && "message" in error) {
@@ -126,6 +127,52 @@ export async function deletePatternArtifact({
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ patternId }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export type IdeaWriteInput = {
+  userEmail: string;
+  statement: string;
+  whyMatters: string;
+  clusterId?: string | null;
+  patternId?: string | null;
+};
+
+export async function upsertIdeaArtifact(input: IdeaWriteInput) {
+  const res = await fetch(IDEA_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      statement: input.statement,
+      whyMatters: input.whyMatters,
+      clusterId: input.clusterId ?? null,
+      patternId: input.patternId ?? null,
+    }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function deleteIdeaArtifact({
+  userEmail: _userEmail,
+}: {
+  userEmail: string;
+}) {
+  const res = await fetch(IDEA_API_PATH, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
   });
 
   try {

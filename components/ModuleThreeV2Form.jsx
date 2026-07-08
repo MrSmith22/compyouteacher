@@ -16,8 +16,10 @@ import {
   WorkingSetSection,
 } from "@/components/module3/ModuleThreeDeskFrame";
 import {
+  deleteIdeaArtifact,
   selectPatternArtifact,
   upsertEvidenceClusterArtifact,
+  upsertIdeaArtifact,
   upsertPatternArtifact,
 } from "@/lib/artifacts/writeArtifacts";
 
@@ -322,6 +324,7 @@ export default function ModuleThreeV2Form({
     evidenceArtifacts: [],
     evidenceClusterArtifacts: [],
     patternArtifacts: [],
+    ideaArtifact: null,
     sourceContextArtifacts: [],
     thesisArtifact: null,
     outlineArtifact: null,
@@ -399,8 +402,19 @@ export default function ModuleThreeV2Form({
     return selectedPayload?.id || "";
   });
 
-  const [ideaStatement, setIdeaStatement] = useState("");
-  const [ideaWhyMatters, setIdeaWhyMatters] = useState("");
+  const [ideaStatement, setIdeaStatement] = useState(() => {
+    const artifact = initialCanvasArtifacts?.ideaArtifact;
+    if (!artifact) return "";
+    const payload = artifact?.payload || artifact;
+    return typeof payload?.statement === "string" ? payload.statement : "";
+  });
+  const [ideaWhyMatters, setIdeaWhyMatters] = useState(() => {
+    const artifact = initialCanvasArtifacts?.ideaArtifact;
+    if (!artifact) return "";
+    const payload = artifact?.payload || artifact;
+    return typeof payload?.whyMatters === "string" ? payload.whyMatters : "";
+  });
+  const ideaPersistTimerRef = useRef(null);
 
   const [evidenceConnections, setEvidenceConnections] = useState({});
   const [evidenceStrength, setEvidenceStrength] = useState("");
@@ -1020,11 +1034,43 @@ export default function ModuleThreeV2Form({
     });
   }
 
+  function schedulePersistIdea(statement, whyMatters, clusterId, patternId) {
+    if (!userEmail) return;
+
+    if (ideaPersistTimerRef.current) {
+      clearTimeout(ideaPersistTimerRef.current);
+    }
+
+    ideaPersistTimerRef.current = setTimeout(async () => {
+      const result = await upsertIdeaArtifact({
+        userEmail,
+        statement,
+        whyMatters,
+        clusterId: clusterId || null,
+        patternId: patternId || null,
+      });
+
+      if (!result.ok) {
+        setPersistError(result.error?.message || "Could not save your idea.");
+        return;
+      }
+
+      setPersistError("");
+    }, 500);
+  }
+
   function resetDownstreamThinking() {
     setPatternNotices([makePatternNotice("pattern-1"), makePatternNotice("pattern-2")]);
     setSelectedPatternId("");
     setIdeaStatement("");
     setIdeaWhyMatters("");
+    if (userEmail) {
+      deleteIdeaArtifact({ userEmail }).then((result) => {
+        if (!result.ok) {
+          setPersistError(result.error?.message || "Could not clear your saved idea.");
+        }
+      });
+    }
     setEvidenceConnections({});
     setEvidenceStrength("");
     setGapNote("");
@@ -1699,7 +1745,16 @@ export default function ModuleThreeV2Form({
               </span>
               <textarea
                 value={ideaStatement}
-                onChange={(event) => setIdeaStatement(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setIdeaStatement(value);
+                  schedulePersistIdea(
+                    value,
+                    ideaWhyMatters,
+                    selectedClusterId,
+                    selectedPatternId
+                  );
+                }}
                 placeholder="Write a possible idea in your own words"
                 className={ANSWER_TEXTAREA_CLASS}
               />
@@ -1711,7 +1766,16 @@ export default function ModuleThreeV2Form({
               </span>
               <textarea
                 value={ideaWhyMatters}
-                onChange={(event) => setIdeaWhyMatters(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setIdeaWhyMatters(value);
+                  schedulePersistIdea(
+                    ideaStatement,
+                    value,
+                    selectedClusterId,
+                    selectedPatternId
+                  );
+                }}
                 placeholder="What makes this idea interesting or important?"
                 className={QUIET_TEXTAREA_CLASS}
               />
