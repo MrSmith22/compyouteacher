@@ -1,4 +1,9 @@
-import { getStudentBuckets, upsertStudentBuckets } from "@/lib/supabase/helpers/studentBuckets";
+import {
+  getStudentBuckets,
+  getStudentBucketsAdmin,
+  upsertStudentBuckets,
+  upsertStudentBucketsAdmin,
+} from "@/lib/supabase/helpers/studentBuckets";
 
 export type EvidenceClusterRow = {
   id: string;
@@ -58,6 +63,18 @@ export async function getModule3EvidenceClusters({
   return { data: clusters, error: null };
 }
 
+/** Same projection as {@link getModule3EvidenceClusters}; uses the service role for server-side loads. */
+export async function getModule3EvidenceClustersAdmin({
+  userEmail,
+}: {
+  userEmail: string;
+}): Promise<{ data: EvidenceClusterRow[]; error: { message?: string } | null }> {
+  const res = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
+  if (res.error) return { data: [], error: res.error };
+  const clusters = normalizeClusters(res.data?.buckets);
+  return { data: clusters, error: null };
+}
+
 export async function upsertModule3EvidenceClusters({
   userEmail,
   clusters,
@@ -66,6 +83,23 @@ export async function upsertModule3EvidenceClusters({
   clusters: EvidenceClusterRow[];
 }) {
   return upsertStudentBuckets({
+    userEmail,
+    module: MODULE_NUMBER,
+    buckets: clusters,
+    reflection: null,
+    flow_state: null,
+  });
+}
+
+/** Same write as {@link upsertModule3EvidenceClusters}; uses the service role for server-side routes. */
+export async function upsertModule3EvidenceClustersAdmin({
+  userEmail,
+  clusters,
+}: {
+  userEmail: string;
+  clusters: EvidenceClusterRow[];
+}) {
+  return upsertStudentBucketsAdmin({
     userEmail,
     module: MODULE_NUMBER,
     buckets: clusters,

@@ -1,25 +1,4 @@
 import { DEFAULT_ASSIGNMENT_ID } from "@/lib/assignments";
-import {
-  getModule3EvidenceClusters,
-  upsertModule3EvidenceClusters,
-} from "@/lib/supabase/helpers/module3EvidenceClusters";
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function uniqueOrdered(ids) {
-  const seen = new Set();
-  const out = [];
-  for (const id of ids || []) {
-    if (typeof id !== "string") continue;
-    const trimmed = id.trim();
-    if (!trimmed || seen.has(trimmed)) continue;
-    seen.add(trimmed);
-    out.push(trimmed);
-  }
-  return out;
-}
 
 export type EvidenceClusterWriteInput = {
   id: string;
@@ -30,63 +9,60 @@ export type EvidenceClusterWriteInput = {
   evidenceIds: string[];
 };
 
-export async function upsertEvidenceClusterArtifact(input: EvidenceClusterWriteInput) {
-  const assignmentId = input.assignmentId ?? DEFAULT_ASSIGNMENT_ID;
-  const { data: existing, error } = await getModule3EvidenceClusters({
-    userEmail: input.userEmail,
-  });
-  if (error) return { ok: false, error };
+const API_PATH = "/api/module3/evidence-clusters";
 
-  const timestamp = nowIso();
-  const nextClusters = (existing ?? []).map((cluster) => {
-    if (cluster.id !== input.id) return cluster;
-    return {
-      ...cluster,
-      name: input.clusterName,
-      reflection: input.reflection ?? null,
-      evidenceIds: uniqueOrdered(input.evidenceIds),
-      updatedAt: timestamp,
-    };
-  });
-
-  const exists = (existing ?? []).some((cluster) => cluster.id === input.id);
-  if (!exists) {
-    nextClusters.push({
-      id: input.id,
-      name: input.clusterName,
-      reflection: input.reflection ?? null,
-      evidenceIds: uniqueOrdered(input.evidenceIds),
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      assignmentId, // stored but ignored by reader if absent
-    });
+function errorMessage(error: unknown) {
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message?: string }).message || "Request failed");
   }
+  return "Request failed";
+}
 
-  const writeRes = await upsertModule3EvidenceClusters({
-    userEmail: input.userEmail,
-    clusters: nextClusters,
+async function parseApiResponse(res: Response) {
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json?.ok) {
+    throw new Error(json?.error || `Request failed (${res.status})`);
+  }
+  return json;
+}
+
+export async function upsertEvidenceClusterArtifact(input: EvidenceClusterWriteInput) {
+  const res = await fetch(API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: input.id,
+      clusterName: input.clusterName,
+      reflection: input.reflection ?? null,
+      evidenceIds: input.evidenceIds,
+      assignmentId: input.assignmentId ?? DEFAULT_ASSIGNMENT_ID,
+    }),
   });
 
-  if (writeRes.error) return { ok: false, error: writeRes.error };
-  return { ok: true };
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
 }
 
 export async function deleteEvidenceClusterArtifact({
-  userEmail,
   clusterId,
 }: {
   userEmail: string;
   clusterId: string;
 }) {
-  const { data: existing, error } = await getModule3EvidenceClusters({ userEmail });
-  if (error) return { ok: false, error };
-
-  const nextClusters = (existing ?? []).filter((cluster) => cluster.id !== clusterId);
-  const writeRes = await upsertModule3EvidenceClusters({
-    userEmail,
-    clusters: nextClusters,
+  const res = await fetch(API_PATH, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clusterId }),
   });
-  if (writeRes.error) return { ok: false, error: writeRes.error };
-  return { ok: true };
-}
 
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}

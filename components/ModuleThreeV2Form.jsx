@@ -328,6 +328,7 @@ export default function ModuleThreeV2Form({
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [persistError, setPersistError] = useState("");
   const [evidenceItems, setEvidenceItems] = useState([]);
   const [currentStep, setCurrentStep] = useState(STEP_IDS.REVIEW);
 
@@ -983,7 +984,29 @@ export default function ModuleThreeV2Form({
     setSelectedClusterId(clusterId);
   }
 
-  function createEvidenceCluster() {
+  async function persistEvidenceCluster(payload) {
+    if (!userEmail) {
+      return true;
+    }
+
+    const result = await upsertEvidenceClusterArtifact({
+      ...payload,
+      userEmail,
+      assignmentId: ASSIGNMENT.identity.assignmentId,
+    });
+
+    if (!result.ok) {
+      setPersistError(
+        result.error?.message || "Could not save your evidence group."
+      );
+      return false;
+    }
+
+    setPersistError("");
+    return true;
+  }
+
+  async function createEvidenceCluster() {
     const normalizedName = safeText(clusterDraftName);
 
     if (!normalizedName || clusterDraftEvidenceIds.length < 2) {
@@ -1000,18 +1023,12 @@ export default function ModuleThreeV2Form({
 
     setEvidenceClusters((previous) => [...previous, nextCluster]);
     applySelectedCluster(nextCluster.id);
-    if (userEmail) {
-      upsertEvidenceClusterArtifact({
-        id: nextCluster.id,
-        userEmail,
-        assignmentId: ASSIGNMENT.identity.assignmentId,
-        clusterName: normalizedName,
-        reflection,
-        evidenceIds: clusterDraftEvidenceIds,
-      }).catch((error) => {
-        console.error("Evidence cluster save failed:", error);
-      });
-    }
+    await persistEvidenceCluster({
+      id: nextCluster.id,
+      clusterName: normalizedName,
+      reflection,
+      evidenceIds: clusterDraftEvidenceIds,
+    });
     setClusterDraftName("");
     setClusterDraftEvidenceIds([...workingEvidenceIds]);
     if (clusterReflectionRef.current) {
@@ -1042,7 +1059,7 @@ export default function ModuleThreeV2Form({
     }));
   }
 
-  function updateStrengtheningNote(evidenceId, value) {
+  async function updateStrengtheningNote(evidenceId, value) {
     setStrengtheningNotes((previous) => ({
       ...previous,
       [evidenceId]: value,
@@ -1073,15 +1090,11 @@ export default function ModuleThreeV2Form({
       const nextEvidenceIds = selectedCluster.evidenceIds.includes(evidenceId)
         ? selectedCluster.evidenceIds
         : [...selectedCluster.evidenceIds, evidenceId];
-      upsertEvidenceClusterArtifact({
+      await persistEvidenceCluster({
         id: selectedCluster.id,
-        userEmail,
-        assignmentId: ASSIGNMENT.identity.assignmentId,
         clusterName: selectedCluster.name,
         reflection: selectedCluster.reflection ?? null,
         evidenceIds: nextEvidenceIds,
-      }).catch((error) => {
-        console.error("Evidence cluster update failed:", error);
       });
     }
   }
@@ -2295,6 +2308,12 @@ export default function ModuleThreeV2Form({
       {loadError ? (
         <InfoCallout tone="warning" title="We could not load all of your evidence">
           {loadError}
+        </InfoCallout>
+      ) : null}
+
+      {persistError ? (
+        <InfoCallout tone="warning" title="We could not save your evidence group">
+          {persistError}
         </InfoCallout>
       ) : null}
 

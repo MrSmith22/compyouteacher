@@ -9,7 +9,7 @@ import {
 import { getStudentObservations } from "@/lib/supabase/helpers/studentObservations";
 import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
 import { getTChartEntriesAdmin } from "@/lib/supabase/helpers/tchartEntries";
-import { getModule3EvidenceClusters } from "@/lib/supabase/helpers/module3EvidenceClusters";
+import { getModule3EvidenceClustersAdmin } from "@/lib/supabase/helpers/module3EvidenceClusters";
 import type {
   DraftArtifact,
   EvidenceArtifact,
@@ -182,7 +182,7 @@ export async function listEvidenceClusterArtifacts(
   userEmail: string,
   assignmentId = DEFAULT_ASSIGNMENT_ID
 ): Promise<EvidenceClusterArtifact[]> {
-  const res = await getModule3EvidenceClusters({ userEmail });
+  const res = await getModule3EvidenceClustersAdmin({ userEmail });
   const clusters = requireNoError(res, "module 3 evidence clusters");
 
   return (clusters ?? []).map((cluster) => ({
