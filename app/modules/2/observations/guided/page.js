@@ -555,8 +555,8 @@ export default function GuidedObservationsPage() {
             {currentPassage.observationQuestion}
           </h1>
           <p className="text-sm text-theme-dark/70">
-            What success looks like: answer the question in all four boxes, then
-            save.
+            Read the passage closely, then explain what you notice. We’ll do it
+            in four short steps.
           </p>
         </div>
 
@@ -567,15 +567,19 @@ export default function GuidedObservationsPage() {
           description="This is the passage you should think with right now."
         >
           <div className="space-y-5">
-            <blockquote className="text-left rounded-lg border border-theme-dark/10 bg-theme-light/40 p-4 text-theme-dark/90">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60 mb-2">
-                Passage (reference for this question)
+            <div className="rounded-xl border border-theme-dark/12 bg-white p-5 shadow-soft ring-1 ring-theme-dark/[0.03]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-dark/60">
+                The text you’re studying
               </p>
-              <p className="italic">&ldquo;{currentPassage.quotedPassage}&rdquo;</p>
-              <p className="mt-3 text-xs text-theme-dark/60">
-                Source: {sourceTitle}
+              <blockquote className="mt-3 text-left text-theme-dark">
+                <p className="text-base leading-relaxed md:text-[17px] md:leading-relaxed">
+                  &ldquo;{currentPassage.quotedPassage}&rdquo;
+                </p>
+              </blockquote>
+              <p className="mt-4 text-xs text-theme-dark/60">
+                From: {sourceTitle}
               </p>
-            </blockquote>
+            </div>
 
             {strategyReminder ? (
               <div className="rounded-lg border border-theme-dark/10 bg-white p-4 space-y-2 text-left">
@@ -594,44 +598,81 @@ export default function GuidedObservationsPage() {
               </div>
             ) : null}
 
-            <div className="space-y-4 text-left">
-              {OBSERVATION_FIELD_ORDER.map((fieldKey) => {
+            <div className="space-y-5 text-left">
+              {OBSERVATION_FIELD_ORDER.map((fieldKey, index) => {
                 const fieldDefinition = currentPassage.fields[fieldKey];
+                const stepNumber = index + 1;
+
+                const teacherIntro =
+                  fieldKey === "studentObservation"
+                    ? {
+                        why: "Start by naming what the author is doing in this passage.",
+                        whatGoodLooksLike:
+                          "A good answer points to a specific move (word choice, repetition, contrast, tone, etc.).",
+                      }
+                    : fieldKey === "audienceEffect"
+                      ? {
+                          why: "Now explain how that move could make the audience think or feel.",
+                          whatGoodLooksLike:
+                            "A good answer uses a cause → effect idea, not just “it’s persuasive.”",
+                        }
+                      : fieldKey === "purposeConnection"
+                        ? {
+                            why: "Connect your observation to the author’s bigger purpose.",
+                            whatGoodLooksLike:
+                              "A good answer explains how this passage helps the author reach their goal.",
+                          }
+                        : {
+                            why: "Finally, connect it back to the assignment’s essential question.",
+                            whatGoodLooksLike:
+                              "A good answer explains how this passage helps you answer the big question.",
+                          };
 
                 return (
-                  <div key={fieldKey}>
-                    <label className="block text-sm font-semibold text-theme-dark mb-1">
+                  <div key={fieldKey} className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-dark/55">
+                      Step {stepNumber}
+                    </p>
+                    <p className="text-sm text-theme-dark/80">
+                      {teacherIntro.why}
+                    </p>
+                    <label className="block text-sm font-semibold text-theme-dark">
                       {fieldDefinition.label}
                     </label>
                     <textarea
-                      className="w-full min-h-[92px] border border-theme-dark/15 rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
+                      className="w-full min-h-[88px] border border-theme-dark/12 rounded-lg px-3 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
                       value={currentFields[fieldKey]}
                       onChange={(e) =>
                         updateField(currentPassage.id, fieldKey, e.target.value)
                       }
                       placeholder={fieldDefinition.placeholder}
                     />
-                    <p className="text-xs text-theme-dark/65 mt-1">
-                      Sentence starter: &ldquo;{fieldDefinition.sentenceStarter}
-                      &rdquo;
-                    </p>
-                    {fieldDefinition.coachingText ? (
-                      <p className="text-xs text-theme-dark/55 mt-1">
-                        {fieldDefinition.coachingText}
+                    <div className="space-y-1">
+                      <p className="text-xs text-theme-dark/65">
+                        Try starting like this: &ldquo;{fieldDefinition.sentenceStarter}
+                        &rdquo;
                       </p>
-                    ) : null}
-                    {fieldKey === "audienceEffect" ? (
-                      <p className="text-xs text-theme-dark/55 mt-1">
-                        Audience:{" "}
-                        {audienceHintForSourceId(currentPassage.sourceId)}
+                      <p className="text-xs text-theme-dark/55">
+                        What good answers usually do: {teacherIntro.whatGoodLooksLike}
                       </p>
-                    ) : null}
-                    {fieldKey === "purposeConnection" ? (
-                      <p className="text-xs text-theme-dark/55 mt-1">
-                        Purpose:{" "}
-                        {purposeHintForSourceId(currentPassage.sourceId)}
-                      </p>
-                    ) : null}
+                      {fieldDefinition.coachingText ? (
+                        <p className="text-xs text-theme-dark/50">
+                          {fieldDefinition.coachingText}
+                        </p>
+                      ) : null}
+                      {fieldKey === "audienceEffect" ? (
+                        <p className="text-xs text-theme-dark/50">
+                          Audience:{" "}
+                          {audienceHintForSourceId(currentPassage.sourceId)}
+                        </p>
+                      ) : null}
+                      {fieldKey === "purposeConnection" ? (
+                        <p className="text-xs text-theme-dark/50">
+                          Purpose:{" "}
+                          {purposeHintForSourceId(currentPassage.sourceId)}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}
@@ -646,11 +687,17 @@ export default function GuidedObservationsPage() {
 
               {!allFieldsFilled(currentFields) ? (
                 <p className="text-left text-sm text-theme-dark/70">
-                  Complete all four boxes to save.
+                  Finished means:
+                  <span className="block mt-2 text-theme-dark/70">
+                    • I named the strategy/move I see in the passage.<br />
+                    • I explained what the author is doing.<br />
+                    • I explained how it could affect the audience.<br />
+                    • I connected it back to the essential question.
+                  </span>
                 </p>
               ) : (
                 <p className="text-left text-sm text-theme-dark/80">
-                  Ready to save.
+                  Looks good. You can save this observation now.
                 </p>
               )}
 
@@ -679,15 +726,15 @@ export default function GuidedObservationsPage() {
         </WorkingSetSection>
 
         <ReferenceSection
-          label="Reference"
-          description="Use these when you need them, but keep your focus on the desk."
+          label="Shelf"
+          description="Glance here when you need it, then come back to the passage."
         >
           <div className="space-y-4">
-            <Panel className="space-y-2 border border-theme-dark/10 bg-white">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Passage selection
-              </p>
-              <div className="flex flex-wrap items-center gap-2 text-left">
+            <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
+              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+                Switch passages
+              </summary>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-left">
                 {PASSAGES.map((p, i) => {
                   const isSaved = Boolean(savedBySourceId[p.id]);
                   const isCurrent = currentIndex === i;
@@ -709,30 +756,34 @@ export default function GuidedObservationsPage() {
                       ].join(" ")}
                     >
                       {i + 1}
-                      <span className="ml-2 text-xs text-inherit/90">
-                        {p.rhetoricalStrategyLabel}
-                      </span>
                       {isSaved ? <span className="ml-1">✓</span> : null}
                     </button>
                   );
                 })}
               </div>
-            </Panel>
+            </details>
 
-            <Panel className="space-y-2 border border-theme-dark/10 bg-white">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Assignment essential question
-              </p>
-              <p className="text-left text-theme-dark/85 font-medium">
+            <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
+              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+                Essential question
+              </summary>
+              <p className="mt-3 text-left text-theme-dark/80 font-medium">
                 {ASSIGNMENT.essentialQuestion}
               </p>
-            </Panel>
+            </details>
 
-            <ReviewPanel
-              savedBySourceId={savedBySourceId}
-              onGoToPassage={attemptPassageSwitch}
-              title="Progress"
-            />
+            <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
+              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+                Progress
+              </summary>
+              <div className="mt-3">
+                <ReviewPanel
+                  savedBySourceId={savedBySourceId}
+                  onGoToPassage={attemptPassageSwitch}
+                  title="Your saved observations"
+                />
+              </div>
+            </details>
           </div>
         </ReferenceSection>
 
