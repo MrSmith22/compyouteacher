@@ -1,0 +1,21 @@
+export const FLOW_VERSION = 2;
+
+export const STEP_WELCOME = 0;
+export const STEP_BIG_PICTURE = 1;
+export const STEP_EXPLAIN_BUCKETS = 2;
+export const STEP_PATTERN = 3;
+export const STEP_B1_SCAFFOLD = 4;
+export const STEP_B1_ROLE = 5;
+export const STEP_B1_EVIDENCE = 6;
+export const STEP_B1_REASONING = 7;
+export const STEP_B2_SCAFFOLD = 8;
+export const STEP_B2_ROLE = 9;
+export const STEP_B2_EVIDENCE = 10;
+export const STEP_B2_REASONING = 11;
+export const STEP_THIRD_DECISION = 12;
+export const STEP_B3_SCAFFOLD = 13;
+export const STEP_B3_ROLE = 14;
+export const STEP_B3_EVIDENCE = 15;
+export const STEP_B3_REASONING = 16;
+export const STEP_REFLECTION = 17;
+export const LAST_STEP = STEP_REFLECTION;

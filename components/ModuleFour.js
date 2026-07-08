@@ -15,6 +15,37 @@ import {
   resolveSelectedPattern,
 } from "@/lib/module4/module4InstructionalLogic";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
+import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
+import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
+import ModuleFourReferenceShelf from "@/components/module4/ModuleFourReferenceShelf";
+import {
+  bucketIndexForFlowStep,
+  completedBucketIndices,
+  getModule4StepPresentation,
+} from "@/components/module4/module4StepPresentation";
+import {
+  FLOW_VERSION,
+  LAST_STEP,
+  STEP_B1_EVIDENCE,
+  STEP_B1_REASONING,
+  STEP_B1_ROLE,
+  STEP_B1_SCAFFOLD,
+  STEP_B2_EVIDENCE,
+  STEP_B2_REASONING,
+  STEP_B2_ROLE,
+  STEP_B2_SCAFFOLD,
+  STEP_B3_EVIDENCE,
+  STEP_B3_REASONING,
+  STEP_B3_ROLE,
+  STEP_B3_SCAFFOLD,
+  STEP_BIG_PICTURE,
+  STEP_EXPLAIN_BUCKETS,
+  STEP_PATTERN,
+  STEP_REFLECTION,
+  STEP_THIRD_DECISION,
+  STEP_WELCOME,
+} from "@/components/module4/module4FlowSteps";
+import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments/mlkRhetoricalAnalysis";
 
 const EMPTY_UPSTREAM_ARTIFACTS = {
   thesisArtifact: null,
@@ -28,28 +59,6 @@ const EMPTY_UPSTREAM_ARTIFACTS = {
   selectedClusterId: null,
   selectedPatternId: null,
 };
-
-const FLOW_VERSION = 2;
-
-const STEP_WELCOME = 0;
-const STEP_BIG_PICTURE = 1;
-const STEP_EXPLAIN_BUCKETS = 2;
-const STEP_PATTERN = 3;
-const STEP_B1_SCAFFOLD = 4;
-const STEP_B1_ROLE = 5;
-const STEP_B1_EVIDENCE = 6;
-const STEP_B1_REASONING = 7;
-const STEP_B2_SCAFFOLD = 8;
-const STEP_B2_ROLE = 9;
-const STEP_B2_EVIDENCE = 10;
-const STEP_B2_REASONING = 11;
-const STEP_THIRD_DECISION = 12;
-const STEP_B3_SCAFFOLD = 13;
-const STEP_B3_ROLE = 14;
-const STEP_B3_EVIDENCE = 15;
-const STEP_B3_REASONING = 16;
-const STEP_REFLECTION = 17;
-const LAST_STEP = STEP_REFLECTION;
 
 const APPEALS = ["ethos", "pathos", "logos"];
 
@@ -759,10 +768,7 @@ function CompactAnalysisCard({ title, row }) {
 }
 
 function bucketIndexForStep(step) {
-  if (step >= STEP_B1_SCAFFOLD && step <= STEP_B1_REASONING) return 0;
-  if (step >= STEP_B2_SCAFFOLD && step <= STEP_B2_REASONING) return 1;
-  if (step >= STEP_B3_SCAFFOLD && step <= STEP_B3_REASONING) return 2;
-  return -1;
+  return bucketIndexForFlowStep(step);
 }
 
 function enrichBucketsForSave(bucketsSlice, keyToRow) {
@@ -963,6 +969,72 @@ export default function ModuleFour({
       : "";
   const ideaReference =
     typeof ideaArtifact?.statement === "string" ? ideaArtifact.statement.trim() : "";
+
+  const assignmentQuestion = mlkRhetoricalAnalysisAssignment.essentialQuestion;
+
+  const selectedCluster = useMemo(() => {
+    const clusterId = initialUpstreamArtifacts?.selectedClusterId;
+    if (!clusterId) return null;
+    const clusters = initialUpstreamArtifacts?.evidenceClusterArtifacts || [];
+    return (
+      clusters.find((cluster) => cluster.id.endsWith(`:${clusterId}`)) ||
+      clusters.find((cluster) => cluster.id === clusterId) ||
+      null
+    );
+  }, [initialUpstreamArtifacts]);
+
+  const patternShelfText = useMemo(() => {
+    const fromArtifact =
+      typeof selectedPattern?.text === "string" ? selectedPattern.text.trim() : "";
+    if (fromArtifact) return fromArtifact;
+    if (patternPlanDisplay && patternPlanDisplay !== "Not set yet") {
+      return patternPlanDisplay;
+    }
+    return "";
+  }, [selectedPattern, patternPlanDisplay]);
+
+  const activeBucketIndex = bucketIndexForFlowStep(flowStep);
+  const finishedBucketIndices = useMemo(
+    () => completedBucketIndices(flowStep, buckets),
+    [flowStep, buckets]
+  );
+
+  const stepPresentation = useMemo(() => {
+    const base = getModule4StepPresentation(flowStep);
+    if (flowStep === STEP_PATTERN && patternReviewMode) {
+      return {
+        ...base,
+        question: "What pattern did you already notice in Module 3?",
+        whyMatters: [
+          "You already named a pattern in Module 3—something that shows up in more than one place.",
+          "Reconnect to that thinking before you plan paragraphs so each bucket grows from work you have already done.",
+        ],
+        workingSetLabel: "Your pattern",
+        workingSetDescription:
+          "On your desk: the connection you named earlier—not a new discovery exercise.",
+        coachingMessage:
+          "You do not need to start over. Read your pattern, then keep going when it feels familiar again.",
+        nextStepText: "Next you will plan your first body paragraph idea.",
+      };
+    }
+    return base;
+  }, [flowStep, patternReviewMode]);
+
+  const referenceShelf = (
+    <ModuleFourReferenceShelf
+      assignmentQuestion={assignmentQuestion}
+      thesis={thesis}
+      proofPlan={proofPlan}
+      patternText={patternShelfText}
+      clusterName={selectedCluster?.clusterName || ""}
+      clusterReflection={selectedCluster?.reflection || ""}
+      claimText={claimReference}
+      ideaText={ideaReference}
+      buckets={buckets}
+      activeBucketIndex={activeBucketIndex}
+      completedBucketIndices={finishedBucketIndices}
+    />
+  );
 
   const scaffoldBucketIndex =
     flowStep >= STEP_B1_SCAFFOLD && flowStep <= STEP_B3_SCAFFOLD
@@ -1262,8 +1334,7 @@ export default function ModuleFour({
     );
   };
 
-  const panelClass =
-    "rounded-xl border border-theme-blue/30 bg-white p-4 shadow-sm space-y-4 text-left";
+  const panelClass = "space-y-4 text-left";
 
   const roleOpts = paragraphRoleOptions(structureChoice);
 
@@ -1373,40 +1444,12 @@ export default function ModuleFour({
           </StepGuidanceBox>
         )}
 
-        {thesis ? (
-          <StepReferenceNote title="Working thesis (from Module 3)">
-            <p className="text-theme-dark/90 whitespace-pre-wrap">{thesis}</p>
-          </StepReferenceNote>
-        ) : (
-          <StepGuidanceBox label="Tip">
-            <p>
-              No thesis text on file yet. Consider finishing Module 3 first so this
-              module can stay tightly focused on proving one argument.
-            </p>
-          </StepGuidanceBox>
-        )}
-
-        {proofPlan.length > 0 ? (
-          <StepReferenceNote title="Proof plan (from Module 3)">
-            <ol className="list-decimal list-inside space-y-1 text-sm text-theme-dark/90">
-              {proofPlan.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ol>
-          </StepReferenceNote>
-        ) : null}
-
-        {claimReference ? (
-          <StepReferenceNote title="Working claim (from Module 3)">
-            <p className="text-theme-dark/90 whitespace-pre-wrap">{claimReference}</p>
-          </StepReferenceNote>
-        ) : null}
-
-        {ideaReference ? (
-          <StepReferenceNote title="Exploratory idea (from Module 3)">
-            <p className="text-theme-dark/90 whitespace-pre-wrap">{ideaReference}</p>
-          </StepReferenceNote>
-        ) : null}
+        <StepGuidanceBox label="Tip">
+          <p>
+            Your thesis, proof directions, and earlier thinking are on the shelf to your
+            left. Keep them in mind as you plan each paragraph.
+          </p>
+        </StepGuidanceBox>
         <StepGuidanceBox label="Tip">
           <p>
             You may group more than one idea into a paragraph, or you may build one
@@ -1606,41 +1649,9 @@ export default function ModuleFour({
     main = (
       <div className={panelClass}>
         {isFirstParagraphScaffold ? (
-          <>
-            <StepReferenceNote title="Your essay plan so far">
-              <dl className="space-y-3 text-sm text-theme-dark/90">
-                <div>
-                  <dt className="font-semibold text-theme-dark">Thesis</dt>
-                  <dd className="mt-0.5 whitespace-pre-wrap">
-                    {thesis || "Not set yet"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-theme-dark">Structure choice</dt>
-                  <dd className="mt-0.5">{structurePlanLabel(structureChoice)}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-theme-dark">Pattern choice</dt>
-                  <dd className="mt-0.5">{patternPlanDisplay}</dd>
-                </div>
-                {proofPlan.length > 0 ? (
-                  <div>
-                    <dt className="font-semibold text-theme-dark">Proof directions</dt>
-                    <dd className="mt-0.5">
-                      <ol className="list-decimal list-inside space-y-1">
-                        {proofPlan.map((line) => (
-                          <li key={line}>{line}</li>
-                        ))}
-                      </ol>
-                    </dd>
-                  </div>
-                ) : null}
-              </dl>
-            </StepReferenceNote>
-            <p className="text-sm font-medium text-theme-dark leading-relaxed">
-              Which part of your thesis are you starting to prove in this paragraph?
-            </p>
-          </>
+          <p className="text-sm font-medium text-theme-dark leading-relaxed">
+            Which part of your thesis are you starting to prove in this paragraph?
+          </p>
         ) : null}
 
         <h2 className="text-xl font-extrabold text-theme-blue">{copy.title}</h2>
@@ -1984,55 +1995,72 @@ export default function ModuleFour({
     flowStep >= STEP_WELCOME && flowStep <= STEP_REFLECTION;
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6 pb-10">
-      <div className="text-left text-xs text-theme-dark/60">
-        Module 4 · step {flowStep + 1} of {LAST_STEP + 1}
-      </div>
-
-      {showSources ? (
-        <ModuleSourceAccess
-          speechOriginalUrl={speechOriginalUrl}
-          letterOriginalUrl={letterOriginalUrl}
-        />
-      ) : null}
-
-      {main}
-
-      <div className="flex flex-wrap justify-between items-center gap-3">
-        <div>
-          {showBack ? (
-            <button
-              type="button"
-              onClick={() => goBack()}
-              className="px-4 py-2 rounded-lg bg-gray-200 text-theme-dark hover:bg-gray-300"
-            >
-              Back
-            </button>
-          ) : null}
+    <div className="w-full pb-10">
+      <ModuleThreeStepFrame
+        question={stepPresentation.question}
+        whyMatters={stepPresentation.whyMatters}
+        successLooksLike={stepPresentation.successLooksLike}
+        coachingMessage={stepPresentation.coachingMessage}
+        nextStepText={stepPresentation.nextStepText}
+        sidebar={referenceShelf}
+      >
+        <div className="space-y-4 rounded-lg bg-surface-soft/50 px-4 py-3 text-left">
+          <p className="text-xs leading-relaxed text-text-muted">
+            Module 4 · step {flowStep + 1} of {LAST_STEP + 1}. Same workspace—one
+            paragraph at a time.
+          </p>
         </div>
-        <div className="flex gap-2">
-          {showPrimaryAdvance ? (
-            <button
-              type="button"
-              onClick={() => goNext()}
-              disabled={!canGoNext()}
-              className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
-            >
-              {atSoftIntro ? "Continue" : "Next"}
-            </button>
-          ) : null}
-          {atReflection ? (
-            <button
-              type="button"
-              onClick={() => completeModule()}
-              disabled={!canGoNext()}
-              className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
-            >
-              Finish → Module 5 path
-            </button>
-          ) : null}
+
+        {showSources ? (
+          <ModuleSourceAccess
+            speechOriginalUrl={speechOriginalUrl}
+            letterOriginalUrl={letterOriginalUrl}
+          />
+        ) : null}
+
+        <WorkingSetSection
+          label={stepPresentation.workingSetLabel}
+          description={stepPresentation.workingSetDescription}
+        >
+          {main}
+        </WorkingSetSection>
+
+        <div className="flex flex-wrap justify-between items-center gap-3 border-t border-border-soft/60 pt-4">
+          <div>
+            {showBack ? (
+              <button
+                type="button"
+                onClick={() => goBack()}
+                className="px-4 py-2 rounded-lg bg-surface-soft text-text-primary hover:bg-border-soft/60"
+              >
+                Back
+              </button>
+            ) : null}
+          </div>
+          <div className="flex gap-2">
+            {showPrimaryAdvance ? (
+              <button
+                type="button"
+                onClick={() => goNext()}
+                disabled={!canGoNext()}
+                className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
+              >
+                {atSoftIntro ? "Continue" : "Next"}
+              </button>
+            ) : null}
+            {atReflection ? (
+              <button
+                type="button"
+                onClick={() => completeModule()}
+                disabled={!canGoNext()}
+                className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
+              >
+                Finish → Module 5 path
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </ModuleThreeStepFrame>
     </div>
   );
 }
