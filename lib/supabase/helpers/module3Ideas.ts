@@ -1,5 +1,10 @@
 import type { StudentBucketFlowState } from "@/lib/supabase/helpers/studentBuckets";
-import { getStudentBucketsAdmin, upsertStudentBucketsAdmin } from "@/lib/supabase/helpers/studentBuckets";
+import { asString, asTrimmedString } from "@/lib/parsing/coerce";
+import { readRowRefIds } from "@/lib/module3/rowMetadata";
+import {
+  getModule3StudentBucketAdmin,
+  upsertModule3ScalarFlowStateAdmin,
+} from "@/lib/supabase/helpers/module3FlowState";
 
 export type Module3EvidenceMapEntry = {
   selected: boolean;
@@ -19,12 +24,7 @@ export type Module3IdeaRow = {
   updatedAt?: string | null;
 };
 
-const MODULE_NUMBER = 3;
 const DEFAULT_RELATION = "supports";
-
-function asString(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
 
 function asEvidenceMapEntry(value: unknown): Module3EvidenceMapEntry | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -32,7 +32,7 @@ function asEvidenceMapEntry(value: unknown): Module3EvidenceMapEntry | null {
   }
 
   const record = value as Record<string, unknown>;
-  const relation = asString(record.relation).trim() || DEFAULT_RELATION;
+  const relation = asTrimmedString(record.relation) || DEFAULT_RELATION;
 
   return {
     selected: Boolean(record.selected),
@@ -48,7 +48,7 @@ export function normalizeEvidenceMap(value: unknown): Module3EvidenceMap {
 
   const out: Module3EvidenceMap = {};
   for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
-    const evidenceId = asString(key).trim();
+    const evidenceId = asTrimmedString(key);
     if (!evidenceId) continue;
     const normalized = asEvidenceMapEntry(entry);
     if (normalized) out[evidenceId] = normalized;
@@ -59,7 +59,7 @@ export function normalizeEvidenceMap(value: unknown): Module3EvidenceMap {
 export function evidenceMapHasContent(map: Module3EvidenceMap | undefined | null) {
   if (!map) return false;
   return Object.values(map).some(
-    (entry) => entry.selected || asString(entry.note).trim().length > 0
+    (entry) => entry.selected || asTrimmedString(entry.note).length > 0
   );
 }
 
@@ -69,8 +69,8 @@ function asIdea(value: unknown): Module3IdeaRow | null {
   }
 
   const record = value as Record<string, unknown>;
-  const statement = asString(record.statement).trim();
-  const whyMatters = asString(record.whyMatters).trim();
+  const statement = asTrimmedString(record.statement);
+  const whyMatters = asTrimmedString(record.whyMatters);
   const evidenceMap = normalizeEvidenceMap(record.evidenceMap);
 
   if (!statement && !whyMatters && !evidenceMapHasContent(evidenceMap)) {
@@ -80,16 +80,13 @@ function asIdea(value: unknown): Module3IdeaRow | null {
   return {
     statement,
     whyMatters,
-    clusterId: asString(record.clusterId).trim() || null,
-    patternId: asString(record.patternId).trim() || null,
     evidenceMap,
-    createdAt: asString(record.createdAt).trim() || null,
-    updatedAt: asString(record.updatedAt).trim() || null,
+    ...readRowRefIds(record),
   };
 }
 
 export async function getModule3IdeaAdmin({ userEmail }: { userEmail: string }) {
-  const res = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
+  const res = await getModule3StudentBucketAdmin({ userEmail });
   if (res.error) return { idea: null, error: res.error };
   const flowState = (res.data?.flow_state ?? null) as StudentBucketFlowState | null;
   const idea = asIdea(flowState?.module3Idea);
@@ -103,25 +100,9 @@ export async function upsertModule3IdeaAdmin({
   userEmail: string;
   idea: Module3IdeaRow | null;
 }) {
-  const existingRes = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
-  if (existingRes.error) return { data: null, error: existingRes.error };
-  const existing = existingRes.data ?? null;
-
-  const existingFlowState = (existing?.flow_state ?? null) as StudentBucketFlowState | null;
-  const nextFlowState: StudentBucketFlowState = {
-    ...(existingFlowState || {}),
-    module3Idea: idea,
-  };
-
-  if (!idea) {
-    delete nextFlowState.module3Idea;
-  }
-
-  return upsertStudentBucketsAdmin({
+  return upsertModule3ScalarFlowStateAdmin({
     userEmail,
-    module: MODULE_NUMBER,
-    buckets: existing?.buckets ?? [],
-    reflection: existing?.reflection ?? null,
-    flow_state: nextFlowState,
+    key: "module3Idea",
+    value: idea,
   });
 }

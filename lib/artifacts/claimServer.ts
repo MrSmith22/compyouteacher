@@ -3,10 +3,7 @@ import {
   upsertModule3ClaimAdmin,
   type Module3ClaimRow,
 } from "@/lib/supabase/helpers/module3Claims";
-
-function nowIso() {
-  return new Date().toISOString();
-}
+import { mergeOptionalRef, mergeTimestamps } from "@/lib/artifacts/server/rowMerge";
 
 export type ClaimWriteInput = {
   userEmail: string;
@@ -24,7 +21,7 @@ function buildClaimRow(
   input: ClaimWriteInput,
   existing: Module3ClaimRow | null
 ): Module3ClaimRow {
-  const timestamp = nowIso();
+  const timestamps = mergeTimestamps(existing?.createdAt);
   const workingClaim =
     input.workingClaim !== undefined
       ? input.workingClaim.trim()
@@ -37,12 +34,9 @@ function buildClaimRow(
   return {
     workingClaim,
     supportRationale,
-    clusterId:
-      input.clusterId !== undefined ? input.clusterId ?? null : existing?.clusterId ?? null,
-    patternId:
-      input.patternId !== undefined ? input.patternId ?? null : existing?.patternId ?? null,
-    createdAt: existing?.createdAt ?? timestamp,
-    updatedAt: timestamp,
+    clusterId: mergeOptionalRef(input.clusterId, existing?.clusterId ?? null),
+    patternId: mergeOptionalRef(input.patternId, existing?.patternId ?? null),
+    ...timestamps,
   };
 }
 

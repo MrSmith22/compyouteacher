@@ -4,10 +4,11 @@ import {
   upsertModule3ThesisAdmin,
   type Module3ThesisRow,
 } from "@/lib/supabase/helpers/module3Thesis";
-
-function nowIso() {
-  return new Date().toISOString();
-}
+import {
+  mergeOptionalRef,
+  mergeTimestamps,
+  normalizeProofPlan,
+} from "@/lib/artifacts/server/rowMerge";
 
 export type ThesisWriteInput = {
   userEmail: string;
@@ -17,14 +18,6 @@ export type ThesisWriteInput = {
   patternId?: string | null;
 };
 
-function normalizeProofPlan(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
-    .filter(Boolean)
-    .slice(0, 3);
-}
-
 function isEmpty(thesis: Module3ThesisRow) {
   return !thesis.thesis.trim() && (thesis.proofPlan?.length ?? 0) === 0;
 }
@@ -33,7 +26,7 @@ function buildThesisRow(
   input: ThesisWriteInput,
   existing: Module3ThesisRow | null
 ): Module3ThesisRow {
-  const timestamp = nowIso();
+  const timestamps = mergeTimestamps(existing?.createdAt);
 
   const thesis =
     input.thesis !== undefined ? input.thesis.trim() : existing?.thesis ?? "";
@@ -46,16 +39,9 @@ function buildThesisRow(
   return {
     thesis,
     proofPlan,
-    clusterId:
-      input.clusterId !== undefined
-        ? input.clusterId ?? null
-        : existing?.clusterId ?? null,
-    patternId:
-      input.patternId !== undefined
-        ? input.patternId ?? null
-        : existing?.patternId ?? null,
-    createdAt: existing?.createdAt ?? timestamp,
-    updatedAt: timestamp,
+    clusterId: mergeOptionalRef(input.clusterId, existing?.clusterId ?? null),
+    patternId: mergeOptionalRef(input.patternId, existing?.patternId ?? null),
+    ...timestamps,
   };
 }
 
@@ -108,4 +94,3 @@ export async function getThesisForUser(userEmail: string) {
   }
   return { ok: true as const, thesis: res.thesis };
 }
-

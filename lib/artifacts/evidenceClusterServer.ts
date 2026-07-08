@@ -4,23 +4,8 @@ import {
   upsertModule3EvidenceClustersAdmin,
   type EvidenceClusterRow,
 } from "@/lib/supabase/helpers/module3EvidenceClusters";
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function uniqueOrdered(ids: string[] | undefined | null) {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const id of ids || []) {
-    if (typeof id !== "string") continue;
-    const trimmed = id.trim();
-    if (!trimmed || seen.has(trimmed)) continue;
-    seen.add(trimmed);
-    out.push(trimmed);
-  }
-  return out;
-}
+import { uniqueOrdered } from "@/lib/artifacts/server/collectionMerge";
+import { nowIso } from "@/lib/parsing/time";
 
 export type EvidenceClusterWriteInput = {
   id: string;
@@ -58,7 +43,7 @@ function mergeCluster(
       createdAt: timestamp,
       updatedAt: timestamp,
       assignmentId,
-    });
+    } as EvidenceClusterRow);
   }
 
   return nextClusters;

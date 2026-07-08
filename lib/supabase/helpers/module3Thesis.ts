@@ -1,9 +1,11 @@
 import type { StudentBucketFlowState } from "@/lib/supabase/helpers/studentBuckets";
-import {
-  getStudentBucketsAdmin,
-  upsertStudentBucketsAdmin,
-} from "@/lib/supabase/helpers/studentBuckets";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { asStringArray, asTrimmedString } from "@/lib/parsing/coerce";
+import { readRowRefIds } from "@/lib/module3/rowMetadata";
+import {
+  getModule3StudentBucketAdmin,
+  upsertModule3ScalarFlowStateAdmin,
+} from "@/lib/supabase/helpers/module3FlowState";
 
 export type Module3ThesisRow = {
   thesis: string;
@@ -19,26 +21,13 @@ type Module3ResponsesRow = {
   updated_at: string | null;
 };
 
-const MODULE_NUMBER = 3;
-
-function asString(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
-
-function asStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
-    .filter(Boolean);
-}
-
 function asThesis(value: unknown): Module3ThesisRow | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
   }
 
   const record = value as Record<string, unknown>;
-  const thesis = asString(record.thesis).trim();
+  const thesis = asTrimmedString(record.thesis);
   const proofPlan = asStringArray(record.proofPlan);
 
   if (!thesis && proofPlan.length === 0) return null;
@@ -46,15 +35,12 @@ function asThesis(value: unknown): Module3ThesisRow | null {
   return {
     thesis,
     proofPlan,
-    clusterId: asString(record.clusterId).trim() || null,
-    patternId: asString(record.patternId).trim() || null,
-    createdAt: asString(record.createdAt).trim() || null,
-    updatedAt: asString(record.updatedAt).trim() || null,
+    ...readRowRefIds(record),
   };
 }
 
 export async function getModule3ThesisAdmin({ userEmail }: { userEmail: string }) {
-  const res = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
+  const res = await getModule3StudentBucketAdmin({ userEmail });
   if (res.error) return { thesis: null, error: res.error };
   const flowState = (res.data?.flow_state ?? null) as StudentBucketFlowState | null;
   const thesis = asThesis(flowState?.module3Thesis);
@@ -68,29 +54,10 @@ export async function upsertModule3ThesisAdmin({
   userEmail: string;
   thesis: Module3ThesisRow | null;
 }) {
-  const existingRes = await getStudentBucketsAdmin({
+  return upsertModule3ScalarFlowStateAdmin({
     userEmail,
-    module: MODULE_NUMBER,
-  });
-  if (existingRes.error) return { data: null, error: existingRes.error };
-  const existing = existingRes.data ?? null;
-
-  const existingFlowState = (existing?.flow_state ?? null) as StudentBucketFlowState | null;
-  const nextFlowState: StudentBucketFlowState = {
-    ...(existingFlowState || {}),
-    module3Thesis: thesis,
-  };
-
-  if (!thesis) {
-    delete nextFlowState.module3Thesis;
-  }
-
-  return upsertStudentBucketsAdmin({
-    userEmail,
-    module: MODULE_NUMBER,
-    buckets: existing?.buckets ?? [],
-    reflection: existing?.reflection ?? null,
-    flow_state: nextFlowState,
+    key: "module3Thesis",
+    value: thesis,
   });
 }
 
@@ -133,4 +100,3 @@ export async function upsertModule3ResponsesThesisAdmin({
     updated_at: new Date().toISOString(),
   });
 }
-

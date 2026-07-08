@@ -1,5 +1,10 @@
 import type { StudentBucketFlowState } from "@/lib/supabase/helpers/studentBuckets";
-import { getStudentBucketsAdmin, upsertStudentBucketsAdmin } from "@/lib/supabase/helpers/studentBuckets";
+import { asStringArray, asTrimmedString } from "@/lib/parsing/coerce";
+import { readRowRefIds } from "@/lib/module3/rowMetadata";
+import {
+  getModule3StudentBucketAdmin,
+  upsertModule3FlowStatePatchAdmin,
+} from "@/lib/supabase/helpers/module3FlowState";
 
 export type Module3PatternRow = {
   id: string;
@@ -9,35 +14,26 @@ export type Module3PatternRow = {
   updatedAt?: string | null;
 };
 
-const MODULE_NUMBER = 3;
-
-function asString(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
-
-function asStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.map((item) => asString(item).trim()).filter(Boolean);
-}
-
 function asPattern(value: unknown): Module3PatternRow | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
   }
 
   const record = value as Record<string, unknown>;
-  const id = asString(record.id).trim();
-  const text = asString(record.text).trim();
+  const id = asTrimmedString(record.id);
+  const text = asTrimmedString(record.text);
   const evidenceIds = asStringArray(record.evidenceIds);
 
   if (!id) return null;
+
+  const refs = readRowRefIds(record);
 
   return {
     id,
     text,
     evidenceIds,
-    createdAt: asString(record.createdAt).trim() || null,
-    updatedAt: asString(record.updatedAt).trim() || null,
+    createdAt: refs.createdAt,
+    updatedAt: refs.updatedAt,
   };
 }
 
@@ -48,12 +44,12 @@ function normalizePatterns(value: unknown): Module3PatternRow[] {
 
 function readPatternState(flowState: StudentBucketFlowState | null | undefined) {
   const patterns = normalizePatterns(flowState?.module3Patterns);
-  const selectedPatternId = asString(flowState?.module3SelectedPatternId).trim() || null;
+  const selectedPatternId = asTrimmedString(flowState?.module3SelectedPatternId) || null;
   return { patterns, selectedPatternId };
 }
 
 export async function getModule3PatternsAdmin({ userEmail }: { userEmail: string }) {
-  const res = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
+  const res = await getModule3StudentBucketAdmin({ userEmail });
   if (res.error) return { patterns: [], selectedPatternId: null, error: res.error };
   const row = res.data ?? null;
   const { patterns, selectedPatternId } = readPatternState(row?.flow_state ?? null);
@@ -69,23 +65,11 @@ export async function upsertModule3PatternsAdmin({
   patterns: Module3PatternRow[];
   selectedPatternId: string | null;
 }) {
-  const existingRes = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
-  if (existingRes.error) return { data: null, error: existingRes.error };
-  const existing = existingRes.data ?? null;
-
-  const existingFlowState = (existing?.flow_state ?? null) as StudentBucketFlowState | null;
-  const nextFlowState: StudentBucketFlowState = {
-    ...(existingFlowState || {}),
-    module3Patterns: patterns,
-    module3SelectedPatternId: selectedPatternId ?? null,
-  };
-
-  return upsertStudentBucketsAdmin({
+  return upsertModule3FlowStatePatchAdmin({
     userEmail,
-    module: MODULE_NUMBER,
-    buckets: existing?.buckets ?? [],
-    reflection: existing?.reflection ?? null,
-    flow_state: nextFlowState,
+    patch: {
+      module3Patterns: patterns,
+      module3SelectedPatternId: selectedPatternId ?? null,
+    },
   });
 }
-

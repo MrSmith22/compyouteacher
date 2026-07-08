@@ -1,69 +1,46 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import {
   deletePatternForUser,
   listPatternsForUser,
   selectPatternForUser,
   upsertPatternForUser,
 } from "@/lib/artifacts/patternServer";
-
-function errorMessage(error) {
-  if (error && typeof error === "object" && "message" in error) {
-    return String(error.message || "Request failed");
-  }
-  return "Request failed";
-}
+import { NextResponse } from "next/server";
+import { parseJsonBody, parseRequiredTrimmedString } from "@/lib/api/bodyParsers";
+import {
+  failedResultResponse,
+  getAuthenticatedUserEmail,
+  okResponse,
+  serverErrorResponse,
+  unauthorizedResponse,
+} from "@/lib/api/module3Routes";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
-
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
     const result = await listPatternsForUser(userEmail);
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json(
-      {
-        ok: true,
-        patterns: result.patterns,
-        selectedPatternId: result.selectedPatternId,
-      },
-      { status: 200 }
-    );
+    return okResponse({
+      patterns: result.patterns,
+      selectedPatternId: result.selectedPatternId,
+    });
   } catch (err) {
-    console.error("Module 3 pattern list failed:", err);
-    return NextResponse.json(
-      { ok: false, error: errorMessage(err) },
-      { status: 500 }
-    );
+    return serverErrorResponse("Module 3 pattern list failed:", err);
   }
 }
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
-
-    const body = await req.json().catch(() => ({}));
+    const body = await parseJsonBody(req);
     const mode = typeof body?.mode === "string" ? body.mode : "upsert";
 
     if (mode === "select") {
-      const patternId =
-        typeof body?.patternId === "string" ? body.patternId.trim() : "";
+      const patternId = parseRequiredTrimmedString(body, "patternId");
       if (!patternId) {
         return NextResponse.json(
           { ok: false, error: "Missing pattern id" },
@@ -72,17 +49,12 @@ export async function POST(req) {
       }
 
       const result = await selectPatternForUser({ userEmail, patternId });
-      if (!result.ok) {
-        return NextResponse.json(
-          { ok: false, error: errorMessage(result.error) },
-          { status: 500 }
-        );
-      }
+      if (!result.ok) return failedResultResponse(result);
 
-      return NextResponse.json({ ok: true }, { status: 200 });
+      return okResponse();
     }
 
-    const id = typeof body?.id === "string" ? body.id.trim() : "";
+    const id = parseRequiredTrimmedString(body, "id");
     const text = typeof body?.text === "string" ? body.text : "";
     const evidenceIds = Array.isArray(body?.evidenceIds) ? body.evidenceIds : [];
     const isSelected = Boolean(body?.isSelected);
@@ -102,34 +74,21 @@ export async function POST(req) {
       isSelected,
     });
 
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return okResponse();
   } catch (err) {
-    console.error("Module 3 pattern save failed:", err);
-    return NextResponse.json(
-      { ok: false, error: errorMessage(err) },
-      { status: 500 }
-    );
+    return serverErrorResponse("Module 3 pattern save failed:", err);
   }
 }
 
 export async function DELETE(req) {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
-
-    const body = await req.json().catch(() => ({}));
-    const patternId = typeof body?.patternId === "string" ? body.patternId.trim() : "";
+    const body = await parseJsonBody(req);
+    const patternId = parseRequiredTrimmedString(body, "patternId");
 
     if (!patternId) {
       return NextResponse.json(
@@ -139,20 +98,10 @@ export async function DELETE(req) {
     }
 
     const result = await deletePatternForUser({ userEmail, patternId });
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return okResponse();
   } catch (err) {
-    console.error("Module 3 pattern delete failed:", err);
-    return NextResponse.json(
-      { ok: false, error: errorMessage(err) },
-      { status: 500 }
-    );
+    return serverErrorResponse("Module 3 pattern delete failed:", err);
   }
 }
-

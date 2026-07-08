@@ -1,67 +1,45 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import {
   deleteThesisForUser,
   getThesisForUser,
   upsertThesisForUser,
 } from "@/lib/artifacts/thesisServer";
-
-function errorMessage(error) {
-  if (error && typeof error === "object" && "message" in error) {
-    return String(error.message || "Request failed");
-  }
-  return "Request failed";
-}
+import {
+  parseJsonBody,
+  parseOptionalNullableRefId,
+  parseOptionalStringField,
+} from "@/lib/api/bodyParsers";
+import {
+  failedResultResponse,
+  getAuthenticatedUserEmail,
+  okResponse,
+  serverErrorResponse,
+  unauthorizedResponse,
+} from "@/lib/api/module3Routes";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
-
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
     const result = await getThesisForUser(userEmail);
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true, thesis: result.thesis }, { status: 200 });
+    return okResponse({ thesis: result.thesis });
   } catch (err) {
-    console.error("Module 3 thesis read failed:", err);
-    return NextResponse.json({ ok: false, error: errorMessage(err) }, { status: 500 });
+    return serverErrorResponse("Module 3 thesis read failed:", err);
   }
 }
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
-
-    const body = await req.json().catch(() => ({}));
-    const thesis = typeof body?.thesis === "string" ? body.thesis : undefined;
+    const body = await parseJsonBody(req);
+    const thesis = parseOptionalStringField(body, "thesis");
     const proofPlan = Array.isArray(body?.proofPlan) ? body.proofPlan : undefined;
-    const clusterId =
-      body?.clusterId === null
-        ? null
-        : typeof body?.clusterId === "string"
-          ? body.clusterId.trim() || null
-          : undefined;
-    const patternId =
-      body?.patternId === null
-        ? null
-        : typeof body?.patternId === "string"
-          ? body.patternId.trim() || null
-          : undefined;
+    const clusterId = parseOptionalNullableRefId(body, "clusterId");
+    const patternId = parseOptionalNullableRefId(body, "patternId");
 
     const result = await upsertThesisForUser({
       userEmail,
@@ -71,41 +49,24 @@ export async function POST(req) {
       patternId,
     });
 
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true, thesis: result.thesis ?? null }, { status: 200 });
+    return okResponse({ thesis: result.thesis ?? null });
   } catch (err) {
-    console.error("Module 3 thesis save failed:", err);
-    return NextResponse.json({ ok: false, error: errorMessage(err) }, { status: 500 });
+    return serverErrorResponse("Module 3 thesis save failed:", err);
   }
 }
 
 export async function DELETE() {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
-
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
     const result = await deleteThesisForUser({ userEmail });
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return okResponse();
   } catch (err) {
-    console.error("Module 3 thesis delete failed:", err);
-    return NextResponse.json({ ok: false, error: errorMessage(err) }, { status: 500 });
+    return serverErrorResponse("Module 3 thesis delete failed:", err);
   }
 }
-

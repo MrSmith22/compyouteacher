@@ -1,72 +1,45 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import {
   deleteClaimForUser,
   getClaimForUser,
   upsertClaimForUser,
 } from "@/lib/artifacts/claimServer";
-
-function errorMessage(error) {
-  if (error && typeof error === "object" && "message" in error) {
-    return String(error.message || "Request failed");
-  }
-  return "Request failed";
-}
+import {
+  parseJsonBody,
+  parseOptionalNullableRefId,
+  parseOptionalStringField,
+} from "@/lib/api/bodyParsers";
+import {
+  failedResultResponse,
+  getAuthenticatedUserEmail,
+  okResponse,
+  serverErrorResponse,
+  unauthorizedResponse,
+} from "@/lib/api/module3Routes";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
-
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
     const result = await getClaimForUser(userEmail);
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true, claim: result.claim }, { status: 200 });
+    return okResponse({ claim: result.claim });
   } catch (err) {
-    console.error("Module 3 claim read failed:", err);
-    return NextResponse.json(
-      { ok: false, error: errorMessage(err) },
-      { status: 500 }
-    );
+    return serverErrorResponse("Module 3 claim read failed:", err);
   }
 }
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
-
-    const body = await req.json().catch(() => ({}));
-    const workingClaim =
-      typeof body?.workingClaim === "string" ? body.workingClaim : undefined;
-    const supportRationale =
-      typeof body?.supportRationale === "string" ? body.supportRationale : undefined;
-    const clusterId =
-      body?.clusterId === null
-        ? null
-        : typeof body?.clusterId === "string"
-          ? body.clusterId.trim() || null
-          : undefined;
-    const patternId =
-      body?.patternId === null
-        ? null
-        : typeof body?.patternId === "string"
-          ? body.patternId.trim() || null
-          : undefined;
+    const body = await parseJsonBody(req);
+    const workingClaim = parseOptionalStringField(body, "workingClaim");
+    const supportRationale = parseOptionalStringField(body, "supportRationale");
+    const clusterId = parseOptionalNullableRefId(body, "clusterId");
+    const patternId = parseOptionalNullableRefId(body, "patternId");
 
     const result = await upsertClaimForUser({
       userEmail,
@@ -76,46 +49,24 @@ export async function POST(req) {
       patternId,
     });
 
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true, claim: result.claim ?? null }, { status: 200 });
+    return okResponse({ claim: result.claim ?? null });
   } catch (err) {
-    console.error("Module 3 claim save failed:", err);
-    return NextResponse.json(
-      { ok: false, error: errorMessage(err) },
-      { status: 500 }
-    );
+    return serverErrorResponse("Module 3 claim save failed:", err);
   }
 }
 
 export async function DELETE() {
   try {
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email;
-
-    if (!userEmail) {
-      return NextResponse.json({ ok: false, error: "Not signed in" }, { status: 401 });
-    }
+    const userEmail = await getAuthenticatedUserEmail();
+    if (!userEmail) return unauthorizedResponse();
 
     const result = await deleteClaimForUser({ userEmail });
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: errorMessage(result.error) },
-        { status: 500 }
-      );
-    }
+    if (!result.ok) return failedResultResponse(result);
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return okResponse();
   } catch (err) {
-    console.error("Module 3 claim delete failed:", err);
-    return NextResponse.json(
-      { ok: false, error: errorMessage(err) },
-      { status: 500 }
-    );
+    return serverErrorResponse("Module 3 claim delete failed:", err);
   }
 }

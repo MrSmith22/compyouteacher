@@ -29,9 +29,6 @@ import { resolveModuleOriginalUrls } from "@/lib/module4/resolveModuleSourceUrls
 
 const MODULE4_NUM = 4;
 
-export type { LegacyModule3Row } from "@/lib/module4/module4Compat";
-export { buildInitialModule3Compat } from "@/lib/module4/module4Compat";
-
 export type LegacyStudentBucketsRow = {
   buckets?: unknown;
   reflection?: string | null;

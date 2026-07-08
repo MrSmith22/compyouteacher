@@ -6,10 +6,7 @@ import {
   type Module3EvidenceMap,
   type Module3IdeaRow,
 } from "@/lib/supabase/helpers/module3Ideas";
-
-function nowIso() {
-  return new Date().toISOString();
-}
+import { mergeOptionalRef, mergeTimestamps } from "@/lib/artifacts/server/rowMerge";
 
 export type IdeaWriteInput = {
   userEmail: string;
@@ -29,7 +26,7 @@ function isEmptyIdea(idea: Module3IdeaRow) {
 }
 
 function buildIdeaRow(input: IdeaWriteInput, existing: Module3IdeaRow | null): Module3IdeaRow {
-  const timestamp = nowIso();
+  const timestamps = mergeTimestamps(existing?.createdAt);
   const statement =
     input.statement !== undefined ? input.statement.trim() : (existing?.statement ?? "");
   const whyMatters =
@@ -42,13 +39,10 @@ function buildIdeaRow(input: IdeaWriteInput, existing: Module3IdeaRow | null): M
   return {
     statement,
     whyMatters,
-    clusterId:
-      input.clusterId !== undefined ? input.clusterId ?? null : existing?.clusterId ?? null,
-    patternId:
-      input.patternId !== undefined ? input.patternId ?? null : existing?.patternId ?? null,
+    clusterId: mergeOptionalRef(input.clusterId, existing?.clusterId ?? null),
+    patternId: mergeOptionalRef(input.patternId, existing?.patternId ?? null),
     evidenceMap,
-    createdAt: existing?.createdAt ?? timestamp,
-    updatedAt: timestamp,
+    ...timestamps,
   };
 }
 

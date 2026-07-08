@@ -14,6 +14,8 @@ import { getModule3PatternsAdmin } from "@/lib/supabase/helpers/module3Patterns"
 import { getModule3IdeaAdmin } from "@/lib/supabase/helpers/module3Ideas";
 import { getModule3ClaimAdmin } from "@/lib/supabase/helpers/module3Claims";
 import { getModule3ThesisAdmin } from "@/lib/supabase/helpers/module3Thesis";
+import { requireNoError } from "@/lib/api/readResult";
+import { asNonEmptyString, asStringArray } from "@/lib/parsing/coerce";
 import type {
   ClaimArtifact,
   DraftArtifact,
@@ -26,6 +28,11 @@ import type {
   SourceContextArtifact,
   ThesisArtifact,
 } from "./types";
+
+/**
+ * Artifact Engine V1 remains a compatibility adapter over current helpers/tables.
+ * These reads do not introduce new storage or change any student-facing behavior.
+ */
 
 type Module3ResponseRow = {
   thesis: string | null;
@@ -65,40 +72,6 @@ type StudentBucketItem = {
   paragraphRole?: unknown;
   suggestionId?: unknown;
 };
-
-/**
- * Artifact Engine V1 remains a compatibility adapter over current helpers/tables.
- * These reads do not introduce new storage or change any student-facing behavior.
- */
-
-function requireNoError<T>(
-  result: { data: T; error: { message?: string } | null },
-  label: string
-): T {
-  if (result.error) {
-    throw new Error(result.error.message || `Failed to read ${label}`);
-  }
-
-  return result.data;
-}
-
-function asNonEmptyString(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  return value.trim() ? value : null;
-}
-
-function asStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
-    .filter(Boolean);
-}
 
 function asBucketItems(value: unknown): StudentBucketItem[] {
   if (!Array.isArray(value)) {

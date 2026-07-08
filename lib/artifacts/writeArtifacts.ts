@@ -1,12 +1,18 @@
 import { DEFAULT_ASSIGNMENT_ID } from "@/lib/assignments";
+import { errorMessage } from "@/lib/api/errors";
+import { parseApiResponse } from "@/lib/api/clientFetch";
+import type { ClaimWriteInput } from "@/lib/artifacts/claimServer";
+import type { EvidenceClusterWriteInput } from "@/lib/artifacts/evidenceClusterServer";
+import type { IdeaWriteInput } from "@/lib/artifacts/ideaServer";
+import type { PatternWriteInput } from "@/lib/artifacts/patternServer";
+import type { ThesisWriteInput } from "@/lib/artifacts/thesisServer";
 
-export type EvidenceClusterWriteInput = {
-  id: string;
-  assignmentId?: string;
-  userEmail: string;
-  clusterName: string;
-  reflection?: string | null;
-  evidenceIds: string[];
+export type {
+  ClaimWriteInput,
+  EvidenceClusterWriteInput,
+  IdeaWriteInput,
+  PatternWriteInput,
+  ThesisWriteInput,
 };
 
 const API_PATH = "/api/module3/evidence-clusters";
@@ -14,21 +20,6 @@ const PATTERN_API_PATH = "/api/module3/patterns";
 const IDEA_API_PATH = "/api/module3/ideas";
 const CLAIM_API_PATH = "/api/module3/claims";
 const THESIS_API_PATH = "/api/module3/thesis";
-
-function errorMessage(error: unknown) {
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message?: string }).message || "Request failed");
-  }
-  return "Request failed";
-}
-
-async function parseApiResponse(res: Response) {
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json?.ok) {
-    throw new Error(json?.error || `Request failed (${res.status})`);
-  }
-  return json;
-}
 
 export async function upsertEvidenceClusterArtifact(input: EvidenceClusterWriteInput) {
   const res = await fetch(API_PATH, {
@@ -70,14 +61,6 @@ export async function deleteEvidenceClusterArtifact({
     return { ok: false as const, error: { message: errorMessage(error) } };
   }
 }
-
-export type PatternWriteInput = {
-  id: string;
-  userEmail: string;
-  text: string;
-  evidenceIds: string[];
-  isSelected?: boolean;
-};
 
 export async function upsertPatternArtifact(input: PatternWriteInput) {
   const res = await fetch(PATTERN_API_PATH, {
@@ -139,22 +122,6 @@ export async function deletePatternArtifact({
   }
 }
 
-export type IdeaWriteInput = {
-  userEmail: string;
-  statement?: string;
-  whyMatters?: string;
-  clusterId?: string | null;
-  patternId?: string | null;
-  evidenceMap?: Record<
-    string,
-    {
-      selected: boolean;
-      relation: string;
-      note: string;
-    }
-  > | null;
-};
-
 export async function upsertIdeaArtifact(input: IdeaWriteInput) {
   const body: Record<string, unknown> = {
     clusterId: input.clusterId ?? null,
@@ -197,14 +164,6 @@ export async function deleteIdeaArtifact({
   }
 }
 
-export type ClaimWriteInput = {
-  userEmail: string;
-  workingClaim?: string;
-  supportRationale?: string;
-  clusterId?: string | null;
-  patternId?: string | null;
-};
-
 export async function upsertClaimArtifact(input: ClaimWriteInput) {
   const body: Record<string, unknown> = {
     clusterId: input.clusterId ?? null,
@@ -245,14 +204,6 @@ export async function deleteClaimArtifact({
     return { ok: false as const, error: { message: errorMessage(error) } };
   }
 }
-
-export type ThesisWriteInput = {
-  userEmail: string;
-  thesis?: string;
-  proofPlan?: string[];
-  clusterId?: string | null;
-  patternId?: string | null;
-};
 
 export async function upsertThesisArtifact(input: ThesisWriteInput) {
   const body: Record<string, unknown> = {
