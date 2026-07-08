@@ -7,9 +7,9 @@ import {
   upsertEvidenceClusterForUser,
 } from "@/lib/artifacts/evidenceClusterServer";
 
-function errorMessage(error: unknown) {
+function errorMessage(error) {
   if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message?: string }).message || "Request failed");
+    return String(error.message || "Request failed");
   }
   return "Request failed";
 }

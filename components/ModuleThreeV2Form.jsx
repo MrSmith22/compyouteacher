@@ -1134,6 +1134,8 @@ export default function ModuleThreeV2Form({
   let stepContent = null;
 
   if (currentStep === STEP_IDS.REVIEW) {
+    const shouldChooseExistingCluster =
+      evidenceClusters.length > 0 && !safeText(selectedClusterId);
     stepContent = (
       <ModuleThreeStepFrame
         question="Which quotes seem to belong together?"
@@ -1179,13 +1181,17 @@ export default function ModuleThreeV2Form({
                   My work on the desk
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  Pick a few quotes that feel connected. Then give that group a short name in your own words.
+                  {shouldChooseExistingCluster
+                    ? "You already have at least one saved group. Choose one below to explore."
+                    : "Pick a few quotes that feel connected. Then give that group a short name in your own words."}
                 </p>
               </div>
 
               {workingEvidence.length === 0 ? (
                 <p className="text-center text-sm text-text-muted">
-                  Choose quotes from the reference shelf below. They will land here.
+                  {shouldChooseExistingCluster
+                    ? "Choose a saved group below (or add new quotes from the shelf to make another group)."
+                    : "Choose quotes from the reference shelf below. They will land here."}
                 </p>
               ) : (
                 <>
