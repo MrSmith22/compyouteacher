@@ -101,7 +101,7 @@ export default function ModuleThreeEvidenceCard({
                 onChange={() => onToggleSelected?.(evidence.id)}
                 className="accent-theme-green"
               />
-              {selected ? "Chosen" : "Choose quote"}
+              {selected ? "Chosen" : "Add this quote"}
             </label>
           ) : null}
         </div>

@@ -32,36 +32,36 @@ const STEP_IDS = {
 const STEP_DEFINITIONS = [
   {
     id: STEP_IDS.REVIEW,
-    shortLabel: "Review Evidence",
+    question: "Which quotes seem to belong together?",
   },
   {
     id: STEP_IDS.PATTERNS,
-    shortLabel: "Notice Patterns",
+    question: "What do these quotes seem to have in common?",
   },
   {
     id: STEP_IDS.IDEA,
-    shortLabel: "Explore Idea",
+    question: "What might this pattern mean?",
   },
   {
     id: STEP_IDS.CONNECT,
-    shortLabel: "Connect Evidence",
+    question: "How does each quote help this idea?",
   },
   {
     id: STEP_IDS.EVALUATE,
-    shortLabel: "Evaluate Strength",
+    question: "Is my support strong enough yet?",
   },
   {
     id: STEP_IDS.GATHER,
-    shortLabel: "Gather More Evidence",
+    question: "What kind of quote is still missing?",
     optional: true,
   },
   {
     id: STEP_IDS.CLAIM,
-    shortLabel: "Develop Claim",
+    question: "What point do these quotes help you prove?",
   },
   {
     id: STEP_IDS.THESIS,
-    shortLabel: "Turn Into Thesis",
+    question: "How would you explain your main point in one clear sentence?",
   },
 ];
 
@@ -263,15 +263,15 @@ function computeProgressStory({
   const nextByStep = {
     [STEP_IDS.REVIEW]:
       evidenceClusters.length === 0
-        ? "Choose a few quotes, then group the ones that belong together."
-        : "Pick the group you want to study next.",
-    [STEP_IDS.PATTERNS]: "Notice what your quotes have in common and write it down.",
-    [STEP_IDS.IDEA]: "Turn that pattern into one possible idea.",
-    [STEP_IDS.CONNECT]: "Explain how each quote helps your idea.",
-    [STEP_IDS.EVALUATE]: "Be honest about whether your support is strong enough.",
-    [STEP_IDS.GATHER]: "Find quotes that fill the gap you noticed.",
-    [STEP_IDS.CLAIM]: "Write the point you think you can argue.",
-    [STEP_IDS.THESIS]: "Turn that point into one clear thesis sentence.",
+        ? "Pick a few quotes and group the ones that belong together."
+        : "Which group do you want to explore?",
+    [STEP_IDS.PATTERNS]: "What repeats or contrasts across your quotes?",
+    [STEP_IDS.IDEA]: "What might this pattern mean?",
+    [STEP_IDS.CONNECT]: "How does each quote help your idea?",
+    [STEP_IDS.EVALUATE]: "How strong does your support feel right now?",
+    [STEP_IDS.GATHER]: "What quote would fill the gap you noticed?",
+    [STEP_IDS.CLAIM]: "What point can your quotes help you prove?",
+    [STEP_IDS.THESIS]: "How would you say your main point in one sentence?",
   };
 
   return {
@@ -432,14 +432,8 @@ export default function ModuleThreeV2Form({
   }, [currentStep, visibleSteps]);
 
   const currentStepIndex = visibleSteps.findIndex((step) => step.id === currentStep);
-  const stepNumber = currentStepIndex >= 0 ? currentStepIndex + 1 : 1;
-  const totalSteps = visibleSteps.length;
   const isLastStep =
     visibleSteps[visibleSteps.length - 1]?.id === currentStep;
-  const previousMove =
-    currentStepIndex > 0 ? visibleSteps[currentStepIndex - 1] : null;
-  const nextMove =
-    currentStepIndex >= 0 ? visibleSteps[currentStepIndex + 1] || null : null;
 
   const availableTags = useMemo(() => {
     const tags = new Set();
@@ -815,23 +809,23 @@ export default function ModuleThreeV2Form({
           return "You need at least two quotes from Module 2 before you can move on.";
         }
         if (workingEvidenceIds.length < workingEvidenceMinimum) {
-          return `Choose at least ${workingEvidenceMinimum} quotes using the checkboxes above.`;
+          return `Choose at least ${workingEvidenceMinimum} quotes above.`;
         }
         if (evidenceClusters.length < 1) {
-          return "Scroll down, pick quotes that belong together, name the group, and click Create group.";
+          return "Name your group below and click Create group.";
         }
         if (!selectedCluster || selectedCluster.evidenceIds.length < 2) {
-          return "Select which group you want to work with next.";
+          return "Choose which group you want to explore.";
         }
         return "";
       case STEP_IDS.PATTERNS:
-        return "Write two patterns, choose one to explore, and link at least two quotes to it.";
+        return "Write two things you notice, choose one to explore, and link at least two quotes to it.";
       case STEP_IDS.IDEA:
         return "Write your idea and a sentence about why it feels worth exploring.";
       case STEP_IDS.CONNECT:
         return "Pick at least two quotes and explain how each one helps your idea.";
       case STEP_IDS.EVALUATE:
-        return "Pick how strong your support feels, name what is weakest, and choose what to do next.";
+        return "Say how strong your support feels, name what is weakest, and choose what to do next.";
       case STEP_IDS.GATHER:
         return "Choose a quote and write how it helps fill the gap you noticed.";
       case STEP_IDS.CLAIM:
@@ -874,6 +868,15 @@ export default function ModuleThreeV2Form({
       }
       return [...previousIds, evidenceId];
     });
+
+    if (currentStep === STEP_IDS.REVIEW) {
+      setClusterDraftEvidenceIds((previousIds) => {
+        if (previousIds.includes(evidenceId)) {
+          return previousIds.filter((id) => id !== evidenceId);
+        }
+        return [...previousIds, evidenceId];
+      });
+    }
   }
 
   function updateEvidenceMarker(evidenceId, marker) {
@@ -963,7 +966,7 @@ export default function ModuleThreeV2Form({
     setEvidenceClusters((previous) => [...previous, nextCluster]);
     applySelectedCluster(nextCluster.id);
     setClusterDraftName("");
-    setClusterDraftEvidenceIds([]);
+    setClusterDraftEvidenceIds([...workingEvidenceIds]);
     if (clusterReflectionRef.current) {
       clusterReflectionRef.current.value = "";
     }
@@ -1035,7 +1038,7 @@ export default function ModuleThreeV2Form({
   if (loading) {
     return (
       <div className="rounded-xl bg-theme-light p-6 shadow-soft">
-        <p className="text-sm text-theme-dark/80">Loading Module 3 workspace...</p>
+        <p className="text-sm text-theme-dark/80">Loading your quotes and notes...</p>
       </div>
     );
   }
@@ -1044,7 +1047,7 @@ export default function ModuleThreeV2Form({
     return (
       <div className="rounded-xl bg-theme-light p-6 shadow-soft">
         <p className="text-sm text-theme-dark/80">
-          Sign in to open the Module 3 thinking workspace.
+          Sign in to start thinking with your quotes.
         </p>
       </div>
     );
@@ -1057,272 +1060,278 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.REVIEW) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
         question="Which quotes seem to belong together?"
         whyMatters={[
-          "You already collected evidence — now it is time to see what connects.",
-          "Grouping related quotes is the first step toward building an argument.",
+          "You already collected evidence — now look for what connects.",
+          "Quotes that belong together are often the start of a real argument.",
         ]}
-        primaryAction="Choose quotes"
         example="Several quotes talk about hope. That might be a group worth naming."
         successLooksLike={[
           "You chose a few quotes to work with.",
-          "You created at least one named group.",
+          "You gave a related group a name.",
           "You picked which group to explore next.",
         ]}
         coachingMessage="There is no single right answer. If the quotes feel connected to you, they are worth trying together."
-        nextStepText="When your group is ready, you will look across it and notice what those quotes show together."
+        nextStepText="When your group feels ready, you will ask what those quotes have in common."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
-          <div className="flex flex-col items-center gap-1 py-2 text-center text-sm">
-            <p className="font-semibold text-text-primary">Read these quotes.</p>
-            <span aria-hidden="true" className="text-lg text-theme-blue">
-              ↓
-            </span>
-            <p className="font-semibold text-text-primary">
-              Choose the ones that belong together.
-            </p>
-            <span aria-hidden="true" className="text-lg text-theme-blue">
-              ↓
-            </span>
-            <p className="font-semibold text-text-primary">Give that group a name.</p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {[
+              { label: "Choose quotes", done: workingEvidence.length > 0 },
+              {
+                label: "Give your group a name",
+                done: safeText(clusterDraftName).length > 0,
+              },
+              {
+                label: "Create your group",
+                done: evidenceClusters.length > 0,
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className={`rounded-lg border px-3 py-2 text-left text-sm ${
+                  item.done
+                    ? "border-theme-green/30 bg-theme-green/5 text-text-primary"
+                    : "border-border-soft bg-surface-soft text-text-muted"
+                }`}
+              >
+                <p className="font-medium">{item.label}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="rounded-xl border border-theme-blue/15 bg-theme-blue/5 px-4 py-3 text-left">
-            <p className="text-xs font-semibold uppercase tracking-wide text-theme-blue">
+          <details className="rounded-lg border border-border-soft bg-surface-soft">
+            <summary className="cursor-pointer list-none px-4 py-2 text-sm font-medium text-theme-blue">
               Your writing task
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-text-primary">
+            </summary>
+            <p className="border-t border-border-soft px-4 py-3 text-sm leading-relaxed text-text-primary">
               {ASSIGNMENT.task.prompt}
             </p>
-          </div>
+          </details>
 
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-left">
-              <div>
-                <p className="text-sm font-semibold text-text-primary">
-                  Your quotes ({filteredEvidence.length})
-                </p>
-                {evidenceItems.length > 0 ? (
+          <div className="rounded-2xl border-2 border-theme-blue/20 bg-surface shadow-card">
+            <div className="space-y-4 p-4 md:p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-text-primary">Choose your quotes</p>
                   <p className="mt-0.5 text-sm text-text-muted">
-                    Check Choose quote on a few passages, then scroll down to group them.
+                    Pick the passages that feel like they belong together.
                   </p>
-                ) : null}
-              </div>
-              <details className="rounded-lg border border-border-soft bg-surface">
-                <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-theme-blue transition-colors duration-150 hover:bg-theme-blue/5">
-                  Filter or search
-                </summary>
-                <div className="grid gap-3 border-t border-border-soft px-3 py-3 md:grid-cols-3">
-                  <label className="text-left">
-                    <span className="mb-1 block text-xs font-medium text-text-muted">
-                      Source
-                    </span>
-                    <select
-                      value={sourceFilter}
-                      onChange={(event) => setSourceFilter(event.target.value)}
-                      className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
-                    >
-                      <option value="all">All sources</option>
-                      <option value="speech">Speech</option>
-                      <option value="letter">Letter</option>
-                    </select>
-                  </label>
-
-                  <label className="text-left">
-                    <span className="mb-1 block text-xs font-medium text-text-muted">
-                      Tag
-                    </span>
-                    <select
-                      value={tagFilter}
-                      onChange={(event) => setTagFilter(event.target.value)}
-                      className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
-                    >
-                      <option value="all">All tags</option>
-                      {availableTags.map((tag) => (
-                        <option key={tag} value={tag}>
-                          {tag}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="text-left">
-                    <span className="mb-1 block text-xs font-medium text-text-muted">
-                      Sort
-                    </span>
-                    <select
-                      value={sortMode}
-                      onChange={(event) => setSortMode(event.target.value)}
-                      className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
-                    >
-                      <option value="source">By source</option>
-                      <option value="tag">By tag</option>
-                      <option value="recent">Most recent</option>
-                    </select>
-                  </label>
                 </div>
-                <div className="border-t border-border-soft px-3 py-3">
-                  <input
-                    value={searchText}
-                    onChange={(event) => setSearchText(event.target.value)}
-                    placeholder="Search quotes or notes"
-                    className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
-                  />
-                </div>
-              </details>
-            </div>
-
-            {evidenceItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border-soft bg-surface-soft px-4 py-5 text-left">
-                <p className="text-sm font-semibold text-text-primary">No quotes yet.</p>
-                <p className="mt-1 text-sm text-text-muted">
-                  Module 3 starts with quotes you collected in Module 2. Go back and save at
-                  least two before continuing here.
-                </p>
-              </div>
-            ) : evidenceGroups.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border-soft bg-surface-soft px-4 py-5 text-left">
-                <p className="text-sm font-semibold text-text-primary">No quotes match this filter.</p>
-                <p className="mt-1 text-sm text-text-muted">
-                  Try changing the filter, or go back to Module 2 to collect more quotes first.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {evidenceGroups.map(([sourceType, evidenceGroup]) => (
-                  <div key={sourceType} className="space-y-3">
-                    <h2 className="text-left text-base font-bold text-text-primary">
-                      {sourceLabelForType(sourceType)}
-                    </h2>
-                    <div className="space-y-3">
-                      {evidenceGroup.map((evidence) => (
-                        <ModuleThreeEvidenceCard
-                          key={evidence.id}
-                          evidence={evidence}
-                          selected={workingEvidenceIds.includes(evidence.id)}
-                          onToggleSelected={toggleWorkingEvidence}
-                          marker={evidenceMarkers[evidence.id] || ""}
-                          onMarkerChange={updateEvidenceMarker}
-                          showArtifactLabel={false}
-                        />
-                      ))}
-                    </div>
+                <details className="rounded-lg border border-border-soft bg-surface">
+                  <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-theme-blue">
+                    Filter or search
+                  </summary>
+                  <div className="grid gap-3 border-t border-border-soft px-3 py-3 md:grid-cols-3">
+                    <label className="text-left">
+                      <span className="mb-1 block text-xs font-medium text-text-muted">
+                        Source
+                      </span>
+                      <select
+                        value={sourceFilter}
+                        onChange={(event) => setSourceFilter(event.target.value)}
+                        className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
+                      >
+                        <option value="all">All sources</option>
+                        <option value="speech">Speech</option>
+                        <option value="letter">Letter</option>
+                      </select>
+                    </label>
+                    <label className="text-left">
+                      <span className="mb-1 block text-xs font-medium text-text-muted">
+                        Tag
+                      </span>
+                      <select
+                        value={tagFilter}
+                        onChange={(event) => setTagFilter(event.target.value)}
+                        className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
+                      >
+                        <option value="all">All tags</option>
+                        {availableTags.map((tag) => (
+                          <option key={tag} value={tag}>
+                            {tag}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-left">
+                      <span className="mb-1 block text-xs font-medium text-text-muted">
+                        Sort
+                      </span>
+                      <select
+                        value={sortMode}
+                        onChange={(event) => setSortMode(event.target.value)}
+                        className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
+                      >
+                        <option value="source">By source</option>
+                        <option value="tag">By tag</option>
+                        <option value="recent">Most recent</option>
+                      </select>
+                    </label>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border-2 border-theme-blue/20 bg-theme-blue/5 p-5">
-            <div className="space-y-4 text-left">
-              <div>
-                <h2 className="text-xl font-bold text-text-primary">
-                  {evidenceClusters.length === 0
-                    ? "Create your first group"
-                    : "Create another group"}
-                </h2>
+                  <div className="border-t border-border-soft px-3 py-3">
+                    <input
+                      value={searchText}
+                      onChange={(event) => setSearchText(event.target.value)}
+                      placeholder="Search quotes or notes"
+                      className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
+                    />
+                  </div>
+                </details>
               </div>
 
-              {workingEvidence.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-theme-blue/25 bg-surface px-4 py-4">
-                  <p className="text-sm font-semibold text-text-primary">No quotes chosen yet.</p>
+              {evidenceItems.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border-soft bg-surface-soft px-4 py-5 text-left">
+                  <p className="text-sm font-semibold text-text-primary">No quotes yet.</p>
                   <p className="mt-1 text-sm text-text-muted">
-                    Choose a few quotes above first. Your group will appear here.
+                    Your quotes from Module 2 will show up here. Go back and save at
+                    least two before continuing here.
+                  </p>
+                </div>
+              ) : evidenceGroups.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border-soft bg-surface-soft px-4 py-5 text-left">
+                  <p className="text-sm font-semibold text-text-primary">
+                    No quotes match this filter.
+                  </p>
+                  <p className="mt-1 text-sm text-text-muted">
+                    Try changing the filter, or go back to Module 2 to collect more quotes first.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">
-                    Pick at least two quotes that feel connected, then name the group.
+                  {evidenceGroups.map(([sourceType, evidenceGroup]) => (
+                    <div key={sourceType} className="space-y-2">
+                      <h2 className="text-left text-base font-bold text-text-primary">
+                        {sourceLabelForType(sourceType)}
+                      </h2>
+                      <div className="space-y-2">
+                        {evidenceGroup.map((evidence) => (
+                          <ModuleThreeEvidenceCard
+                            key={evidence.id}
+                            evidence={evidence}
+                            selected={workingEvidenceIds.includes(evidence.id)}
+                            onToggleSelected={toggleWorkingEvidence}
+                            marker={evidenceMarkers[evidence.id] || ""}
+                            onMarkerChange={updateEvidenceMarker}
+                            showArtifactLabel={false}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div
+              id="selected-quotes-basket"
+              className="border-t-2 border-theme-blue/20 bg-theme-blue/5 px-4 py-5 md:px-6"
+            >
+              <div className="flex items-center gap-2 text-left">
+                <span aria-hidden="true" className="text-lg text-theme-blue">
+                  ↓
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Selected quotes ({workingEvidence.length})
                   </p>
+                  <p className="text-sm text-text-muted">
+                    {workingEvidence.length === 0
+                      ? "Your picks show up here as soon as you choose them."
+                      : "These are the quotes going into your group."}
+                  </p>
+                </div>
+              </div>
 
-                  <div className="grid gap-2 md:grid-cols-2">
-                    {workingEvidence.map((evidence) => {
-                      const isChosen = clusterDraftEvidenceIds.includes(evidence.id);
-
-                      return (
-                        <button
-                          key={`cluster-draft-${evidence.id}`}
-                          type="button"
-                          onClick={() => toggleClusterDraftEvidence(evidence.id)}
-                          className={`rounded-xl border px-4 py-3 text-left transition-all duration-150 ${
-                            isChosen
-                              ? "border-theme-blue bg-theme-blue/15 shadow-soft ring-2 ring-theme-blue/20"
-                              : "border-border-soft bg-surface hover:border-theme-blue/30"
-                          }`}
-                        >
+              {workingEvidence.length === 0 ? (
+                <div className="mt-4 rounded-lg border border-dashed border-theme-blue/25 bg-surface px-4 py-6 text-center text-sm text-text-muted">
+                  Choose at least two quotes above. They will collect here.
+                </div>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {workingEvidence.map((evidence) => (
+                      <div
+                        key={`selected-${evidence.id}`}
+                        className="flex items-start justify-between gap-2 rounded-xl border border-theme-blue/25 bg-surface px-3 py-3"
+                      >
+                        <div className="min-w-0 text-left">
                           <p className="text-sm font-semibold text-text-primary">
-                            {evidence.sourceLabel} · {evidence.tags[0] || "passage"}
+                            {evidence.sourceLabel}
                           </p>
                           <p className="mt-1 text-sm text-text-muted">
                             {evidenceSummaryLine(evidence)}
                           </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleWorkingEvidence(evidence.id)}
+                          className="shrink-0 text-xs font-medium text-theme-blue hover:underline"
+                        >
+                          Remove
                         </button>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
 
-                  {clusterDraftEvidence.length > 0 ? (
-                    <div className="grid gap-3 md:grid-cols-2">
-                      {clusterDraftEvidence.map((evidence) => (
-                        <ModuleThreeEvidenceCard
-                          key={`cluster-preview-${evidence.id}`}
-                          evidence={evidence}
-                          marker={evidenceMarkers[evidence.id] || ""}
-                          compact
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-lg border border-dashed border-border-soft bg-surface px-4 py-4">
+                  <div className="space-y-3 border-t border-theme-blue/15 pt-4">
+                    <div className="text-left">
                       <p className="text-sm font-semibold text-text-primary">
-                        No quotes in this group yet.
+                        Give your group a name
                       </p>
-                      <p className="mt-1 text-sm text-text-muted">
-                        Click the quotes above that belong together. They will show up here.
+                      <p className="mt-0.5 text-sm text-text-muted">
+                        What connects these quotes? One short name is enough.
                       </p>
                     </div>
-                  )}
 
-                  <label className="block text-left">
-                    <span className="mb-1 block text-sm font-semibold text-text-primary">
-                      Name this group
-                    </span>
-                    <input
-                      value={clusterDraftName}
-                      onChange={(event) => setClusterDraftName(event.target.value)}
-                      placeholder="e.g. Appeals to justice"
-                      className="w-full rounded-lg border border-theme-blue/25 bg-white px-3 py-2.5 text-sm text-text-primary"
-                    />
-                  </label>
+                    <label className="block text-left">
+                      <span className="mb-1 block text-sm font-semibold text-text-primary">
+                        Group name
+                      </span>
+                      <input
+                        value={clusterDraftName}
+                        onChange={(event) => setClusterDraftName(event.target.value)}
+                        placeholder="e.g. Appeals to justice"
+                        className="w-full rounded-lg border-2 border-theme-blue/25 bg-white px-3 py-2.5 text-sm text-text-primary focus:border-theme-blue focus:outline-none focus:ring-2 focus:ring-theme-blue/15"
+                      />
+                    </label>
 
-                  <label className="block text-left">
-                    <span className="mb-1 block text-sm font-medium text-text-muted">
-                      Why do these belong together? (optional)
-                    </span>
-                    <textarea
-                      ref={clusterReflectionRef}
-                      placeholder="A quick note about what connects them"
-                      className="min-h-[72px] w-full rounded-lg border border-border-soft bg-white p-3 text-sm text-text-primary"
-                    />
-                  </label>
+                    <label className="block text-left">
+                      <span className="mb-1 block text-sm font-medium text-text-muted">
+                        Why these belong together (optional)
+                      </span>
+                      <textarea
+                        ref={clusterReflectionRef}
+                        placeholder="A quick note about what connects them"
+                        className="min-h-[64px] w-full rounded-lg border border-border-soft bg-white p-3 text-sm text-text-primary"
+                      />
+                    </label>
 
-                  <Button
-                    type="button"
-                    onClick={createEvidenceCluster}
-                    disabled={
-                      safeText(clusterDraftName).length === 0 ||
-                      clusterDraftEvidenceIds.length < 2
-                    }
-                    variant="primary"
-                    tone="success"
-                    className="w-full sm:w-auto"
-                  >
-                    Create group
-                  </Button>
+                    <div className="text-left">
+                      <p className="mb-3 text-sm font-semibold text-text-primary">
+                        Create your group
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={createEvidenceCluster}
+                        disabled={
+                          safeText(clusterDraftName).length === 0 ||
+                          clusterDraftEvidenceIds.length < 2
+                        }
+                        variant="primary"
+                        tone="success"
+                        className="w-full py-3 text-base font-semibold"
+                      >
+                        Create group
+                      </Button>
+                      {clusterDraftEvidenceIds.length < 2 ? (
+                        <p className="mt-2 text-sm text-text-muted">
+                          Choose at least two quotes to create a group.
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1331,7 +1340,7 @@ export default function ModuleThreeV2Form({
           {evidenceClusters.length > 0 ? (
             <div className="space-y-3">
               <p className="text-left text-sm font-semibold text-text-primary">
-                Pick the group to explore next
+                Which group do you want to explore?
               </p>
               {evidenceClusters.map((cluster) => (
                 <div
@@ -1391,7 +1400,7 @@ export default function ModuleThreeV2Form({
             <div className="rounded-lg border border-dashed border-border-soft bg-surface-soft px-4 py-4 text-left">
               <p className="text-sm font-semibold text-text-primary">No groups yet.</p>
               <p className="mt-1 text-sm text-text-muted">
-                After you choose a few related quotes, your first group will appear here.
+                Once you name a group, it will show up here so you can choose which one to explore.
               </p>
             </div>
           )}
@@ -1403,22 +1412,19 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.PATTERNS) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
-        question="What do these quotes seem to show together?"
+        question="What do these quotes seem to have in common?"
         whyMatters={[
           "A pattern moves you from collecting quotes to seeing what they mean.",
           "When you name what repeats or contrasts, you start to find your argument.",
         ]}
-        primaryAction="Write a pattern"
         example="Several of your quotes talk about hope. That might be a pattern."
         successLooksLike={[
-          "You wrote at least two pattern ideas.",
+          "You wrote at least two things your quotes seem to share.",
           "You chose one pattern to keep exploring.",
           "That pattern is linked to at least two quotes.",
         ]}
-        coachingMessage="A pattern is not just a topic word — it is something you notice across the whole group."
-        nextStepText="Next you will ask what that pattern might mean and write one possible idea."
+        coachingMessage="Do not worry if your first answer is rough. A pattern is something you notice across the whole group — not just a topic word."
+        nextStepText="Then you will ask what that pattern might mean."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
@@ -1452,7 +1458,8 @@ export default function ModuleThreeV2Form({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <h2 className="text-left text-base font-bold text-text-primary">
-                    Pattern {index + 1}
+                    Something I notice
+                    {patternNotices.length > 1 ? ` (${index + 1})` : ""}
                   </h2>
 
                   <label className="flex items-center gap-2 text-sm font-semibold text-theme-orange">
@@ -1508,7 +1515,7 @@ export default function ModuleThreeV2Form({
           </div>
 
           <Button type="button" onClick={addPatternNotice} variant="secondary">
-            Add another pattern
+            Add another thing you notice
           </Button>
         </div>
       </ModuleThreeStepFrame>
@@ -1518,22 +1525,19 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.IDEA) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
-        question="What idea might this pattern be pointing toward?"
+        question="What might this pattern mean?"
         whyMatters={[
           "A pattern tells you what you noticed — an idea is your first guess at what it means.",
           "You are not proving anything yet. You are exploring.",
         ]}
-        primaryAction="Write an idea"
         example="If your pattern is about hope, your idea might be: the speaker uses hope to motivate action."
         successLooksLike={[
-          "You wrote one clear idea.",
-          "You explained why it feels worth exploring.",
+          "You wrote one clear idea in your own words.",
+          "You said why it feels worth exploring.",
           "Your idea goes beyond just summarizing the quotes.",
         ]}
-        coachingMessage="Your first idea does not need to be perfect. It just needs to be clear enough to test."
-        nextStepText="Next you will connect your quotes to this idea and explain how each one helps."
+        coachingMessage="Don't worry if your first answer isn't perfect. It just needs to be clear enough to test."
+        nextStepText="Then you will connect your quotes to this idea and explain how each one helps."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
@@ -1548,7 +1552,7 @@ export default function ModuleThreeV2Form({
             <div className="rounded-lg border border-dashed border-border-soft bg-surface-soft px-4 py-4 text-left">
               <p className="text-sm font-semibold text-text-primary">No pattern selected yet.</p>
               <p className="mt-1 text-sm text-text-muted">
-                Go back to the previous step and choose a pattern to explore.
+                Go back and choose a pattern to explore first.
               </p>
             </div>
           )}
@@ -1594,21 +1598,18 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.CONNECT) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
         question="How does each quote help this idea?"
         whyMatters={[
           "An idea only gets stronger when you can explain how your quotes support it.",
           "This is where you start building real proof.",
         ]}
-        primaryAction="Connect evidence"
         successLooksLike={[
           "You chose at least two quotes for your idea.",
           "Each quote has a connection note in your own words.",
           "You can explain how each quote helps.",
         ]}
-        coachingMessage="A quote does not support an idea by itself — you have to explain the connection."
-        nextStepText="Next you will check whether your support feels strong enough to move forward."
+        coachingMessage="A quote does not support an idea by itself — you have to explain the connection in your own words."
+        nextStepText="Then you will ask whether your support feels strong enough."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
@@ -1697,21 +1698,18 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.EVALUATE) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
         question="Is my support strong enough yet?"
         whyMatters={[
-          "Before you write a claim, you need to know whether your quotes can actually back it up.",
+          "Before you argue a point, you need to know whether your quotes can actually back it up.",
           "Being honest here saves you from arguing something you cannot prove.",
         ]}
-        primaryAction="Rate your support"
         successLooksLike={[
-          "You picked a support level: weak, developing, or strong.",
-          "You named what still feels weakest.",
-          "If support is thin, you chose your next move.",
+          "You named how strong your support feels.",
+          "You said what still feels weakest.",
+          "If support is thin, you chose what to do next.",
         ]}
         coachingMessage="Needing more support does not mean your idea is bad — it just means your thinking needs more proof."
-        nextStepText="If your support is thin, you can gather more quotes. If it feels ready, you will write your claim."
+        nextStepText="If support feels thin, you can look for another quote. If it feels ready, you will state the point you want to prove."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
@@ -1823,9 +1821,9 @@ export default function ModuleThreeV2Form({
                   className="mt-1"
                 />
                 <span>
-                  <span className="block font-medium text-text-primary">Gather more quotes</span>
+                  <span className="block font-medium text-text-primary">Look for another quote</span>
                   <span className="block text-text-muted">
-                    Fill the gap before writing your claim.
+                    Fill the gap before stating your point.
                   </span>
                 </span>
               </label>
@@ -1840,9 +1838,9 @@ export default function ModuleThreeV2Form({
                   className="mt-1"
                 />
                 <span>
-                  <span className="block font-medium text-text-primary">Move forward anyway</span>
+                  <span className="block font-medium text-text-primary">Move on with what I have</span>
                   <span className="block text-text-muted">
-                    Write your claim with what you have.
+                    State your point with the support you have.
                   </span>
                 </span>
               </label>
@@ -1856,21 +1854,18 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.GATHER) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
         question="What kind of quote is still missing?"
         whyMatters={[
           "You are going back on purpose — not to collect random quotes, but to fill a specific gap.",
           "Strong arguments need the right support, not just more of it.",
         ]}
-        primaryAction="Find missing quotes"
         successLooksLike={[
           "You found quotes that address your gap.",
           "You explained how each new quote helps.",
           "Your support feels stronger than before.",
         ]}
-        coachingMessage="Do not grab random quotes. Look for ones that answer the exact weakness you noticed."
-        nextStepText="When your support feels ready, you will turn your idea into a claim you can defend."
+        coachingMessage="Don't grab random quotes. Look for ones that answer the exact weakness you noticed."
+        nextStepText="When your support feels ready, you will ask what point your quotes help you prove."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
@@ -1962,22 +1957,19 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.CLAIM) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
-        question="What point can I now argue?"
+        question="What point do these quotes help you prove?"
         whyMatters={[
           "This is where your idea becomes an argument you can actually defend.",
           "A claim is the point your quotes help you prove.",
         ]}
-        primaryAction="Write a claim"
         example="A claim says something specific: 'The speaker uses hope to push listeners toward action.'"
         successLooksLike={[
           "You wrote one clear claim.",
           "You explained why your quotes support it.",
           "Your claim matches the support you have.",
         ]}
-        coachingMessage="A claim should say something your quotes can support — not something anyone could say about any text."
-        nextStepText="Next you will turn that claim into one clear thesis sentence for your essay."
+        coachingMessage="Your claim should say something your quotes can support — not something anyone could say about any text."
+        nextStepText="Then you will turn that point into one clear sentence for your essay."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-5">
@@ -2048,14 +2040,11 @@ export default function ModuleThreeV2Form({
   if (currentStep === STEP_IDS.THESIS) {
     stepContent = (
       <ModuleThreeStepFrame
-        stepNumber={stepNumber}
-        totalSteps={totalSteps}
-        question="How do I turn this into the main sentence of my essay?"
+        question="How would you explain your main point in one clear sentence?"
         whyMatters={[
           "A thesis is your argument in one clear sentence — the sentence your whole essay will prove.",
           "You are not starting over. You are sharpening what you already built.",
         ]}
-        primaryAction="Write a thesis"
         example="A thesis takes your claim and makes it one sentence: 'By appealing to hope, the speaker motivates listeners to act.'"
         successLooksLike={[
           "You wrote one clear thesis sentence.",
@@ -2106,7 +2095,7 @@ export default function ModuleThreeV2Form({
             {proofPlan.map((line, index) => (
               <label key={`proof-plan-${index}`} className="block text-left">
                 <span className="mb-1 block text-sm font-medium text-text-muted">
-                  Direction {index + 1}
+                  Part {index + 1} your essay will prove
                 </span>
                 <textarea
                   value={line}
@@ -2159,7 +2148,7 @@ export default function ModuleThreeV2Form({
         <div className="flex flex-wrap items-center justify-end gap-2">
         {currentStepIndex > 0 ? (
           <Button type="button" onClick={goBack} variant="secondary">
-            {previousMove ? `Back` : "Previous"}
+            Back
           </Button>
         ) : null}
 
@@ -2170,7 +2159,7 @@ export default function ModuleThreeV2Form({
             disabled={!canGoNext}
             variant="primary"
           >
-            {nextMove ? `Continue to ${nextMove.shortLabel}` : "Continue"}
+            Keep going
           </Button>
         ) : null}
         </div>

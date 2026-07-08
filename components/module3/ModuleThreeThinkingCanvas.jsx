@@ -36,7 +36,7 @@ export default function ModuleThreeThinkingCanvas({ canvasState }) {
         ) : (
           <EmptyState
             title="Nothing here yet"
-            description="As you work, this notebook will show what you have done so far — like a short story of your thinking."
+            description="As you answer each question, this notebook shows what you have figured out so far."
           />
         )}
 
@@ -45,7 +45,7 @@ export default function ModuleThreeThinkingCanvas({ canvasState }) {
             <Divider />
             <div className="text-left">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                Next
+                Still wondering
               </p>
               <p className="mt-1 text-sm leading-relaxed text-text-muted">{next}</p>
             </div>

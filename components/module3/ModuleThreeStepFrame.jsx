@@ -18,11 +18,8 @@ function normalizeWhyMatters(whyMatters) {
 }
 
 export default function ModuleThreeStepFrame({
-  stepNumber,
-  totalSteps,
   question,
   whyMatters,
-  primaryAction,
   example = "",
   successLooksLike = [],
   children,
@@ -38,8 +35,11 @@ export default function ModuleThreeStepFrame({
 
       <WorkspaceCenter>
         <div className="space-y-5">
-          <div className="space-y-3 text-left">
-            <h1 className="text-3xl font-bold leading-tight text-text-primary">
+          <div className="space-y-2 text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
+              Question
+            </p>
+            <h1 className="text-3xl font-bold leading-tight text-text-primary md:text-4xl">
               {question}
             </h1>
           </div>
@@ -47,7 +47,7 @@ export default function ModuleThreeStepFrame({
           {whyLines.length > 0 ? (
             <div className="space-y-1 text-left">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                Why does this matter?
+                Think
               </p>
               {whyLines.map((line) => (
                 <p key={line} className="text-sm leading-relaxed text-text-muted">
@@ -60,21 +60,16 @@ export default function ModuleThreeStepFrame({
           {example ? (
             <div className="rounded-xl border border-theme-orange/20 bg-theme-orange/5 px-4 py-3 text-left">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-orange">
-                Example
+                For example
               </p>
               <p className="mt-1 text-sm leading-relaxed text-text-primary">{example}</p>
             </div>
           ) : null}
 
           <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3 text-left">
-              <p className="text-sm font-semibold text-text-primary">Let&apos;s do it.</p>
-              {primaryAction ? (
-                <span className="rounded-full border border-theme-blue/25 bg-theme-blue/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-theme-blue">
-                  {primaryAction}
-                </span>
-              ) : null}
-            </div>
+            <p className="text-left text-sm font-semibold text-text-primary">
+              Try an answer
+            </p>
 
             <div className="rounded-2xl border border-theme-blue/15 bg-surface p-5 shadow-card md:p-6">
               {children}
@@ -83,7 +78,7 @@ export default function ModuleThreeStepFrame({
 
           {successLooksLike.length > 0 ? (
             <SectionCard
-              eyebrow="Success looks like..."
+              eyebrow="Reflect"
               padding="sm"
               surface="soft"
               elevation="soft"
@@ -101,7 +96,6 @@ export default function ModuleThreeStepFrame({
       <WorkspaceGuide>
         <SectionCard
           eyebrow="Your teacher"
-          title="A quick reminder"
           padding="sm"
           surface="soft"
           elevation="soft"
@@ -118,7 +112,7 @@ export default function ModuleThreeStepFrame({
               {coachingMessage ? <Divider /> : null}
               <div className="space-y-1 text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                  When you&apos;re ready
+                  Move on
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">{nextStepText}</p>
               </div>
