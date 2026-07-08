@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Button from "@/components/ui/Button";
 import InfoCallout from "@/components/ui/InfoCallout";
@@ -354,6 +355,7 @@ export default function ModuleThreeV2Form({
     draftArtifact: null,
   },
 }) {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const userEmail = session?.user?.email ?? null;
 
@@ -906,6 +908,10 @@ export default function ModuleThreeV2Form({
           safeText(workingClaim).length >= 10 &&
           safeText(supportRationale).length >= 10
         );
+      case STEP_IDS.THESIS:
+        return (
+          safeText(thesisStatement).length >= 10 && filledProofPlan.length >= 1
+        );
       default:
         return false;
     }
@@ -924,6 +930,8 @@ export default function ModuleThreeV2Form({
     selectedPattern,
     strengthenedEvidence.length,
     supportRationale,
+    thesisStatement,
+    filledProofPlan.length,
     workingClaim,
     workingEvidenceIds.length,
     workingEvidenceMinimum,
@@ -961,6 +969,8 @@ export default function ModuleThreeV2Form({
         return "Choose a quote and write how it helps fill the gap you noticed.";
       case STEP_IDS.CLAIM:
         return "Write your claim and a short note about why your quotes support it.";
+      case STEP_IDS.THESIS:
+        return "Write your thesis sentence and at least one part your essay will prove.";
       default:
         return "";
     }
@@ -1164,6 +1174,41 @@ export default function ModuleThreeV2Form({
 
       setPersistError("");
     }, 500);
+  }
+
+  async function flushThesisSave() {
+    if (thesisPersistTimerRef.current) {
+      clearTimeout(thesisPersistTimerRef.current);
+      thesisPersistTimerRef.current = null;
+    }
+
+    if (!userEmail) return true;
+
+    const result = await upsertThesisArtifact({
+      userEmail,
+      thesis: thesisStatement,
+      proofPlan: Array.isArray(proofPlan) ? proofPlan : [],
+      clusterId: selectedClusterId || null,
+      patternId: selectedPatternId || null,
+    });
+
+    if (!result.ok) {
+      setPersistError(result.error?.message || "Could not save your thesis.");
+      return false;
+    }
+
+    setPersistError("");
+    return true;
+  }
+
+  async function completeModule() {
+    if (!canGoNext) return;
+    if (!userEmail) return;
+
+    const saved = await flushThesisSave();
+    if (!saved) return;
+
+    router.push("/modules/3/success");
   }
 
   function resetDownstreamThinking() {
@@ -2663,7 +2708,18 @@ export default function ModuleThreeV2Form({
           >
             Keep going
           </Button>
-        ) : null}
+        ) : (
+          <Button
+            type="button"
+            onClick={completeModule}
+            disabled={!canGoNext}
+            variant="primary"
+            size="lg"
+            className="min-w-[9.5rem] font-semibold"
+          >
+            Finish
+          </Button>
+        )}
         </div>
       </div>
     </div>
