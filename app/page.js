@@ -3,6 +3,7 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import DevSignIn from "@/components/dev/DevSignIn";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -61,6 +62,7 @@ export default function Home() {
             >
               Sign in with Google
             </button>
+            <DevSignIn />
           </>
         )}
       </div>
