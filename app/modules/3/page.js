@@ -1,22 +1,77 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import ModuleThreeV2Form from "@/components/ModuleThreeV2Form";
+import ModuleThreeStartLogger from "@/components/module3/ModuleThreeStartLogger";
+import {
+  getDraftArtifact,
+  getOutlineArtifact,
+  getThesisArtifact,
+  listEvidenceClusterArtifacts,
+  listEvidenceArtifacts,
+  listPatternArtifacts,
+  listSourceContextArtifacts,
+} from "@/lib/artifacts/readArtifacts";
 
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { logActivity } from "@/lib/logActivity";
-import ModuleThreeForm from "@/components/ModuleThreeForm";
+function emptyCanvasArtifacts() {
+  return {
+    evidenceArtifacts: [],
+    evidenceClusterArtifacts: [],
+    patternArtifacts: [],
+    sourceContextArtifacts: [],
+    thesisArtifact: null,
+    outlineArtifact: null,
+    draftArtifact: null,
+  };
+}
 
-export default function ModuleThreePage() {
-  const { data: session } = useSession();
+async function loadInitialCanvasArtifacts(email) {
+  if (!email) {
+    return emptyCanvasArtifacts();
+  }
 
-  // Log module start
-  useEffect(() => {
-    if (!session?.user?.email) return;
+  try {
+    const [
+      evidenceArtifacts,
+      evidenceClusterArtifacts,
+      patternArtifacts,
+      sourceContextArtifacts,
+      thesisArtifact,
+      outlineArtifact,
+      draftArtifact,
+    ] = await Promise.all([
+      listEvidenceArtifacts(email),
+      listEvidenceClusterArtifacts(email),
+      listPatternArtifacts(email),
+      listSourceContextArtifacts(email),
+      getThesisArtifact(email),
+      getOutlineArtifact(email),
+      getDraftArtifact(email),
+    ]);
 
-    logActivity(session.user.email, "module_started", {
-      module: 3,
-      screen: "module3_main",
-    });
-  }, [session?.user?.email]);
+    return {
+      evidenceArtifacts,
+      evidenceClusterArtifacts,
+      patternArtifacts,
+      sourceContextArtifacts,
+      thesisArtifact,
+      outlineArtifact,
+      draftArtifact,
+    };
+  } catch (error) {
+    console.error("Module 3 canvas artifact load failed:", error);
+    return emptyCanvasArtifacts();
+  }
+}
 
-  return <ModuleThreeForm />;
+export default async function ModuleThreePage() {
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email ?? null;
+  const initialCanvasArtifacts = await loadInitialCanvasArtifacts(email);
+
+  return (
+    <>
+      <ModuleThreeStartLogger email={email} />
+      <ModuleThreeV2Form initialCanvasArtifacts={initialCanvasArtifacts} />
+    </>
+  );
 }

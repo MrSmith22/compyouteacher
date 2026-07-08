@@ -1,5 +1,6 @@
 import type { ExportTextStatus } from "@/lib/supabase/helpers/studentDrafts";
 import type { StudentBucketFlowState } from "@/lib/supabase/helpers/studentBuckets";
+import type { Artifact as ArtifactEnvelope } from "./artifactIdentity";
 
 /**
  * Artifact Engine V1 is an adapter over existing storage.
@@ -7,6 +8,8 @@ import type { StudentBucketFlowState } from "@/lib/supabase/helpers/studentBucke
  */
 export const ARTIFACT_TYPES = [
   "evidence",
+  "evidence_cluster",
+  "pattern",
   "source_context",
   "thesis",
   "paragraph_plan",
@@ -16,6 +19,16 @@ export const ARTIFACT_TYPES = [
 
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
+/**
+ * Current artifact adapters still return flat compatibility objects because the
+ * existing read paths and module code already consume these shapes directly.
+ *
+ * The shared identity wrapper introduced in `artifactIdentity.ts` lives beside
+ * these types, not instead of them. That keeps the current adapter layer stable
+ * while making the type system capable of representing the future
+ * `Artifact<TPayload>` form for Thinking Canvas, teacher review surfaces, and
+ * later Canvas-native artifact families.
+ */
 export interface ArtifactBase<TType extends ArtifactType> {
   id: string;
   type: TType;
@@ -56,6 +69,20 @@ export interface LegacyEvidenceArtifact extends ArtifactBase<"evidence"> {
 export type EvidenceArtifact =
   | ObservationEvidenceArtifact
   | LegacyEvidenceArtifact;
+
+export interface EvidenceClusterArtifact extends ArtifactBase<"evidence_cluster"> {
+  backingTable: "student_buckets";
+  clusterName: string;
+  reflection: string | null;
+  evidenceIds: string[];
+}
+
+export interface PatternArtifact extends ArtifactBase<"pattern"> {
+  backingTable: "student_buckets";
+  text: string;
+  evidenceIds: string[];
+  isSelected: boolean;
+}
 
 export interface SourceContextArtifact extends ArtifactBase<"source_context"> {
   backingTable: "module2_sources";
@@ -107,8 +134,84 @@ export interface DraftArtifact extends ArtifactBase<"draft"> {
 
 export type AnyArtifact =
   | EvidenceArtifact
+  | EvidenceClusterArtifact
+  | PatternArtifact
   | SourceContextArtifact
   | ThesisArtifact
   | ParagraphPlanArtifact
   | OutlineArtifact
   | DraftArtifact;
+
+type CompatibilityArtifactFields =
+  | "id"
+  | "type"
+  | "userEmail"
+  | "assignmentId"
+  | "backingTable"
+  | "createdAt"
+  | "updatedAt";
+
+type DistributiveOmit<T, TKeys extends PropertyKey> = T extends unknown
+  ? Omit<T, TKeys>
+  : never;
+
+/**
+ * Extracts the instructional payload from the current flat artifact shapes.
+ *
+ * This is the bridge between the compatibility-first adapter model and the
+ * future identity-wrapped model. It allows the codebase to describe a shared
+ * artifact envelope today without forcing every existing adapter to return that
+ * envelope immediately.
+ */
+export type ArtifactPayload<TArtifact> = DistributiveOmit<
+  TArtifact,
+  CompatibilityArtifactFields
+>;
+
+export type ObservationEvidenceArtifactPayload =
+  ArtifactPayload<ObservationEvidenceArtifact>;
+
+export type LegacyEvidenceArtifactPayload =
+  ArtifactPayload<LegacyEvidenceArtifact>;
+
+export type EvidenceArtifactPayload =
+  | ObservationEvidenceArtifactPayload
+  | LegacyEvidenceArtifactPayload;
+
+export type SourceContextArtifactPayload = ArtifactPayload<SourceContextArtifact>;
+export type ThesisArtifactPayload = ArtifactPayload<ThesisArtifact>;
+export type ParagraphPlanArtifactPayload =
+  ArtifactPayload<ParagraphPlanArtifact>;
+export type OutlineArtifactPayload = ArtifactPayload<OutlineArtifact>;
+export type DraftArtifactPayload = ArtifactPayload<DraftArtifact>;
+
+/**
+ * Current artifact families mapped to the payload each would carry inside the
+ * shared `Artifact<TPayload>` wrapper. New artifact families such as `pattern`,
+ * `idea`, `claim`, or `proof_plan` can later join this map while preserving the
+ * same identity contract.
+ */
+export interface ArtifactPayloadMap {
+  evidence: EvidenceArtifactPayload;
+  evidence_cluster: ArtifactPayload<EvidenceClusterArtifact>;
+  pattern: ArtifactPayload<PatternArtifact>;
+  source_context: SourceContextArtifactPayload;
+  thesis: ThesisArtifactPayload;
+  paragraph_plan: ParagraphPlanArtifactPayload;
+  outline: OutlineArtifactPayload;
+  draft: DraftArtifactPayload;
+}
+
+export type ArtifactOfType<TType extends ArtifactType> =
+  TType extends ArtifactType
+    ? ArtifactEnvelope<ArtifactPayloadMap[TType], TType>
+    : never;
+
+export type EvidenceArtifactEnvelope = ArtifactOfType<"evidence">;
+export type SourceContextArtifactEnvelope = ArtifactOfType<"source_context">;
+export type ThesisArtifactEnvelope = ArtifactOfType<"thesis">;
+export type ParagraphPlanArtifactEnvelope = ArtifactOfType<"paragraph_plan">;
+export type OutlineArtifactEnvelope = ArtifactOfType<"outline">;
+export type DraftArtifactEnvelope = ArtifactOfType<"draft">;
+
+export type AnyArtifactEnvelope = ArtifactOfType<ArtifactType>;
