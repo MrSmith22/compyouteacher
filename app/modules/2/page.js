@@ -6,16 +6,20 @@ import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import Panel from "@/components/ui/Panel";
 import ProgressDots from "@/components/ui/ProgressDots";
+import {
+  ReferenceSection,
+  WorkingSetSection,
+} from "@/components/module3/ModuleThreeDeskFrame";
 import { MLK_ASSIGNMENT_NAME, mlkAssignmentDefinition } from "@/lib/assignments";
 
 const STAGE_LABELS = [
-  "Welcome",
-  "Why these sources",
-  "Get the speech",
-  "Get the letter",
-  "Check your texts",
-  "Use your texts",
-  "Begin analysis",
+  "Get ready",
+  "Can we trust these sources?",
+  "Save the speech",
+  "Save the letter",
+  "Check: do they look complete?",
+  "Use your saved copies",
+  "Ready to begin analysis",
 ];
 
 const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
@@ -187,9 +191,12 @@ export default function ModuleTwoSourcePage() {
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-extrabold text-theme-dark mb-2">
-          Module 2: Gather Your Source Texts
+        <h1 className="text-2xl font-extrabold text-theme-dark mb-1">
+          Module 2: Your source texts
         </h1>
+        <p className="text-sm text-theme-dark/70 mb-4">
+          I’ll help you save clean copies of the two texts we’ll study.
+        </p>
 
         <ProgressDots
           total={7}
@@ -201,34 +208,59 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 0: Welcome */}
         {stage === 0 && (
           <Panel className="space-y-4">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Welcome to Module 2
-            </h2>
-            <div className="text-left space-y-3 text-theme-dark/90">
-              <p>
-                In this module, you will gather accurate copies of the two texts
-                you will study throughout the essay process.
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
               </p>
-              <p>
-                Before strong analysis can happen, researchers need trustworthy
-                versions of the documents they are reading.
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                What texts are we going to study?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                Before we analyze anything, we need accurate copies of the texts.
               </p>
-              <p>Today you will:</p>
-              <ol className="list-decimal list-inside space-y-1 ml-2">
-                <li>Learn why these sources are trustworthy</li>
-                <li>Save your own working copy of the speech and the letter</li>
-                <li>
-                  Use those saved copies throughout the rest of the assignment
-                </li>
-              </ol>
             </div>
+
+            <WorkingSetSection
+              label="What you’ll do"
+              description="One small step at a time. You don’t need to rush."
+            >
+              <div className="space-y-3 text-theme-dark/85">
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    Why are we doing this?
+                  </p>
+                  <p className="text-sm text-theme-dark/75">
+                    Strong analysis starts with a trustworthy, complete text.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    What should I do?
+                  </p>
+                  <ul className="mt-1 list-disc list-inside space-y-1 text-sm text-theme-dark/75">
+                    <li>Check that our sources are trustworthy</li>
+                    <li>Save your own copy of the speech</li>
+                    <li>Save your own copy of the letter</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    How will I know I’m finished?
+                  </p>
+                  <p className="text-sm text-theme-dark/75">
+                    You’ll have two saved texts you can open anytime while you work.
+                  </p>
+                </div>
+              </div>
+            </WorkingSetSection>
+
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => setStage(1)}
                 className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
               >
-                Continue
+                Let’s begin
               </button>
             </div>
           </Panel>
@@ -237,42 +269,44 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 1: Why these are trustworthy */}
         {stage === 1 && (
           <Panel className="space-y-4">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Why these are trustworthy sources
-            </h2>
-            <div className="text-left space-y-3 text-theme-dark/90">
-              <p>
-                When researchers study important historical documents, they try
-                to obtain the text from a reliable and authoritative source.
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
               </p>
-              <p>
-                Reliable sources are often maintained by universities, research
-                institutes, museums, or government archives. These organizations
-                carefully preserve historical documents and make sure that the
-                text is accurate.
-              </p>
-              <p>In this assignment, we will use two trusted archives:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>
-                  {SPEECH_SOURCE.trustedArchiveName},{" "}
-                  {SPEECH_SOURCE.trustedArchiveDescription}
-                </li>
-                <li>
-                  {LETTER_SOURCE.trustedArchiveName},{" "}
-                  {LETTER_SOURCE.trustedArchiveDescription}
-                </li>
-              </ul>
-              <p>
-                Using trusted sources helps researchers make sure they are
-                analyzing the correct and complete version of a document.
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                Can we trust these sources?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                We’re going to use official archives so the text is accurate.
               </p>
             </div>
 
-            <div className="rounded-lg border border-border-soft bg-surface p-4 space-y-3">
-              <p className="text-sm font-medium text-theme-dark">
-                Why are these sources trustworthy?
-              </p>
-              <p className="text-xs text-theme-dark/70">
+            <ReferenceSection
+              label="Where these texts come from"
+              description="Helpful background. You can skim."
+            >
+              <div className="space-y-2 text-theme-dark/80">
+                <p className="text-sm">
+                  We’ll use two trusted archives:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>
+                    {SPEECH_SOURCE.trustedArchiveName},{" "}
+                    {SPEECH_SOURCE.trustedArchiveDescription}
+                  </li>
+                  <li>
+                    {LETTER_SOURCE.trustedArchiveName},{" "}
+                    {LETTER_SOURCE.trustedArchiveDescription}
+                  </li>
+                </ul>
+              </div>
+            </ReferenceSection>
+
+            <WorkingSetSection
+              label="Quick check"
+              description="There isn’t one trick here. Just choose what sounds true."
+            >
+              <p className="text-sm text-theme-dark/75">
                 Select all that apply.
               </p>
               <div className="space-y-2">
@@ -319,15 +353,14 @@ export default function ModuleTwoSourcePage() {
                 onClick={() => setKnowledgeCheckSubmitted(true)}
                 className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium text-sm"
               >
-                Submit Answer
+                Check my thinking
               </button>
               {knowledgeCheckSubmitted && (
-                <p className="text-sm text-theme-green pt-1">
-                  These sources are trustworthy because they come from respected
-                  archival and educational institutions.
+                <p className="text-sm text-theme-dark/80 pt-1">
+                  Exactly. Trusted archives and institutions work to preserve accurate texts.
                 </p>
               )}
-            </div>
+            </WorkingSetSection>
             <div className="pt-2">
               <button
                 type="button"
@@ -348,79 +381,104 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 2: Get the speech */}
         {stage === 2 && (
           <Panel className="space-y-4">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Get the speech
-            </h2>
-            <p className="text-left text-theme-dark/90">
-              First, open the official transcript of &ldquo;{SPEECH_SOURCE.title}
-              &rdquo; from the {SPEECH_SOURCE.officialSiteName}.
-            </p>
-            <p className="text-left text-theme-dark/90">
-              Then copy the full text and paste it into the boxes below.
-            </p>
-            <div className="rounded-lg border border-border-soft bg-surface-soft p-3 text-sm text-theme-dark/90 space-y-2">
-              <p className="font-medium">How to copy the source:</p>
-              <ol className="list-decimal list-inside space-y-1 ml-1">
-                <li>Open the source in a new tab.</li>
-                <li>Click inside the page or PDF.</li>
-                <li>Press Command + A on a Mac or Control + A on Windows to select all.</li>
-                <li>Copy with Command + C or Control + C.</li>
-                <li>Return to this app and paste with Command + V or Control + V.</li>
-              </ol>
-              <p className="text-theme-dark/70 pt-1">
-                You may also right click and copy or paste with your mouse.
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
+              </p>
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                What important information should we save before we start reading?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                We’re going to save your own working copy of the speech.
               </p>
             </div>
-            <p className="text-sm text-theme-dark/80">
-              This official {SPEECH_SOURCE.officialSiteName} transcript is
-              accurate, but it is not formatted like a classroom edition of the
-              speech. It includes some surrounding event transcript, such as
-              speaker labels, applause, singing, and narrator lines. As you
-              work later in the assignment, focus mainly on the words spoken by
-              Dr. Martin Luther King Jr.
-            </p>
-            <p className="text-sm text-theme-dark/80">
-              For this assignment, copy the full source exactly as it appears.
-            </p>
-            <a
-              href={SPEECH_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-            >
-              Open Official Speech Source
-            </a>
 
-            <div>
-              <label className="block text-sm font-medium text-theme-dark mb-1">
-                Speech source URL
-              </label>
-              <input
-                type="url"
-                value={speechSourceUrl}
-                onChange={(e) => setSpeechSourceUrl(e.target.value)}
-                className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-dark mb-1">
-                Speech full text
-              </label>
-              <textarea
-                value={speechFullText}
-                onChange={(e) => setSpeechFullText(e.target.value)}
-                placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
-                rows={14}
-                className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
-              />
-              <p className="text-xs text-theme-dark/60 mt-1">
-                Copy the full text, not just an excerpt. You will use this
-                throughout the assignment.
-              </p>
-            </div>
-            <p className="text-xs text-theme-dark/60">
-              Source text accessed through the {SPEECH_SOURCE.officialSiteName}.
-            </p>
+            <ReferenceSection
+              label="Official source (reference)"
+              description="Open it, look first, then come back to paste."
+            >
+              <div className="space-y-2">
+                <a
+                  href={SPEECH_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+                >
+                  Open the official speech source
+                </a>
+                <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
+                  <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+                    How to copy (quick steps)
+                  </summary>
+                  <ol className="mt-3 list-decimal list-inside space-y-1 text-sm text-theme-dark/75">
+                    <li>Open the source in a new tab.</li>
+                    <li>Select all (Command + A / Control + A).</li>
+                    <li>Copy (Command + C / Control + C).</li>
+                    <li>Come back here and paste (Command + V / Control + V).</li>
+                  </ol>
+                </details>
+                <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
+                  <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+                    A note about formatting
+                  </summary>
+                  <p className="mt-3 text-sm text-theme-dark/75">
+                    The official transcript may include extra lines (applause, labels, etc.).
+                    That’s okay—save it exactly as it appears.
+                  </p>
+                </details>
+              </div>
+            </ReferenceSection>
+
+            <WorkingSetSection
+              label="Your saved copy (working set)"
+              description="Paste the full speech here so you can use it later."
+            >
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    What should I do?
+                  </p>
+                  <p className="text-sm text-theme-dark/75">
+                    Copy the full speech from the official source, then paste it below.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-theme-dark mb-1">
+                    Speech source URL
+                  </label>
+                  <input
+                    type="url"
+                    value={speechSourceUrl}
+                    onChange={(e) => setSpeechSourceUrl(e.target.value)}
+                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-theme-dark mb-1">
+                    Speech full text
+                  </label>
+                  <textarea
+                    value={speechFullText}
+                    onChange={(e) => setSpeechFullText(e.target.value)}
+                    placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
+                    rows={14}
+                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    How will I know I’m finished?
+                  </p>
+                  <p className="text-sm text-theme-dark/75">
+                    You pasted the full text (not just an excerpt) and clicked save.
+                  </p>
+                  <p className="text-xs text-theme-dark/60 mt-1">
+                    Source text accessed through the {SPEECH_SOURCE.officialSiteName}.
+                  </p>
+                </div>
+              </div>
+            </WorkingSetSection>
+
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="button"
@@ -428,7 +486,7 @@ export default function ModuleTwoSourcePage() {
                 disabled={savingSpeech}
                 className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60"
               >
-                {savingSpeech ? "Saving…" : "Save Speech"}
+                {savingSpeech ? "Saving…" : "Save my speech copy"}
               </button>
               <button
                 type="button"
@@ -445,72 +503,99 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 3: Get the letter */}
         {stage === 3 && (
           <Panel className="space-y-4">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Get the letter
-            </h2>
-            <p className="text-left text-theme-dark/90">
-              Now, open the official text of &ldquo;{LETTER_SOURCE.title}
-              &rdquo; from the {LETTER_SOURCE.officialSiteName}.
-            </p>
-            <p className="text-left text-theme-dark/90">
-              Then copy the full text and paste it into the boxes below.
-            </p>
-            <p className="text-sm text-theme-dark/80">
-              This transcript is hosted by the {LETTER_SOURCE.officialSiteName},
-              which provides historical documents for academic study.
-            </p>
-            <div className="rounded-lg border border-border-soft bg-surface-soft p-3 text-sm text-theme-dark/90 space-y-2">
-              <p className="font-medium">How to copy the source:</p>
-              <ol className="list-decimal list-inside space-y-1 ml-1">
-                <li>Open the source in a new tab.</li>
-                <li>Click inside the page or PDF.</li>
-                <li>Press Command + A on a Mac or Control + A on Windows to select all.</li>
-                <li>Copy with Command + C or Control + C.</li>
-                <li>Return to this app and paste with Command + V or Control + V.</li>
-              </ol>
-              <p className="text-theme-dark/70 pt-1">
-                You may also right click and copy or paste with your mouse.
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
+              </p>
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                Where did this letter come from, and how do we save it?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                Now we’ll save your working copy of the letter.
               </p>
             </div>
-            <a
-              href={LETTER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-            >
-              Open Official Letter Source
-            </a>
 
-            <div>
-              <label className="block text-sm font-medium text-theme-dark mb-1">
-                Letter source URL
-              </label>
-              <input
-                type="url"
-                value={letterSourceUrl}
-                onChange={(e) => setLetterSourceUrl(e.target.value)}
-                className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-dark mb-1">
-                Letter full text
-              </label>
-              <textarea
-                value={letterFullText}
-                onChange={(e) => setLetterFullText(e.target.value)}
-                placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
-                rows={14}
-                className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
-              />
-              <p className="text-xs text-theme-dark/60 mt-1">
-                Copy the full text, not just an excerpt. You will use this
-                throughout the assignment.
-              </p>
-            </div>
-            <p className="text-xs text-theme-dark/60">
-              Source text accessed through the {LETTER_SOURCE.officialSiteName}.
-            </p>
+            <ReferenceSection
+              label="Official source (reference)"
+              description="Open it, look first, then come back to paste."
+            >
+              <div className="space-y-2">
+                <p className="text-sm text-theme-dark/75">
+                  This text is hosted by the {LETTER_SOURCE.officialSiteName}, which provides
+                  historical documents for academic study.
+                </p>
+                <a
+                  href={LETTER_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+                >
+                  Open the official letter source
+                </a>
+                <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
+                  <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+                    How to copy (quick steps)
+                  </summary>
+                  <ol className="mt-3 list-decimal list-inside space-y-1 text-sm text-theme-dark/75">
+                    <li>Open the source in a new tab.</li>
+                    <li>Select all (Command + A / Control + A).</li>
+                    <li>Copy (Command + C / Control + C).</li>
+                    <li>Come back here and paste (Command + V / Control + V).</li>
+                  </ol>
+                </details>
+              </div>
+            </ReferenceSection>
+
+            <WorkingSetSection
+              label="Your saved copy (working set)"
+              description="Paste the full letter here so you can use it later."
+            >
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    What should I do?
+                  </p>
+                  <p className="text-sm text-theme-dark/75">
+                    Copy the full letter from the official source, then paste it below.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-theme-dark mb-1">
+                    Letter source URL
+                  </label>
+                  <input
+                    type="url"
+                    value={letterSourceUrl}
+                    onChange={(e) => setLetterSourceUrl(e.target.value)}
+                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-theme-dark mb-1">
+                    Letter full text
+                  </label>
+                  <textarea
+                    value={letterFullText}
+                    onChange={(e) => setLetterFullText(e.target.value)}
+                    placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
+                    rows={14}
+                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-theme-dark">
+                    How will I know I’m finished?
+                  </p>
+                  <p className="text-sm text-theme-dark/75">
+                    You pasted the full text (not just an excerpt) and clicked save.
+                  </p>
+                  <p className="text-xs text-theme-dark/60 mt-1">
+                    Source text accessed through the {LETTER_SOURCE.officialSiteName}.
+                  </p>
+                </div>
+              </div>
+            </WorkingSetSection>
+
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="button"
@@ -518,7 +603,7 @@ export default function ModuleTwoSourcePage() {
                 disabled={savingLetter}
                 className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60"
               >
-                {savingLetter ? "Saving…" : "Save Letter"}
+                {savingLetter ? "Saving…" : "Save my letter copy"}
               </button>
               <button
                 type="button"
@@ -535,9 +620,17 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 4: Check your saved texts */}
         {stage === 4 && (
           <Panel className="space-y-6">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Check your saved texts
-            </h2>
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
+              </p>
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                Do your saved texts look complete?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                Take a quick look. If something seems off, go back and copy again.
+              </p>
+            </div>
             <div className="grid gap-4">
               <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
                 <p className="font-semibold text-theme-dark">
@@ -559,8 +652,8 @@ export default function ModuleTwoSourcePage() {
                   characters
                 </p>
                 {speechAllPass ? (
-                  <p className="text-sm text-theme-green pt-1">
-                    Your saved copies look complete enough to continue.
+                  <p className="text-sm text-theme-dark/75 pt-1">
+                    This looks complete enough to continue.
                   </p>
                 ) : (
                   <p className="text-xs text-theme-dark/60 pt-1">
@@ -589,8 +682,8 @@ export default function ModuleTwoSourcePage() {
                   characters
                 </p>
                 {letterAllPass ? (
-                  <p className="text-sm text-theme-green pt-1">
-                    Your saved copies look complete enough to continue.
+                  <p className="text-sm text-theme-dark/75 pt-1">
+                    This looks complete enough to continue.
                   </p>
                 ) : (
                   <p className="text-xs text-theme-dark/60 pt-1">
@@ -613,7 +706,7 @@ export default function ModuleTwoSourcePage() {
                 onClick={() => setStage(5)}
                 className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
               >
-                Continue to Reading Tools
+                Continue
               </button>
             </div>
           </Panel>
@@ -622,13 +715,21 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 5: Use your texts while you work */}
         {stage === 5 && (
           <Panel className="space-y-4">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Use your texts while you work
-            </h2>
-            <p className="text-left text-theme-dark/90">
-              From this point forward, you should work from the saved copies of
-              the speech and the letter, not from memory.
-            </p>
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
+              </p>
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                How should you use these texts while you work?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                Keep your saved copies open while you read and collect evidence.
+              </p>
+            </div>
+            <WorkingSetSection
+              label="Your reading copies (working set)"
+              description="Open these in a new tab so you can look first, then write."
+            >
             <div className="flex flex-col sm:flex-row gap-2">
               <a
                 href="/texts/speech"
@@ -647,18 +748,23 @@ export default function ModuleTwoSourcePage() {
                 Open My Copy of the Letter
               </a>
             </div>
-            <p className="text-sm text-theme-dark/70">
-              If you are working on one screen, opening the text in another tab
-              can make it much easier to copy quotes and stay grounded in the
-              document.
-            </p>
+            </WorkingSetSection>
+            <ReferenceSection
+              label="A quick tip"
+              description="This makes later steps easier."
+            >
+              <p className="text-sm text-theme-dark/75">
+                If you keep the text open in another tab, it’s easier to copy
+                quotes and stay grounded in the document.
+              </p>
+            </ReferenceSection>
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => setStage(6)}
                 className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
               >
-                Continue to Analysis
+                Continue
               </button>
             </div>
           </Panel>
@@ -667,18 +773,26 @@ export default function ModuleTwoSourcePage() {
         {/* Stage 6: Begin rhetorical analysis */}
         {stage === 6 && (
           <Panel className="space-y-4">
-            <h2 className="text-xl font-bold text-theme-dark">
-              Begin rhetorical analysis
-            </h2>
-            <p className="text-left text-theme-dark/90">
-              Now that you have accurate copies of both texts, you are ready to
-              begin rhetorical analysis.
-            </p>
-            <p className="text-left text-theme-dark/90">
-              In the next part of the assignment, you will look for how King uses
-              rhetorical strategies in each text and how those choices connect
-              to audience and purpose.
-            </p>
+            <div className="text-left space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Today’s question
+              </p>
+              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
+                Are you ready to begin analysis?
+              </h2>
+              <p className="text-sm text-theme-dark/75">
+                You’ve saved both texts. Next, you’ll start noticing rhetorical choices.
+              </p>
+            </div>
+            <ReferenceSection
+              label="What’s next (reference)"
+              description="Just so you know what you’re walking into."
+            >
+              <p className="text-sm text-theme-dark/75">
+                You’ll look for how King uses rhetorical strategies and how those
+                choices connect to audience and purpose.
+              </p>
+            </ReferenceSection>
             <div className="pt-2">
               <button
                 type="button"
@@ -702,7 +816,7 @@ export default function ModuleTwoSourcePage() {
                 }}
                 className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
               >
-                Continue to Module 2 Analysis
+                Continue
               </button>
             </div>
           </Panel>

@@ -135,8 +135,7 @@ function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium text-theme-dark">
-                    Observation {i + 1}: {p.rhetoricalStrategyLabel} (
-                    {sourceLabelForId(p.sourceId)})
+                    {p.rhetoricalStrategyLabel} ({sourceLabelForId(p.sourceId)})
                   </p>
                   <p className="text-sm text-theme-dark/70">
                     {sourceTitleForId(p.sourceId)}
@@ -150,7 +149,7 @@ function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
                       : "bg-theme-dark/5 text-theme-dark/70",
                   ].join(" ")}
                 >
-                  {isSaved ? "Saved" : "Not saved"}
+                  {isSaved ? "Done" : "Not yet"}
                 </span>
               </div>
               {isSaved && observationPreview(saved) && (
@@ -367,7 +366,7 @@ export default function GuidedObservationsPage() {
         ...prev,
         [currentPassage.id]: savedFields,
       }));
-      setToast("Saved");
+      setToast("Saved to your evidence library.");
       setTimeout(() => setToast(""), 1200);
 
       return savedRow;
@@ -555,36 +554,34 @@ export default function GuidedObservationsPage() {
             {currentPassage.observationQuestion}
           </h1>
           <p className="text-sm text-theme-dark/70">
-            Read the passage closely, then explain what you notice. We’ll do it
-            in four short steps.
+            Read the passage first. Then we’ll put your thinking into words—one
+            small step at a time.
           </p>
         </div>
 
         <WorkingSetSection
-          label={`Passage ${currentIndex + 1} (${sourceLabelForId(
-            currentPassage.sourceId
-          )}) • ${strategyLabel}`}
-          description="This is the passage you should think with right now."
+          label={`Passage ${currentIndex + 1} • ${strategyLabel}`}
+          description="Start by reading. Then write in your own words."
         >
           <div className="space-y-5">
-            <div className="rounded-xl border border-theme-dark/12 bg-white p-5 shadow-soft ring-1 ring-theme-dark/[0.03]">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-dark/60">
-                The text you’re studying
+            <div className="rounded-2xl border border-theme-dark/12 bg-white px-6 py-6 shadow-soft ring-1 ring-theme-dark/[0.03] md:px-8 md:py-7">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-theme-dark/50">
+                Read this passage
               </p>
-              <blockquote className="mt-3 text-left text-theme-dark">
-                <p className="text-base leading-relaxed md:text-[17px] md:leading-relaxed">
+              <blockquote className="mt-4 text-left text-theme-dark">
+                <p className="text-[17px] leading-[1.85] md:text-[18px] md:leading-[1.9]">
                   &ldquo;{currentPassage.quotedPassage}&rdquo;
                 </p>
               </blockquote>
-              <p className="mt-4 text-xs text-theme-dark/60">
-                From: {sourceTitle}
+              <p className="mt-5 text-xs text-theme-dark/55">
+                From: {sourceTitle} ({sourceLabelForId(currentPassage.sourceId)})
               </p>
             </div>
 
             {strategyReminder ? (
               <div className="rounded-lg border border-theme-dark/10 bg-white p-4 space-y-2 text-left">
                 <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                  Helpful reminder: {strategyReminder.title}
+                  A quick reminder: {strategyReminder.title}
                 </p>
                 <p className="text-sm text-theme-dark/85">
                   {strategyReminder.definition}
@@ -603,40 +600,55 @@ export default function GuidedObservationsPage() {
                 const fieldDefinition = currentPassage.fields[fieldKey];
                 const stepNumber = index + 1;
 
-                const teacherIntro =
-                  fieldKey === "studentObservation"
-                    ? {
-                        why: "Start by naming what the author is doing in this passage.",
-                        whatGoodLooksLike:
-                          "A good answer points to a specific move (word choice, repetition, contrast, tone, etc.).",
-                      }
-                    : fieldKey === "audienceEffect"
-                      ? {
-                          why: "Now explain how that move could make the audience think or feel.",
-                          whatGoodLooksLike:
-                            "A good answer uses a cause → effect idea, not just “it’s persuasive.”",
-                        }
-                      : fieldKey === "purposeConnection"
-                        ? {
-                            why: "Connect your observation to the author’s bigger purpose.",
-                            whatGoodLooksLike:
-                              "A good answer explains how this passage helps the author reach their goal.",
-                          }
-                        : {
-                            why: "Finally, connect it back to the assignment’s essential question.",
-                            whatGoodLooksLike:
-                              "A good answer explains how this passage helps you answer the big question.",
-                          };
+                const teacherIntro = (() => {
+                  if (fieldKey === "studentObservation") {
+                    return {
+                      lead: "First…",
+                      why: "Tell me what you notice the author doing here.",
+                      reassurance: "There isn’t one perfect answer—just explain what you notice.",
+                      whatGoodLooksLike:
+                        "Good answers point to a specific move (word choice, repetition, contrast, tone, etc.).",
+                    };
+                  }
+                  if (fieldKey === "audienceEffect") {
+                    return {
+                      lead: "Next…",
+                      why: "Now tell me how that move could affect the audience.",
+                      reassurance: "Use your own words. Your explanation matters more than fancy vocabulary.",
+                      whatGoodLooksLike:
+                        "Good answers explain a clear cause → effect (what the author does → what it makes the audience think/feel).",
+                    };
+                  }
+                  if (fieldKey === "purposeConnection") {
+                    return {
+                      lead: "Now…",
+                      why: "Connect what you noticed to the author’s bigger purpose.",
+                      reassurance: "It’s okay to be simple. Just make the connection as clearly as you can.",
+                      whatGoodLooksLike:
+                        "Good answers explain how this moment helps the author reach their goal.",
+                    };
+                  }
+                  return {
+                    lead: "Finally…",
+                    why: "Tie it back to the assignment’s essential question.",
+                    reassurance: "If you’re unsure, take your best honest guess and explain why.",
+                    whatGoodLooksLike:
+                      "Good answers explain how this passage helps you answer the big question for the assignment.",
+                  };
+                })();
 
                 return (
                   <div key={fieldKey} className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-dark/55">
-                      Step {stepNumber}
+                    <p className="text-sm font-semibold text-theme-dark">
+                      {teacherIntro.lead}{" "}
+                      <span className="font-normal text-theme-dark/80">
+                        {teacherIntro.why}
+                      </span>
                     </p>
-                    <p className="text-sm text-theme-dark/80">
-                      {teacherIntro.why}
+                    <p className="text-sm text-theme-dark/70">
+                      {teacherIntro.reassurance}
                     </p>
-                    <label className="block text-sm font-semibold text-theme-dark">
+                    <label className="block text-sm font-semibold text-theme-dark/90">
                       {fieldDefinition.label}
                     </label>
                     <textarea
@@ -697,7 +709,8 @@ export default function GuidedObservationsPage() {
                 </p>
               ) : (
                 <p className="text-left text-sm text-theme-dark/80">
-                  Looks good. You can save this observation now.
+                  Nice work. Your observation is ready to add to your evidence
+                  library.
                 </p>
               )}
 
@@ -745,8 +758,8 @@ export default function GuidedObservationsPage() {
                       onClick={() => attemptPassageSwitch(i)}
                       title={
                         isSaved
-                          ? "Saved"
-                          : "Not saved yet — complete and save this observation"
+                          ? "Done"
+                          : "Not yet — write your observation and save"
                       }
                       className={[
                         "text-sm px-2.5 py-1.5 rounded-lg border transition-colors",
