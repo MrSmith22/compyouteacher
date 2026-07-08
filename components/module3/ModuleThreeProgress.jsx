@@ -1,4 +1,3 @@
-import SectionCard from "@/components/ui/SectionCard";
 import ProgressDots from "@/components/ui/ProgressDots";
 
 export default function ModuleThreeProgress({
@@ -13,22 +12,17 @@ export default function ModuleThreeProgress({
   const nextStep = steps[activeIndex + 1] || null;
 
   return (
-    <SectionCard
-      padding="sm"
-      surface="soft"
-      elevation="soft"
-      className="space-y-2 border-border-soft/80"
-    >
+    <div className="space-y-2 rounded-lg bg-surface-soft/50 px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-3 text-left">
-        <p className="text-xs text-text-muted">
+        <p className="text-xs leading-relaxed text-text-muted">
           {activeIndex === 0
-            ? "A few questions to guide your thinking — take your time."
-            : `You have already answered ${activeIndex} question${
+            ? "A few questions ahead — take your time with each one."
+            : `You have worked through ${activeIndex} question${
                 activeIndex === 1 ? "" : "s"
-              }. Keep going.`}
+              } already.`}
         </p>
 
-        <div className="[&_p]:text-xs [&_p]:font-normal [&_p]:text-text-muted">
+        <div className="[&>div]:mb-0 [&_p]:text-[11px] [&_p]:font-normal [&_p]:text-text-muted/80">
           <ProgressDots
             total={steps.length}
             activeStep={activeIndex + 1}
@@ -44,20 +38,20 @@ export default function ModuleThreeProgress({
       </div>
 
       {nextStep ? (
-        <p className="text-left text-xs text-text-muted">
-          Up next: <span className="text-text-primary">{nextStep.question}</span>
+        <p className="text-left text-xs leading-relaxed text-text-muted">
+          Coming next: {nextStep.question}
         </p>
       ) : (
-        <p className="text-left text-xs text-text-muted">
-          This is the last big question — you are almost ready to write.
+        <p className="text-left text-xs leading-relaxed text-text-muted">
+          One last question, then you are ready to write.
         </p>
       )}
 
-      <details className="rounded-lg border border-border-soft bg-surface">
-        <summary className="cursor-pointer list-none px-4 py-2 text-xs font-medium text-theme-blue transition-colors duration-150 hover:bg-theme-blue/5">
+      <details>
+        <summary className="cursor-pointer list-none text-xs text-text-muted transition-colors duration-150 hover:text-text-primary">
           See where you&apos;ve been
         </summary>
-        <div className="grid gap-1 border-t border-border-soft px-3 py-2 sm:grid-cols-2">
+        <div className="mt-2 grid gap-1 sm:grid-cols-2">
           {steps.map((step, index) => {
             const isCurrent = step.id === currentStepId;
             const isVisited = index <= activeIndex;
@@ -68,23 +62,23 @@ export default function ModuleThreeProgress({
                 type="button"
                 onClick={() => isVisited && onStepChange?.(step.id)}
                 disabled={!isVisited}
-                className={`rounded-lg px-3 py-2 text-left text-sm transition-colors duration-150 ${
+                className={`rounded-md px-2 py-1.5 text-left text-xs leading-snug transition-colors duration-150 ${
                   isCurrent
-                    ? "bg-theme-blue/10 font-semibold text-theme-blue"
+                    ? "font-medium text-theme-blue"
                     : isVisited
-                      ? "text-text-primary hover:bg-surface-soft"
-                      : "cursor-not-allowed text-text-muted"
+                      ? "text-text-muted hover:text-text-primary"
+                      : "cursor-not-allowed text-text-muted/50"
                 }`}
               >
                 {step.question}
                 {step.optional ? (
-                  <span className="ml-1 text-xs text-text-muted">(if you need it)</span>
+                  <span className="ml-1 text-text-muted/70">(if you need it)</span>
                 ) : null}
               </button>
             );
           })}
         </div>
       </details>
-    </SectionCard>
+    </div>
   );
 }

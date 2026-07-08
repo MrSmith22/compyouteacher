@@ -1,6 +1,4 @@
-import Divider from "@/components/ui/Divider";
 import EmptyState from "@/components/ui/EmptyState";
-import SectionCard from "@/components/ui/SectionCard";
 
 export default function ModuleThreeThinkingCanvas({ canvasState }) {
   const { progressStory } = canvasState;
@@ -8,50 +6,39 @@ export default function ModuleThreeThinkingCanvas({ canvasState }) {
   const next = progressStory?.next ?? "";
 
   return (
-    <div className="space-y-4">
-      <SectionCard
-        eyebrow="My notebook"
-        title="Your thinking so far"
-        surface="soft"
-        elevation="soft"
-        padding="sm"
-      >
-        {completed.length > 0 ? (
-          <ul className="space-y-2 text-left">
-            {completed.map((line) => (
-              <li
-                key={line}
-                className="flex items-start gap-2 text-sm leading-relaxed text-text-primary"
-              >
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 text-theme-green"
-                >
-                  ✓
-                </span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            title="Nothing here yet"
-            description="As you answer each question, this notebook shows what you have figured out so far."
-          />
-        )}
+    <aside className="space-y-4 rounded-xl bg-surface-soft/60 px-4 py-4 text-left">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+        Notebook
+      </p>
 
-        {next ? (
-          <>
-            <Divider />
-            <div className="text-left">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                Still wondering
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-text-muted">{next}</p>
-            </div>
-          </>
-        ) : null}
-      </SectionCard>
-    </div>
+      {completed.length > 0 ? (
+        <ul className="space-y-2">
+          {completed.map((line) => (
+            <li
+              key={line}
+              className="flex items-start gap-2 text-sm leading-relaxed text-text-muted"
+            >
+              <span aria-hidden="true" className="mt-0.5 text-text-muted/50">
+                ·
+              </span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState
+          title="Nothing written yet"
+          description="As you answer each question, a short record of your thinking will appear here."
+          className="border-0 bg-transparent p-0 shadow-none"
+        />
+      )}
+
+      {next ? (
+        <div className="border-t border-border-soft/60 pt-3">
+          <p className="text-xs text-text-muted">Still on your mind</p>
+          <p className="mt-1 text-sm leading-relaxed text-text-muted">{next}</p>
+        </div>
+      ) : null}
+    </aside>
   );
 }

@@ -2,8 +2,6 @@ import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
 import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
-import Divider from "@/components/ui/Divider";
-import SectionCard from "@/components/ui/SectionCard";
 
 function normalizeWhyMatters(whyMatters) {
   if (Array.isArray(whyMatters)) {
@@ -30,95 +28,75 @@ export default function ModuleThreeStepFrame({
   const whyLines = normalizeWhyMatters(whyMatters);
 
   return (
-    <WorkspaceColumns>
-      <WorkspaceSidebar>{sidebar}</WorkspaceSidebar>
+    <WorkspaceColumns className="gap-6 xl:gap-10">
+      <WorkspaceSidebar className="opacity-90">{sidebar}</WorkspaceSidebar>
 
       <WorkspaceCenter>
-        <div className="space-y-5">
-          <div className="space-y-2 text-left">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
+        <div className="space-y-8 md:space-y-10">
+          <header className="space-y-4 py-2 text-left md:py-4">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
               Question
             </p>
-            <h1 className="text-3xl font-bold leading-tight text-text-primary md:text-4xl">
+            <h1 className="max-w-3xl text-[1.75rem] font-bold leading-[1.12] tracking-tight text-text-primary md:text-[2.35rem] md:leading-[1.1]">
               {question}
             </h1>
-          </div>
 
-          {whyLines.length > 0 ? (
-            <div className="space-y-1 text-left">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                Think
-              </p>
-              {whyLines.map((line) => (
-                <p key={line} className="text-sm leading-relaxed text-text-muted">
-                  {line}
-                </p>
-              ))}
-            </div>
-          ) : null}
+            {whyLines.length > 0 ? (
+              <div className="max-w-2xl space-y-2 pt-1">
+                <p className="text-xs font-medium text-text-muted">Why this matters</p>
+                {whyLines.map((line) => (
+                  <p key={line} className="text-sm leading-relaxed text-text-muted">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </header>
 
           {example ? (
-            <div className="rounded-xl border border-theme-orange/20 bg-theme-orange/5 px-4 py-3 text-left">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-orange">
-                For example
-              </p>
+            <div className="max-w-2xl rounded-lg bg-theme-orange/[0.06] px-4 py-3 text-left">
+              <p className="text-xs text-text-muted">For example</p>
               <p className="mt-1 text-sm leading-relaxed text-text-primary">{example}</p>
             </div>
           ) : null}
 
-          <div className="space-y-3">
-            <p className="text-left text-sm font-semibold text-text-primary">
-              Try an answer
-            </p>
-
-            <div className="rounded-2xl border border-theme-blue/15 bg-surface p-5 shadow-card md:p-6">
-              {children}
-            </div>
+          <div className="space-y-8">
+            {children}
           </div>
 
           {successLooksLike.length > 0 ? (
-            <SectionCard
-              eyebrow="Reflect"
-              padding="sm"
-              surface="soft"
-              elevation="soft"
-            >
-              <ul className="list-disc space-y-2 pl-5 text-left text-sm leading-relaxed text-text-muted marker:text-theme-blue">
+            <div className="max-w-2xl space-y-2 text-left">
+              <p className="text-xs text-text-muted">You&apos;ll know you&apos;re ready when…</p>
+              <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
                 {successLooksLike.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-            </SectionCard>
+            </div>
           ) : null}
         </div>
       </WorkspaceCenter>
 
-      <WorkspaceGuide>
-        <SectionCard
-          eyebrow="Your teacher"
-          padding="sm"
-          surface="soft"
-          elevation="soft"
-          className="space-y-4"
-        >
+      <WorkspaceGuide className="opacity-90">
+        <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
           {coachingMessage ? (
-            <p className="text-left text-sm leading-relaxed text-text-primary">
-              {coachingMessage}
-            </p>
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                From your teacher
+              </p>
+              <p className="text-sm leading-relaxed text-text-primary">{coachingMessage}</p>
+            </div>
           ) : null}
 
           {nextStepText ? (
-            <>
-              {coachingMessage ? <Divider /> : null}
-              <div className="space-y-1 text-left">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                  Move on
-                </p>
-                <p className="text-sm leading-relaxed text-text-muted">{nextStepText}</p>
-              </div>
-            </>
+            <div className="space-y-2 border-t border-border-soft/60 pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                After this
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">{nextStepText}</p>
+            </div>
           ) : null}
-        </SectionCard>
+        </aside>
       </WorkspaceGuide>
     </WorkspaceColumns>
   );

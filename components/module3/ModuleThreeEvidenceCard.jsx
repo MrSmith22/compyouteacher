@@ -65,8 +65,8 @@ export default function ModuleThreeEvidenceCard({
       padding="sm"
       className={`${
         selected
-          ? "border-theme-green/45 bg-theme-green/5 ring-1 ring-theme-green/20 transition-all duration-150"
-          : "border-border-soft transition-all duration-150 hover:border-theme-blue/20 hover:shadow-soft"
+          ? "border-theme-green/30 bg-theme-green/[0.04] ring-1 ring-theme-green/15 transition-all duration-150"
+          : "border-border-soft/80 transition-all duration-150 hover:border-theme-blue/15"
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -101,7 +101,7 @@ export default function ModuleThreeEvidenceCard({
                 onChange={() => onToggleSelected?.(evidence.id)}
                 className="accent-theme-green"
               />
-              {selected ? "Chosen" : "Add this quote"}
+              {selected ? "Added" : "Add this quote"}
             </label>
           ) : null}
         </div>
