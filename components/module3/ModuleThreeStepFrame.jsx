@@ -70,7 +70,7 @@ export default function ModuleThreeStepFrame({
 
             <details className="rounded-lg bg-surface-soft/50 px-4 py-3">
               <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                A quick example
+                An example
               </summary>
               <div className="mt-2">
                 {example ? (
@@ -83,20 +83,25 @@ export default function ModuleThreeStepFrame({
               </div>
             </details>
 
-            <details className="rounded-lg bg-surface-soft/50 px-4 py-3">
+            <details className="rounded-lg bg-surface-soft/50 px-4 py-3" open>
               <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                You&apos;ll know you&apos;re ready when…
+                Reflection: how do I know I&apos;m finished?
               </summary>
               <div className="mt-2">
                 {successItems.length > 0 ? (
-                  <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
-                    {successItems.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+                      {successItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                      If your thinking is clear enough to explain, it&apos;s clear enough to keep going.
+                    </p>
+                  </>
                 ) : (
                   <p className="text-sm leading-relaxed text-text-muted">
-                    You can explain your thinking clearly enough to keep going.
+                    If your thinking is clear enough to explain, it&apos;s clear enough to keep going.
                   </p>
                 )}
               </div>

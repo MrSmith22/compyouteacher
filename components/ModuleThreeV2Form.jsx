@@ -1113,6 +1113,15 @@ export default function ModuleThreeV2Form({
             description="These are the passages you are grouping and naming right now."
           >
             <div id="selected-quotes-basket" className="space-y-5">
+              <div className="space-y-1 text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  My work on the desk
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Pick a few quotes that feel connected. Then give that group a short name in your own words.
+                </p>
+              </div>
+
               {workingEvidence.length === 0 ? (
                 <p className="text-center text-sm text-text-muted">
                   Choose quotes from the reference shelf below. They will land here.
@@ -1383,6 +1392,15 @@ export default function ModuleThreeV2Form({
             description="What do these quotes seem to have in common?"
           >
             <div className="space-y-4">
+              <div className="space-y-1 text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  My answer
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Write a few honest notices. Then choose the one you want to explore further.
+                </p>
+              </div>
+
               {patternNotices.map((notice, index) => (
                 <div
                   key={notice.id}
@@ -1517,6 +1535,15 @@ export default function ModuleThreeV2Form({
             label="Your idea"
             description="What might this pattern mean?"
           >
+            <div className="space-y-1 text-left">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                My answer
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                There isn’t one perfect idea. Start with a clear guess you can test.
+              </p>
+            </div>
+
             {selectedPattern?.text ? null : (
               <p className="mb-4 text-sm text-text-muted">
                 Choose a pattern from the shelf below first.
@@ -1617,6 +1644,15 @@ export default function ModuleThreeV2Form({
             description="Explain how each quote helps your idea."
           >
             <div className="space-y-4">
+              <div className="space-y-1 text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  My answer
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Select the quotes that help your idea, then explain the connection in simple language.
+                </p>
+              </div>
+
               {selectedClusterEvidence.map((evidence) => {
                 const connection =
                   evidenceConnections[evidence.id] || createEmptyConnection();
@@ -1726,6 +1762,15 @@ export default function ModuleThreeV2Form({
             label="Your judgment"
             description="How strong does your support feel right now?"
           >
+            <div className="space-y-1 text-left">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                My answer
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Be honest. This helps you avoid making a claim your evidence can’t really support yet.
+              </p>
+            </div>
+
             <div className="grid gap-3 md:grid-cols-3">
               {[
                 {
@@ -1886,6 +1931,15 @@ export default function ModuleThreeV2Form({
             label="Quotes filling the gap"
             description="On your desk — explain how each one helps."
           >
+            <div className="space-y-1 text-left">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                My work on the desk
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Pick quotes that fix the exact weakness you noticed. Then explain how each one helps.
+              </p>
+            </div>
+
             {evidenceItems.filter((evidence) =>
               workingEvidenceIds.includes(evidence.id)
             ).length === 0 ? (
@@ -2019,6 +2073,15 @@ export default function ModuleThreeV2Form({
             label="Your argument"
             description="What point do these quotes help you prove?"
           >
+            <div className="space-y-1 text-left">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                My answer
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Say the point clearly. Then explain how your quotes support it in your own words.
+              </p>
+            </div>
+
             <label className="block text-left">
               <span className="mb-2 block text-base font-medium text-text-primary">
                 What point do these quotes help you prove?
@@ -2102,6 +2165,15 @@ export default function ModuleThreeV2Form({
             label="Your main sentence"
             description="How would you explain your main point in one clear sentence?"
           >
+            <div className="space-y-1 text-left">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                My answer
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Keep it simple and specific. This sentence should say only what your quotes can prove.
+              </p>
+            </div>
+
             <label className="block text-left">
               <span className="mb-2 block text-base font-medium text-text-primary">
                 How would you say your main point in one clear sentence?
