@@ -5,12 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Panel from "@/components/ui/Panel";
+import {
+  ReferenceSection,
+  WorkingSetSection,
+} from "@/components/module3/ModuleThreeDeskFrame";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 
 const ASSIGNMENT = mlkAssignmentDefinition;
-const PASSAGES = ASSIGNMENT?.guidedPassages ?? [];
+const PASSAGES = ASSIGNMENT?.observationSchema?.guidedPassages ?? [];
 const TOTAL = PASSAGES.length;
-const CONFIG_OK = Boolean(ASSIGNMENT?.assignmentId && TOTAL > 0);
+const CONFIG_OK = Boolean(ASSIGNMENT?.identity?.assignmentId && TOTAL > 0);
 const REQUIRED_SOURCE_IDS = new Set(PASSAGES.map((p) => p.id));
 
 const OBSERVATION_FIELD_ORDER = [
@@ -112,8 +116,8 @@ function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
   return (
     <Panel className="space-y-4">
       <div className="text-left">
-        <h2 className="text-lg font-bold text-theme-dark">{title}</h2>
-        <p className="text-sm text-theme-dark/80 mt-1">
+        <h2 className="text-base font-semibold text-theme-dark">{title}</h2>
+        <p className="text-sm text-theme-dark/70 mt-1">
           {missingCount === 0
             ? "All six guided observations are saved."
             : `${missingCount} observation${missingCount === 1 ? "" : "s"} still need to be saved.`}
@@ -126,33 +130,31 @@ function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
           return (
             <li
               key={p.id}
-              className={`rounded-lg border p-3 ${
-                isSaved
-                  ? "border-theme-green/40 bg-theme-green/5"
-                  : "border-theme-red/30 bg-theme-red/5"
-              }`}
+              className="rounded-lg border border-theme-dark/10 bg-white p-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium text-theme-dark">
-                    {p.rhetoricalStrategyLabel} ({sourceLabelForId(p.sourceId)})
+                    Observation {i + 1}: {p.rhetoricalStrategyLabel} (
+                    {sourceLabelForId(p.sourceId)})
                   </p>
-                  <p className="text-sm text-theme-dark/80">
+                  <p className="text-sm text-theme-dark/70">
                     {sourceTitleForId(p.sourceId)}
                   </p>
                 </div>
                 <span
-                  className={`text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded ${
+                  className={[
+                    "text-[11px] font-medium uppercase tracking-[0.16em] px-2 py-1 rounded",
                     isSaved
-                      ? "bg-theme-green/20 text-theme-dark"
-                      : "bg-theme-red/20 text-theme-dark"
-                  }`}
+                      ? "bg-theme-green/15 text-theme-dark"
+                      : "bg-theme-dark/5 text-theme-dark/70",
+                  ].join(" ")}
                 >
-                  {isSaved ? "Saved" : "Missing"}
+                  {isSaved ? "Saved" : "Not saved"}
                 </span>
               </div>
               {isSaved && observationPreview(saved) && (
-                <p className="text-sm text-theme-dark/80 mt-2 italic">
+                <p className="text-sm text-theme-dark/70 mt-2 italic">
                   &ldquo;{observationPreview(saved)}&rdquo;
                 </p>
               )}
@@ -160,7 +162,7 @@ function ReviewPanel({ savedBySourceId, onGoToPassage, title }) {
                 <button
                   type="button"
                   onClick={() => onGoToPassage(i)}
-                  className="mt-2 text-sm bg-theme-blue text-white px-3 py-1.5 rounded font-medium hover:opacity-90"
+                  className="mt-2 text-sm bg-theme-blue text-white px-3 py-1.5 rounded-lg font-medium hover:opacity-90"
                 >
                   Go to this observation
                 </button>
@@ -498,24 +500,29 @@ export default function GuidedObservationsPage() {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6">
         <div className="max-w-3xl mx-auto space-y-6">
-          <Panel className="border-l-4 border-theme-blue space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-theme-blue">
-              Essential Question
+          <Panel className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/70">
+              Guided observations
             </p>
-            <p className="text-left text-theme-dark font-medium">
-              {ASSIGNMENT.essentialQuestion}
+            <h1 className="text-2xl font-extrabold text-theme-dark text-left">
+              You’ve saved all {TOTAL} observations.
+            </h1>
+            <p className="text-left text-theme-dark/80">
+              Success looks like this: you have one saved observation for each
+              guided passage.
             </p>
           </Panel>
 
-          <Panel className="space-y-4">
-            <h1 className="text-2xl font-extrabold text-theme-dark text-left">
-              Guided Observations Complete
-            </h1>
-            <p className="text-left text-theme-dark/90">
-              You saved all six guided observations. These will help you build
-              your thesis and essay.
-            </p>
-          </Panel>
+          <ReferenceSection
+            label="Assignment question (reference)"
+            description="Keep this nearby, but you don’t need to rewrite it in every box."
+          >
+            <Panel className="border border-theme-dark/10 bg-white">
+              <p className="text-left text-theme-dark font-medium">
+                {ASSIGNMENT.essentialQuestion}
+              </p>
+            </Panel>
+          </ReferenceSection>
 
           <ReviewPanel
             savedBySourceId={savedBySourceId}
@@ -540,186 +547,194 @@ export default function GuidedObservationsPage() {
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">
       <div className="max-w-3xl mx-auto space-y-6">
-        <Panel className="border-l-4 border-theme-blue space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-theme-blue">
-            Essential Question
+        <div className="space-y-2 text-left">
+          <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/70">
+            Guided observation {currentIndex + 1} of {TOTAL}
           </p>
-          <p className="text-left text-theme-dark font-medium">
-            {ASSIGNMENT.essentialQuestion}
-          </p>
-        </Panel>
-
-        <div className="text-left">
-          <h1 className="text-2xl font-extrabold text-theme-dark">
-            Guided Observations
-          </h1>
-          <p className="text-sm font-medium text-theme-dark/80 mt-2">
-            Guided Observation {currentIndex + 1} of {TOTAL}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 text-left">
-          {PASSAGES.map((p, i) => {
-            const isSaved = Boolean(savedBySourceId[p.id]);
-            const isCurrent = currentIndex === i;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => attemptPassageSwitch(i)}
-                title={
-                  isSaved
-                    ? "Saved to your account"
-                    : "Not saved yet — complete and save this observation"
-                }
-                className={`text-sm px-2 py-1 rounded border ${
-                  isCurrent
-                    ? "bg-theme-blue text-white border-theme-blue"
-                    : isSaved
-                      ? "bg-theme-green/20 text-theme-dark/90 border-theme-green/40 hover:bg-theme-green/30"
-                      : "bg-theme-dark/10 text-theme-dark/80 border-transparent hover:bg-theme-dark/20"
-                }`}
-              >
-                {i + 1}. {p.rhetoricalStrategyLabel} ({sourceLabelForId(p.sourceId)})
-                {isSaved ? " ✓" : ""}
-              </button>
-            );
-          })}
-        </div>
-
-        {currentPassageIsDirty && (
-          <p className="text-sm text-theme-dark/90 text-left bg-theme-dark/5 border border-theme-dark/10 rounded-lg px-3 py-2">
-            You have unsaved changes on this observation. Save before leaving, or
-            you will be asked to confirm if you switch passages.
-          </p>
-        )}
-
-        <Panel className="space-y-4">
-          <div className="flex flex-wrap gap-2 text-sm text-left">
-            <span className="bg-theme-dark/10 px-2 py-1 rounded">
-              Source: {sourceTitle}
-            </span>
-            <span className="bg-theme-dark/10 px-2 py-1 rounded">
-              Type: {sourceLabelForId(currentPassage.sourceId)}
-            </span>
-            <span className="bg-theme-dark/10 px-2 py-1 rounded">
-              Strategy: {strategyLabel}
-            </span>
-            <span
-              className={`px-2 py-1 rounded ${
-                savedBySourceId[currentPassage.id]
-                  ? "bg-theme-green/20"
-                  : "bg-theme-dark/10"
-              }`}
-            >
-              {savedBySourceId[currentPassage.id] ? "Saved" : "Not saved yet"}
-            </span>
-          </div>
-
-          <blockquote className="text-left border-l-4 border-theme-blue pl-4 italic text-theme-dark/90">
-            &ldquo;{currentPassage.quotedPassage}&rdquo;
-          </blockquote>
-
-          <p className="text-left text-theme-dark/90 text-sm">
+          <h1 className="text-2xl font-extrabold text-theme-dark leading-snug">
             {currentPassage.observationQuestion}
+          </h1>
+          <p className="text-sm text-theme-dark/70">
+            What success looks like: answer the question in all four boxes, then
+            save.
           </p>
-        </Panel>
+        </div>
 
-        <Panel className="space-y-4">
-          <h2 className="text-xl font-bold text-theme-dark text-left">
-            Your Observation
-          </h2>
+        <WorkingSetSection
+          label={`Passage ${currentIndex + 1} (${sourceLabelForId(
+            currentPassage.sourceId
+          )}) • ${strategyLabel}`}
+          description="This is the passage you should think with right now."
+        >
+          <div className="space-y-5">
+            <blockquote className="text-left rounded-lg border border-theme-dark/10 bg-theme-light/40 p-4 text-theme-dark/90">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60 mb-2">
+                Passage (reference for this question)
+              </p>
+              <p className="italic">&ldquo;{currentPassage.quotedPassage}&rdquo;</p>
+              <p className="mt-3 text-xs text-theme-dark/60">
+                Source: {sourceTitle}
+              </p>
+            </blockquote>
 
-          {strategyReminder && (
-            <div className="text-left bg-theme-blue/5 border border-theme-blue/20 rounded-lg p-4 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-blue">
-                {strategyReminder.title}
-              </p>
-              <p className="text-sm text-theme-dark/90">
-                {strategyReminder.definition}
-              </p>
-              <p className="text-sm text-theme-dark/90">
-                {strategyReminder.lookFor}
-              </p>
-              <p className="text-sm font-medium text-theme-dark">
-                Ask yourself: {strategyReminder.keyQuestion}
-              </p>
+            {strategyReminder ? (
+              <div className="rounded-lg border border-theme-dark/10 bg-white p-4 space-y-2 text-left">
+                <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                  Helpful reminder: {strategyReminder.title}
+                </p>
+                <p className="text-sm text-theme-dark/85">
+                  {strategyReminder.definition}
+                </p>
+                <p className="text-sm text-theme-dark/85">
+                  {strategyReminder.lookFor}
+                </p>
+                <p className="text-sm font-medium text-theme-dark">
+                  Ask yourself: {strategyReminder.keyQuestion}
+                </p>
+              </div>
+            ) : null}
+
+            <div className="space-y-4 text-left">
+              {OBSERVATION_FIELD_ORDER.map((fieldKey) => {
+                const fieldDefinition = currentPassage.fields[fieldKey];
+
+                return (
+                  <div key={fieldKey}>
+                    <label className="block text-sm font-semibold text-theme-dark mb-1">
+                      {fieldDefinition.label}
+                    </label>
+                    <textarea
+                      className="w-full min-h-[92px] border border-theme-dark/15 rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
+                      value={currentFields[fieldKey]}
+                      onChange={(e) =>
+                        updateField(currentPassage.id, fieldKey, e.target.value)
+                      }
+                      placeholder={fieldDefinition.placeholder}
+                    />
+                    <p className="text-xs text-theme-dark/65 mt-1">
+                      Sentence starter: &ldquo;{fieldDefinition.sentenceStarter}
+                      &rdquo;
+                    </p>
+                    {fieldDefinition.coachingText ? (
+                      <p className="text-xs text-theme-dark/55 mt-1">
+                        {fieldDefinition.coachingText}
+                      </p>
+                    ) : null}
+                    {fieldKey === "audienceEffect" ? (
+                      <p className="text-xs text-theme-dark/55 mt-1">
+                        Audience:{" "}
+                        {audienceHintForSourceId(currentPassage.sourceId)}
+                      </p>
+                    ) : null}
+                    {fieldKey === "purposeConnection" ? (
+                      <p className="text-xs text-theme-dark/55 mt-1">
+                        Purpose:{" "}
+                        {purposeHintForSourceId(currentPassage.sourceId)}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
-          )}
 
-          <div className="space-y-3 text-left">
-            {OBSERVATION_FIELD_ORDER.map((fieldKey) => {
-              const fieldDefinition = currentPassage.fields[fieldKey];
+            <div className="rounded-lg border border-theme-dark/10 bg-white p-4 space-y-3">
+              {currentPassageIsDirty ? (
+                <p className="text-sm text-theme-dark/80 text-left bg-theme-dark/5 border border-theme-dark/10 rounded-lg px-3 py-2">
+                  You have unsaved changes on this observation.
+                </p>
+              ) : null}
 
-              return (
-                <div key={fieldKey}>
-                  <label className="block text-sm font-medium text-theme-dark/90 mb-1">
-                    {fieldDefinition.label}
-                  </label>
-                  <textarea
-                    className="w-full min-h-[80px] border border-theme-dark/20 rounded-lg p-2 text-sm bg-white"
-                    value={currentFields[fieldKey]}
-                    onChange={(e) =>
-                      updateField(currentPassage.id, fieldKey, e.target.value)
-                    }
-                    placeholder={fieldDefinition.placeholder}
-                  />
-                  <p className="text-xs text-theme-dark/70 mt-1">
-                    Sentence starter: &ldquo;{fieldDefinition.sentenceStarter}&rdquo;
-                  </p>
-                  {fieldDefinition.coachingText && (
-                    <p className="text-xs text-theme-dark/60 mt-1">
-                      {fieldDefinition.coachingText}
-                    </p>
-                  )}
-                  {fieldKey === "audienceEffect" && (
-                    <p className="text-xs text-theme-dark/60 mt-1">
-                      Audience: {audienceHintForSourceId(currentPassage.sourceId)}
-                    </p>
-                  )}
-                  {fieldKey === "purposeConnection" && (
-                    <p className="text-xs text-theme-dark/60 mt-1">
-                      Purpose: {purposeHintForSourceId(currentPassage.sourceId)}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+              {!allFieldsFilled(currentFields) ? (
+                <p className="text-left text-sm text-theme-dark/70">
+                  Complete all four boxes to save.
+                </p>
+              ) : (
+                <p className="text-left text-sm text-theme-dark/80">
+                  Ready to save.
+                </p>
+              )}
+
+              {saveError ? (
+                <p className="text-left text-sm text-theme-red border border-theme-red/30 bg-theme-red/5 rounded-lg px-3 py-2">
+                  {saveError}
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={saveAndContinue}
+                  disabled={!allFieldsFilled(currentFields) || saving}
+                  className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving
+                    ? "Saving…"
+                    : currentIndex === TOTAL - 1
+                      ? "Save and Finish Guided Observations"
+                      : "Save & Continue"}
+                </button>
+              </div>
+            </div>
           </div>
-        </Panel>
+        </WorkingSetSection>
 
-        <Panel className="space-y-3">
-          {!allFieldsFilled(currentFields) && (
-            <p className="text-left text-sm text-theme-dark/80">
-              Complete all four fields above to save this observation.
-            </p>
-          )}
-          {saveError && (
-            <p className="text-left text-sm text-theme-red border border-theme-red/30 bg-theme-red/5 rounded-lg px-3 py-2">
-              {saveError}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={saveAndContinue}
-              disabled={!allFieldsFilled(currentFields) || saving}
-              className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving
-                ? "Saving…"
-                : currentIndex === TOTAL - 1
-                  ? "Save and Finish Guided Observations"
-                  : "Save & Continue"}
-            </button>
+        <ReferenceSection
+          label="Reference"
+          description="Use these when you need them, but keep your focus on the desk."
+        >
+          <div className="space-y-4">
+            <Panel className="space-y-2 border border-theme-dark/10 bg-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Passage selection
+              </p>
+              <div className="flex flex-wrap items-center gap-2 text-left">
+                {PASSAGES.map((p, i) => {
+                  const isSaved = Boolean(savedBySourceId[p.id]);
+                  const isCurrent = currentIndex === i;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => attemptPassageSwitch(i)}
+                      title={
+                        isSaved
+                          ? "Saved"
+                          : "Not saved yet — complete and save this observation"
+                      }
+                      className={[
+                        "text-sm px-2.5 py-1.5 rounded-lg border transition-colors",
+                        isCurrent
+                          ? "bg-theme-blue text-white border-theme-blue"
+                          : "bg-white text-theme-dark/80 border-theme-dark/10 hover:bg-theme-dark/5",
+                      ].join(" ")}
+                    >
+                      {i + 1}
+                      <span className="ml-2 text-xs text-inherit/90">
+                        {p.rhetoricalStrategyLabel}
+                      </span>
+                      {isSaved ? <span className="ml-1">✓</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </Panel>
+
+            <Panel className="space-y-2 border border-theme-dark/10 bg-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
+                Assignment essential question
+              </p>
+              <p className="text-left text-theme-dark/85 font-medium">
+                {ASSIGNMENT.essentialQuestion}
+              </p>
+            </Panel>
+
+            <ReviewPanel
+              savedBySourceId={savedBySourceId}
+              onGoToPassage={attemptPassageSwitch}
+              title="Progress"
+            />
           </div>
-        </Panel>
-
-        <ReviewPanel
-          savedBySourceId={savedBySourceId}
-          onGoToPassage={attemptPassageSwitch}
-          title="Progress check"
-        />
+        </ReferenceSection>
 
         {toast && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-theme-dark text-white text-sm px-3 py-2 rounded shadow">
