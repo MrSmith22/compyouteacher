@@ -10,12 +10,14 @@ import { getStudentObservations } from "@/lib/supabase/helpers/studentObservatio
 import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
 import { getTChartEntriesAdmin } from "@/lib/supabase/helpers/tchartEntries";
 import { getModule3EvidenceClustersAdmin } from "@/lib/supabase/helpers/module3EvidenceClusters";
+import { getModule3PatternsAdmin } from "@/lib/supabase/helpers/module3Patterns";
 import type {
   DraftArtifact,
   EvidenceArtifact,
   EvidenceClusterArtifact,
   OutlineArtifact,
   ParagraphPlanArtifact,
+  PatternArtifact,
   SourceContextArtifact,
   ThesisArtifact,
 } from "./types";
@@ -196,6 +198,32 @@ export async function listEvidenceClusterArtifacts(
     clusterName: cluster.name,
     reflection: cluster.reflection ?? null,
     evidenceIds: Array.isArray(cluster.evidenceIds) ? cluster.evidenceIds : [],
+  }));
+}
+
+export async function listPatternArtifacts(
+  userEmail: string,
+  assignmentId = DEFAULT_ASSIGNMENT_ID
+): Promise<PatternArtifact[]> {
+  const res = await getModule3PatternsAdmin({ userEmail });
+  if (res.error) {
+    throw new Error(res.error.message || "Failed to read module 3 patterns");
+  }
+
+  const patterns = res.patterns ?? [];
+  const selectedPatternId = res.selectedPatternId ?? null;
+
+  return patterns.map((pattern) => ({
+    id: `pattern:${userEmail}:${pattern.id}`,
+    type: "pattern" as const,
+    userEmail,
+    assignmentId,
+    backingTable: "student_buckets" as const,
+    createdAt: pattern.createdAt ?? null,
+    updatedAt: pattern.updatedAt ?? null,
+    text: pattern.text,
+    evidenceIds: Array.isArray(pattern.evidenceIds) ? pattern.evidenceIds : [],
+    isSelected: selectedPatternId === pattern.id,
   }));
 }
 

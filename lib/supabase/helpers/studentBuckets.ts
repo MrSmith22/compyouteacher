@@ -6,6 +6,8 @@ export type StudentBucketFlowState = {
   step?: number;
   wantThirdBucket?: boolean | null;
   patternChoice?: string;
+  module3Patterns?: unknown;
+  module3SelectedPatternId?: string | null;
 };
 
 export type StudentBucketsRow = {

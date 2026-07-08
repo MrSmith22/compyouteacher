@@ -10,6 +10,7 @@ export type EvidenceClusterWriteInput = {
 };
 
 const API_PATH = "/api/module3/evidence-clusters";
+const PATTERN_API_PATH = "/api/module3/patterns";
 
 function errorMessage(error: unknown) {
   if (error && typeof error === "object" && "message" in error) {
@@ -57,6 +58,74 @@ export async function deleteEvidenceClusterArtifact({
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clusterId }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export type PatternWriteInput = {
+  id: string;
+  userEmail: string;
+  text: string;
+  evidenceIds: string[];
+  isSelected?: boolean;
+};
+
+export async function upsertPatternArtifact(input: PatternWriteInput) {
+  const res = await fetch(PATTERN_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: input.id,
+      text: input.text,
+      evidenceIds: input.evidenceIds,
+      isSelected: Boolean(input.isSelected),
+    }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function selectPatternArtifact({
+  patternId,
+}: {
+  userEmail: string;
+  patternId: string;
+}) {
+  const res = await fetch(PATTERN_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "select", patternId }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function deletePatternArtifact({
+  patternId,
+}: {
+  userEmail: string;
+  patternId: string;
+}) {
+  const res = await fetch(PATTERN_API_PATH, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patternId }),
   });
 
   try {

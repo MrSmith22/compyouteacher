@@ -15,7 +15,11 @@ import {
   ReferenceSection,
   WorkingSetSection,
 } from "@/components/module3/ModuleThreeDeskFrame";
-import { upsertEvidenceClusterArtifact } from "@/lib/artifacts/writeArtifacts";
+import {
+  selectPatternArtifact,
+  upsertEvidenceClusterArtifact,
+  upsertPatternArtifact,
+} from "@/lib/artifacts/writeArtifacts";
 
 const ASSIGNMENT = mlkAssignmentDefinition;
 const SOURCE_LABELS = {
@@ -317,6 +321,7 @@ export default function ModuleThreeV2Form({
   initialCanvasArtifacts = {
     evidenceArtifacts: [],
     evidenceClusterArtifacts: [],
+    patternArtifacts: [],
     sourceContextArtifacts: [],
     thesisArtifact: null,
     outlineArtifact: null,
@@ -360,11 +365,39 @@ export default function ModuleThreeV2Form({
   const [clusterDraftEvidenceIds, setClusterDraftEvidenceIds] = useState([]);
   const clusterReflectionRef = useRef(null);
 
-  const [patternNotices, setPatternNotices] = useState([
-    makePatternNotice("pattern-1"),
-    makePatternNotice("pattern-2"),
-  ]);
-  const [selectedPatternId, setSelectedPatternId] = useState("");
+  const [patternNotices, setPatternNotices] = useState(() => {
+    const persisted = initialCanvasArtifacts?.patternArtifacts ?? [];
+    if (!Array.isArray(persisted) || persisted.length === 0) {
+      return [makePatternNotice("pattern-1"), makePatternNotice("pattern-2")];
+    }
+
+    const mapped = persisted
+      .map((artifact) => {
+        const payload = artifact?.payload || artifact;
+        const id = payload?.id || "";
+        if (!id) return null;
+        return {
+          id,
+          text: typeof payload?.text === "string" ? payload.text : "",
+          evidenceIds: Array.isArray(payload?.evidenceIds) ? payload.evidenceIds : [],
+        };
+      })
+      .filter(Boolean);
+
+    return mapped.length > 0
+      ? mapped
+      : [makePatternNotice("pattern-1"), makePatternNotice("pattern-2")];
+  });
+  const [selectedPatternId, setSelectedPatternId] = useState(() => {
+    const persisted = initialCanvasArtifacts?.patternArtifacts ?? [];
+    if (!Array.isArray(persisted) || persisted.length === 0) return "";
+    const selected = persisted.find((artifact) => {
+      const payload = artifact?.payload || artifact;
+      return Boolean(payload?.isSelected);
+    });
+    const selectedPayload = selected?.payload || selected || null;
+    return selectedPayload?.id || "";
+  });
 
   const [ideaStatement, setIdeaStatement] = useState("");
   const [ideaWhyMatters, setIdeaWhyMatters] = useState("");
@@ -930,11 +963,34 @@ export default function ModuleThreeV2Form({
     });
   }
 
+  async function persistPattern(next) {
+    if (!userEmail) return true;
+
+    const result = await upsertPatternArtifact({
+      id: next.id,
+      userEmail,
+      text: safeText(next.text),
+      evidenceIds: Array.isArray(next.evidenceIds) ? next.evidenceIds : [],
+      isSelected: selectedPatternId === next.id,
+    });
+
+    if (!result.ok) {
+      setPersistError(result.error?.message || "Could not save your pattern.");
+      return false;
+    }
+
+    setPersistError("");
+    return true;
+  }
+
   function updatePatternNotice(patternId, patch) {
     setPatternNotices((previous) =>
-      previous.map((notice) =>
-        notice.id === patternId ? { ...notice, ...patch } : notice
-      )
+      previous.map((notice) => {
+        if (notice.id !== patternId) return notice;
+        const next = { ...notice, ...patch };
+        persistPattern(next);
+        return next;
+      })
     );
   }
 
@@ -949,16 +1005,19 @@ export default function ModuleThreeV2Form({
           ? notice.evidenceIds.filter((id) => id !== evidenceId)
           : [...notice.evidenceIds, evidenceId];
 
-        return { ...notice, evidenceIds: nextEvidenceIds };
+        const next = { ...notice, evidenceIds: nextEvidenceIds };
+        persistPattern(next);
+        return next;
       })
     );
   }
 
   function addPatternNotice() {
-    setPatternNotices((previous) => [
-      ...previous,
-      makePatternNotice(`pattern-${previous.length + 1}`),
-    ]);
+    setPatternNotices((previous) => {
+      const next = makePatternNotice(`pattern-${previous.length + 1}`);
+      persistPattern(next);
+      return [...previous, next];
+    });
   }
 
   function resetDownstreamThinking() {
@@ -1489,7 +1548,24 @@ export default function ModuleThreeV2Form({
                         type="radio"
                         name="selected-pattern"
                         checked={selectedPatternId === notice.id}
-                        onChange={() => setSelectedPatternId(notice.id)}
+                        onChange={() => {
+                          setSelectedPatternId(notice.id);
+                          if (userEmail) {
+                            selectPatternArtifact({
+                              userEmail,
+                              patternId: notice.id,
+                            }).then((result) => {
+                              if (!result.ok) {
+                                setPersistError(
+                                  result.error?.message ||
+                                    "Could not save your pattern choice."
+                                );
+                              } else {
+                                setPersistError("");
+                              }
+                            });
+                          }
+                        }}
                       />
                       Explore this one
                     </label>

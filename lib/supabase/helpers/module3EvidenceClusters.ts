@@ -82,12 +82,16 @@ export async function upsertModule3EvidenceClusters({
   userEmail: string;
   clusters: EvidenceClusterRow[];
 }) {
+  const existingRes = await getStudentBuckets({ userEmail, module: MODULE_NUMBER });
+  if (existingRes.error) return existingRes;
+  const existing = existingRes.data ?? null;
+
   return upsertStudentBuckets({
     userEmail,
     module: MODULE_NUMBER,
     buckets: clusters,
-    reflection: null,
-    flow_state: null,
+    reflection: existing?.reflection ?? null,
+    flow_state: existing?.flow_state ?? null,
   });
 }
 
@@ -99,12 +103,16 @@ export async function upsertModule3EvidenceClustersAdmin({
   userEmail: string;
   clusters: EvidenceClusterRow[];
 }) {
+  const existingRes = await getStudentBucketsAdmin({ userEmail, module: MODULE_NUMBER });
+  if (existingRes.error) return existingRes;
+  const existing = existingRes.data ?? null;
+
   return upsertStudentBucketsAdmin({
     userEmail,
     module: MODULE_NUMBER,
     buckets: clusters,
-    reflection: null,
-    flow_state: null,
+    reflection: existing?.reflection ?? null,
+    flow_state: existing?.flow_state ?? null,
   });
 }
 
