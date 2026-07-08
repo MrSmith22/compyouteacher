@@ -2,927 +2,370 @@
 
 ## Purpose
 
-This document defines the smallest viable **Artifact Engine V1** for the current Writing Processor codebase.
+This document defines the **Artifact Engine** as an educational and architectural system inside **The Writing Processor**.
 
-It is architectural only.
+It is intentionally **philosophical and architectural**.
+It does not prescribe implementation, storage, tooling, UI frameworks, or module rewrites.
 
-It does **not** propose immediate code changes, route changes, Supabase changes, helper rewrites, or module rewrites. Its purpose is to show how the current application can evolve into the future Writing Learning Engine and Thinking Canvas model with the fewest possible changes.
+The Artifact Engine exists to protect and carry forward student thinking across time—so the Writing Processor behaves like a learning environment, not a sequence of disposable screens.
 
-The core design principle is:
+This document is grounded in the project’s core reference documents:
 
-- treat existing durable module outputs as artifacts where possible
-- preserve every current module
-- preserve Module 4 and Module 5 compatibility
-- avoid a storage rewrite
-- add new storage only when a future module creates thinking objects the current system cannot represent
+- `docs/writing-learning-process-v1.md`
+- `docs/thinking-canvas-v1.md`
+- `docs/working-set-v1.md`
+- `docs/design-system-v1.md`
+- `docs/module3-v2-design.md`
 
-## Design Posture
+And it incorporates the Module 3 V2 reference artifact families:
 
-The current app already has durable thinking objects, but they are split across multiple legacy and emerging storage patterns.
+- Evidence Cluster
+- Pattern
+- Idea (including Evidence Map)
+- Claim
+- Thesis (including Proof Plan)
 
-Today there are really two parallel systems:
+---
 
-- the **current working chain** used by downstream modules: `module2_sources` -> `tchart_entries` -> `module3_responses` -> `student_buckets` -> `student_outlines` -> `student_drafts`
-- the **newer evidence path** that has started to look like the future engine: `student_observations`
+## 1. What is an Artifact?
 
-Artifact Engine V1 should therefore begin as a **normalization layer over current storage**, not as a replacement storage model.
+An **Artifact** is an **educational thinking product**.
 
-## 1. Current Thinking Objects
+It is something meaningful a student has *built* during the writing process—something that can be revisited, reflected on, extended, and used to produce later work. Artifacts are not “answers to prompts.” They are **units of cognition made durable**.
 
-### 1.1 Source information
+Artifacts are **not**:
 
-Current storage:
+- **temporary UI state** (what is highlighted, what is open, what is currently selected)
+- **navigation state** (what step the student is on, what is “visited”)
+- **validation state** (what is “complete enough” to proceed)
+- **interface controls** (filters, sort settings, toggles)
+- **implementation details** (how anything is stored, transported, or rendered)
 
-- Primary table: `module2_sources`
-- Shape: one row per student, with MLK-specific paired columns for the speech and letter
-- Important fields:
-  - `mlk_url`, `mlk_text`, `mlk_site_name`, `mlk_transcript_year`, `mlk_citation`
-  - `lfbj_url`, `lfbj_text`, `lfbj_site_name`, `lfbj_transcript_year`, `lfbj_citation`
+Artifacts should remain meaningful even if:
 
-Helper layer:
+- the interface that created them is redesigned
+- the learning flow becomes more spiral and less linear
+- new teacher views or Canvas presentations appear later
 
-- `lib/supabase/helpers/module2Sources.ts`
-- `getModule2Sources()`
-- `upsertModule2SpeechSource()`
-- `upsertModule2LetterSource()`
+**A storage record can preserve an artifact, but a storage record is not the artifact.**
+The artifact is the student’s thinking object; preservation is only the container.
 
-API routes:
+---
 
-- `app/api/module2/sources/route.js`
+## 2. Why does the Artifact Engine exist?
 
-Pages and components:
+Traditional writing software preserves **documents**.
 
-- `app/modules/2/page.js`
-- `app/modules/2/source/page.js`
-- `app/modules/2/letter/page.js`
-- `app/texts/speech/page.js`
-- `app/texts/letter/page.js`
-- `app/modules/2/tcharts/page.js`
-- `app/modules/4/page.js`
+The Writing Processor preserves **thinking**.
 
-Current role in the system:
+The platform is built around a learning process in which students build understanding through a sequence of cognitive moves: noticing, collecting, grouping, interpreting, testing, claiming, planning, drafting, and revising (`docs/writing-learning-process-v1.md`). Those moves produce real work long before a final essay exists.
 
-- Stores the student's chosen source URLs, copied source texts, site names, transcript dates, and citations
-- Feeds the student-facing saved text pages
-- Feeds original source links back into later modules
+The Artifact Engine exists so that this work is not lost or flattened into “final answers.” It ensures that student thinking:
 
-Important notes:
+- **remains durable**
+- **maintains continuity**
+- **can be carried forward into later stages**
 
-- This is durable student work and should be treated as real source-context data
-- It is **not assignment-scoped**
-- It is also **hardcoded to exactly two MLK sources**
-- Citation data already exists here, but only as fields inside a source row, not as first-class artifacts
+This supports:
 
-### 1.2 Legacy evidence and rhetorical analysis notes
+- **Student reflection**
+  - Students can revisit what they built and see how their thinking developed.
+- **Teacher understanding**
+  - Teachers can see not only the final thesis, but the evidence grouping, pattern recognition, idea testing, and support-mindedness that led there.
+- **AI coaching (eventually)**
+  - Coaching should respond to real student artifacts—idea, evidence map, claim—not guess from raw inputs.
+- **Continuity across modules**
+  - Later modules should build on earlier thinking, not ask students to recreate it.
+- **Long-term growth**
+  - The platform can preserve development across an assignment and across time: the record of a mind learning how argument is made.
 
-Current storage:
+---
 
-- Primary table: `tchart_entries`
-- Shape: one row per student, appeal, and source type
-- Important fields:
-  - `category` for `ethos` / `pathos` / `logos`
-  - `type` for `speech` / `letter`
-  - `quote`
-  - `observation`
-  - `letter_url`
+## 3. Principles
 
-Helper layer:
+### Artifacts represent thinking, not software
+Artifacts are defined by educational meaning. They do not exist “because the UI has a field.”
 
-- `lib/supabase/helpers/tchartEntries.ts`
-- `getTChartEntries()`
-- `getTChartEntriesAdmin()`
-- `upsertTChartEntries()`
+### Every artifact must have educational meaning
+If an artifact does not deepen thinking *or* enable later work, it should not exist.
 
-API routes:
+### Artifacts persist across modules
+Artifacts are assignment-level thinking objects. Modules are the current learning sequence; artifacts are the student’s durable work within it.
 
-- `app/api/tchart/save/route.js`
+### Artifacts must be understandable outside their original interface
+A teacher, a future module, or a future Canvas surface should be able to interpret an artifact without recreating the original screen.
 
-Pages and components:
+### Students own artifacts
+Artifacts are the student’s intellectual work. The system preserves it; it does not replace it.
 
-- `app/modules/2/tcharts/page.js`
-- `components/ModuleThreeForm.js`
-- `app/modules/4/page.js`
-- `components/ModuleFour.js`
-- `components/ModuleFive.js`
-- `components/ModuleSix.js`
+### AI and teachers should consume artifacts, not raw forms
+The artifact vocabulary is the shared contract for interpretation, support, feedback, and continuity.
 
-Current role in the system:
+### Temporary work should not become artifacts automatically
+Not every interaction deserves durability. Artifacts emerge at meaningful boundaries: when the student has made a thinking move worth preserving.
 
-- This is the **actual evidence store consumed by current downstream modules**
-- Module 2 saves quote-plus-explanation analysis into this table
-- Module 3 reuses it as scaffolded evidence for thesis work
-- Module 4 links buckets back to these rows through `evidenceKeys`
-- Module 5 seeds outline points from these rows through `student_buckets`
-- Module 6 exposes them in the side panel while drafting
+### Artifact identity must be stable
+Artifacts can be revised, but they should remain recognizable as “my idea,” “my claim,” “my thesis.”
 
-Important notes:
+### One preservation architecture
+The system should converge on one conceptual preservation pipeline so durability is consistent and predictable.
 
-- The `observation` field is overloaded; it can contain a combined explanation, audience effect, and purpose connection separated by markers
-- This table behaves like a legacy evidence system, but it is still the compatibility backbone for Modules 3-6
-- It is **not assignment-scoped**
-- It does not explicitly know about sources beyond `type`
+### Backward compatibility is a strategy, not a permanent identity
+When compatibility is needed, it should be explicit and bounded. The educational meaning stays primary.
 
-### 1.3 Guided observations
+---
 
-Current storage:
+## 4. Current Artifact Families (Module 3 V2)
 
-- Primary table: `student_observations`
-- Shape: one row per saved guided observation
-- Important fields:
-  - `assignment_id`
-  - `source_id`
-  - `source_title`
-  - `source_type`
-  - `quote`
-  - `student_observation`
-  - `rhetorical_strategy`
-  - `audience_effect`
-  - `purpose_connection`
-  - `essential_question_connection`
-  - `observation_stage`
-  - `teacher_guided`
-  - `used_in_thesis`
-  - `used_in_paragraph`
+This section defines the Module 3 artifact families as educational objects.
 
-Helper layer:
+### Evidence Cluster
 
-- `lib/supabase/helpers/studentObservations.ts`
-- `getStudentObservations()`
-- `getStudentObservationBySourceId()`
-- `saveStudentObservation()`
-- `updateStudentObservation()`
-- `deleteStudentObservation()`
+- **Educational purpose**
+  - Turns a flat evidence library into *thinkable groups*. Grouping is the first act of synthesis.
+- **What it represents**
+  - A named set of evidence items the student believes belong together for interpretive work.
+- **How it builds on previous artifacts**
+  - Builds from evidence the student has already collected.
+- **What later modules may use it for**
+  - Provides a bounded support pool for pattern discovery, idea testing, and later organization.
 
-API routes:
+### Pattern
 
-- `app/api/module2/observations/guided/route.js`
+- **Educational purpose**
+  - Moves the student from “I have quotes” to “I notice a relationship.”
+- **What it represents**
+  - A student-authored description of what repeats, contrasts, develops, or tensions across a cluster.
+- **How it builds on previous artifacts**
+  - Emerges from evidence inside a chosen cluster; should remain traceable to evidence.
+- **What later modules may use it for**
+  - Provides interpretive direction for idea-building and teacher visibility into the student’s reasoning move.
 
-Pages and components:
+### Idea (including Evidence Map)
 
-- `app/modules/2/observations/guided/page.js`
+- **Educational purpose**
+  - Creates a tentative interpretation worth testing, and teaches support-mindedness before claims.
+- **What it represents**
+  - A provisional meaning statement and why it matters, together with structured evidence connections the student authored.
+- **How it builds on previous artifacts**
+  - Develops from a selected pattern and its supporting evidence.
+- **What later modules may use it for**
+  - Carries forward the interpretive core behind the claim and thesis; supports proof planning and revision alignment.
 
-Current role in the system:
+**Evidence Map (inside Idea)**
 
-- Stores guided passage-by-passage evidence observations tied to assignment and source
-- This is the most artifact-like evidence model in the current app
+The evidence map is the student’s explicit work of explaining how evidence supports, complicates, or sharpens the idea. It belongs with the idea because it is **idea-testing work**, not a separate thinking product that needs its own independent identity in V1.
 
-Important notes:
+### Claim
 
-- This table already looks much closer to a future `evidence` artifact store than `tchart_entries`
-- It is assignment-aware and source-aware
-- However, it is **not yet the evidence system that later modules consume**
-- The `used_in_thesis` and `used_in_paragraph` fields suggest planned relationship tracking, but they are not yet the active downstream mechanism
+- **Educational purpose**
+  - Converts supported thinking into a defensible point the student can argue.
+- **What it represents**
+  - A working claim and a rationale for why current evidence supports it.
+- **How it builds on previous artifacts**
+  - Develops from an idea that has been tested against evidence.
+- **What later modules may use it for**
+  - Anchors organization, drafting, revision, and teacher review of argument quality.
 
-### 1.4 Module 3 reasoning, structure choice, and thesis
+### Thesis (including Proof Plan)
 
-Current storage:
+- **Educational purpose**
+  - Makes the argument portable: one clear sentence that guides the essay, plus a sketch of proof obligations.
+- **What it represents**
+  - The thesis statement and a proof plan: up to three main directions the essay must prove.
+- **How it builds on previous artifacts**
+  - Develops from the claim; it is a sharpening, not a restart.
+- **What later modules may use it for**
+  - Drives organization choices, paragraph planning, outlining, drafting alignment, and revision targets.
 
-- Primary table: `module3_responses`
-- Shape: one row per student
-- Important fields used in the app:
-  - `responses`
-  - `thesis`
-  - `structure_choice`
-  - teacher-facing fields such as `teacher_comment` and `teacher_score`
+**Proof Plan (inside Thesis)**
 
-Helper layer:
+The proof plan belongs inside the thesis artifact because it is the thesis’s supporting structure: *If this thesis is true, what must the essay establish?* In V1, it is not treated as an independent artifact family.
 
-- No dedicated helper file currently exists
-- Components read and write this table directly through Supabase
+---
 
-API routes:
+## 5. Artifact Relationships
 
-- No dedicated Module 3 artifact route currently exists
+The Artifact Engine models a cognitive chain, not just a collection of saved objects:
 
-Pages and components:
+Evidence  
+↓  
+Evidence Cluster  
+↓  
+Pattern  
+↓  
+Idea (with Evidence Map)  
+↓  
+Claim  
+↓  
+Thesis (with Proof Plan)
 
-- `app/modules/3/page.js`
-- `components/ModuleThreeForm.js`
-- `app/modules/4/page.js`
-- `components/ModuleFive.js`
-- `app/dashboard/components/StudentResponses.js`
+### Why Evidence Map belongs to the Idea
 
-Current role in the system:
+Evidence mapping is the act of testing an idea against evidence. Keeping it inside the idea preserves the meaning: *this idea is supported (or complicated) by these connections in the student’s words*.
 
-- Stores four short grounding answers about audience and purpose
-- Stores twelve appeal-analysis responses in a positional `responses` array
-- Stores the student's selected organization pattern in `structure_choice`
-- Stores the final thesis statement in `thesis`
+### Why Proof Plan belongs to the Thesis
 
-Important notes:
+Proof planning is the thesis’s forward-looking structure. Keeping it inside the thesis preserves the meaning: *this plan exists to establish this thesis*.
 
-- This table stores several different kinds of thinking in one coarse row
-- The `responses` array is positional and module-specific, not artifact-shaped
-- The thesis is durable and reusable
-- The rest of the row is mostly compatibility scaffolding for the current Module 3 flow
+---
 
-### 1.5 Buckets and paragraph planning
+## 6. What should become an Artifact?
 
-Current storage:
+Artifacts should be created only when a student has produced a **meaningful thinking product**.
 
-- Primary table: `student_buckets`
-- Legacy fallback still read in Module 5: `bucket_groups`
-- Important fields in `student_buckets`:
-  - `buckets`
-  - `reflection`
-  - `flow_state`
+Decision rules:
 
-Bucket item shape in practice:
+- **Can it stand on its own?**
+  - Would it make sense to a teacher outside the interface that created it?
+- **Does it represent meaningful thinking?**
+  - Is it a cognitive move (pattern recognition, interpretation, proof planning), not just interaction?
+- **Will a teacher want to see it?**
+  - Does it reveal reasoning rather than compliance?
+- **Will AI benefit from it?**
+  - Would coaching become more grounded and more honest because it can reference the artifact?
+- **Will later modules build on it?**
+  - Does it protect continuity and reduce re-creation of thinking?
+- **Is it stable enough to be durable?**
+  - Some work is exploratory and fluid; durability should preserve growth without fossilizing noise.
 
-- `claim`
-- `reasoning`
-- `evidenceKeys`
-- `evidenceSnippets`
-- `paragraphRole`
-- `suggestionId`
+Not every click deserves permanence. Artifacts are the student’s growing body of work—not the record of every interaction.
 
-Helper layer:
+---
 
-- `lib/supabase/helpers/studentBuckets.ts`
-- `getStudentBuckets()`
-- `upsertStudentBuckets()`
+## 7. Lifecycle
 
-API routes:
+Artifacts have a recognizable lifecycle across the platform:
 
-- `app/api/module4/buckets/route.js`
+- **Create**
+  - The student produces a new thinking object (a cluster, a pattern, an idea).
+- **Revise**
+  - The artifact evolves as thinking improves. Revision is expected and educational.
+- **Preserve**
+  - The artifact becomes durable so it cannot be lost to time, navigation, or device.
+- **Restore**
+  - The system brings artifacts back into the student’s workspace so they continue thinking, not restart.
+- **Consume**
+  - Later modules and teacher views draw on artifacts as inputs to new work.
+- **Extend**
+  - Later stages add structure (for example, moving from proof directions into paragraph planning).
+- **Archive**
+  - Artifacts remain part of the assignment record even when not active.
 
-Pages and components:
+A key requirement: **artifacts evolve without losing identity**. The student still recognizes “my idea” and “my claim,” even as the wording improves.
 
-- `app/modules/4/page.js`
-- `components/ModuleFour.js`
-- `components/ModuleFive.js`
-- `lib/module4/mapStudentBucketsToOutline.ts`
+---
 
-Current role in the system:
+## 8. Preservation Philosophy
 
-- Stores paragraph-level planning work for Module 4
-- Connects paragraph ideas to selected evidence through `evidenceKeys`
-- Carries module flow state such as step position and pattern choice
+The Artifact Engine relies on a conceptual separation between:
 
-Important notes:
+- the **learning surface** where students think
+- the **artifact boundary** where meaningful thinking products become durable
+- the **restoration** of durable thinking back into new learning moments
 
-- This is already very close to a `paragraph_plan` artifact
-- The `flow_state.patternChoice` field is a weak signal of pattern thinking, but it is not a durable evidence-backed `pattern` artifact
-- Relationships to thesis and evidence are mostly implicit except for `evidenceKeys`
+This separation matters because educational meaning must outlive any one screen or workflow. The system should be able to:
 
-### 1.6 Outline
+- protect student thinking from being lost
+- carry it forward into later stages
+- support teacher views and future coaching without reinterpreting raw UI state
+- allow learning surfaces to evolve while preserving the same underlying thinking products
 
-Current storage:
+Durability is an educational promise: *your thinking will still be here when you return, and future work will grow from it*.
 
-- Primary table: `student_outlines`
-- Important fields used in the app:
-  - `outline`
-  - `finalized`
+---
 
-Outline shape in practice:
+## 9. Future Modules (4–9)
 
-- `thesis`
-- `body` as ordered paragraph cards
-- `conclusion`
+Modules 4–9 should **consume existing artifacts** rather than recreate student thinking.
 
-Helper layer:
+Guiding expectations:
 
-- `lib/supabase/helpers/studentOutlines.ts`
-- `getStudentOutline()`
-- `upsertStudentOutline()`
+- Later modules should feel like **building on a foundation**, not opening new worksheets.
+- Organization should grow from the thesis and its proof obligations.
+- Drafting should grow from plans rather than from memory.
+- Revision should reconnect writing back to the thinking chain: thesis → proof plan → paragraph plans → evidence.
 
-API routes:
+The Artifact Engine is the student’s accumulating body of work. Later stages should honor it by reusing it.
 
-- `app/api/outlines/route.js`
+---
 
-Pages and components:
+## 10. Design Principles (for future development)
 
-- `app/modules/5/page.js`
-- `components/ModuleFive.js`
-- `components/ModuleSix.js`
-- `lib/progression/guards.ts`
-- `app/modules/10/student/[email]/page.js`
+Future work should preserve these platform-level constraints:
 
-Current role in the system:
+- **Educational clarity over technical convenience**
+- **Cognitive continuity across modules**
+- **Stable artifact identities**
+- **One preservation architecture**
+- **Backward compatibility where necessary**
+- **No new artifact families without educational justification**
+- **Working Set discipline**
+  - Editing experiences should keep a bounded desk and a quieter shelf (`docs/working-set-v1.md`), even as artifacts become richer.
 
-- Stores the student's ordered essay outline
-- Preserves thesis, paragraph order, supporting points, and conclusion planning
-- Acts as the gate into Module 6 when finalized
+---
 
-Important notes:
+## 11. Artifact Engine vs. Thinking Canvas
 
-- This is a strong `outline` artifact candidate
-- It is durable, reusable, and downstream-visible
-- It is still module-scoped rather than assignment-scoped
-- The helper layer currently reads and writes the outline JSON but does not fully reflect the `finalized` behavior that the rest of the app expects
+The **Thinking Canvas** and the **Artifact Engine** are complementary layers.
+They are related, but they are not the same thing.
 
-### 1.7 Drafting, revision, and final text
+### Thinking Canvas
 
-Current storage:
+The Thinking Canvas is the **educational workspace students experience**.
 
-- Primary table: `student_drafts`
-- Important fields used in the app:
-  - `sections`
-  - `full_text`
-  - `final_text`
-  - `locked`
-  - `revised`
-  - `final_ready`
+It:
 
-Helper layer:
+- organizes thinking into a coherent learning journey
+- presents artifacts in forms students can understand
+- supports bounded attention through **Working Sets** and **Reference Sets**
+- includes Notebook views, instructional guidance, and other learning surfaces
+- may include temporary instructional context that is helpful in the moment but is **not itself an artifact**
 
-- `lib/supabase/helpers/studentDrafts.ts`
-- `getStudentDraft()`
-- `getFinalTextForExport()`
+In other words: the Canvas is where thinking happens, where attention is managed, and where progress is made visible.
 
-API routes:
+### Artifact Engine
 
-- No dedicated student draft write route; Modules 6-8 write directly to Supabase
-- Teacher summary route reads Module 8 final text: `app/api/teacher/student/route.js`
+The Artifact Engine is the **durable educational memory**.
 
-Pages and components:
+It:
 
-- `app/modules/6/page.js`
-- `components/ModuleSix.js`
-- `app/modules/7/page.tsx`
-- `components/ModuleSeven.js`
-- `app/modules/8/page.js`
-- `components/ModuleEight.js`
-- `app/modules/9/page.js`
-- `components/ModuleNine.js`
-- `app/modules/10/student/[email]/page.js`
+- preserves meaningful thinking products so they can be carried forward
+- is independent of any particular interface or workflow
+- allows teacher views, AI coaching, future modules, and future Canvas designs to reuse the same student thinking
+- protects the continuity of student work even if the UI changes completely
 
-Current role in the system:
+In other words: the Artifact Engine is what makes thinking durable and reusable across time.
 
-- Module 6 stores section-based drafting work and combined `full_text`
-- Module 7 stores revised text, plus optional `final_text` when revision is finalized
-- Module 8 stores a locked final version for polish
-- Module 9 exports the best available final text from Module 7 or falls back to Module 6
+### Conclusion
 
-Important notes:
+The Thinking Canvas is **one way of presenting artifacts**.
 
-- This is clearly a draft artifact family
-- The current granularity is coarse: rows are module-level, not section-level artifacts
-- Revision work is stored mainly as overwritten draft text, not as separate `revision_note` objects
+The Artifact Engine is the system that **preserves them**.
 
-### 1.8 Non-canonical local fallback storage
+Either can evolve without changing the other.
 
-The current app also stores some Module 2 work in user-scoped `localStorage` as a fallback:
+---
 
-- source gathering values on `app/modules/2/source/page.js` and `app/modules/2/letter/page.js`
-- T-chart values on `app/modules/2/tcharts/page.js`
+## 12. Vision
 
-This should not be treated as Artifact Engine storage. It is a resilience layer, not a system of record.
+### The Artifact Engine as the Memory of the Writing Processor
 
-## 2. Artifact Candidates
+The Thinking Canvas is what students may eventually *see* as a unified workspace.
 
-### `student_observations`
+The Artifact Engine is what allows the Writing Processor to **remember**.
 
-Recommendation:
+It preserves the student’s thinking as durable, connected educational objects—so the platform can:
 
-- **Yes. This should become the canonical `evidence` artifact source over time.**
+- carry thinking forward into later modules
+- protect the student’s reasoning path from being lost or flattened
+- support reflection and teacher visibility
+- ground future coaching in authentic student work
+- ensure writing remains the product of thinking rather than the replacement for it
 
-Why:
+In short:
 
-- It already has one-row-per-observation shape
-- It is assignment-aware
-- It is source-aware
-- It separates quote, observation, audience effect, purpose connection, and essential-question connection cleanly
+- The **Thinking Canvas** is a student-facing continuity surface.
+- The **Artifact Engine** is the underlying continuity system.
 
-Why not use it as the only evidence source immediately:
-
-- Current Modules 3-6 do not consume it
-- Replacing `tchart_entries` immediately would break the current compatibility chain
-
-V1 posture:
-
-- Treat `student_observations` as the future-facing evidence artifact model
-- Keep `tchart_entries` active until downstream modules are refactored
-
-### `tchart_entries`
-
-Recommendation:
-
-- **No as a canonical artifact store. Yes as a compatibility evidence projection.**
-
-Why:
-
-- It is heavily reused downstream today
-- It already provides evidence rows that later modules know how to consume
-
-Why not make it the long-term artifact model:
-
-- It is not assignment-scoped
-- It collapses several concepts into a single row
-- It ties evidence to fixed MLK appeal categories and source types
-- It is shaped like a specific module worksheet, not a reusable engine primitive
-
-V1 posture:
-
-- Keep it as a compatibility read/write layer for current modules
-- Do not center the future artifact vocabulary on it
-
-### `module2_sources`
-
-Recommendation:
-
-- **Partially. Treat it as a temporary source-context and citation backing store, not as a clean one-artifact-per-row model.**
-
-Why:
-
-- It contains durable student source selection work
-- It contains copied source text students reuse across later modules
-- It already stores citation strings
-
-Why it should not become the permanent artifact model as-is:
-
-- One row contains two hardcoded sources
-- The schema is MLK-specific
-- It is not assignment-scoped
-- It mixes source metadata, source text, and citation output in one structure
-
-V1 posture:
-
-- Recognize the data as valid artifact content
-- Do not define `module2_sources` itself as the long-term generic artifact shape
-
-### `module3_responses`
-
-Recommendation:
-
-- **Partially. Keep the row as a compatibility projection; treat only some contents as artifact-worthy.**
-
-What should count:
-
-- `thesis`
-- possibly `structure_choice` as a weak bridge toward proof planning
-
-What should not count as first-class artifacts:
-
-- the entire positional `responses` array
-
-Why:
-
-- The thesis is durable and reused later
-- The row is currently the compatibility surface that Module 4 and Module 5 still expect
-
-Why not make the full row the future artifact model:
-
-- It bundles many distinct thinking moves into one module-specific record
-- The meaning of the `responses` array is encoded by index
-
-V1 posture:
-
-- Keep `module3_responses` as the compatibility record for current modules
-- Treat only its durable outputs as future artifact candidates
-
-### `student_buckets`
-
-Recommendation:
-
-- **Yes. This should become the first practical `paragraph_plan` artifact source.**
-
-Why:
-
-- It already stores paragraph claims, reasoning, paragraph roles, and linked evidence
-- It already supports downstream reuse in Module 5
-
-Why it is not yet the full future model:
-
-- It is still module-shaped
-- It stores flow UI state beside durable planning content
-- It does not explicitly relate to thesis, claim, or proof-plan ids
-
-V1 posture:
-
-- Treat the `buckets[*]` items as inferred paragraph-plan artifacts
-
-### `student_outlines`
-
-Recommendation:
-
-- **Yes. This is already an `outline` artifact.**
-
-Why:
-
-- It is durable
-- It is user-authored
-- It is reused by the drafting module
-- It preserves order and structure
-
-V1 posture:
-
-- Treat it as a first-class existing artifact without changing its storage
-
-### `student_drafts`
-
-Recommendation:
-
-- **Yes. This is already a draft artifact family, but at coarse granularity.**
-
-Why:
-
-- It stores the actual student draft text
-- It preserves stages of drafting, revision, and finalization
-- It feeds export and teacher review flows
-
-Why it is only a partial match for the future model:
-
-- It stores module-level text blobs rather than section-level durable objects
-- Module 7 revision work is mostly text overwrite, not revision-note tracking
-
-V1 posture:
-
-- Treat it as an existing draft artifact store
-- Do not try to force section-level normalization yet
-
-### `student_exports`
-
-Recommendation:
-
-- **No for Artifact Engine V1.**
-
-Why:
-
-- It is publication/output tracking, not student thinking development
-- It belongs more naturally to export/submission infrastructure than to the core artifact engine
-
-## 3. Missing Artifact Types
-
-### `assignment_understanding`
-
-Current status:
-
-- No durable assignment-understanding artifact currently exists
-
-Natural fit:
-
-- A future Module 1 output, likely tied to assignment framing, prompt understanding, and learning goal understanding
-
-### `pattern`
-
-Current status:
-
-- No first-class pattern artifact exists
-- The closest current signal is `student_buckets.flow_state.patternChoice`, but that is module flow state, not a durable evidence-backed pattern record
-
-Natural fit:
-
-- The first screens of Module 3 V2, after reviewing the evidence library
-
-### `idea`
-
-Current status:
-
-- No first-class idea artifact exists
-
-Natural fit:
-
-- Module 3 V2 after selecting one pattern worth exploring
-
-### `evidence_map`
-
-Current status:
-
-- No first-class evidence-to-idea or evidence-to-claim map exists
-- The closest current signal is `student_buckets.evidenceKeys`, but that only links paragraph planning to legacy evidence rows
-
-Natural fit:
-
-- Module 3 V2 between exploratory idea formation and claim development
-
-### `claim`
-
-Current status:
-
-- No first-class claim artifact exists
-- The current app jumps from Module 2 evidence work into a Module 3 thesis record
-
-Natural fit:
-
-- Module 3 V2 immediately before thesis writing
-
-### `proof_plan`
-
-Current status:
-
-- No clean proof-plan artifact exists
-- Current approximations:
-  - `module3_responses.structure_choice`
-  - Module 4 paragraph scaffolding
-
-Natural fit:
-
-- End of Module 3 V2 and beginning of Module 4
-
-### `paragraph_plan`
-
-Current status:
-
-- Partially exists already through `student_buckets`
-- Further formalized in `student_outlines`
-
-Natural fit:
-
-- Existing Module 4 and Module 5 outputs
-
-### `revision_note`
-
-Current status:
-
-- No first-class revision-note artifact exists
-- Revision is mostly represented by changed draft text and `final_ready` flags
-
-Natural fit:
-
-- Module 7, attached to draft sections or revision passes
-
-### `graphic_organizer`
-
-Current status:
-
-- No reusable graphic-organizer artifact exists
-- The current app has fixed organizer surfaces instead:
-  - the Module 2 T-chart
-  - the Module 4 bucket workflow
-
-Natural fit:
-
-- As an optional artifact family for evidence comparison and planning, but not necessary for the smallest V1
-
-### `citation`
-
-Current status:
-
-- Citation content already exists in `module2_sources`
-- It does not exist as a first-class artifact type
-
-Natural fit:
-
-- Either as part of a future source artifact model or as a small standalone artifact if assignments later require multiple citations, versions, or citation checks
-
-## 4. Relationship Opportunities
-
-### Relationships already explicit in current storage
-
-- `student_observations` already explicitly belongs to an assignment through `assignment_id`
-- `student_observations` already explicitly belongs to a source through `source_id` and `source_type`
-- `student_buckets.buckets[*].evidenceKeys` already explicitly point back to `tchart_entries`
-- `student_outlines.finalized` and `student_drafts.locked` already express stage transitions used by progression gates
-
-### Relationships already present, but only implicitly
-
-- Source information in `module2_sources` belongs to the current assignment only by convention, not by assignment key
-- `tchart_entries` belongs to an assignment, source, and appeal only by `user_email`, `type`, and `category`
-- The Module 3 thesis belongs to Module 2 evidence only because the module sequence reuses it, not because the row links to evidence ids
-- `student_buckets` belongs to the thesis only because Module 4 loads `module3_responses` and `student_buckets` together for the same user
-- `student_outlines` belongs to Module 4 buckets because it is imported from them, not because it keeps explicit bucket ids
-- Draft sections in Module 6 belong to outline sections only by array position
-- Module 7 revision text belongs to the Module 6 draft only by module sequence and user identity
-
-### Relationships that should become explicit later
-
-- evidence -> pattern
-- evidence -> idea
-- evidence -> claim
-- idea -> claim
-- claim -> thesis
-- thesis -> proof_plan
-- proof_plan -> paragraph_plan
-- paragraph_plan -> draft_section
-- draft_section -> revision_note
-
-### Practical V1 relationship rule
-
-Artifact Engine V1 should **derive relationships from current data wherever possible** instead of introducing a relationship table immediately.
-
-For the current app, the safest derived links are:
-
-- assignment link from `student_observations.assignment_id`
-- source link from `student_observations.source_id` and `module2_sources`
-- evidence link from `student_buckets.evidenceKeys`
-- thesis-to-outline link from shared student/module context and embedded outline thesis
-- outline-to-draft link from module sequence and section order
-
-## 5. Existing Helper Layer
-
-### What the helper layer already does well
-
-The helper layer under `lib/supabase/helpers` already follows a useful pattern:
-
-- one helper file per data domain
-- small, direct `get...` and `upsert...` functions
-- low ceremony
-- clear call sites from routes and pages
-
-This pattern is already suitable for an artifact adapter layer.
-
-### What the helper layer can support without redesign
-
-The current pattern can naturally support:
-
-- `readArtifact()`
-- `listArtifacts()`
-- `createArtifact()`
-- `updateArtifact()`
-
-But only if those functions are implemented as a **dispatcher over existing domain helpers**, not as a demand for one universal storage schema immediately.
-
-In other words:
-
-- `readArtifact("outline", ...)` can delegate to `getStudentOutline()`
-- `readArtifact("paragraph_plan", ...)` can delegate to `getStudentBuckets()`
-- `readArtifact("evidence", ...)` can delegate to `getStudentObservations()` or to a legacy `tchart_entries` adapter
-- `createArtifact("outline", ...)` can delegate to `upsertStudentOutline()`
-- `updateArtifact("paragraph_plan", ...)` can delegate to `upsertStudentBuckets()`
-
-### What makes a fully generic layer awkward today
-
-- Not all current storage domains have helpers; `module3_responses` is still queried directly
-- Some helpers use the browser Supabase client, some use the admin client
-- Payload shapes vary widely across tables
-- Many components still query Supabase directly instead of going through helpers
-- `studentDrafts.ts` is mostly read-oriented, not a complete upsert boundary
-- `studentOutlines.ts` does not currently capture all of the `finalized` behavior used elsewhere in the app
-- Legacy tables are not consistently assignment-scoped
-
-### Helper-layer conclusion
-
-The current helper pattern is good enough for Artifact Engine V1 **if V1 is an adapter layer**, not a schema-first rewrite.
-
-## 6. Recommended V1
-
-### Recommendation summary
-
-The smallest possible Artifact Engine V1 should be:
-
-- an **artifact vocabulary**
-- an **adapter layer over existing tables**
-- a **derived relationship model**
-- a **compatibility-first posture**
-
-It should not begin with a new database-centered abstraction.
-
-### Recommended V1 artifact map
-
-Use the current system as the backing store for these artifact types:
-
-- `evidence`
-  - future-facing canonical source: `student_observations`
-  - current compatibility source: `tchart_entries`
-- `source_context`
-  - temporary backing store: `module2_sources`
-- `citation`
-  - temporary backing store: `module2_sources`
-- `thesis`
-  - backing store: `module3_responses.thesis`
-- `paragraph_plan`
-  - backing store: `student_buckets.buckets[*]`
-- `outline`
-  - backing store: `student_outlines.outline`
-- `draft_section` or `draft`
-  - backing store: `student_drafts`
-
-### Recommended V1 compatibility rule
-
-For the current application:
-
-- do **not** replace `tchart_entries`
-- do **not** replace `module3_responses`
-- do **not** replace `student_buckets`
-- do **not** replace `student_outlines`
-- do **not** replace `student_drafts`
-
-Instead:
-
-- name them in artifact vocabulary
-- read them through an artifact-aware adapter later
-- keep legacy module reads intact until each downstream module is refactored
-
-### Recommended V1 write rule
-
-Only add new write storage when a module needs to create an artifact the current system truly cannot express.
-
-That means:
-
-- no new table is required just to label current objects as artifacts
-- the first likely new write need is Module 3 V2 for `pattern`, `idea`, `evidence_map`, `claim`, and `proof_plan`
-
-### Recommended V1 relationship rule
-
-Do not introduce a dedicated relationship table in the first implementation phase.
-
-Instead:
-
-- derive current relationships from existing fields and module sequence
-- reserve explicit relationship storage for the first truly new artifacts created by Module 3 V2
-
-### Recommended V1 migration posture
-
-The safest rollout path is:
-
-1. Define the artifact vocabulary and mapping over existing tables
-2. Keep all current module reads and writes working exactly as they do now
-3. Treat `student_observations` as the preferred long-term evidence shape
-4. Preserve `tchart_entries` as the compatibility evidence source until Modules 3-6 are refactored
-5. Preserve `module3_responses` as the compatibility handoff to Modules 4 and 5
-6. Introduce new storage only for missing Module 3 V2 artifacts
-
-### Why this is the right V1
-
-This approach:
-
-- changes almost nothing
-- introduces almost no duplication beyond unavoidable compatibility overlap
-- preserves every existing module
-- preserves Module 4 and Module 5 compatibility
-- requires the fewest database changes possible
-
-## 7. Risks
-
-### 7.1 Most legacy thinking tables are not assignment-scoped
-
-This is the largest long-term risk.
-
-Current risk areas:
-
-- `module2_sources`
-- `tchart_entries`
-- `module3_responses`
-- `student_buckets`
-- `student_outlines`
-- `student_drafts`
-
-All of these are effectively keyed by student and module, not by assignment instance.
-
-If this is ignored, the app will remain tied to one active assignment per student and later artifact reuse across assignments will be much harder.
-
-### 7.2 There are already two evidence systems
-
-Current evidence is split between:
-
-- `tchart_entries`
-- `student_observations`
-
-If this split continues without a clear V1 posture, evidence migration later will become confusing and expensive.
-
-### 7.3 `module2_sources` is structurally assignment-specific
-
-The current source row is hardcoded around exactly two MLK texts.
-
-That is acceptable for today, but it cannot be the generic long-term source artifact model.
-
-### 7.4 `module3_responses` is too coarse and too positional
-
-A single row currently stores:
-
-- audience grounding
-- purpose grounding
-- twelve appeal explanations
-- structure choice
-- thesis
-
-The positional `responses` array is especially brittle and should not become the long-term artifact representation.
-
-### 7.5 Relationships are mostly inferred, not durable
-
-Many current links are based on:
-
-- shared user identity
-- module number
-- section order
-- import sequence
-
-This works today, but it limits teacher visibility, relationship reuse, and future AI coaching.
-
-### 7.6 Draft revision is stored as text overwrite instead of revision objects
-
-Module 7 produces real revision work, but that work is not stored as explicit `revision_note` artifacts.
-
-If this is ignored too long, the app will lose valuable visibility into how revision happened.
-
-### 7.7 Helper boundaries are incomplete
-
-The helper pattern is good, but it is not universal yet.
-
-Current risks include:
-
-- direct Supabase calls in components
-- missing Module 3 helper coverage
-- partial helper behavior around outline finalization and draft updates
-
-If a generic artifact layer is added before those boundaries are respected, the result could become confusing rather than simplifying.
-
-### 7.8 Module numbers currently stand in for stage identity
-
-Today the module sequence is the main organizing principle.
-
-That is acceptable for the current app, but artifact relationships should eventually rely more on assignment- and artifact-level identities than on module numbers alone.
-
-## Closing Recommendation
-
-Artifact Engine V1 should begin as a **compatibility-first artifact adapter over current storage**.
-
-The correct first move is not to replace tables. The correct first move is to:
-
-- recognize which current objects are already artifacts
-- define which current rows are only compatibility projections
-- preserve the working module chain
-- reserve new storage for the first future module outputs that cannot be represented cleanly today
-
-That gives the Writing Processor a realistic bridge from the current module application into the future Writing Learning Engine without breaking the application that already works.
+The Writing Processor becomes a learning environment when thinking accumulates, remains usable, and stays connected over time. The Artifact Engine is the architecture that makes that possible.
