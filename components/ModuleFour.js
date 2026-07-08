@@ -15,6 +15,7 @@ import {
   resolveSelectedPattern,
 } from "@/lib/module4/module4InstructionalLogic";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
+import { upsertParagraphPlanArtifact } from "@/lib/artifacts/writeArtifacts";
 import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleFourReferenceShelf from "@/components/module4/ModuleFourReferenceShelf";
@@ -1062,8 +1063,12 @@ export default function ModuleFour({
   }, [buckets, wantThirdBucket]);
 
   const saveToApi = useCallback(async () => {
+    const email = session?.user?.email;
+    if (!email) return;
+
     const slice = persistSlice();
-    const payload = {
+    const result = await upsertParagraphPlanArtifact({
+      userEmail: email,
       buckets: enrichBucketsForSave(slice, evidenceByKey),
       reflection,
       flow_state: {
@@ -1072,22 +1077,13 @@ export default function ModuleFour({
         wantThirdBucket,
         patternChoice,
       },
-    };
+    });
 
-    try {
-      const res = await fetch("/api/module4/buckets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        console.warn("Module 4 save failed:", json);
-      }
-    } catch (e) {
-      console.warn("Module 4 save error:", e);
+    if (!result.ok) {
+      console.warn("Module 4 save failed:", result.error);
     }
   }, [
+    session?.user?.email,
     flowStep,
     wantThirdBucket,
     patternChoice,
