@@ -10,12 +10,14 @@ module.exports = {
         // Base Palette (keep these)
         "theme-red": "#A60204",
         "theme-orange": "#D96704",
+        "theme-gold": "#B08A00",
         "theme-green": "#377303",
         "theme-blue": "#1B406D",
         "theme-dark": "#282A30",
         "theme-light": "#F5F5F5",
         "theme-dark-blue": "#0D3B66",
         "theme-deep-green": "#0A4F47",
+        "theme-muted": "#6B7280",
 
         // Semantic Roles (NEW)
         "surface": "#FFFFFF",

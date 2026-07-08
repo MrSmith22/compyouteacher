@@ -1,6 +1,7 @@
 // app/layout.js
 import "./globals.css";
 import { Inter } from "next/font/google";
+import AppLayoutShell from "@/components/layout/AppLayoutShell";
 import SessionProvider from "./SessionProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -18,8 +19,8 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
       >
         <SessionProvider>
-          <main className="min-h-screen flex flex-col items-center justify-start p-6 sm:p-10">
-            <div className="w-full max-w-3xl">{children}</div>
+          <main className="min-h-screen">
+            <AppLayoutShell>{children}</AppLayoutShell>
           </main>
         </SessionProvider>
       </body>

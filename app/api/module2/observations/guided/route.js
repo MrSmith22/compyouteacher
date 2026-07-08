@@ -8,13 +8,12 @@ import {
   updateStudentObservation,
 } from "@/lib/supabase/helpers/studentObservations";
 import {
-  MLK_ASSIGNMENT_ID,
-  mlkRhetoricalAnalysisAssignment,
+  mlkAssignmentDefinition,
 } from "@/lib/assignments";
 
-const ASSIGNMENT_ID = MLK_ASSIGNMENT_ID;
+const ASSIGNMENT_ID = mlkAssignmentDefinition.identity.assignmentId;
 const GUIDED_SOURCE_IDS = new Set(
-  mlkRhetoricalAnalysisAssignment.guidedPassages.map((p) => p.id)
+  mlkAssignmentDefinition.observationSchema.guidedPassages.map((p) => p.id)
 );
 
 // GET /api/module2/observations/guided

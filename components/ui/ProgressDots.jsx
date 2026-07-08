@@ -7,7 +7,7 @@ export default function ProgressDots({
   return (
     <div className="mb-4">
       {label && (
-        <p className="text-sm font-medium text-theme-blue mb-2">{label}</p>
+        <p className="mb-2 text-sm font-medium text-theme-blue">{label}</p>
       )}
       <div className="flex items-center gap-2">
         {Array.from({ length: total }, (_, i) => {
@@ -23,7 +23,7 @@ export default function ProgressDots({
           } else if (isCurrent) {
             dotClass += "bg-theme-blue ring-2 ring-theme-blue/30 ring-offset-1";
           } else {
-            dotClass += "bg-theme-light border border-border-soft";
+            dotClass += "bg-surface-soft border border-border-soft";
           }
 
           return (
@@ -32,7 +32,11 @@ export default function ProgressDots({
               type="button"
               onClick={() => isClickable && onStepClick?.(stepNum)}
               disabled={!isClickable}
-              className={isClickable ? "cursor-pointer" : "cursor-default"}
+              className={
+                isClickable
+                  ? "cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-theme-blue/20"
+                  : "cursor-default rounded-full"
+              }
               aria-label={`Step ${stepNum}${isCurrent ? " (current)" : ""}`}
             >
               <span className={dotClass} />

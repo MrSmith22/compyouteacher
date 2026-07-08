@@ -28,7 +28,7 @@ export type {
 
 export { mlkRhetoricalAnalysisAssignment };
 
-export type AssignmentSourceDefinition = {
+export interface AssignmentSourceDefinition {
   sourceType: SourceType;
   label: string;
   title: string;
@@ -48,24 +48,62 @@ export type AssignmentSourceDefinition = {
   transcriptDescriptor: string;
   originalWorkPublishedYear: string;
   citationTitle: string;
-};
+}
 
-export type AssignmentDefinition = {
-  assignmentId: typeof MLK_ASSIGNMENT_ID;
-  assignmentName: typeof MLK_ASSIGNMENT_NAME;
+export interface AssignmentIdentityDefinition {
+  assignmentId: string;
+  assignmentName: string;
+  title: string;
+  cacheNamespace: string;
+}
+
+export interface AssignmentWritingModeDefinition {
+  essayType: string;
+  authorDisplayName: string;
+  subjectName: string;
+}
+
+export interface AssignmentTaskDefinition {
+  essentialQuestion: string;
+  prompt: string;
+}
+
+export interface AssignmentSourceIntelligenceDefinition {
+  sources: Record<SourceType, AssignmentSourceDefinition>;
+}
+
+export interface AssignmentObservationSchemaDefinition {
+  rhetoricalStrategies: readonly RhetoricalStrategy[];
+  guidedPassages: readonly GuidedPassage[];
+}
+
+export interface AssignmentDefinitionSections {
+  identity: AssignmentIdentityDefinition;
+  writingMode: AssignmentWritingModeDefinition;
+  task: AssignmentTaskDefinition;
+  sourceIntelligence: AssignmentSourceIntelligenceDefinition;
+  observationSchema: AssignmentObservationSchemaDefinition;
+}
+
+export interface AssignmentDefinitionLegacyFields {
+  assignmentId: string;
+  assignmentName: string;
   title: string;
   essayType: string;
   essentialQuestion: string;
   authorDisplayName: string;
   subjectName: string;
   prompt: string;
-  cacheNamespace: typeof MLK_ASSIGNMENT_ID;
+  cacheNamespace: string;
   sources: Record<SourceType, AssignmentSourceDefinition>;
   speech: MlkRhetoricalAnalysisAssignment["speech"];
   letter: MlkRhetoricalAnalysisAssignment["letter"];
   rhetoricalStrategies: MlkRhetoricalAnalysisAssignment["rhetoricalStrategies"];
   guidedPassages: MlkRhetoricalAnalysisAssignment["guidedPassages"];
-};
+}
+
+export type AssignmentDefinition = AssignmentDefinitionSections &
+  AssignmentDefinitionLegacyFields;
 
 const mlkAssignmentSources: Record<SourceType, AssignmentSourceDefinition> = {
   speech: {
@@ -126,16 +164,21 @@ const mlkAssignmentSources: Record<SourceType, AssignmentSourceDefinition> = {
   },
 };
 
-/** Canonical MLK assignment — identity + content references for Phase A. */
-export const mlkAssignmentDefinition: AssignmentDefinition = {
-  assignmentId: MLK_ASSIGNMENT_ID,
-  assignmentName: MLK_ASSIGNMENT_NAME,
-  title: mlkRhetoricalAnalysisAssignment.title,
-  essayType: "compare-and-contrast-rhetorical-analysis",
-  essentialQuestion: mlkRhetoricalAnalysisAssignment.essentialQuestion,
-  authorDisplayName: "Dr. Martin Luther King Jr.",
-  subjectName: "Dr. Martin Luther King Jr.",
-  prompt: `Write a compare and contrast essay explaining how Dr. Martin Luther King Jr. uses ethos, pathos, and logos in both "I Have a Dream" and "Letter from Birmingham Jail."
+const mlkAssignmentDefinitionSections: AssignmentDefinitionSections = {
+  identity: {
+    assignmentId: MLK_ASSIGNMENT_ID,
+    assignmentName: MLK_ASSIGNMENT_NAME,
+    title: mlkRhetoricalAnalysisAssignment.title,
+    cacheNamespace: MLK_ASSIGNMENT_ID,
+  },
+  writingMode: {
+    essayType: "compare-and-contrast-rhetorical-analysis",
+    authorDisplayName: "Dr. Martin Luther King Jr.",
+    subjectName: "Dr. Martin Luther King Jr.",
+  },
+  task: {
+    essentialQuestion: mlkRhetoricalAnalysisAssignment.essentialQuestion,
+    prompt: `Write a compare and contrast essay explaining how Dr. Martin Luther King Jr. uses ethos, pathos, and logos in both "I Have a Dream" and "Letter from Birmingham Jail."
 
 In your essay, you must:
 • Compare how King uses rhetorical appeals in both texts
@@ -143,10 +186,46 @@ In your essay, you must:
 • Support your ideas with specific evidence from both works
 
 Your goal is not to summarize what King says, but to explain how and why he says it the way he does.`,
-  cacheNamespace: MLK_ASSIGNMENT_ID,
-  sources: mlkAssignmentSources,
-  speech: mlkAssignmentSources.speech,
-  letter: mlkAssignmentSources.letter,
-  rhetoricalStrategies: mlkRhetoricalAnalysisAssignment.rhetoricalStrategies,
-  guidedPassages: mlkRhetoricalAnalysisAssignment.guidedPassages,
+  },
+  sourceIntelligence: {
+    sources: mlkAssignmentSources,
+  },
+  observationSchema: {
+    rhetoricalStrategies: mlkRhetoricalAnalysisAssignment.rhetoricalStrategies,
+    guidedPassages: mlkRhetoricalAnalysisAssignment.guidedPassages,
+  },
 };
+
+function withLegacyAssignmentAliases(
+  definition: AssignmentDefinitionSections
+): AssignmentDefinition {
+  const { identity, writingMode, task, sourceIntelligence, observationSchema } =
+    definition;
+  const { sources } = sourceIntelligence;
+
+  return {
+    ...definition,
+
+    // Legacy top-level fields remain during the stabilization phase so existing
+    // modules can keep reading the same data while the grouped sections become
+    // the canonical structure.
+    assignmentId: identity.assignmentId,
+    assignmentName: identity.assignmentName,
+    title: identity.title,
+    essayType: writingMode.essayType,
+    essentialQuestion: task.essentialQuestion,
+    authorDisplayName: writingMode.authorDisplayName,
+    subjectName: writingMode.subjectName,
+    prompt: task.prompt,
+    cacheNamespace: identity.cacheNamespace,
+    sources,
+    speech: sources.speech,
+    letter: sources.letter,
+    rhetoricalStrategies: observationSchema.rhetoricalStrategies,
+    guidedPassages: observationSchema.guidedPassages,
+  };
+}
+
+/** Canonical MLK assignment definition with grouped sections + legacy aliases. */
+export const mlkAssignmentDefinition: AssignmentDefinition =
+  withLegacyAssignmentAliases(mlkAssignmentDefinitionSections);
