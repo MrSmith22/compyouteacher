@@ -8,6 +8,7 @@ import {
   ReferenceSection,
   WorkingSetSection,
 } from "@/components/module3/ModuleThreeDeskFrame";
+import ModuleTwoNotebook from "@/components/module2/ModuleTwoNotebook";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
@@ -387,6 +388,18 @@ export default function ModuleTwoTCharts() {
           description="Glance here when you need it, then come back to your quote."
         >
           <div className="space-y-4">
+            <ModuleTwoNotebook
+              sources={sources}
+              sourceTitles={{
+                speechTitle: MODULE2_SOURCES.speech.title,
+                letterTitle: MODULE2_SOURCES.letter.title,
+              }}
+              tcharts={{
+                formData,
+                appealLabels,
+              }}
+            />
+
             <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
               <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
                 Keep the texts open
