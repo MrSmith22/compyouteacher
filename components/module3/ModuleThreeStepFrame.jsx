@@ -26,6 +26,9 @@ export default function ModuleThreeStepFrame({
   nextStepText = "",
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
+  const successItems = Array.isArray(successLooksLike)
+    ? successLooksLike.filter(Boolean)
+    : [];
 
   return (
     <WorkspaceColumns className="gap-6 xl:gap-10">
@@ -40,62 +43,91 @@ export default function ModuleThreeStepFrame({
             <h1 className="max-w-3xl text-[1.75rem] font-bold leading-[1.12] tracking-tight text-text-primary md:text-[2.35rem] md:leading-[1.1]">
               {question}
             </h1>
-
-            {whyLines.length > 0 ? (
-              <div className="max-w-2xl space-y-2 pt-1">
-                <p className="text-xs font-medium text-text-muted">Why this matters</p>
-                {whyLines.map((line) => (
-                  <p key={line} className="text-sm leading-relaxed text-text-muted">
-                    {line}
-                  </p>
-                ))}
-              </div>
-            ) : null}
           </header>
 
-          {example ? (
-            <div className="max-w-2xl rounded-lg bg-theme-orange/[0.06] px-4 py-3 text-left">
-              <p className="text-xs text-text-muted">For example</p>
-              <p className="mt-1 text-sm leading-relaxed text-text-primary">{example}</p>
-            </div>
-          ) : null}
+          <div className="max-w-2xl space-y-3 text-left">
+            <details
+              className="rounded-lg bg-surface-soft/50 px-4 py-3"
+              open
+            >
+              <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                Why this matters
+              </summary>
+              <div className="mt-2 space-y-2">
+                {whyLines.length > 0 ? (
+                  whyLines.map((line) => (
+                    <p key={line} className="text-sm leading-relaxed text-text-muted">
+                      {line}
+                    </p>
+                  ))
+                ) : (
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Keep going in your own words. We&apos;re building thinking you can use later.
+                  </p>
+                )}
+              </div>
+            </details>
+
+            <details className="rounded-lg bg-surface-soft/50 px-4 py-3">
+              <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                A quick example
+              </summary>
+              <div className="mt-2">
+                {example ? (
+                  <p className="text-sm leading-relaxed text-text-primary">{example}</p>
+                ) : (
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    If you&apos;re not sure yet, start with a simple answer you can test.
+                  </p>
+                )}
+              </div>
+            </details>
+
+            <details className="rounded-lg bg-surface-soft/50 px-4 py-3">
+              <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                You&apos;ll know you&apos;re ready when…
+              </summary>
+              <div className="mt-2">
+                {successItems.length > 0 ? (
+                  <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+                    {successItems.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    You can explain your thinking clearly enough to keep going.
+                  </p>
+                )}
+              </div>
+            </details>
+          </div>
 
           <div className="space-y-8">
             {children}
           </div>
-
-          {successLooksLike.length > 0 ? (
-            <div className="max-w-2xl space-y-2 text-left">
-              <p className="text-xs text-text-muted">You&apos;ll know you&apos;re ready when…</p>
-              <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
-                {successLooksLike.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </div>
       </WorkspaceCenter>
 
       <WorkspaceGuide className="opacity-90">
         <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
-          {coachingMessage ? (
-            <div className="space-y-2">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
-                From your teacher
-              </p>
-              <p className="text-sm leading-relaxed text-text-primary">{coachingMessage}</p>
-            </div>
-          ) : null}
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+              From your teacher
+            </p>
+            <p className="text-sm leading-relaxed text-text-primary">
+              {coachingMessage || "Keep your language simple and honest. Clear thinking beats fancy words."}
+            </p>
+          </div>
 
-          {nextStepText ? (
-            <div className="space-y-2 border-t border-border-soft/60 pt-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
-                After this
-              </p>
-              <p className="text-sm leading-relaxed text-text-muted">{nextStepText}</p>
-            </div>
-          ) : null}
+          <div className="space-y-2 border-t border-border-soft/60 pt-4">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+              Where this is going
+            </p>
+            <p className="text-sm leading-relaxed text-text-muted">
+              {nextStepText || "We&apos;ll keep following the same group of quotes as your thinking gets clearer."}
+            </p>
+          </div>
         </aside>
       </WorkspaceGuide>
     </WorkspaceColumns>

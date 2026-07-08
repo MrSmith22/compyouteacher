@@ -15,11 +15,7 @@ export default function ModuleThreeProgress({
     <div className="space-y-2 rounded-lg bg-surface-soft/50 px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-3 text-left">
         <p className="text-xs leading-relaxed text-text-muted">
-          {activeIndex === 0
-            ? "A few questions ahead — take your time with each one."
-            : `You have worked through ${activeIndex} question${
-                activeIndex === 1 ? "" : "s"
-              } already.`}
+          This is the same workspace. The question is just changing.
         </p>
 
         <div className="[&>div]:mb-0 [&_p]:text-[11px] [&_p]:font-normal [&_p]:text-text-muted/80">
@@ -39,11 +35,11 @@ export default function ModuleThreeProgress({
 
       {nextStep ? (
         <p className="text-left text-xs leading-relaxed text-text-muted">
-          Coming next: {nextStep.question}
+          Still ahead: {nextStep.question}
         </p>
       ) : (
         <p className="text-left text-xs leading-relaxed text-text-muted">
-          One last question, then you are ready to write.
+          One more question, then you’ll have a clear main point.
         </p>
       )}
 
