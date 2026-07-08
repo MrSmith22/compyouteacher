@@ -10,6 +10,7 @@ export type StudentBucketFlowState = {
   module3SelectedPatternId?: string | null;
   module3Idea?: unknown;
   module3Claim?: unknown;
+  module3Thesis?: unknown;
 };
 
 export type StudentBucketsRow = {

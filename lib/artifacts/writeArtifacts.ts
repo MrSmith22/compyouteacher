@@ -13,6 +13,7 @@ const API_PATH = "/api/module3/evidence-clusters";
 const PATTERN_API_PATH = "/api/module3/patterns";
 const IDEA_API_PATH = "/api/module3/ideas";
 const CLAIM_API_PATH = "/api/module3/claims";
+const THESIS_API_PATH = "/api/module3/thesis";
 
 function errorMessage(error: unknown) {
   if (error && typeof error === "object" && "message" in error) {
@@ -233,6 +234,55 @@ export async function deleteClaimArtifact({
   userEmail: string;
 }) {
   const res = await fetch(CLAIM_API_PATH, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export type ThesisWriteInput = {
+  userEmail: string;
+  thesis?: string;
+  proofPlan?: string[];
+  clusterId?: string | null;
+  patternId?: string | null;
+};
+
+export async function upsertThesisArtifact(input: ThesisWriteInput) {
+  const body: Record<string, unknown> = {
+    clusterId: input.clusterId ?? null,
+    patternId: input.patternId ?? null,
+  };
+
+  if (input.thesis !== undefined) body.thesis = input.thesis;
+  if (input.proofPlan !== undefined) body.proofPlan = input.proofPlan;
+
+  const res = await fetch(THESIS_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function deleteThesisArtifact({
+  userEmail: _userEmail,
+}: {
+  userEmail: string;
+}) {
+  const res = await fetch(THESIS_API_PATH, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
   });

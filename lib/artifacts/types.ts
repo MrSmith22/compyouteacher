@@ -122,8 +122,9 @@ export interface SourceContextArtifact extends ArtifactBase<"source_context"> {
 }
 
 export interface ThesisArtifact extends ArtifactBase<"thesis"> {
-  backingTable: "module3_responses";
+  backingTable: "student_buckets" | "module3_responses";
   thesis: string;
+  proofPlan: string[];
   structureChoice: string | null;
 }
 

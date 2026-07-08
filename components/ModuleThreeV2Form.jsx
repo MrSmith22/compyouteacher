@@ -18,11 +18,13 @@ import {
 import {
   deleteClaimArtifact,
   deleteIdeaArtifact,
+  deleteThesisArtifact,
   selectPatternArtifact,
   upsertClaimArtifact,
   upsertEvidenceClusterArtifact,
   upsertIdeaArtifact,
   upsertPatternArtifact,
+  upsertThesisArtifact,
 } from "@/lib/artifacts/writeArtifacts";
 
 const ASSIGNMENT = mlkAssignmentDefinition;
@@ -459,8 +461,22 @@ export default function ModuleThreeV2Form({
   });
   const claimPersistTimerRef = useRef(null);
 
-  const [thesisStatement, setThesisStatement] = useState("");
-  const [proofPlan, setProofPlan] = useState(["", "", ""]);
+  const [thesisStatement, setThesisStatement] = useState(() => {
+    const artifact = initialCanvasArtifacts?.thesisArtifact;
+    if (!artifact) return "";
+    const payload = artifact?.payload || artifact;
+    return typeof payload?.thesis === "string" ? payload.thesis : "";
+  });
+  const [proofPlan, setProofPlan] = useState(() => {
+    const artifact = initialCanvasArtifacts?.thesisArtifact;
+    if (!artifact) return ["", "", ""];
+    const payload = artifact?.payload || artifact;
+    const persisted = Array.isArray(payload?.proofPlan) ? payload.proofPlan : [];
+    const normalized = persisted.map((item) => (typeof item === "string" ? item : ""));
+    while (normalized.length < 3) normalized.push("");
+    return normalized.slice(0, 3);
+  });
+  const thesisPersistTimerRef = useRef(null);
 
   useEffect(() => {
     if (status === "loading") {
@@ -1125,6 +1141,31 @@ export default function ModuleThreeV2Form({
     }, 500);
   }
 
+  function schedulePersistThesis(thesis, proofPlanLines, clusterId, patternId) {
+    if (!userEmail) return;
+
+    if (thesisPersistTimerRef.current) {
+      clearTimeout(thesisPersistTimerRef.current);
+    }
+
+    thesisPersistTimerRef.current = setTimeout(async () => {
+      const result = await upsertThesisArtifact({
+        userEmail,
+        thesis,
+        proofPlan: Array.isArray(proofPlanLines) ? proofPlanLines : [],
+        clusterId: clusterId || null,
+        patternId: patternId || null,
+      });
+
+      if (!result.ok) {
+        setPersistError(result.error?.message || "Could not save your thesis.");
+        return;
+      }
+
+      setPersistError("");
+    }, 500);
+  }
+
   function resetDownstreamThinking() {
     setPatternNotices([makePatternNotice("pattern-1"), makePatternNotice("pattern-2")]);
     setSelectedPatternId("");
@@ -1139,6 +1180,11 @@ export default function ModuleThreeV2Form({
       deleteClaimArtifact({ userEmail }).then((result) => {
         if (!result.ok) {
           setPersistError(result.error?.message || "Could not clear your saved claim.");
+        }
+      });
+      deleteThesisArtifact({ userEmail }).then((result) => {
+        if (!result.ok) {
+          setPersistError(result.error?.message || "Could not clear your saved thesis.");
         }
       });
     }
@@ -1294,9 +1340,18 @@ export default function ModuleThreeV2Form({
   }
 
   function updateProofPlan(index, value) {
-    setProofPlan((previous) =>
-      previous.map((item, itemIndex) => (itemIndex === index ? value : item))
-    );
+    setProofPlan((previous) => {
+      const next = previous.map((item, itemIndex) =>
+        itemIndex === index ? value : item
+      );
+      schedulePersistThesis(
+        thesisStatement,
+        next,
+        selectedClusterId,
+        selectedPatternId
+      );
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -2496,7 +2551,16 @@ export default function ModuleThreeV2Form({
               </span>
               <textarea
                 value={thesisStatement}
-                onChange={(event) => setThesisStatement(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setThesisStatement(value);
+                  schedulePersistThesis(
+                    value,
+                    proofPlan,
+                    selectedClusterId,
+                    selectedPatternId
+                  );
+                }}
                 placeholder="One sentence that states your argument"
                 className={ANSWER_TEXTAREA_CLASS}
               />

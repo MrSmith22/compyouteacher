@@ -13,6 +13,7 @@ import { getModule3EvidenceClustersAdmin } from "@/lib/supabase/helpers/module3E
 import { getModule3PatternsAdmin } from "@/lib/supabase/helpers/module3Patterns";
 import { getModule3IdeaAdmin } from "@/lib/supabase/helpers/module3Ideas";
 import { getModule3ClaimAdmin } from "@/lib/supabase/helpers/module3Claims";
+import { getModule3ThesisAdmin } from "@/lib/supabase/helpers/module3Thesis";
 import type {
   ClaimArtifact,
   DraftArtifact,
@@ -352,6 +353,28 @@ export async function listSourceContextArtifacts(
 export async function getThesisArtifact(
   userEmail: string
 ): Promise<ThesisArtifact | null> {
+  // Prefer the Module 3 V2 Thesis artifact stored in student_buckets.flow_state.
+  const v2Res = await getModule3ThesisAdmin({ userEmail });
+  if (v2Res.error) {
+    throw new Error(v2Res.error.message || "Failed to read module 3 thesis");
+  }
+
+  if (v2Res.thesis) {
+    return {
+      id: `thesis:${userEmail}`,
+      type: "thesis",
+      userEmail,
+      assignmentId: null,
+      backingTable: "student_buckets",
+      createdAt: v2Res.thesis.createdAt ?? null,
+      updatedAt: v2Res.thesis.updatedAt ?? null,
+      thesis: v2Res.thesis.thesis,
+      proofPlan: Array.isArray(v2Res.thesis.proofPlan) ? v2Res.thesis.proofPlan : [],
+      structureChoice: null,
+    };
+  }
+
+  // Backward compatibility: fall back to legacy module3_responses.thesis.
   const thesisRes = await getModule3ThesisRow(userEmail);
   const row = requireNoError(thesisRes, "module 3 thesis");
 
@@ -368,6 +391,7 @@ export async function getThesisArtifact(
     createdAt: null,
     updatedAt: row.updated_at ?? null,
     thesis: row.thesis,
+    proofPlan: [],
     structureChoice: asNonEmptyString(row.structure_choice),
   };
 }
