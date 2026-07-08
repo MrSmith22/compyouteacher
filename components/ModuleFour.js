@@ -4,8 +4,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/logActivity";
-import { tchartEntryKey } from "@/lib/module4/mapStudentBucketsToOutline";
+import {
+  buildModule4EvidencePool,
+  evidenceRowKey,
+  patternReviewEvidenceRows,
+  resolveBucketSuggestions,
+  resolveInstructionalThesis,
+  resolvePatternPlanLabel,
+  resolveProofPlan,
+  resolveSelectedPattern,
+} from "@/lib/module4/module4InstructionalLogic";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
+
+const EMPTY_UPSTREAM_ARTIFACTS = {
+  thesisArtifact: null,
+  claimArtifact: null,
+  ideaArtifact: null,
+  patternArtifacts: [],
+  evidenceClusterArtifacts: [],
+  evidenceArtifacts: [],
+  sourceContextArtifacts: [],
+  paragraphPlanArtifacts: [],
+  selectedClusterId: null,
+  selectedPatternId: null,
+};
 
 const FLOW_VERSION = 2;
 
@@ -354,7 +376,7 @@ function sourceTypeLabel(type) {
 /**
  * Read-only summary of claim + selected Module 2 evidence for the reasoning step.
  */
-function ParagraphPlanPanel({ paragraphNumber, bucket, tchartByKey }) {
+function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
   const keys = Array.isArray(bucket?.evidenceKeys) ? bucket.evidenceKeys : [];
   const claim = (bucket?.claim || "").trim();
 
@@ -392,14 +414,14 @@ function ParagraphPlanPanel({ paragraphNumber, bucket, tchartByKey }) {
             Selected evidence
           </p>
           {keys.map((evKey) => {
-            const row = tchartByKey[evKey];
+            const row = evidenceByKey[evKey];
             if (!row) {
               return (
                 <div
                   key={evKey}
                   className="rounded-lg border border-theme-orange/35 bg-theme-orange/5 p-3 text-sm text-theme-dark/80"
                 >
-                  This evidence slot is no longer linked to your saved Module 2 notes.
+                  This evidence slot is no longer linked to your saved evidence notes.
                 </div>
               );
             }
@@ -834,6 +856,7 @@ export default function ModuleFour({
   initialModule3 = null,
   initialTchartEntries = [],
   initialStudentBuckets = null,
+  initialUpstreamArtifacts = EMPTY_UPSTREAM_ARTIFACTS,
   speechOriginalUrl = "",
   letterOriginalUrl = "",
 }) {
@@ -853,17 +876,75 @@ export default function ModuleFour({
   const [reflection, setReflection] = useState(parsed.reflection);
   const [patternChoice, setPatternChoice] = useState(parsed.patternChoice);
 
-  const tchartByKey = useMemo(() => {
+  const thesisArtifact = initialUpstreamArtifacts?.thesisArtifact ?? null;
+  const claimArtifact = initialUpstreamArtifacts?.claimArtifact ?? null;
+  const ideaArtifact = initialUpstreamArtifacts?.ideaArtifact ?? null;
+
+  const thesis = useMemo(
+    () => resolveInstructionalThesis({ thesisArtifact, initialModule3 }),
+    [thesisArtifact, initialModule3]
+  );
+
+  const proofPlan = useMemo(
+    () => resolveProofPlan(thesisArtifact),
+    [thesisArtifact]
+  );
+
+  const selectedPattern = useMemo(
+    () => resolveSelectedPattern(initialUpstreamArtifacts?.patternArtifacts),
+    [initialUpstreamArtifacts]
+  );
+
+  const patternReviewMode = Boolean(
+    typeof selectedPattern?.text === "string" && selectedPattern.text.trim()
+  );
+
+  const evidencePool = useMemo(
+    () =>
+      buildModule4EvidencePool({
+        evidenceArtifacts: initialUpstreamArtifacts?.evidenceArtifacts,
+        evidenceClusterArtifacts: initialUpstreamArtifacts?.evidenceClusterArtifacts,
+        selectedClusterId: initialUpstreamArtifacts?.selectedClusterId,
+        legacyTchartEntries: initialTchartEntries,
+      }),
+    [initialUpstreamArtifacts, initialTchartEntries]
+  );
+
+  const evidenceByKey = useMemo(() => {
     const m = {};
-    for (const row of initialTchartEntries || []) {
-      m[tchartEntryKey(row)] = row;
+    for (const row of evidencePool) {
+      m[evidenceRowKey(row)] = row;
     }
     return m;
-  }, [initialTchartEntries]);
+  }, [evidencePool]);
+
+  const patternReviewRows = useMemo(
+    () => patternReviewEvidenceRows(selectedPattern, evidencePool),
+    [selectedPattern, evidencePool]
+  );
+
+  const structureChoice = initialModule3?.structure_choice || "";
+  const structureLabel =
+    STRUCTURE_LABELS[structureChoice] || structureChoice || "";
+  const responses = initialModule3?.responses;
+
+  const legacyBucketSuggestions = useMemo(
+    () => buildBucketSuggestions(structureChoice, responses),
+    [structureChoice, responses]
+  );
+
+  const allBucketSuggestions = useMemo(
+    () =>
+      resolveBucketSuggestions({
+        proofPlan,
+        legacySuggestions: legacyBucketSuggestions,
+      }),
+    [proofPlan, legacyBucketSuggestions]
+  );
 
   const groupedQuotes = useMemo(
-    () => groupTchartBySourceAndAppeal(initialTchartEntries),
-    [initialTchartEntries]
+    () => groupTchartBySourceAndAppeal(evidencePool),
+    [evidencePool]
   );
 
   const patternPair = useMemo(
@@ -871,26 +952,27 @@ export default function ModuleFour({
     [groupedQuotes]
   );
 
-  const thesis = initialModule3?.thesis?.trim() || "";
-  const structureChoice = initialModule3?.structure_choice || "";
-  const structureLabel =
-    STRUCTURE_LABELS[structureChoice] || structureChoice || "";
-  const responses = initialModule3?.responses;
-
-  const allBucketSuggestions = useMemo(
-    () => buildBucketSuggestions(structureChoice, responses),
-    [structureChoice, responses]
+  const patternPlanDisplay = useMemo(
+    () => resolvePatternPlanLabel({ selectedPattern, patternChoice }),
+    [selectedPattern, patternChoice]
   );
+
+  const claimReference =
+    typeof claimArtifact?.workingClaim === "string"
+      ? claimArtifact.workingClaim.trim()
+      : "";
+  const ideaReference =
+    typeof ideaArtifact?.statement === "string" ? ideaArtifact.statement.trim() : "";
 
   const scaffoldBucketIndex =
     flowStep >= STEP_B1_SCAFFOLD && flowStep <= STEP_B3_SCAFFOLD
       ? bucketIndexForStep(flowStep)
       : -1;
 
-  const scaffoldRole = useMemo(
-    () => getScaffoldParagraphRole(structureChoice, scaffoldBucketIndex),
-    [structureChoice, scaffoldBucketIndex]
-  );
+  const scaffoldRole = useMemo(() => {
+    if (proofPlan.length > 0) return "general";
+    return getScaffoldParagraphRole(structureChoice, scaffoldBucketIndex);
+  }, [proofPlan, structureChoice, scaffoldBucketIndex]);
 
   const scaffoldSuggestions = useMemo(
     () => filterSuggestionsByScaffoldRole(allBucketSuggestions, scaffoldRole),
@@ -910,7 +992,7 @@ export default function ModuleFour({
   const saveToApi = useCallback(async () => {
     const slice = persistSlice();
     const payload = {
-      buckets: enrichBucketsForSave(slice, tchartByKey),
+      buckets: enrichBucketsForSave(slice, evidenceByKey),
       reflection,
       flow_state: {
         v: FLOW_VERSION,
@@ -939,7 +1021,7 @@ export default function ModuleFour({
     patternChoice,
     persistSlice,
     reflection,
-    tchartByKey,
+    evidenceByKey,
   ]);
 
   useEffect(() => {
@@ -1008,6 +1090,7 @@ export default function ModuleFour({
       case STEP_EXPLAIN_BUCKETS:
         return true;
       case STEP_PATTERN:
+        if (patternReviewMode) return true;
         if (!patternPair) return true;
         return patternChoice.length > 0;
       case STEP_B1_SCAFFOLD:
@@ -1134,7 +1217,7 @@ export default function ModuleFour({
                   ) : (
                     <ul className="space-y-2">
                       {list.map((row) => {
-                        const key = tchartEntryKey(row);
+                        const key = evidenceRowKey(row);
                         const checked = (buckets[bucketIndex]?.evidenceKeys || []).includes(
                           key
                         );
@@ -1302,6 +1385,28 @@ export default function ModuleFour({
             </p>
           </StepGuidanceBox>
         )}
+
+        {proofPlan.length > 0 ? (
+          <StepReferenceNote title="Proof plan (from Module 3)">
+            <ol className="list-decimal list-inside space-y-1 text-sm text-theme-dark/90">
+              {proofPlan.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ol>
+          </StepReferenceNote>
+        ) : null}
+
+        {claimReference ? (
+          <StepReferenceNote title="Working claim (from Module 3)">
+            <p className="text-theme-dark/90 whitespace-pre-wrap">{claimReference}</p>
+          </StepReferenceNote>
+        ) : null}
+
+        {ideaReference ? (
+          <StepReferenceNote title="Exploratory idea (from Module 3)">
+            <p className="text-theme-dark/90 whitespace-pre-wrap">{ideaReference}</p>
+          </StepReferenceNote>
+        ) : null}
         <StepGuidanceBox label="Tip">
           <p>
             You may group more than one idea into a paragraph, or you may build one
@@ -1339,92 +1444,145 @@ export default function ModuleFour({
           <p>{MEANING_BODY_PARAGRAPH}</p>
         </StepMeaningBox>
         <StepActionHeading>
-          Your turn: press Continue when you are ready to practice spotting a pattern.
+          Your turn: press Continue when you are ready to{" "}
+          {patternReviewMode
+            ? "review your pattern from Module 3."
+            : "practice spotting a pattern."}
         </StepActionHeading>
       </div>
     );
   } else if (flowStep === STEP_PATTERN) {
     main = (
       <div className={panelClass}>
-        <h2 className="text-xl font-extrabold text-theme-blue">
-          Spot a pattern across two texts
-        </h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: compare two excerpts, then choose one response
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          <p>
-            A <strong>pattern</strong> is something you notice that{" "}
-            <em>shows up in more than one place</em>. Here you compare the{" "}
-            <strong>same appeal</strong> (for example, ethos) in the speech and in the
-            letter, then name the idea King is developing in both moments.
-          </p>
-        </StepGuidanceBox>
-
-        {patternPair ? (
+        {patternReviewMode ? (
           <>
-            <StepReferenceNote title="Compare — your Module 2 notes">
-              <p className="text-sm font-semibold text-theme-dark mb-2">
-                {patternPair.appeal} in the speech and {patternPair.appeal} in the
-                letter
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <CompactAnalysisCard
-                  title={`Speech · ${patternPair.appeal}`}
-                  row={patternPair.speechRow}
-                />
-                <CompactAnalysisCard
-                  title={`Letter · ${patternPair.appeal}`}
-                  row={patternPair.letterRow}
-                />
-              </div>
-            </StepReferenceNote>
-            <StepActionHeading>
-              Your turn: choose the option that best fits both excerpts.
-            </StepActionHeading>
-            <p className="text-sm font-medium text-theme-dark">
-              What idea is King developing in BOTH of these moments?
+            <h2 className="text-xl font-extrabold text-theme-blue">
+              Review your pattern from Module 3
+            </h2>
+            <p className="text-sm font-semibold text-theme-dark">
+              What you will do: read the pattern you already named—no need to start over
             </p>
-            <div className="space-y-2">
-              {PATTERN_OPTIONS.map((opt) => (
-                <label key={opt.id} className={CHOICE_ROW_CLASS}>
-                  <input
-                    type="radio"
-                    name="patternChoice"
-                    className="mt-1 shrink-0"
-                    checked={patternChoice === opt.id}
-                    onChange={() => setPatternChoice(opt.id)}
-                  />
-                  <span className="text-sm text-theme-dark/90">{opt.label}</span>
-                </label>
-              ))}
-            </div>
-            {patternChoice ? (
-              <StepMeaningBox label="What this means">
-                <p>{patternStepFeedbackForChoice(patternChoice)}</p>
-              </StepMeaningBox>
-            ) : null}
-            <StepGuidanceBox label="Tip">
+            <StepGuidanceBox label="Why this matters">
               <p>
-                There is not always one “right” answer. The goal is to practice naming
-                what repeats—so your later paragraphs are built on real connections, not
-                random details.
+                You already noticed a <strong>pattern</strong> in Module 3—something that
+                shows up in more than one place. Reconnect to that thinking before you
+                plan paragraphs so each bucket grows from work you have already done.
               </p>
             </StepGuidanceBox>
+            <StepReferenceNote title="Your Module 3 pattern">
+              <p className="text-theme-dark/90 whitespace-pre-wrap">
+                {selectedPattern.text}
+              </p>
+            </StepReferenceNote>
+            {patternReviewRows.length > 0 ? (
+              <StepReferenceNote title="Evidence connected to this pattern">
+                <ul className="space-y-2 text-sm text-theme-dark/90">
+                  {patternReviewRows.map((row) => {
+                    const key = evidenceRowKey(row);
+                    const quote = (row.quote || "").trim();
+                    const obs = (row.observation || "").trim();
+                    return (
+                      <li
+                        key={key}
+                        className="rounded-lg border border-theme-blue/20 bg-white p-2"
+                      >
+                        {quote ? (
+                          <p className="italic">&ldquo;{quote}&rdquo;</p>
+                        ) : null}
+                        {obs ? <p className="mt-1">{obs}</p> : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </StepReferenceNote>
+            ) : null}
+            <StepActionHeading>
+              Your turn: press Continue when you have reconnected to your pattern.
+            </StepActionHeading>
           </>
         ) : (
           <>
-            <StepGuidanceBox label="Tip">
+            <h2 className="text-xl font-extrabold text-theme-blue">
+              Spot a pattern across two texts
+            </h2>
+            <p className="text-sm font-semibold text-theme-dark">
+              What you will do: compare two excerpts, then choose one response
+            </p>
+            <StepGuidanceBox label="Why this matters">
               <p>
-                We could not find a matching pair of speech and letter notes for the
-                same appeal yet. Add or balance your Module 2 charts if you can, then
-                come back—or continue for now; you will still get scaffolded paragraph
-                ideas ahead.
+                A <strong>pattern</strong> is something you notice that{" "}
+                <em>shows up in more than one place</em>. Here you compare the{" "}
+                <strong>same appeal</strong> (for example, ethos) in the speech and in the
+                letter, then name the idea King is developing in both moments.
               </p>
             </StepGuidanceBox>
-            <StepActionHeading>
-              Your turn: press Continue when you are ready for paragraph ideas.
-            </StepActionHeading>
+
+            {patternPair ? (
+              <>
+                <StepReferenceNote title="Compare — your Module 2 notes">
+                  <p className="text-sm font-semibold text-theme-dark mb-2">
+                    {patternPair.appeal} in the speech and {patternPair.appeal} in the
+                    letter
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <CompactAnalysisCard
+                      title={`Speech · ${patternPair.appeal}`}
+                      row={patternPair.speechRow}
+                    />
+                    <CompactAnalysisCard
+                      title={`Letter · ${patternPair.appeal}`}
+                      row={patternPair.letterRow}
+                    />
+                  </div>
+                </StepReferenceNote>
+                <StepActionHeading>
+                  Your turn: choose the option that best fits both excerpts.
+                </StepActionHeading>
+                <p className="text-sm font-medium text-theme-dark">
+                  What idea is King developing in BOTH of these moments?
+                </p>
+                <div className="space-y-2">
+                  {PATTERN_OPTIONS.map((opt) => (
+                    <label key={opt.id} className={CHOICE_ROW_CLASS}>
+                      <input
+                        type="radio"
+                        name="patternChoice"
+                        className="mt-1 shrink-0"
+                        checked={patternChoice === opt.id}
+                        onChange={() => setPatternChoice(opt.id)}
+                      />
+                      <span className="text-sm text-theme-dark/90">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {patternChoice ? (
+                  <StepMeaningBox label="What this means">
+                    <p>{patternStepFeedbackForChoice(patternChoice)}</p>
+                  </StepMeaningBox>
+                ) : null}
+                <StepGuidanceBox label="Tip">
+                  <p>
+                    There is not always one “right” answer. The goal is to practice naming
+                    what repeats—so your later paragraphs are built on real connections, not
+                    random details.
+                  </p>
+                </StepGuidanceBox>
+              </>
+            ) : (
+              <>
+                <StepGuidanceBox label="Tip">
+                  <p>
+                    We could not find a matching pair of speech and letter notes for the
+                    same appeal yet. Add or balance your Module 2 charts if you can, then
+                    come back—or continue for now; you will still get scaffolded paragraph
+                    ideas ahead.
+                  </p>
+                </StepGuidanceBox>
+                <StepActionHeading>
+                  Your turn: press Continue when you are ready for paragraph ideas.
+                </StepActionHeading>
+              </>
+            )}
           </>
         )}
       </div>
@@ -1463,8 +1621,20 @@ export default function ModuleFour({
                 </div>
                 <div>
                   <dt className="font-semibold text-theme-dark">Pattern choice</dt>
-                  <dd className="mt-0.5">{patternPlanLabel(patternChoice)}</dd>
+                  <dd className="mt-0.5">{patternPlanDisplay}</dd>
                 </div>
+                {proofPlan.length > 0 ? (
+                  <div>
+                    <dt className="font-semibold text-theme-dark">Proof directions</dt>
+                    <dd className="mt-0.5">
+                      <ol className="list-decimal list-inside space-y-1">
+                        {proofPlan.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ol>
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
             </StepReferenceNote>
             <p className="text-sm font-medium text-theme-dark leading-relaxed">
@@ -1689,7 +1859,7 @@ export default function ModuleFour({
         <ParagraphPlanPanel
           paragraphNumber={n}
           bucket={b}
-          tchartByKey={tchartByKey}
+          evidenceByKey={evidenceByKey}
         />
 
         <StepActionHeading>
