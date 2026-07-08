@@ -1077,8 +1077,8 @@ export default function ModuleThreeV2Form({
       <ModuleThreeStepFrame
         question="Which quotes seem to belong together?"
         whyMatters={[
-          "You already collected evidence — now look for what connects.",
-          "Quotes that belong together are often the start of a real argument.",
+          "You’ve already collected evidence from the texts. You’re not starting over.",
+          "Now we look across what you gathered and start noticing what connects.",
         ]}
         example="Several quotes talk about hope. That might be a group worth naming."
         successLooksLike={[
@@ -1086,14 +1086,22 @@ export default function ModuleThreeV2Form({
           "You named a group that feels connected.",
           "You chose which group to explore first.",
         ]}
-        coachingMessage="There is no single right answer. If the quotes feel connected to you, they are worth trying together."
+        coachingMessage="There is no single right answer. If the quotes feel connected to you, they are worth trying together. Use simple words."
         nextStepText="When your group feels ready, you will ask what those quotes have in common."
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-8">
+          <div className="rounded-lg bg-surface-soft/40 px-4 py-3 text-left">
+            <p className="text-sm leading-relaxed text-text-muted">
+              Everything you collected in Module 2 is still here. Think of the notebook on the
+              left as what you’ve been carrying with you — your sources, your quotes, and your
+              notes. Now we start making sense of it.
+            </p>
+          </div>
+
           <details className="rounded-lg bg-surface-soft/50">
             <summary className="cursor-pointer list-none px-4 py-2 text-xs text-text-muted">
-              Reminder: your writing task
+              Your assignment question (reference)
             </summary>
             <p className="border-t border-border-soft/60 px-4 py-3 text-sm leading-relaxed text-text-muted">
               {ASSIGNMENT.task.prompt}
