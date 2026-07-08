@@ -254,6 +254,7 @@ export async function getIdeaArtifact(
     whyMatters: res.idea.whyMatters,
     clusterId: res.idea.clusterId ?? null,
     patternId: res.idea.patternId ?? null,
+    evidenceMap: res.idea.evidenceMap ?? {},
   };
 }
 

@@ -139,22 +139,34 @@ export async function deletePatternArtifact({
 
 export type IdeaWriteInput = {
   userEmail: string;
-  statement: string;
-  whyMatters: string;
+  statement?: string;
+  whyMatters?: string;
   clusterId?: string | null;
   patternId?: string | null;
+  evidenceMap?: Record<
+    string,
+    {
+      selected: boolean;
+      relation: string;
+      note: string;
+    }
+  > | null;
 };
 
 export async function upsertIdeaArtifact(input: IdeaWriteInput) {
+  const body: Record<string, unknown> = {
+    clusterId: input.clusterId ?? null,
+    patternId: input.patternId ?? null,
+  };
+
+  if (input.statement !== undefined) body.statement = input.statement;
+  if (input.whyMatters !== undefined) body.whyMatters = input.whyMatters;
+  if (input.evidenceMap !== undefined) body.evidenceMap = input.evidenceMap;
+
   const res = await fetch(IDEA_API_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      statement: input.statement,
-      whyMatters: input.whyMatters,
-      clusterId: input.clusterId ?? null,
-      patternId: input.patternId ?? null,
-    }),
+    body: JSON.stringify(body),
   });
 
   try {

@@ -1,6 +1,9 @@
 import {
+  evidenceMapHasContent,
   getModule3IdeaAdmin,
+  normalizeEvidenceMap,
   upsertModule3IdeaAdmin,
+  type Module3EvidenceMap,
   type Module3IdeaRow,
 } from "@/lib/supabase/helpers/module3Ideas";
 
@@ -10,33 +13,40 @@ function nowIso() {
 
 export type IdeaWriteInput = {
   userEmail: string;
-  statement: string;
-  whyMatters: string;
+  statement?: string;
+  whyMatters?: string;
   clusterId?: string | null;
   patternId?: string | null;
+  evidenceMap?: Module3EvidenceMap | null;
 };
+
+function isEmptyIdea(idea: Module3IdeaRow) {
+  return (
+    !idea.statement.trim() &&
+    !idea.whyMatters.trim() &&
+    !evidenceMapHasContent(idea.evidenceMap)
+  );
+}
 
 function buildIdeaRow(input: IdeaWriteInput, existing: Module3IdeaRow | null): Module3IdeaRow {
   const timestamp = nowIso();
-  const statement = input.statement.trim();
-  const whyMatters = input.whyMatters.trim();
-
-  if (!statement && !whyMatters) {
-    return {
-      statement: "",
-      whyMatters: "",
-      clusterId: input.clusterId ?? null,
-      patternId: input.patternId ?? null,
-      createdAt: existing?.createdAt ?? timestamp,
-      updatedAt: timestamp,
-    };
-  }
+  const statement =
+    input.statement !== undefined ? input.statement.trim() : (existing?.statement ?? "");
+  const whyMatters =
+    input.whyMatters !== undefined ? input.whyMatters.trim() : (existing?.whyMatters ?? "");
+  const evidenceMap =
+    input.evidenceMap !== undefined
+      ? normalizeEvidenceMap(input.evidenceMap)
+      : normalizeEvidenceMap(existing?.evidenceMap);
 
   return {
     statement,
     whyMatters,
-    clusterId: input.clusterId ?? null,
-    patternId: input.patternId ?? null,
+    clusterId:
+      input.clusterId !== undefined ? input.clusterId ?? null : existing?.clusterId ?? null,
+    patternId:
+      input.patternId !== undefined ? input.patternId ?? null : existing?.patternId ?? null,
+    evidenceMap,
     createdAt: existing?.createdAt ?? timestamp,
     updatedAt: timestamp,
   };
@@ -47,7 +57,7 @@ export async function upsertIdeaForUser(input: IdeaWriteInput) {
   if (res.error) return { ok: false as const, error: res.error };
 
   const nextIdea = buildIdeaRow(input, res.idea);
-  if (!nextIdea.statement && !nextIdea.whyMatters) {
+  if (isEmptyIdea(nextIdea)) {
     return deleteIdeaForUser({ userEmail: input.userEmail });
   }
 

@@ -237,6 +237,24 @@ function createEmptyConnection() {
   };
 }
 
+function normalizeEvidenceConnectionsFromArtifact(artifact) {
+  if (!artifact) return {};
+  const payload = artifact?.payload || artifact;
+  const map = payload?.evidenceMap;
+  if (!map || typeof map !== "object") return {};
+
+  const out = {};
+  for (const [evidenceId, entry] of Object.entries(map)) {
+    if (!entry || typeof entry !== "object") continue;
+    out[evidenceId] = {
+      selected: Boolean(entry.selected),
+      relation: typeof entry.relation === "string" ? entry.relation : "supports",
+      note: typeof entry.note === "string" ? entry.note : "",
+    };
+  }
+  return out;
+}
+
 function computeProgressStory({
   currentStep,
   evidenceItems,
@@ -416,7 +434,9 @@ export default function ModuleThreeV2Form({
   });
   const ideaPersistTimerRef = useRef(null);
 
-  const [evidenceConnections, setEvidenceConnections] = useState({});
+  const [evidenceConnections, setEvidenceConnections] = useState(() =>
+    normalizeEvidenceConnectionsFromArtifact(initialCanvasArtifacts?.ideaArtifact)
+  );
   const [evidenceStrength, setEvidenceStrength] = useState("");
   const [gapNote, setGapNote] = useState("");
   const [pathDecision, setPathDecision] = useState("");
@@ -1034,7 +1054,13 @@ export default function ModuleThreeV2Form({
     });
   }
 
-  function schedulePersistIdea(statement, whyMatters, clusterId, patternId) {
+  function schedulePersistIdea(
+    statement,
+    whyMatters,
+    clusterId,
+    patternId,
+    evidenceMap
+  ) {
     if (!userEmail) return;
 
     if (ideaPersistTimerRef.current) {
@@ -1048,6 +1074,7 @@ export default function ModuleThreeV2Form({
         whyMatters,
         clusterId: clusterId || null,
         patternId: patternId || null,
+        evidenceMap: evidenceMap ?? {},
       });
 
       if (!result.ok) {
@@ -1144,24 +1171,42 @@ export default function ModuleThreeV2Form({
   function toggleConnectionSelection(evidenceId) {
     setEvidenceConnections((previous) => {
       const current = previous[evidenceId] || createEmptyConnection();
-      return {
+      const next = {
         ...previous,
         [evidenceId]: {
           ...current,
           selected: !current.selected,
         },
       };
+      schedulePersistIdea(
+        ideaStatement,
+        ideaWhyMatters,
+        selectedClusterId,
+        selectedPatternId,
+        next
+      );
+      return next;
     });
   }
 
   function updateConnection(evidenceId, field, value) {
-    setEvidenceConnections((previous) => ({
-      ...previous,
-      [evidenceId]: {
-        ...(previous[evidenceId] || createEmptyConnection()),
-        [field]: value,
-      },
-    }));
+    setEvidenceConnections((previous) => {
+      const next = {
+        ...previous,
+        [evidenceId]: {
+          ...(previous[evidenceId] || createEmptyConnection()),
+          [field]: value,
+        },
+      };
+      schedulePersistIdea(
+        ideaStatement,
+        ideaWhyMatters,
+        selectedClusterId,
+        selectedPatternId,
+        next
+      );
+      return next;
+    });
   }
 
   async function updateStrengtheningNote(evidenceId, value) {
@@ -1752,7 +1797,8 @@ export default function ModuleThreeV2Form({
                     value,
                     ideaWhyMatters,
                     selectedClusterId,
-                    selectedPatternId
+                    selectedPatternId,
+                    evidenceConnections
                   );
                 }}
                 placeholder="Write a possible idea in your own words"
@@ -1773,7 +1819,8 @@ export default function ModuleThreeV2Form({
                     ideaStatement,
                     value,
                     selectedClusterId,
-                    selectedPatternId
+                    selectedPatternId,
+                    evidenceConnections
                   );
                 }}
                 placeholder="What makes this idea interesting or important?"

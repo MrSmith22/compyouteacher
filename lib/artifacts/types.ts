@@ -91,6 +91,14 @@ export interface IdeaArtifact extends ArtifactBase<"idea"> {
   whyMatters: string;
   clusterId: string | null;
   patternId: string | null;
+  evidenceMap: Record<
+    string,
+    {
+      selected: boolean;
+      relation: string;
+      note: string;
+    }
+  >;
 }
 
 export interface SourceContextArtifact extends ArtifactBase<"source_context"> {

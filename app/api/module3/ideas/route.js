@@ -51,12 +51,26 @@ export async function POST(req) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const statement = typeof body?.statement === "string" ? body.statement : "";
-    const whyMatters = typeof body?.whyMatters === "string" ? body.whyMatters : "";
+    const statement = typeof body?.statement === "string" ? body.statement : undefined;
+    const whyMatters = typeof body?.whyMatters === "string" ? body.whyMatters : undefined;
     const clusterId =
-      typeof body?.clusterId === "string" ? body.clusterId.trim() || null : null;
+      body?.clusterId === null
+        ? null
+        : typeof body?.clusterId === "string"
+          ? body.clusterId.trim() || null
+          : undefined;
     const patternId =
-      typeof body?.patternId === "string" ? body.patternId.trim() || null : null;
+      body?.patternId === null
+        ? null
+        : typeof body?.patternId === "string"
+          ? body.patternId.trim() || null
+          : undefined;
+    const evidenceMap =
+      body?.evidenceMap === null
+        ? null
+        : typeof body?.evidenceMap === "object" && body.evidenceMap !== null
+          ? body.evidenceMap
+          : undefined;
 
     const result = await upsertIdeaForUser({
       userEmail,
@@ -64,6 +78,7 @@ export async function POST(req) {
       whyMatters,
       clusterId,
       patternId,
+      evidenceMap,
     });
 
     if (!result.ok) {
