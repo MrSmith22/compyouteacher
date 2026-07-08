@@ -89,11 +89,12 @@ function makePatternNotice(id) {
   };
 }
 
-function makeEvidenceCluster(id, name, evidenceIds) {
+function makeEvidenceCluster(id, name, evidenceIds, reflection = null) {
   return {
     id,
     name,
     evidenceIds,
+    reflection,
   };
 }
 
@@ -349,7 +350,7 @@ export default function ModuleThreeV2Form({
         const name = payload?.clusterName || payload?.name || "";
         const evidenceIds = payload?.evidenceIds || [];
         if (!id || !name) return null;
-        return { ...makeEvidenceCluster(id, name, evidenceIds), reflection: payload?.reflection ?? null };
+        return makeEvidenceCluster(id, name, evidenceIds, payload?.reflection ?? null);
       })
       .filter(Boolean);
   });
@@ -993,7 +994,8 @@ export default function ModuleThreeV2Form({
     const nextCluster = makeEvidenceCluster(
       `cluster-${evidenceClusters.length + 1}`,
       normalizedName,
-      clusterDraftEvidenceIds
+      clusterDraftEvidenceIds,
+      reflection
     );
 
     setEvidenceClusters((previous) => [...previous, nextCluster]);
