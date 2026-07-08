@@ -15,6 +15,7 @@ import {
   ReferenceSection,
   WorkingSetSection,
 } from "@/components/module3/ModuleThreeDeskFrame";
+import { upsertEvidenceClusterArtifact } from "@/lib/artifacts/writeArtifacts";
 
 const ASSIGNMENT = mlkAssignmentDefinition;
 const SOURCE_LABELS = {
@@ -314,6 +315,7 @@ function mergeSupportEvidence(workingEvidence, evidenceConnections, strengthenin
 export default function ModuleThreeV2Form({
   initialCanvasArtifacts = {
     evidenceArtifacts: [],
+    evidenceClusterArtifacts: [],
     sourceContextArtifacts: [],
     thesisArtifact: null,
     outlineArtifact: null,
@@ -335,7 +337,22 @@ export default function ModuleThreeV2Form({
 
   const [workingEvidenceIds, setWorkingEvidenceIds] = useState([]);
   const [evidenceMarkers, setEvidenceMarkers] = useState({});
-  const [evidenceClusters, setEvidenceClusters] = useState([]);
+  const [evidenceClusters, setEvidenceClusters] = useState(() => {
+    const persisted = initialCanvasArtifacts?.evidenceClusterArtifacts ?? [];
+    if (!Array.isArray(persisted) || persisted.length === 0) return [];
+
+    return persisted
+      .map((artifact) => {
+        const payload = artifact?.payload || artifact;
+        const identity = artifact?.identity || null;
+        const id = identity?.sourceId || payload?.id || "";
+        const name = payload?.clusterName || payload?.name || "";
+        const evidenceIds = payload?.evidenceIds || [];
+        if (!id || !name) return null;
+        return { ...makeEvidenceCluster(id, name, evidenceIds), reflection: payload?.reflection ?? null };
+      })
+      .filter(Boolean);
+  });
   const [selectedClusterId, setSelectedClusterId] = useState("");
   const [clusterDraftName, setClusterDraftName] = useState("");
   const [clusterDraftEvidenceIds, setClusterDraftEvidenceIds] = useState([]);
@@ -972,6 +989,7 @@ export default function ModuleThreeV2Form({
       return;
     }
 
+    const reflection = safeText(clusterReflectionRef.current?.value || "") || null;
     const nextCluster = makeEvidenceCluster(
       `cluster-${evidenceClusters.length + 1}`,
       normalizedName,
@@ -980,6 +998,18 @@ export default function ModuleThreeV2Form({
 
     setEvidenceClusters((previous) => [...previous, nextCluster]);
     applySelectedCluster(nextCluster.id);
+    if (userEmail) {
+      upsertEvidenceClusterArtifact({
+        id: nextCluster.id,
+        userEmail,
+        assignmentId: ASSIGNMENT.identity.assignmentId,
+        clusterName: normalizedName,
+        reflection,
+        evidenceIds: clusterDraftEvidenceIds,
+      }).catch((error) => {
+        console.error("Evidence cluster save failed:", error);
+      });
+    }
     setClusterDraftName("");
     setClusterDraftEvidenceIds([...workingEvidenceIds]);
     if (clusterReflectionRef.current) {
@@ -1036,6 +1066,22 @@ export default function ModuleThreeV2Form({
         };
       })
     );
+
+    if (userEmail && selectedClusterId && selectedCluster) {
+      const nextEvidenceIds = selectedCluster.evidenceIds.includes(evidenceId)
+        ? selectedCluster.evidenceIds
+        : [...selectedCluster.evidenceIds, evidenceId];
+      upsertEvidenceClusterArtifact({
+        id: selectedCluster.id,
+        userEmail,
+        assignmentId: ASSIGNMENT.identity.assignmentId,
+        clusterName: selectedCluster.name,
+        reflection: selectedCluster.reflection ?? null,
+        evidenceIds: nextEvidenceIds,
+      }).catch((error) => {
+        console.error("Evidence cluster update failed:", error);
+      });
+    }
   }
 
   function updateProofPlan(index, value) {

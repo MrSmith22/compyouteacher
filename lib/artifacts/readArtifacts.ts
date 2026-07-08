@@ -9,9 +9,11 @@ import {
 import { getStudentObservations } from "@/lib/supabase/helpers/studentObservations";
 import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
 import { getTChartEntriesAdmin } from "@/lib/supabase/helpers/tchartEntries";
+import { getModule3EvidenceClusters } from "@/lib/supabase/helpers/module3EvidenceClusters";
 import type {
   DraftArtifact,
   EvidenceArtifact,
+  EvidenceClusterArtifact,
   OutlineArtifact,
   ParagraphPlanArtifact,
   SourceContextArtifact,
@@ -174,6 +176,27 @@ export async function listEvidenceArtifacts(
   );
 
   return [...observationArtifacts, ...legacyArtifacts];
+}
+
+export async function listEvidenceClusterArtifacts(
+  userEmail: string,
+  assignmentId = DEFAULT_ASSIGNMENT_ID
+): Promise<EvidenceClusterArtifact[]> {
+  const res = await getModule3EvidenceClusters({ userEmail });
+  const clusters = requireNoError(res, "module 3 evidence clusters");
+
+  return (clusters ?? []).map((cluster) => ({
+    id: `evidence_cluster:${userEmail}:${cluster.id}`,
+    type: "evidence_cluster" as const,
+    userEmail,
+    assignmentId,
+    backingTable: "student_buckets" as const,
+    createdAt: cluster.createdAt ?? null,
+    updatedAt: cluster.updatedAt ?? null,
+    clusterName: cluster.name,
+    reflection: cluster.reflection ?? null,
+    evidenceIds: Array.isArray(cluster.evidenceIds) ? cluster.evidenceIds : [],
+  }));
 }
 
 export async function listSourceContextArtifacts(
