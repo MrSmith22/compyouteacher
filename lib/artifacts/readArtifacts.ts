@@ -12,7 +12,9 @@ import { getTChartEntriesAdmin } from "@/lib/supabase/helpers/tchartEntries";
 import { getModule3EvidenceClustersAdmin } from "@/lib/supabase/helpers/module3EvidenceClusters";
 import { getModule3PatternsAdmin } from "@/lib/supabase/helpers/module3Patterns";
 import { getModule3IdeaAdmin } from "@/lib/supabase/helpers/module3Ideas";
+import { getModule3ClaimAdmin } from "@/lib/supabase/helpers/module3Claims";
 import type {
+  ClaimArtifact,
   DraftArtifact,
   EvidenceArtifact,
   EvidenceClusterArtifact,
@@ -255,6 +257,34 @@ export async function getIdeaArtifact(
     clusterId: res.idea.clusterId ?? null,
     patternId: res.idea.patternId ?? null,
     evidenceMap: res.idea.evidenceMap ?? {},
+  };
+}
+
+export async function getClaimArtifact(
+  userEmail: string,
+  assignmentId = DEFAULT_ASSIGNMENT_ID
+): Promise<ClaimArtifact | null> {
+  const res = await getModule3ClaimAdmin({ userEmail });
+  if (res.error) {
+    throw new Error(res.error.message || "Failed to read module 3 claim");
+  }
+
+  if (!res.claim) {
+    return null;
+  }
+
+  return {
+    id: `claim:${userEmail}`,
+    type: "claim" as const,
+    userEmail,
+    assignmentId,
+    backingTable: "student_buckets" as const,
+    createdAt: res.claim.createdAt ?? null,
+    updatedAt: res.claim.updatedAt ?? null,
+    workingClaim: res.claim.workingClaim,
+    supportRationale: res.claim.supportRationale,
+    clusterId: res.claim.clusterId ?? null,
+    patternId: res.claim.patternId ?? null,
   };
 }
 

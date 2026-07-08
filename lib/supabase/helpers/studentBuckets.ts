@@ -9,6 +9,7 @@ export type StudentBucketFlowState = {
   module3Patterns?: unknown;
   module3SelectedPatternId?: string | null;
   module3Idea?: unknown;
+  module3Claim?: unknown;
 };
 
 export type StudentBucketsRow = {

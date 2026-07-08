@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import ModuleThreeV2Form from "@/components/ModuleThreeV2Form";
 import ModuleThreeStartLogger from "@/components/module3/ModuleThreeStartLogger";
 import {
+  getClaimArtifact,
   getDraftArtifact,
   getIdeaArtifact,
   getOutlineArtifact,
@@ -19,6 +20,7 @@ function emptyCanvasArtifacts() {
     evidenceClusterArtifacts: [],
     patternArtifacts: [],
     ideaArtifact: null,
+    claimArtifact: null,
     sourceContextArtifacts: [],
     thesisArtifact: null,
     outlineArtifact: null,
@@ -37,6 +39,7 @@ async function loadInitialCanvasArtifacts(email) {
       evidenceClusterArtifacts,
       patternArtifacts,
       ideaArtifact,
+      claimArtifact,
       sourceContextArtifacts,
       thesisArtifact,
       outlineArtifact,
@@ -46,6 +49,7 @@ async function loadInitialCanvasArtifacts(email) {
       listEvidenceClusterArtifacts(email),
       listPatternArtifacts(email),
       getIdeaArtifact(email),
+      getClaimArtifact(email),
       listSourceContextArtifacts(email),
       getThesisArtifact(email),
       getOutlineArtifact(email),
@@ -57,6 +61,7 @@ async function loadInitialCanvasArtifacts(email) {
       evidenceClusterArtifacts,
       patternArtifacts,
       ideaArtifact,
+      claimArtifact,
       sourceContextArtifacts,
       thesisArtifact,
       outlineArtifact,

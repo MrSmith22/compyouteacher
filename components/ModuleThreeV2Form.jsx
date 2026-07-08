@@ -16,8 +16,10 @@ import {
   WorkingSetSection,
 } from "@/components/module3/ModuleThreeDeskFrame";
 import {
+  deleteClaimArtifact,
   deleteIdeaArtifact,
   selectPatternArtifact,
+  upsertClaimArtifact,
   upsertEvidenceClusterArtifact,
   upsertIdeaArtifact,
   upsertPatternArtifact,
@@ -343,6 +345,7 @@ export default function ModuleThreeV2Form({
     evidenceClusterArtifacts: [],
     patternArtifacts: [],
     ideaArtifact: null,
+    claimArtifact: null,
     sourceContextArtifacts: [],
     thesisArtifact: null,
     outlineArtifact: null,
@@ -442,8 +445,19 @@ export default function ModuleThreeV2Form({
   const [pathDecision, setPathDecision] = useState("");
   const [strengtheningNotes, setStrengtheningNotes] = useState({});
 
-  const [workingClaim, setWorkingClaim] = useState("");
-  const [supportRationale, setSupportRationale] = useState("");
+  const [workingClaim, setWorkingClaim] = useState(() => {
+    const artifact = initialCanvasArtifacts?.claimArtifact;
+    if (!artifact) return "";
+    const payload = artifact?.payload || artifact;
+    return typeof payload?.workingClaim === "string" ? payload.workingClaim : "";
+  });
+  const [supportRationale, setSupportRationale] = useState(() => {
+    const artifact = initialCanvasArtifacts?.claimArtifact;
+    if (!artifact) return "";
+    const payload = artifact?.payload || artifact;
+    return typeof payload?.supportRationale === "string" ? payload.supportRationale : "";
+  });
+  const claimPersistTimerRef = useRef(null);
 
   const [thesisStatement, setThesisStatement] = useState("");
   const [proofPlan, setProofPlan] = useState(["", "", ""]);
@@ -1086,6 +1100,31 @@ export default function ModuleThreeV2Form({
     }, 500);
   }
 
+  function schedulePersistClaim(workingClaimText, rationale, clusterId, patternId) {
+    if (!userEmail) return;
+
+    if (claimPersistTimerRef.current) {
+      clearTimeout(claimPersistTimerRef.current);
+    }
+
+    claimPersistTimerRef.current = setTimeout(async () => {
+      const result = await upsertClaimArtifact({
+        userEmail,
+        workingClaim: workingClaimText,
+        supportRationale: rationale,
+        clusterId: clusterId || null,
+        patternId: patternId || null,
+      });
+
+      if (!result.ok) {
+        setPersistError(result.error?.message || "Could not save your claim.");
+        return;
+      }
+
+      setPersistError("");
+    }, 500);
+  }
+
   function resetDownstreamThinking() {
     setPatternNotices([makePatternNotice("pattern-1"), makePatternNotice("pattern-2")]);
     setSelectedPatternId("");
@@ -1095,6 +1134,11 @@ export default function ModuleThreeV2Form({
       deleteIdeaArtifact({ userEmail }).then((result) => {
         if (!result.ok) {
           setPersistError(result.error?.message || "Could not clear your saved idea.");
+        }
+      });
+      deleteClaimArtifact({ userEmail }).then((result) => {
+        if (!result.ok) {
+          setPersistError(result.error?.message || "Could not clear your saved claim.");
         }
       });
     }
@@ -2342,7 +2386,16 @@ export default function ModuleThreeV2Form({
               </span>
               <textarea
                 value={workingClaim}
-                onChange={(event) => setWorkingClaim(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setWorkingClaim(value);
+                  schedulePersistClaim(
+                    value,
+                    supportRationale,
+                    selectedClusterId,
+                    selectedPatternId
+                  );
+                }}
                 placeholder="Write the point you want to argue"
                 className={ANSWER_TEXTAREA_CLASS}
               />
@@ -2354,7 +2407,16 @@ export default function ModuleThreeV2Form({
               </span>
               <textarea
                 value={supportRationale}
-                onChange={(event) => setSupportRationale(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setSupportRationale(value);
+                  schedulePersistClaim(
+                    workingClaim,
+                    value,
+                    selectedClusterId,
+                    selectedPatternId
+                  );
+                }}
                 placeholder="A few sentences in your own words"
                 className={QUIET_TEXTAREA_CLASS}
               />

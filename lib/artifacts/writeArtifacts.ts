@@ -12,6 +12,7 @@ export type EvidenceClusterWriteInput = {
 const API_PATH = "/api/module3/evidence-clusters";
 const PATTERN_API_PATH = "/api/module3/patterns";
 const IDEA_API_PATH = "/api/module3/ideas";
+const CLAIM_API_PATH = "/api/module3/claims";
 
 function errorMessage(error: unknown) {
   if (error && typeof error === "object" && "message" in error) {
@@ -183,6 +184,55 @@ export async function deleteIdeaArtifact({
   userEmail: string;
 }) {
   const res = await fetch(IDEA_API_PATH, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export type ClaimWriteInput = {
+  userEmail: string;
+  workingClaim?: string;
+  supportRationale?: string;
+  clusterId?: string | null;
+  patternId?: string | null;
+};
+
+export async function upsertClaimArtifact(input: ClaimWriteInput) {
+  const body: Record<string, unknown> = {
+    clusterId: input.clusterId ?? null,
+    patternId: input.patternId ?? null,
+  };
+
+  if (input.workingClaim !== undefined) body.workingClaim = input.workingClaim;
+  if (input.supportRationale !== undefined) body.supportRationale = input.supportRationale;
+
+  const res = await fetch(CLAIM_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function deleteClaimArtifact({
+  userEmail: _userEmail,
+}: {
+  userEmail: string;
+}) {
+  const res = await fetch(CLAIM_API_PATH, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
   });
