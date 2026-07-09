@@ -7,11 +7,13 @@ import type { IdeaWriteInput } from "@/lib/artifacts/ideaServer";
 import type { PatternWriteInput } from "@/lib/artifacts/patternServer";
 import type { ThesisWriteInput } from "@/lib/artifacts/thesisServer";
 import type { ParagraphPlanWriteInput } from "@/lib/artifacts/paragraphPlanServer";
+import type { Module6DraftWriteInput } from "@/lib/artifacts/draftServer";
 
 export type {
   ClaimWriteInput,
   EvidenceClusterWriteInput,
   IdeaWriteInput,
+  Module6DraftWriteInput,
   ParagraphPlanWriteInput,
   PatternWriteInput,
   ThesisWriteInput,
@@ -23,6 +25,7 @@ const IDEA_API_PATH = "/api/module3/ideas";
 const CLAIM_API_PATH = "/api/module3/claims";
 const THESIS_API_PATH = "/api/module3/thesis";
 const PARAGRAPH_PLAN_API_PATH = "/api/module4/buckets";
+const MODULE6_DRAFT_API_PATH = "/api/module6/draft";
 
 export async function upsertEvidenceClusterArtifact(input: EvidenceClusterWriteInput) {
   const res = await fetch(API_PATH, {
@@ -257,6 +260,25 @@ export async function upsertParagraphPlanArtifact(input: ParagraphPlanWriteInput
       buckets: input.buckets,
       reflection: input.reflection,
       flow_state: input.flow_state ?? null,
+    }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function upsertModule6DraftArtifact(input: Module6DraftWriteInput) {
+  const res = await fetch(MODULE6_DRAFT_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sections: input.sections,
+      full_text: input.full_text,
+      locked: input.locked,
     }),
   });
 

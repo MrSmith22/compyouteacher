@@ -1,13 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../lib/supabaseClient";
 import { logActivity } from "../lib/logActivity";
 import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
-import { getStudentOutline } from "@/lib/supabase/helpers/studentOutlines";
-import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
+import { MLK_ASSIGNMENT_NAME, mlkRhetoricalAnalysisAssignment } from "@/lib/assignments";
+import {
+  getModule6DraftRow,
+  getOutlineRow,
+  getParagraphPlanRow,
+  getTChartEntriesRows,
+} from "@/lib/artifacts/readArtifactsClient";
+import { upsertModule6DraftArtifact } from "@/lib/artifacts/writeArtifacts";
+import { parseApiResponse } from "@/lib/api/clientFetch";
+import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
+import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
+import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
+import {
+  buildDraftSectionSteps,
+  getModule6StepPresentation,
+  romanNumeral,
+} from "@/components/module6/module6StepPresentation";
+
+const DRAFT_TEXTAREA_CLASS =
+  "min-h-[220px] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-3 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -18,17 +35,30 @@ export default function ModuleSix() {
   const [outlineMissing, setOutlineMissing] = useState(false);
 
   const [observations, setObservations] = useState([]);
+  const [paragraphPlans, setParagraphPlans] = useState([]);
+  const [proofPlan, setProofPlan] = useState([]);
+  const [thesisText, setThesisText] = useState("");
+
   const [draft, setDraft] = useState([]);
   const [locked, setLocked] = useState(false);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 
-  const [sideOpen, setSideOpen] = useState(false);
   const [gateBlocked, setGateBlocked] = useState(false);
 
   const hasLoggedStartRef = useRef(false);
 
-  const roman = (n) =>
-    ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] ||
-    `${n + 1}`;
+  const sectionSteps = useMemo(
+    () => (outline ? buildDraftSectionSteps(outline) : []),
+    [outline]
+  );
+
+  const currentStep = sectionSteps[currentSectionIndex] ?? sectionSteps[0] ?? null;
+  const presentation = useMemo(
+    () => getModule6StepPresentation(currentStep, outline),
+    [currentStep, outline]
+  );
+
+  const assignmentQuestion = mlkRhetoricalAnalysisAssignment.essentialQuestion;
 
   const getDraftMetrics = () => {
     const sectionCount = draft.length;
@@ -47,7 +77,6 @@ export default function ModuleSix() {
       const email = session?.user?.email;
       if (!email) return;
 
-      // Reset visible state for a fresh load
       setGateBlocked(false);
       setOutlineMissing(false);
       setOutlineLoading(true);
@@ -64,19 +93,17 @@ export default function ModuleSix() {
         return;
       }
 
-      // Load outline from Module 5 (for display only)
-      const { data: outlineRow, error: outlineError } = await getStudentOutline({
-        userEmail: email,
-        module: 5,
-      });
+      const outlineResult = await getOutlineRow(5);
 
-      if (outlineError) {
-        console.error("Error loading outline for Module 6:", outlineError);
+      if (!outlineResult.ok) {
+        console.error("Error loading outline for Module 6:", outlineResult.error);
       }
 
+      const outlineRow = outlineResult.data;
       const hasOutline = !!outlineRow?.outline;
 
       setOutline(outlineRow?.outline ?? null);
+      setThesisText(String(outlineRow?.outline?.thesis || "").trim());
       setOutlineMissing(!hasOutline);
       setOutlineLoading(false);
 
@@ -84,40 +111,54 @@ export default function ModuleSix() {
         return;
       }
 
-      // Log module start once
       if (!hasLoggedStartRef.current) {
         hasLoggedStartRef.current = true;
         logActivity(email, "module_started", { module: 6, hasOutline });
       }
 
-      // Load T chart observations
-      const { data: obs, error: obsError } = await supabase
-        .from("tchart_entries")
-        .select("*")
-        .eq("user_email", email);
+      const [obsResult, draftResult, planResult] = await Promise.all([
+        getTChartEntriesRows(),
+        getModule6DraftRow(),
+        getParagraphPlanRow(),
+      ]);
 
-      if (obsError) {
-        console.error("Error loading observations for Module 6:", obsError);
+      if (!obsResult.ok) {
+        console.error("Error loading observations for Module 6:", obsResult.error);
       }
-      setObservations(obs || []);
+      setObservations(obsResult.data || []);
 
-      // Load existing draft
-      const { data: draftRow, error: draftError } = await supabase
-        .from("student_drafts")
-        .select("sections,locked")
-        .eq("user_email", email)
-        .eq("module", 6)
-        .single();
-
-      if (draftError && draftError.code !== "PGRST116") {
-        console.error("Error loading draft for Module 6:", draftError);
+      if (planResult.ok && Array.isArray(planResult.data?.buckets)) {
+        setParagraphPlans(planResult.data.buckets);
       }
 
-      if (draftRow?.sections?.length) {
+      try {
+        const thesisRes = await fetch("/api/module3/thesis");
+        const thesisJson = await parseApiResponse(thesisRes);
+        const thesisRow = thesisJson?.thesis ?? null;
+        if (thesisRow) {
+          if (!String(outlineRow?.outline?.thesis || "").trim() && thesisRow.thesis) {
+            setThesisText(String(thesisRow.thesis).trim());
+          }
+          if (Array.isArray(thesisRow.proofPlan)) {
+            setProofPlan(
+              thesisRow.proofPlan.map((line) => String(line || "").trim()).filter(Boolean)
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Error loading thesis for Module 6 reference shelf:", err);
+      }
+
+      if (!draftResult.ok) {
+        console.error("Error loading draft for Module 6:", draftResult.error);
+      }
+
+      const draftRow = draftResult.data;
+
+      if (Array.isArray(draftRow?.sections) && draftRow.sections.length) {
         setDraft(draftRow.sections);
         setLocked(draftRow.locked === true);
       } else {
-        // Intro plus one per body bucket plus conclusion
         const emptySections = [
           "",
           ...(outlineRow?.outline?.body || []).map(() => ""),
@@ -131,27 +172,22 @@ export default function ModuleSix() {
     loadData();
   }, [session]);
 
-  // Debounced autosave plus activity log
   useEffect(() => {
     if (!session?.user?.email || draft.length === 0) return;
 
     const id = setTimeout(async () => {
       const email = session.user.email;
 
-      const payload = {
-        user_email: email,
-        module: 6,
-        sections: draft,
-        full_text: draft.join("\n\n"),
-        locked,
-        updated_at: new Date().toISOString(),
-      };
-
       try {
-        const { error } = await supabase.from("student_drafts").upsert(payload);
+        const result = await upsertModule6DraftArtifact({
+          userEmail: email,
+          sections: draft,
+          full_text: draft.join("\n\n"),
+          locked,
+        });
 
-        if (error) {
-          console.error("Module 6 autosave error:", error);
+        if (!result.ok) {
+          console.error("Module 6 autosave error:", result.error);
         } else {
           const metrics = getDraftMetrics();
           logActivity(email, "draft_autosaved", {
@@ -168,6 +204,13 @@ export default function ModuleSix() {
     return () => clearTimeout(id);
   }, [draft, locked, session]);
 
+  useEffect(() => {
+    if (sectionSteps.length === 0) return;
+    if (currentSectionIndex > sectionSteps.length - 1) {
+      setCurrentSectionIndex(sectionSteps.length - 1);
+    }
+  }, [sectionSteps.length, currentSectionIndex]);
+
   const updateSection = (i, val) => {
     if (locked) return;
     setDraft((prev) => {
@@ -183,19 +226,18 @@ export default function ModuleSix() {
 
     setLocked(true);
 
-    const payload = {
-      user_email: email,
-      module: 6,
+    const result = await upsertModule6DraftArtifact({
+      userEmail: email,
       sections: draft,
       full_text: draft.join("\n\n"),
       locked: true,
-      updated_at: new Date().toISOString(),
-    };
+    });
 
-    const { error } = await supabase.from("student_drafts").upsert(payload);
-
-    if (error) {
-      alert("Error saving draft: " + error.message);
+    if (!result.ok) {
+      alert(
+        "We could not save your draft. Please try again. " +
+          (result.error?.message || "")
+      );
       setLocked(false);
       return;
     }
@@ -210,11 +252,21 @@ export default function ModuleSix() {
     router.push("/modules/6/success");
   };
 
+  const goBack = () => {
+    setCurrentSectionIndex((index) => Math.max(0, index - 1));
+  };
+
+  const goNext = () => {
+    setCurrentSectionIndex((index) =>
+      Math.min(sectionSteps.length - 1, index + 1)
+    );
+  };
+
   if (gateBlocked) {
     return (
-      <div className="min-h-screen bg-theme-light flex items-center justify-center">
-        <p className="text-theme-dark">
-          Finish Module 5 before starting Module 6.
+      <div className="flex min-h-screen items-center justify-center bg-surface-base">
+        <p className="text-text-primary">
+          Finish your outline in Module 5 before you begin drafting here.
         </p>
       </div>
     );
@@ -222,293 +274,138 @@ export default function ModuleSix() {
 
   if (outlineLoading) {
     return (
-      <div className="min-h-screen bg-theme-light flex items-center justify-center">
-        <p className="text-theme-dark">Loading…</p>
+      <div className="flex min-h-screen items-center justify-center bg-surface-base">
+        <p className="text-text-primary">Loading your outline and draft…</p>
       </div>
     );
   }
 
   if (outlineMissing) {
     return (
-      <div className="min-h-screen bg-theme-light flex items-center justify-center">
-        <div className="text-center max-w-md px-4 space-y-4">
-          <p className="text-theme-dark">
-            We could not find your Module 5 outline yet.
+      <div className="flex min-h-screen items-center justify-center bg-surface-base">
+        <div className="max-w-md space-y-4 px-4 text-center">
+          <p className="text-text-primary">
+            We could not find your outline from Module 5 yet.
           </p>
-          <p className="text-sm text-gray-600">
-            Once you save the outline you can return to Module 6.
+          <p className="text-sm text-text-muted">
+            Finish organizing your paragraph plans into an outline in Module 5,
+            then return here to draft.
           </p>
           <a
             href="/modules/5"
-            className="inline-block bg-theme-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:brightness-105"
+            className="inline-block rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white hover:brightness-105"
           >
-            Go to Module 5 to build your outline
+            Go to Module 5
           </a>
         </div>
       </div>
     );
   }
 
-  if (!outline) {
+  if (!outline || !currentStep) {
     return null;
   }
 
-  const wp = {
-    spellCheck: true,
-    autoCorrect: "on",
-    autoCapitalize: "sentences",
-    lang: "en",
-    enterKeyHint: "enter",
-    className:
-      "w-full border border-gray-200 rounded-md p-3 min-h-[140px] leading-7 focus:outline-none focus:ring-2 focus:ring-theme-blue/60",
-  };
+  const draftIndex = currentStep.draftIndex;
+  const isFirstSection = currentSectionIndex === 0;
+  const isLastSection = currentSectionIndex === sectionSteps.length - 1;
+  const sectionLabel =
+    currentStep.type === "body"
+      ? `${romanNumeral(currentStep.roman)}. ${currentStep.title}`
+      : `${romanNumeral(currentStep.roman)}. ${currentStep.title}`;
+
+  const referenceShelf = (
+    <ModuleSixReferenceShelf
+      assignmentQuestion={assignmentQuestion}
+      thesis={thesisText}
+      proofPlan={proofPlan}
+      outline={outline}
+      paragraphPlans={paragraphPlans}
+      observations={observations}
+      activeStep={currentStep}
+    />
+  );
 
   return (
-    <div className="min-h-screen bg-theme-light">
-      <div className="max-w-6xl mx-auto flex">
-        <main className="flex-1 p-6 space-y-6">
-          <header className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 mb-2">
-            <h1 className="text-3xl font-extrabold text-theme-blue mb-1">
-              ✍️ Module 6: Turn Your Outline Into a Draft
-            </h1>
-            <p className="text-gray-700 text-sm md:text-base">
-              In Modules 3, 4, and 5 you did the hard thinking work. You chose a
-              thesis, grouped ideas into buckets, and turned those buckets into
-              an outline. Now you will turn that plan into full paragraphs.
+    <div className="min-h-screen bg-surface-base">
+      <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
+        <ModuleThreeStepFrame
+          question={presentation.question}
+          whyMatters={presentation.whyMatters}
+          successLooksLike={presentation.successLooksLike}
+          coachingMessage={presentation.coachingMessage}
+          nextStepText={presentation.nextStepText}
+          sidebar={referenceShelf}
+        >
+          <div className="space-y-4 rounded-lg bg-surface-soft/50 px-4 py-3 text-left">
+            <p className="text-xs leading-relaxed text-text-muted">
+              Module 6 · Stage 13 — Draft · section {currentSectionIndex + 1} of{" "}
+              {sectionSteps.length}. Same workspace—one section at a time.
             </p>
-
-            <div className="mt-3 grid gap-2 md:grid-cols-3 text-xs md:text-sm text-gray-700">
-              <div className="bg-theme-light/60 border border-theme-blue/20 rounded-lg px-3 py-2">
-                <p className="font-semibold text-theme-blue">
-                  Step 1: Follow the outline
-                </p>
-                <p>
-                  Each big Roman numeral below matches a section in your outline.
-                  Stay in the same order so your essay is easy to follow.
-                </p>
-              </div>
-              <div className="bg-theme-light/60 border border-theme-green/20 rounded-lg px-3 py-2">
-                <p className="font-semibold text-theme-green">
-                  Step 2: Use your buckets
-                </p>
-                <p>
-                  Use the bucket name as the main idea for that paragraph and
-                  use the bullet points as your evidence and explanation.
-                </p>
-              </div>
-              <div className="bg-theme-light/60 border border-theme-orange/20 rounded-lg px-3 py-2">
-                <p className="font-semibold text-theme-orange">
-                  Step 3: Bring in appeals
-                </p>
-                <p>
-                  Make sure you explain how ethos, pathos, and logos connect to
-                  audience and purpose in each text, not just what happens.
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs md:text-sm text-gray-700">
-              You can always open the <span className="font-semibold">Outline / Notes</span>{" "}
-              panel in the bottom corner to see your outline and T chart
-              observations while you write.
-            </p>
-          </header>
-
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
-            <h2 className="text-xl font-bold mb-2 text-theme-dark">
-              {roman(0)}. Introduction
-            </h2>
-            <p className="text-sm text-gray-700 mb-2">
-              This paragraph sets up the whole essay. Aim for four to six
-              sentences that:
-            </p>
-            <ul className="list-disc list-inside text-sm text-gray-700 mb-3 space-y-1">
-              <li>Briefly introduce Dr. King and the two works you are comparing.</li>
-              <li>
-                Give a little context for each text, such as when and where it
-                was delivered or written.
-              </li>
-              <li>
-                End with your compare and contrast thesis from Module 3, adjusted
-                if you improved it in Module 5.
-              </li>
-            </ul>
-            <textarea
-              {...wp}
-              value={draft[0] || ""}
-              onChange={(e) => updateSection(0, e.target.value)}
-              disabled={locked}
-            />
-          </section>
-
-          {outline.body.map((b, i) => (
-            <section
-              key={i}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4"
-            >
-              <h2 className="text-xl font-bold mb-2 text-theme-dark">
-                {roman(i + 1)}. {b.bucket}
-              </h2>
-              <p className="text-sm text-gray-700 mb-2">
-                This section should grow out of the bucket you created in Module
-                4 and the outline point you built in Module 5. Use the{" "}
-                <span className="font-semibold">Outline</span> panel to see the
-                bullet points you wrote for this bucket.
+            {!locked ? (
+              <p className="text-xs leading-relaxed text-text-muted">
+                Your draft saves as you type.
               </p>
-              <div className="mb-3 text-xs text-gray-700 bg-theme-light/60 border border-gray-200 rounded-lg px-3 py-2">
-                <p className="font-semibold mb-1">
-                  A strong body paragraph for this bucket usually includes:
-                </p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>
-                    A topic sentence that clearly connects this idea to your
-                    thesis.
-                  </li>
-                  <li>
-                    Specific observations from both the speech and the letter
-                    that fit this bucket.
-                  </li>
-                  <li>
-                    Explanation of how King is using{" "}
-                    <span className="italic">ethos, pathos, or logos</span> for
-                    this idea and how that connects to audience and purpose.
-                  </li>
-                  <li>
-                    A closing sentence that reminds the reader why this
-                    comparison or contrast matters.
-                  </li>
-                </ul>
-              </div>
-              <textarea
-                {...wp}
-                value={draft[i + 1] || ""}
-                onChange={(e) => updateSection(i + 1, e.target.value)}
-                disabled={locked}
-              />
-            </section>
-          ))}
-
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
-            <h2 className="text-xl font-bold mb-2 text-theme-dark">
-              {roman(outline.body.length + 1)}. Conclusion
-            </h2>
-            <p className="text-sm text-gray-700 mb-2">
-              The conclusion should leave the reader with a clear final picture
-              of your argument, not just repeat the introduction. Aim for three
-              to five sentences that:
-            </p>
-            <ul className="list-disc list-inside text-sm text-gray-700 mb-3 space-y-1">
-              <li>Restate your thesis in new words.</li>
-              <li>
-                Remind the reader of the most important similarity or difference
-                you explained in the body paragraphs.
-              </li>
-              <li>
-                End with a final insight about why King&apos;s message and his
-                use of appeals still matters for readers today.
-              </li>
-            </ul>
-            <textarea
-              {...wp}
-              value={draft.at(-1) || ""}
-              onChange={(e) => updateSection(draft.length - 1, e.target.value)}
-              disabled={locked}
-            />
-          </section>
-
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-2">
-            <div className="text-xs text-gray-600">
-              Your work saves automatically as you type. When you feel this draft
-              matches your outline, click the button to move on.
-            </div>
-            <button
-              onClick={markComplete}
-              disabled={locked}
-              className={`bg-theme-orange text-white px-5 py-2.5 rounded-lg shadow-md text-sm font-semibold transition ${
-                locked ? "opacity-50 pointer-events-none" : "hover:brightness-105"
-              }`}
-            >
-              ✅ Mark Draft Complete & Continue
-            </button>
+            ) : null}
           </div>
-        </main>
 
-        <aside
-          className={`fixed right-0 top-0 h-full w-[320px] bg-theme-light border-l border-gray-200 shadow-xl z-20 p-4 overflow-y-auto transition-transform duration-300 ${
-            sideOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <button
-            onClick={() => setSideOpen(false)}
-            className="absolute top-3 right-3 text-lg text-gray-500 hover:text-theme-dark"
+          <WorkingSetSection
+            label={presentation.workingSetLabel}
+            description={presentation.workingSetDescription}
           >
-            ✖
-          </button>
+            <div className="space-y-3 text-left">
+              <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
+              <textarea
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                lang="en"
+                enterKeyHint="enter"
+                className={DRAFT_TEXTAREA_CLASS}
+                value={draft[draftIndex] || ""}
+                onChange={(e) => updateSection(draftIndex, e.target.value)}
+                disabled={locked}
+                placeholder="Draft this section in your own words…"
+              />
+            </div>
+          </WorkingSetSection>
 
-          <div className="mb-4 rounded-lg bg-white border border-gray-200 px-4 py-3 shadow-sm">
-            <h3 className="text-lg font-semibold mb-2 text-theme-blue flex items-center gap-2">
-              <span role="img" aria-label="outline">
-                📑
-              </span>
-              Outline
-            </h3>
-            <p className="text-xs text-gray-600 mb-2">
-              These are the buckets you built in Module 4 and shaped into an
-              outline in Module 5. Use them as a checklist while you draft.
-            </p>
-            <div className="text-sm space-y-1">
-              <div className="font-semibold">I. Introduction</div>
-
-              {outline.body.map((b, i) => (
-                <div key={i}>
-                  <div className="font-semibold">
-                    {roman(i + 1)}. {b.bucket}
-                  </div>
-                  <ul className="pl-4 list-disc list-inside text-xs text-gray-700">
-                    {b.points.map((pt, j) => (
-                      <li key={j}>{pt}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-
-              <div className="font-semibold">
-                {roman(outline.body.length + 1)}. Conclusion
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-4">
+            <div>
+              {!isFirstSection ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  disabled={locked}
+                  className="rounded-lg bg-surface-soft px-4 py-2 text-text-primary hover:bg-border-soft/60 disabled:opacity-50"
+                >
+                  Back
+                </button>
+              ) : null}
+            </div>
+            <div className="flex gap-2">
+              {!isLastSection ? (
+                <button
+                  type="button"
+                  onClick={goNext}
+                  disabled={locked}
+                  className="rounded-lg bg-theme-blue px-4 py-2 font-medium text-white disabled:opacity-50"
+                >
+                  Keep going
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={markComplete}
+                  disabled={locked}
+                  className="rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft disabled:opacity-50"
+                >
+                  Finish draft and continue
+                </button>
+              )}
             </div>
           </div>
-
-          <div className="rounded-lg bg-white border border-gray-200 px-4 py-3 shadow-sm">
-            <h3 className="text-lg font-semibold mb-2 text-theme-dark flex items-center gap-2">
-              <span role="img" aria-label="observations">
-                🔍
-              </span>
-              Observations
-            </h3>
-            <p className="text-xs text-gray-600 mb-2">
-              These notes came from your T chart work. Use them when you need a
-              quick reminder of what you noticed in the speech or the letter.
-            </p>
-            <ul className="text-xs space-y-1 max-h-[50vh] overflow-y-auto pr-1">
-              {observations.map((o) => (
-                <li key={o.id} className="border-b border-gray-100 pb-1">
-                  <strong className="text-theme-blue">
-                    {String(o.category || "").toUpperCase()}
-                  </strong>{" "}
-                  {`— `}
-                  {o.observation || o.speech_note || o.letter_note}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
-
-        <button
-          onClick={() => setSideOpen((s) => !s)}
-          className="fixed right-3 bottom-3 z-10 bg-theme-blue text-white px-4 py-2 rounded-full shadow-lg text-sm font-semibold hover:brightness-110"
-        >
-          {sideOpen ? "➡ Close Notes" : "⬅ Outline / Notes"}
-        </button>
+        </ModuleThreeStepFrame>
       </div>
     </div>
   );
