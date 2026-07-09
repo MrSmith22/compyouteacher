@@ -29,19 +29,17 @@ export default function ModuleEightSuccess() {
     <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
       <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
         <h1 className="text-3xl font-extrabold text-theme-green">
-          Module 8 complete!
+          Your paper is ready!
         </h1>
 
         <p className="text-lg text-theme-dark">
-          You polished the essay you strengthened in Module 7—improving clarity,
-          flow, and sentence quality so your argument reads clearly from start to
-          finish.
+          You created your submission document and prepared your paper according
+          to your teacher&apos;s expectations.
         </p>
 
         <p className="text-sm text-theme-dark/80">
-          In Module 9, you will format and submit your essay. APA style is about
-          how your paper looks on the page—not rewriting the thinking you already
-          built.
+          In Module 9, you&apos;ll confirm your understanding of APA formatting
+          and submit your final PDF.
         </p>
 
         {!ready ? (
@@ -53,7 +51,7 @@ export default function ModuleEightSuccess() {
             href="/modules/9"
             className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
           >
-            Continue to Module 9 — format and submit your essay
+            Continue to Module 9
           </Link>
         ) : (
           <button
@@ -61,7 +59,7 @@ export default function ModuleEightSuccess() {
             disabled
             className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
           >
-            Continue to Module 9 — format and submit your essay
+            Continue to Module 9
           </button>
         )}
       </div>

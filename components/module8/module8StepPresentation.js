@@ -1,95 +1,73 @@
-import { SECTION_TYPES } from "@/components/module6/module6StepPresentation";
+export const MODULE8_STEP_TYPES = {
+  CREATE_DOC: "create-doc",
+  FORMAT: "format",
+  READY: "ready",
+};
 
-export function getModule8StepPresentation(step, outline) {
-  const body = Array.isArray(outline?.body) ? outline.body : [];
+export const MODULE8_WORKSPACE_STEPS = [
+  { id: "create-doc", type: MODULE8_STEP_TYPES.CREATE_DOC },
+  { id: "format", type: MODULE8_STEP_TYPES.FORMAT },
+  { id: "ready", type: MODULE8_STEP_TYPES.READY },
+];
 
-  if (!step) {
+export function getModule8StepPresentation(step) {
+  if (step?.type === MODULE8_STEP_TYPES.CREATE_DOC) {
     return {
-      question:
-        "How can you make your essay as clear and effective as possible before you format it?",
+      question: "How do you create the paper you will turn in?",
       whyMatters: [
-        "You strengthened your ideas in Module 7.",
-        "Polish strengthens how your writing reads—one section at a time.",
+        "Your writing is finished. The paper you turn in is a separate step.",
+        "Your finished essay stays here. Your Google Doc is the paper you will format and submit.",
       ],
       successLooksLike: [
-        "Each section reads clearly for a reader.",
-        "Sentences flow smoothly with precise wording.",
-        "You improved clarity without starting over.",
+        "You created a Google Doc with your finished essay.",
+        "You can open the document and see your title page.",
+        "You understand this is preparation—not rewriting.",
       ],
       coachingMessage:
-        "Focus on the section on your desk. This is the same essay—you are polishing it.",
-      nextStepText:
-        "You will move through each section of the essay you revised in Module 7.",
-      workingSetLabel: "Your polish",
-      workingSetDescription: "On your desk: one section of your essay.",
+        "You are not changing your ideas. You are creating the document your teacher will read.",
+      nextStepText: "Next you will format your paper in APA style inside your Google Doc.",
+      workingSetLabel: "Create your submission document",
+      workingSetDescription: "On your desk: create the Google Doc you will turn in.",
     };
   }
 
-  if (step.type === SECTION_TYPES.INTRO) {
+  if (step?.type === MODULE8_STEP_TYPES.FORMAT) {
     return {
-      question: "How can you polish your introduction?",
+      question: "How do you format your paper so a reader can take it seriously?",
       whyMatters: [
-        "Your introduction sets direction for everything that follows.",
-        "You are clarifying what you already wrote—not writing a new opening.",
+        "Finished writing and a ready-to-turn-in paper are different things.",
+        "APA rules tell your reader you prepared your work carefully.",
       ],
       successLooksLike: [
-        "A reader would know the topic and where the essay is headed.",
-        "Your opening flows smoothly toward your thesis.",
-        "Sentences are clear and precise.",
+        "Font, spacing, and margins match your teacher's expectations.",
+        "Your title page and page numbers are in place.",
+        "Your references page follows APA rules.",
       ],
       coachingMessage:
-        "Read this section slowly. Tighten any sentences that feel long or vague.",
-      nextStepText:
-        body.length > 0
-          ? `Next you will polish your first body section: ${body[0]?.bucket || "your first paragraph plan"}.`
-          : "Next you will polish your conclusion.",
-      workingSetLabel: "Introduction",
-      workingSetDescription: "On your desk: your opening section.",
+        "Most of this step happens in your Google Doc. Return here as you complete each formatting item. You are not rewriting—you are preparing how your paper looks.",
+      nextStepText: "Next you will make sure you are ready to continue to submission.",
+      workingSetLabel: "Format your paper",
+      workingSetDescription: "On your desk: your APA formatting checklist.",
     };
   }
 
-  if (step.type === SECTION_TYPES.BODY) {
-    const card = body[step.bodyIndex] || {};
-    const title = String(card.bucket || "").trim() || `Body paragraph ${step.bodyIndex + 1}`;
-    const isLastBody = step.bodyIndex === body.length - 1;
-
+  if (step?.type === MODULE8_STEP_TYPES.READY) {
     return {
-      question: `How can you polish this section: ${title}?`,
+      question: "How do you know your paper is ready to turn in?",
       whyMatters: [
-        "Each body section proves one part of your argument.",
-        "You are improving prose you already revised—not rebuilding from notes.",
+        "Taking a moment to check your work prevents last-minute surprises.",
+        "You already did the hard part—your writing is complete.",
       ],
       successLooksLike: [
-        "This section connects clearly to your thesis.",
-        "Your explanation is easy for a reader to follow.",
-        "Transitions and sentences read smoothly.",
+        "What is one formatting choice you made that helps your reader?",
       ],
       coachingMessage:
-        "Glance at the shelf for your paragraph plan. Polish clarity and flow—not rewrite from scratch.",
-      nextStepText: isLastBody
-        ? "Next you will polish your conclusion."
-        : `Next you will polish: ${body[step.bodyIndex + 1]?.bucket || "the following section"}.`,
-      workingSetLabel: title,
-      workingSetDescription: "On your desk: this body section only.",
+        "Writing is finished. You prepared the paper someone else will read. Module 9 is where you confirm your APA knowledge and upload your final PDF.",
+      nextStepText: "In Module 9 you will take a short APA quiz and submit your final PDF.",
+      workingSetLabel: "Make sure you're ready",
+      workingSetDescription: "On your desk: a quick check before you continue.",
     };
   }
 
-  return {
-    question: "How can you polish your conclusion?",
-    whyMatters: [
-      "A conclusion shows the reader why your argument matters.",
-      "You are improving the ending you already wrote—not inventing a new argument.",
-    ],
-    successLooksLike: [
-      "Your closing brings the thesis back in fresh words.",
-      "The ending feels earned by the sections before it.",
-      "Sentences are clear and precise through the final lines.",
-    ],
-    coachingMessage:
-      "Keep it focused. A conclusion should land the essay—not restart it.",
-    nextStepText:
-      "When every section reads clearly, finish polishing and continue to formatting.",
-    workingSetLabel: "Conclusion",
-    workingSetDescription: "On your desk: your closing section.",
-  };
+  return getModule8StepPresentation(MODULE8_WORKSPACE_STEPS[0]);
 }
