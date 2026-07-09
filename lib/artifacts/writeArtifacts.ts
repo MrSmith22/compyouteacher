@@ -7,13 +7,14 @@ import type { IdeaWriteInput } from "@/lib/artifacts/ideaServer";
 import type { PatternWriteInput } from "@/lib/artifacts/patternServer";
 import type { ThesisWriteInput } from "@/lib/artifacts/thesisServer";
 import type { ParagraphPlanWriteInput } from "@/lib/artifacts/paragraphPlanServer";
-import type { Module6DraftWriteInput } from "@/lib/artifacts/draftServer";
+import type { Module6DraftWriteInput, Module7DraftWriteInput } from "@/lib/artifacts/draftServer";
 
 export type {
   ClaimWriteInput,
   EvidenceClusterWriteInput,
   IdeaWriteInput,
   Module6DraftWriteInput,
+  Module7DraftWriteInput,
   ParagraphPlanWriteInput,
   PatternWriteInput,
   ThesisWriteInput,
@@ -26,6 +27,7 @@ const CLAIM_API_PATH = "/api/module3/claims";
 const THESIS_API_PATH = "/api/module3/thesis";
 const PARAGRAPH_PLAN_API_PATH = "/api/module4/buckets";
 const MODULE6_DRAFT_API_PATH = "/api/module6/draft";
+const MODULE7_DRAFT_API_PATH = "/api/module7/draft";
 
 export async function upsertEvidenceClusterArtifact(input: EvidenceClusterWriteInput) {
   const res = await fetch(API_PATH, {
@@ -279,6 +281,26 @@ export async function upsertModule6DraftArtifact(input: Module6DraftWriteInput) 
       sections: input.sections,
       full_text: input.full_text,
       locked: input.locked,
+    }),
+  });
+
+  try {
+    await parseApiResponse(res);
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, error: { message: errorMessage(error) } };
+  }
+}
+
+export async function upsertModule7DraftArtifact(input: Module7DraftWriteInput) {
+  const res = await fetch(MODULE7_DRAFT_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      full_text: input.full_text,
+      final_text: input.final_text,
+      revised: input.revised,
+      final_ready: input.final_ready,
     }),
   });
 

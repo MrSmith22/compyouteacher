@@ -5,7 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { supabase } from "../lib/supabaseClient";
+import {
+  getModule6DraftRow,
+  getModule7DraftRow,
+} from "@/lib/artifacts/readArtifactsClient";
+import { upsertModule7DraftArtifact } from "@/lib/artifacts/writeArtifacts";
 import { logActivity } from "../lib/logActivity";
 
 // Choose a supported recording format
@@ -65,15 +69,12 @@ export default function ModuleSeven() {
 
   // Helper: load Module 6 draft
   const loadFromModule6 = async () => {
-    if (!email) return { text: "" };
-    const { data, error } = await supabase
-      .from("student_drafts")
-      .select("full_text")
-      .eq("user_email", email)
-      .eq("module", 6)
-      .maybeSingle();
-    if (error) console.error("Module 6 fetch error:", error);
-    return { text: data?.full_text ?? "" };
+    const result = await getModule6DraftRow();
+    if (!result.ok) {
+      console.error("Module 6 fetch error:", result.error);
+      return { text: "" };
+    }
+    return { text: result.data?.full_text ?? "" };
   };
 
 // Fetch Module 7 text; load audio from readaloud API; if no text, fall back to Module 6
@@ -82,14 +83,9 @@ useEffect(() => {
     if (!email) return;
 
     // 1) Load text state from student_drafts (Module 7), otherwise fall back to Module 6
-    const { data, error } = await supabase
-      .from("student_drafts")
-      .select("full_text, revised, final_ready")
-      .eq("user_email", email)
-      .eq("module", 7)
-      .maybeSingle();
-
-    if (error) console.error("Module 7 fetch error:", error);
+    const m7Result = await getModule7DraftRow();
+    if (!m7Result.ok) console.error("Module 7 fetch error:", m7Result.error);
+    const data = m7Result.data;
 
     let initialText = "";
 
@@ -368,20 +364,16 @@ useEffect(() => {
       return;
     }
 
-    const payload = {
-      user_email: email,
-      module: 7,
+    const result = await upsertModule7DraftArtifact({
+      userEmail: email,
       full_text: text,
       final_text: finalized ? text : null,
       revised: !finalized,
       final_ready: finalized,
-      updated_at: new Date().toISOString(),
-    };
+    });
 
-    const { error } = await supabase.from("student_drafts").upsert(payload);
-
-    if (error) {
-      console.error("Save error:", error);
+    if (!result.ok) {
+      console.error("Save error:", result.error);
       alert("Save failed.");
       return;
     }
