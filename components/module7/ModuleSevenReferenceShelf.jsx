@@ -46,7 +46,7 @@ function CollapsibleShelfSection({
   );
 }
 
-function OutlineSectionPreview({ label, points = [], isActive = false }) {
+function OutlineSectionPreview({ label, points = [], isActive = false, activeBadge = "revising now" }) {
   return (
     <div
       className={[
@@ -58,7 +58,7 @@ function OutlineSectionPreview({ label, points = [], isActive = false }) {
     >
       <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted">
         {label}
-        {isActive ? " · revising now" : ""}
+        {isActive ? ` · ${activeBadge}` : ""}
       </p>
       {points.length > 0 ? (
         <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs text-text-muted">
@@ -71,7 +71,7 @@ function OutlineSectionPreview({ label, points = [], isActive = false }) {
   );
 }
 
-function ParagraphPlanPreview({ index, plan, isActive }) {
+function ParagraphPlanPreview({ index, plan, isActive, activeBadge = "revising now" }) {
   const claim = (plan?.claim || "").trim();
   const snippets = Array.isArray(plan?.evidenceSnippets) ? plan.evidenceSnippets : [];
 
@@ -86,7 +86,7 @@ function ParagraphPlanPreview({ index, plan, isActive }) {
     >
       <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted">
         Paragraph plan {index + 1}
-        {isActive ? " · revising now" : ""}
+        {isActive ? ` · ${activeBadge}` : ""}
       </p>
       {claim ? (
         <p className="mt-1 whitespace-pre-wrap text-sm text-text-primary">{claim}</p>
@@ -105,7 +105,7 @@ function ParagraphPlanPreview({ index, plan, isActive }) {
   );
 }
 
-function DraftMapPreview({ step, sectionText = "", isActive = false }) {
+function DraftMapPreview({ step, sectionText = "", isActive = false, activeBadge = "revising now" }) {
   const preview = String(sectionText || "")
     .trim()
     .split(/\s+/)
@@ -127,7 +127,7 @@ function DraftMapPreview({ step, sectionText = "", isActive = false }) {
     >
       <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted">
         {label}
-        {isActive ? " · revising now" : ""}
+        {isActive ? ` · ${activeBadge}` : ""}
       </p>
       {preview ? (
         <p className="mt-1 text-xs leading-relaxed text-text-muted">
@@ -151,6 +151,7 @@ export default function ModuleSevenReferenceShelf({
   sectionSteps = [],
   sections = [],
   activeStep = null,
+  activeBadge = "revising now",
 }) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
   const activeBodyIndex =
@@ -179,6 +180,7 @@ export default function ModuleSevenReferenceShelf({
             <OutlineSectionPreview
               label={`${romanNumeral(0)}. Introduction`}
               isActive={activeStep?.type === "intro"}
+              activeBadge={activeBadge}
             />
             {body.map((card, index) => (
               <OutlineSectionPreview
@@ -186,11 +188,13 @@ export default function ModuleSevenReferenceShelf({
                 label={`${romanNumeral(index + 1)}. ${card.bucket || "Body paragraph"}`}
                 points={Array.isArray(card.points) ? card.points : []}
                 isActive={index === activeBodyIndex}
+                activeBadge={activeBadge}
               />
             ))}
             <OutlineSectionPreview
               label={`${romanNumeral(body.length + 1)}. Conclusion`}
               isActive={activeStep?.type === "conclusion"}
+              activeBadge={activeBadge}
             />
           </div>
         </ShelfSection>
@@ -203,6 +207,7 @@ export default function ModuleSevenReferenceShelf({
                 step={step}
                 sectionText={sections[step.draftIndex] || ""}
                 isActive={activeStep?.id === step.id}
+                activeBadge={activeBadge}
               />
             ))}
           </div>
@@ -242,6 +247,7 @@ export default function ModuleSevenReferenceShelf({
                   index={index}
                   plan={plan}
                   isActive={index === activeBodyIndex}
+                  activeBadge={activeBadge}
                 />
               ))}
             </div>

@@ -1,38 +1,69 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function ModuleEightSuccess() {
   const { data: session } = useSession();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!session?.user?.email) return;
-    advanceCurrentModuleOnSuccess({
-      userEmail: session.user.email,
-      completedModuleNumber: 8,
-    }).catch(() => {});
+    const run = async () => {
+      if (!session?.user?.email) return;
+      try {
+        await advanceCurrentModuleOnSuccess({
+          userEmail: session.user.email,
+          completedModuleNumber: 8,
+        });
+        setReady(true);
+      } catch {
+        setReady(true);
+      }
+    };
+    run();
   }, [session?.user?.email]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
       <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
         <h1 className="text-3xl font-extrabold text-theme-green">
-          🎉 Final Draft Complete!
+          Module 8 complete!
         </h1>
 
-        <p className="text-md text-gray-700">
-          Your final draft has been locked and is ready for APA formatting and submission.
+        <p className="text-lg text-theme-dark">
+          You polished the essay you strengthened in Module 7—improving clarity,
+          flow, and sentence quality so your argument reads clearly from start to
+          finish.
         </p>
 
-        <Link
-          href="/modules/9"
-          className="inline-block bg-theme-blue hover:bg-blue-800 text-white px-6 py-3 rounded shadow transition"
-        >
-          Proceed to APA Formatting →
-        </Link>
+        <p className="text-sm text-theme-dark/80">
+          In Module 9, you will format and submit your essay. APA style is about
+          how your paper looks on the page—not rewriting the thinking you already
+          built.
+        </p>
+
+        {!ready ? (
+          <p className="text-sm text-gray-600">Saving your progress…</p>
+        ) : null}
+
+        {ready ? (
+          <Link
+            href="/modules/9"
+            className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
+          >
+            Continue to Module 9 — format and submit your essay
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
+          >
+            Continue to Module 9 — format and submit your essay
+          </button>
+        )}
       </div>
     </div>
   );
