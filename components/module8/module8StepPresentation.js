@@ -13,21 +13,22 @@ export const MODULE8_WORKSPACE_STEPS = [
 export function getModule8StepPresentation(step) {
   if (step?.type === MODULE8_STEP_TYPES.CREATE_DOC) {
     return {
-      question: "How do you create the paper you will turn in?",
+      question: "How do you get your finished essay into a Google Doc?",
       whyMatters: [
-        "Your writing is finished. The paper you turn in is a separate step.",
-        "Your finished essay stays here. Your Google Doc is the paper you will format and submit.",
+        "Your writing is complete. You are no longer improving your ideas.",
+        "Your finished essay stays here. Your Google Doc is the paper you will format and turn in.",
       ],
       successLooksLike: [
-        "You created a Google Doc with your finished essay.",
+        "Your finished essay is in a Google Doc.",
         "You can open the document and see your title page.",
         "You understand this is preparation—not rewriting.",
       ],
       coachingMessage:
-        "You are not changing your ideas. You are creating the document your teacher will read.",
+        "You are preparing the paper your teacher will read—not changing what you wrote.",
       nextStepText: "Next you will format your paper in APA style inside your Google Doc.",
-      workingSetLabel: "Create your submission document",
-      workingSetDescription: "On your desk: create the Google Doc you will turn in.",
+      workingSetLabel: "Create your Google Doc",
+      workingSetDescription:
+        "Your finished essay will be placed into a Google Doc—the paper you'll format before turning it in.",
     };
   }
 
@@ -35,7 +36,7 @@ export function getModule8StepPresentation(step) {
     return {
       question: "How do you format your paper so a reader can take it seriously?",
       whyMatters: [
-        "Finished writing and a ready-to-turn-in paper are different things.",
+        "Your finished essay and your turn-in paper are two different things.",
         "APA rules tell your reader you prepared your work carefully.",
       ],
       successLooksLike: [
@@ -44,8 +45,8 @@ export function getModule8StepPresentation(step) {
         "Your references page follows APA rules.",
       ],
       coachingMessage:
-        "Most of this step happens in your Google Doc. Return here as you complete each formatting item. You are not rewriting—you are preparing how your paper looks.",
-      nextStepText: "Next you will make sure you are ready to continue to submission.",
+        "Most of the work in this step happens in your Google Doc. Come back here as you complete each formatting task. Do not edit your essay in the processor—you are only preparing how your paper looks.",
+      nextStepText: "Next you will make sure you are ready to continue.",
       workingSetLabel: "Format your paper",
       workingSetDescription: "On your desk: your APA formatting checklist.",
     };
@@ -53,19 +54,19 @@ export function getModule8StepPresentation(step) {
 
   if (step?.type === MODULE8_STEP_TYPES.READY) {
     return {
-      question: "How do you know your paper is ready to turn in?",
+      question: "Is your paper ready to turn in?",
       whyMatters: [
-        "Taking a moment to check your work prevents last-minute surprises.",
-        "You already did the hard part—your writing is complete.",
+        "You already finished writing. This is a quick check before submission.",
+        "Module 9 is where you demonstrate your APA knowledge and upload your PDF.",
       ],
       successLooksLike: [
         "What is one formatting choice you made that helps your reader?",
       ],
       coachingMessage:
-        "Writing is finished. You prepared the paper someone else will read. Module 9 is where you confirm your APA knowledge and upload your final PDF.",
+        "You are closing preparation—not starting another writing assignment. Your Google Doc is formatted; Module 9 is quiz and upload.",
       nextStepText: "In Module 9 you will take a short APA quiz and submit your final PDF.",
       workingSetLabel: "Make sure you're ready",
-      workingSetDescription: "On your desk: a quick check before you continue.",
+      workingSetDescription: "A quick check that your preparation is complete.",
     };
   }
 

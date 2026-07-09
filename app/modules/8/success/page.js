@@ -33,12 +33,11 @@ export default function ModuleEightSuccess() {
         </h1>
 
         <p className="text-lg text-theme-dark">
-          You created your submission document and prepared your paper according
-          to your teacher&apos;s expectations.
+          You prepared your Google Doc and got your paper ready to turn in.
         </p>
 
         <p className="text-sm text-theme-dark/80">
-          In Module 9, you&apos;ll confirm your understanding of APA formatting
+          In Module 9, you&apos;ll demonstrate your understanding of APA formatting
           and submit your final PDF.
         </p>
 

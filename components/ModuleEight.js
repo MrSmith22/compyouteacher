@@ -47,6 +47,57 @@ const CHECKLIST_ITEMS = [
 const FINISHED_ESSAY_PREVIEW_CLASS =
   "max-h-[min(280px,40vh)] overflow-y-auto rounded-xl border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-sm leading-7 text-text-primary";
 
+function PreparationProgressPanel({
+  hasGoogleDoc,
+  checklistComplete,
+  isReadyStep,
+  preparationComplete,
+}) {
+  const apaStatus = checklistComplete
+    ? { mark: "✓", label: "Complete", className: "text-theme-green" }
+    : hasGoogleDoc
+      ? { mark: "○", label: "In progress", className: "text-text-primary" }
+      : { mark: "○", label: "Next", className: "text-text-muted" };
+
+  const docStatus = hasGoogleDoc
+    ? { mark: "✓", label: "Created", className: "text-theme-green" }
+    : { mark: "○", label: "Next", className: "text-text-muted" };
+
+  const readyStatus = preparationComplete
+    ? { mark: "✓", label: "Ready", className: "text-theme-green" }
+    : isReadyStep
+      ? { mark: "○", label: "Almost there", className: "text-text-primary" }
+      : { mark: "○", label: "Next", className: "text-text-muted" };
+
+  const rows = [
+    { label: "Your finished essay", mark: "✓", status: "Complete", className: "text-theme-green" },
+    { label: "Google Doc", mark: docStatus.mark, status: docStatus.label, className: docStatus.className },
+    { label: "APA formatting", mark: apaStatus.mark, status: apaStatus.label, className: apaStatus.className },
+    { label: "Ready to turn in", mark: readyStatus.mark, status: readyStatus.label, className: readyStatus.className },
+  ];
+
+  return (
+    <div className="rounded-lg border border-border-soft/60 bg-surface-soft/25 px-4 py-3 text-left">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted">
+        Preparing your paper
+      </p>
+      <ul className="mt-2 space-y-1.5">
+        {rows.map((row) => (
+          <li
+            key={row.label}
+            className="flex items-center justify-between gap-3 text-sm"
+          >
+            <span className="text-text-primary">{row.label}</span>
+            <span className={`text-xs font-medium ${row.className}`}>
+              {row.mark} {row.status}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function ModuleEight() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -425,8 +476,8 @@ export default function ModuleEight() {
         })}
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
-        You are not editing here. Your finished essay stays in the processor; your
-        Google Doc is the paper you will turn in.
+        Your finished essay stays here (reference only). Your Google Doc is the
+        paper you will format and turn in.
       </p>
     </details>
   );
@@ -441,28 +492,40 @@ export default function ModuleEight() {
         nextStepText={presentation.nextStepText}
         sidebar={referenceShelf}
       >
-        <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
-          <p className="text-sm font-semibold text-text-primary">
-            Prepare Your Essay for Submission
-          </p>
-          <p className="text-[11px] leading-relaxed text-text-muted">
-            Your writing is finished. Now get your paper ready for your reader.
-          </p>
-          <p className="mt-1 text-[11px] leading-relaxed text-text-muted/80">
-            Module 8 · Step {currentStepIndex + 1} of {MODULE8_WORKSPACE_STEPS.length}
+        <div className="space-y-3">
+          <div className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3 text-left">
+            <p className="text-sm font-semibold text-text-primary">
+              Prepare Your Essay for Submission
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-text-primary">
+              Your writing is complete.
+            </p>
+            <ul className="mt-2 space-y-1 text-sm leading-relaxed text-text-muted">
+              <li>You are no longer improving your ideas.</li>
+              <li>You are preparing the paper your teacher will read.</li>
+              <li>
+                Your finished essay stays here. Your Google Doc is what you will
+                format and turn in.
+              </li>
+            </ul>
+          </div>
+
+          <PreparationProgressPanel
+            hasGoogleDoc={!!submissionDocUrl}
+            checklistComplete={checklistComplete}
+            isReadyStep={currentStep.type === MODULE8_STEP_TYPES.READY}
+            preparationComplete={locked || (canFinish && isLastStep)}
+          />
+
+          <p className="text-[11px] leading-relaxed text-text-muted/80">
+            Step {currentStepIndex + 1} of {MODULE8_WORKSPACE_STEPS.length}
             {" · "}
             {currentStep.type === MODULE8_STEP_TYPES.CREATE_DOC
-              ? "Create your submission document"
+              ? "Create your Google Doc"
               : currentStep.type === MODULE8_STEP_TYPES.FORMAT
                 ? "Format your paper"
                 : "Make sure you're ready"}
           </p>
-          {isFirstStep ? (
-            <p className="mt-1 text-[11px] leading-relaxed text-text-muted/80">
-              From this point forward you are preparing the paper you will submit—not
-              changing your ideas.
-            </p>
-          ) : null}
         </div>
 
         <WorkingSetSection
@@ -477,9 +540,11 @@ export default function ModuleEight() {
               {!submissionDocUrl ? (
                 <div className="rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-5 py-4 shadow-soft">
                   <p className="text-sm leading-relaxed text-text-primary">
-                    Create a Google Doc with your finished essay. This is{" "}
-                    <span className="font-semibold">the paper you will turn in</span>
-                    —not a copy for rewriting.
+                    Your finished essay will be placed into a Google Doc.
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    This is the paper you&apos;ll format in APA style before turning
+                    it in—not a place to rewrite your essay.
                   </p>
                   <button
                     type="button"
@@ -487,16 +552,16 @@ export default function ModuleEight() {
                     disabled={locked || creatingDoc}
                     className="mt-4 rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {creatingDoc ? "Creating your Google Doc…" : "Create your submission document"}
+                    {creatingDoc ? "Creating your Google Doc…" : "Create your Google Doc"}
                   </button>
                 </div>
               ) : (
                 <div className="space-y-3 rounded-xl border border-theme-green/30 bg-theme-green/5 px-4 py-4">
                   <p className="text-sm font-semibold text-theme-green">
-                    Your submission document is ready
+                    Your Google Doc is ready
                   </p>
                   <ul className="space-y-1.5 text-sm text-text-primary">
-                    <li>✓ Document created</li>
+                    <li>✓ Google Doc created</li>
                     <li>
                       ✓{" "}
                       <a
@@ -508,7 +573,7 @@ export default function ModuleEight() {
                         Open your Google Doc
                       </a>
                     </li>
-                    <li>✓ Check that your title page is present in the document</li>
+                    <li>✓ Check that your title page is in the document</li>
                   </ul>
                   {popupBlocked ? (
                     <p className="text-xs text-text-muted">
@@ -538,14 +603,18 @@ export default function ModuleEight() {
                     rel="noopener noreferrer"
                     className="text-sm text-theme-blue underline"
                   >
-                    Open your submission document
+                    Open your Google Doc
                   </a>
                 </div>
               ) : null}
 
+              <p className="text-sm font-medium text-text-primary">
+                Most of the work in this step happens in your Google Doc.
+              </p>
               <p className="text-sm leading-relaxed text-text-muted">
-                Most of this step happens in your Google Doc. Return here as you
-                complete each formatting item.
+                Come back here as you complete each formatting task. You should not
+                be editing your essay in the processor—only checking off what you
+                finished in your Google Doc.
               </p>
 
               <div className="space-y-2">
@@ -587,12 +656,16 @@ export default function ModuleEight() {
 
           {currentStep.type === MODULE8_STEP_TYPES.READY ? (
             <div className="space-y-4 text-left">
+              <p className="text-sm leading-relaxed text-text-muted">
+                You finished writing in Module 7. This step closes your preparation—not
+                another writing assignment.
+              </p>
               <ul className="space-y-2 text-sm text-text-primary">
                 <li className={submissionDocUrl ? "text-theme-green" : "text-text-muted"}>
-                  {submissionDocUrl ? "✓" : "○"} Submission document created
+                  {submissionDocUrl ? "✓" : "○"} Google Doc created
                 </li>
                 <li className={checklistComplete ? "text-theme-green" : "text-text-muted"}>
-                  {checklistComplete ? "✓" : "○"} APA checklist complete
+                  {checklistComplete ? "✓" : "○"} APA formatting complete
                 </li>
               </ul>
 
@@ -605,7 +678,7 @@ export default function ModuleEight() {
 
               {!canFinish && !locked ? (
                 <p className="text-xs text-text-muted">
-                  Complete your submission document and APA checklist before continuing.
+                  Create your Google Doc and complete the APA checklist before continuing.
                 </p>
               ) : null}
             </div>
@@ -616,8 +689,9 @@ export default function ModuleEight() {
           <div className="space-y-2 rounded-lg border border-theme-green/30 bg-theme-green/5 px-4 py-3 text-sm text-theme-green">
             <p className="font-semibold">Your paper is ready.</p>
             <p>
-              You prepared your submission document. Continue to Module 9 to confirm
-              your APA knowledge and submit your final PDF.
+              You prepared your Google Doc and got your paper ready to turn in.
+              Continue to Module 9 to demonstrate your understanding of APA
+              formatting and submit your final PDF.
             </p>
             <Link
               href="/modules/9"
