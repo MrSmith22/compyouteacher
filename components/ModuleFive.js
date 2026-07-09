@@ -337,12 +337,16 @@ export default function ModuleFive() {
 
         if (error) {
           console.error("Could not load buckets from Module 4:", error.message);
-          alert("Could not load paragraph plans from Module 4.");
+          alert(
+            "We could not load your paragraph plans from Module 4. Try again in a moment."
+          );
           return;
         }
 
         if (!bucketsData?.buckets?.length) {
-          alert("No paragraph plans found in Module 4 yet.");
+          alert(
+            "No paragraph plans found in Module 4 yet. Finish planning your paragraphs there, then return here—or add cards manually."
+          );
           return;
         }
 
@@ -411,14 +415,16 @@ export default function ModuleFive() {
 
       if (!res.ok || !json?.ok) {
         alert(
-          "Error saving outline: " +
-            (json?.error || res.statusText || "Request failed")
+          "We could not save your outline. Please try again. " +
+            (json?.error || res.statusText || "")
         );
         setLocked(false);
         return;
       }
     } catch (err) {
-      alert("Error saving outline: " + (err?.message || "Network error"));
+      alert(
+        "We could not save your outline. Check your connection and try again."
+      );
       setLocked(false);
       return;
     }
@@ -454,6 +460,12 @@ export default function ModuleFive() {
         <div
           className={`p-6 max-w-4xl mx-auto bg-theme-light rounded shadow space-y-6 ${readonly}`}
         >
+          {locked ? (
+            <div className="rounded-lg border border-theme-green/30 bg-theme-green/5 px-4 py-3 text-sm text-theme-dark">
+              Your outline is complete. You can review it here, then continue to Module 6 when
+              you are ready to draft.
+            </div>
+          ) : null}
           {/* Intro / teaching card */}
           <div className="rounded-xl border border-theme-blue/30 bg-white p-4 space-y-3">
             <h1 className="text-3xl font-extrabold text-theme-blue">
@@ -484,9 +496,12 @@ export default function ModuleFive() {
               </li>
             </ol>
             <p className="text-xs text-theme-dark/70">
-              <strong>Working Set:</strong> the outline section you are shaping right now.{" "}
-              <strong>Reference Set:</strong> your saved thesis and paragraph plans—you can glance
-              back without rebuilding them.
+              On your desk: the outline section you are shaping right now. On the shelf:
+              your saved thesis and paragraph plans—you can glance back without rebuilding
+              them.
+            </p>
+            <p className="text-[11px] text-theme-dark/60">
+              Your outline saves as you work.
             </p>
           </div>
 

@@ -52,20 +52,34 @@ export default function ModuleFiveSuccess() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
       <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <div className="text-5xl">🎉</div>
-
-        <h1 className="text-3xl font-bold text-theme-green">Module 5 complete</h1>
+        <h1 className="text-3xl font-bold text-theme-green">Module 5 complete!</h1>
 
         <p className="text-lg text-theme-dark">
-          You organized your paragraph plans into an outline. In Module 6, you will turn that
-          outline into a draft—not start over.
+          You organized your paragraph plans into an outline and planned how you will close
+          the essay. Your thesis, body sections, and conclusion notes are ready to become
+          prose—not a fresh start.
+        </p>
+
+        <p className="text-sm text-theme-dark/80">
+          In Module 6, you will draft one section at a time from the outline you built here.
         </p>
 
         {!ready && !errMsg && (
           <p className="text-sm text-gray-600">Saving your progress…</p>
         )}
 
-        {errMsg && <p className="text-sm text-red-700">{errMsg}</p>}
+        {errMsg && (
+          <p className="text-sm text-red-700">
+            {errMsg}{" "}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="underline text-red-800"
+            >
+              Try again
+            </button>
+          </p>
+        )}
 
         {ready ? (
           <Link

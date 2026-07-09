@@ -14,7 +14,7 @@ import {
 } from "@/lib/artifacts/readArtifactsClient";
 import { upsertModule6DraftArtifact } from "@/lib/artifacts/writeArtifacts";
 import { parseApiResponse } from "@/lib/api/clientFetch";
-import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
+import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
 import {
@@ -24,7 +24,7 @@ import {
 } from "@/components/module6/module6StepPresentation";
 
 const DRAFT_TEXTAREA_CLASS =
-  "min-h-[220px] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-3 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 disabled:cursor-not-allowed disabled:opacity-60";
+  "min-h-[min(420px,52vh)] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -266,7 +266,8 @@ export default function ModuleSix() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface-base">
         <p className="text-text-primary">
-          Finish your outline in Module 5 before you begin drafting here.
+          Finish earlier modules before you begin drafting here. Complete Module 5 and
+          continue from its success page when your outline is ready.
         </p>
       </div>
     );
@@ -327,9 +328,8 @@ export default function ModuleSix() {
   );
 
   return (
-    <div className="min-h-screen bg-surface-base">
-      <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
-        <ModuleThreeStepFrame
+    <div className="w-full pb-10">
+      <ModuleSixStepFrame
           question={presentation.question}
           whyMatters={presentation.whyMatters}
           successLooksLike={presentation.successLooksLike}
@@ -337,19 +337,20 @@ export default function ModuleSix() {
           nextStepText={presentation.nextStepText}
           sidebar={referenceShelf}
         >
-          <div className="space-y-4 rounded-lg bg-surface-soft/50 px-4 py-3 text-left">
-            <p className="text-xs leading-relaxed text-text-muted">
-              Module 6 · Stage 13 — Draft · section {currentSectionIndex + 1} of{" "}
+          <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              Module 6 · Draft · section {currentSectionIndex + 1} of{" "}
               {sectionSteps.length}. Same workspace—one section at a time.
             </p>
             {!locked ? (
-              <p className="text-xs leading-relaxed text-text-muted">
+              <p className="text-[11px] leading-relaxed text-text-muted/80">
                 Your draft saves as you type.
               </p>
             ) : null}
           </div>
 
           <WorkingSetSection
+            className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
             label={presentation.workingSetLabel}
             description={presentation.workingSetDescription}
           >
@@ -405,8 +406,7 @@ export default function ModuleSix() {
               )}
             </div>
           </div>
-        </ModuleThreeStepFrame>
-      </div>
+        </ModuleSixStepFrame>
     </div>
   );
 }

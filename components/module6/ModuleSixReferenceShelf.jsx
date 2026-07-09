@@ -23,6 +23,29 @@ function ShelfSection({ title, artifactType = null, children, emptyText = "Not y
   );
 }
 
+function CollapsibleShelfSection({
+  title,
+  children,
+  emptyText = "Not yet.",
+  defaultOpen = false,
+}) {
+  return (
+    <details
+      className="rounded-lg border border-border-soft/50 bg-surface-soft/30 px-3 py-2"
+      open={defaultOpen}
+    >
+      <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+        {title}
+      </summary>
+      <div className="mt-2 text-sm leading-relaxed text-text-primary">
+        {children ?? (
+          <p className="text-xs leading-relaxed text-text-muted">{emptyText}</p>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function OutlineSectionPreview({ label, points = [], isActive = false }) {
   return (
     <div
@@ -96,41 +119,20 @@ export default function ModuleSixReferenceShelf({
     activeStep?.type === "body" ? activeStep.bodyIndex : -1;
 
   return (
-    <aside className="space-y-4 text-left">
+    <aside className="space-y-3 text-left">
       <div>
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
           On the shelf
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-text-muted">
-          Your thesis, outline, and paragraph plans stay here while you draft one
-          section at a time.
+        <p className="mt-1 text-[11px] leading-relaxed text-text-muted/80">
+          Thesis and outline stay visible. Open the rest when you need a reminder.
         </p>
       </div>
 
-      <Card padding="sm" elevation="soft" surface="soft" className="space-y-4">
-        <ShelfSection title="Assignment question" emptyText="Your assignment question will appear here.">
-          {assignmentQuestion ? (
-            <p className="text-sm leading-relaxed text-text-primary">{assignmentQuestion}</p>
-          ) : null}
-        </ShelfSection>
-
+      <Card padding="sm" elevation="soft" surface="soft" className="space-y-3">
         <ShelfSection title="Thesis" artifactType="thesis" emptyText="Your thesis will appear here.">
           {thesis ? (
             <p className="whitespace-pre-wrap text-sm text-text-primary">{thesis}</p>
-          ) : null}
-        </ShelfSection>
-
-        <ShelfSection
-          title="Proof plan"
-          artifactType="proof_plan"
-          emptyText="Proof directions from Module 3 will appear here when you have them."
-        >
-          {proofPlan.length > 0 ? (
-            <ol className="list-decimal list-inside space-y-1 text-sm text-text-primary">
-              {proofPlan.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ol>
           ) : null}
         </ShelfSection>
 
@@ -155,10 +157,31 @@ export default function ModuleSixReferenceShelf({
           </div>
         </ShelfSection>
 
+        <CollapsibleShelfSection
+          title="Assignment question"
+          emptyText="Your assignment question will appear here."
+        >
+          {assignmentQuestion ? (
+            <p className="text-sm leading-relaxed text-text-primary">{assignmentQuestion}</p>
+          ) : null}
+        </CollapsibleShelfSection>
+
+        <CollapsibleShelfSection
+          title="Proof plan"
+          emptyText="Proof directions from Module 3 will appear here when you have them."
+        >
+          {proofPlan.length > 0 ? (
+            <ol className="list-decimal list-inside space-y-1 text-sm text-text-primary">
+              {proofPlan.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ol>
+          ) : null}
+        </CollapsibleShelfSection>
+
         {paragraphPlans.length > 0 ? (
-          <ShelfSection
+          <CollapsibleShelfSection
             title="Paragraph plans"
-            artifactType="paragraph_plan"
             emptyText="Paragraph plans from Module 4 will appear here."
           >
             <div className="space-y-2">
@@ -171,10 +194,13 @@ export default function ModuleSixReferenceShelf({
                 />
               ))}
             </div>
-          </ShelfSection>
+          </CollapsibleShelfSection>
         ) : null}
 
-        <ShelfSection title="Evidence" artifactType="evidence" emptyText="Your evidence notes will appear here.">
+        <CollapsibleShelfSection
+          title="Evidence"
+          emptyText="Your evidence notes will appear here."
+        >
           {observations.length > 0 ? (
             <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-text-muted">
               {observations.map((entry) => (
@@ -188,7 +214,7 @@ export default function ModuleSixReferenceShelf({
               ))}
             </ul>
           ) : null}
-        </ShelfSection>
+        </CollapsibleShelfSection>
       </Card>
     </aside>
   );

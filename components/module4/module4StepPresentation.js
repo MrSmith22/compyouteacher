@@ -125,7 +125,7 @@ const STEP_PRESENTATION = {
       "This module shows how to turn that work into clear paragraph ideas—one small step at a time.",
     ],
     successLooksLike: [
-      "You understand that each bucket becomes a body paragraph later.",
+      "You understand that each paragraph plan becomes a body paragraph later.",
     ],
     workingSetLabel: "Getting started",
     workingSetDescription: "On your desk: what this module will help you build.",
@@ -147,21 +147,21 @@ const STEP_PRESENTATION = {
     workingSetDescription: "On your desk: reconnecting to your thesis before you plan paragraphs.",
     coachingMessage:
       "Keep asking: does this idea help prove my thesis? That question stays with you through every paragraph.",
-    nextStepText: "Next you will learn what a paragraph plan—a bucket—actually is.",
+    nextStepText: "Next you will learn what a paragraph plan includes.",
   },
   [STEP_EXPLAIN_BUCKETS]: {
     question: "What is a paragraph plan?",
     whyMatters: [
-      "A bucket is a paragraph plan: the main idea, the quotes, and the explanation for one body paragraph.",
-      "You will build at least two buckets. A third is optional if your thesis needs another layer.",
+      "A paragraph plan holds the main idea, the quotes, and the explanation for one body paragraph.",
+      "You will build at least two paragraph plans. A third is optional if your thesis needs another layer.",
     ],
     successLooksLike: [
-      "You can explain what goes inside one bucket.",
+      "You can explain what goes inside one paragraph plan.",
     ],
     workingSetLabel: "Paragraph plans",
     workingSetDescription: "On your desk: learning what you are building in this module.",
     coachingMessage:
-      "Each bucket becomes a body paragraph later. You are planning the thinking first.",
+      "Each paragraph plan becomes a body paragraph later. You are planning the thinking first.",
     nextStepText: "Next you will reconnect to a pattern—or notice one—that can anchor your paragraphs.",
   },
   [STEP_PATTERN]: {

@@ -27,9 +27,9 @@ function getChecklistStatus(text) {
 const modules = [
   {
     id: 1,
-    title: "Module 1: Review of Rhetorical Strategies",
+    title: "Module 1: Understand the Assignment",
     description:
-      "Watch a video on Ethos, Pathos & Logos and complete a quiz.",
+      "Step 2 of 2: learn rhetorical vocabulary with a short video and quiz.",
     content: {
       videoFile: "/videos/Ethos Pathos and Logos Explained.mp4",
       quiz: [
@@ -267,6 +267,13 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
       <h2 className="text-3xl font-extrabold text-center text-theme-blue mb-2">
         {currentModule.title}
       </h2>
+      <div className="max-w-3xl mx-auto mb-4 bg-surface-soft border border-border-soft rounded-lg p-4">
+        <p className="text-sm font-semibold text-theme-blue">Step 2 of 2</p>
+        <p className="text-sm text-text-primary mt-1">
+          You already explained the assignment in your own words. Now learn the vocabulary that
+          will help you talk about King&apos;s rhetoric in later modules.
+        </p>
+      </div>
       <p className="text-center text-theme-muted mb-6">
         {currentModule.description}
       </p>

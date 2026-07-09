@@ -252,7 +252,7 @@ function scaffoldStepTeacherCopy(role, paragraphNumber, isFirstParagraphGeneral)
 }
 
 const THESIS_BRIDGE_COPY =
-  "Everything you do in this module should help you prove your thesis. Each bucket you create will become a body paragraph in your essay.";
+  "Everything you do in this module should help you prove your thesis. Each paragraph plan you build will become a body paragraph in your essay.";
 
 const GUIDING_QUESTION = "Does this idea help prove your thesis?";
 
@@ -301,7 +301,7 @@ const PATTERN_FEEDBACK_BY_CHOICE = {
   trust_listen:
     "Nice work—here King seems to be earning trust so people will actually hear his message instead of brushing it aside. Because that move appears in both the speech moment and the letter moment, you have spotted a strategy King uses more than once. A pattern like that is exactly the kind of material that can anchor a body paragraph.",
   unsure:
-    "That’s completely fine—you don’t have to lock in a label yet. What I want you to remember is that when you do notice an idea that echoes across both texts, you are often right at the start of what can become a strong body paragraph. You’ll keep practicing that as you build your buckets.",
+    "That’s completely fine—you don’t have to lock in a label yet. What I want you to remember is that when you do notice an idea that echoes across both texts, you are often right at the start of what can become a strong body paragraph. You’ll keep practicing that as you build your paragraph plans.",
 };
 
 function patternStepFeedbackForChoice(choiceId) {
@@ -410,7 +410,7 @@ function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
           Your paragraph idea
         </p>
         <p className="text-sm text-theme-dark/90 whitespace-pre-wrap">
-          {claim || "—"}
+          {claim || "Add your paragraph idea on the previous step."}
         </p>
       </div>
 
@@ -452,7 +452,7 @@ function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
                     Source: {sourceTypeLabel(row.type)}
                   </span>
                   <span className="rounded border border-theme-dark/15 bg-white/90 px-2 py-1 capitalize">
-                    Appeal: {appeal || "—"}
+                    Appeal: {appeal || "from your Module 2 notes"}
                   </span>
                 </div>
                 <div>
@@ -470,7 +470,7 @@ function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
                     Your explanation (Module 2)
                   </p>
                   <p className="text-theme-dark/90 leading-relaxed">
-                    {explanation || "—"}
+                    {explanation || "Your explanation from Module 2 will appear here."}
                   </p>
                 </div>
                 <div className="rounded-md border border-theme-blue/20 bg-theme-blue/5 p-2.5 mt-1">
@@ -1008,7 +1008,7 @@ export default function ModuleFour({
         question: "What pattern did you already notice in Module 3?",
         whyMatters: [
           "You already named a pattern in Module 3—something that shows up in more than one place.",
-          "Reconnect to that thinking before you plan paragraphs so each bucket grows from work you have already done.",
+          "Reconnect to that thinking before you plan paragraphs so each paragraph plan grows from work you have already done.",
         ],
         workingSetLabel: "Your pattern",
         workingSetDescription:
@@ -1052,10 +1052,12 @@ export default function ModuleFour({
     [allBucketSuggestions, scaffoldRole]
   );
 
-  const speechAudience = (responses?.[0] || "").trim() || "—";
-  const speechPurpose = (responses?.[1] || "").trim() || "—";
-  const letterAudience = (responses?.[2] || "").trim() || "—";
-  const letterPurpose = (responses?.[3] || "").trim() || "—";
+  const speechAudience = (responses?.[0] || "").trim();
+  const speechPurpose = (responses?.[1] || "").trim();
+  const letterAudience = (responses?.[2] || "").trim();
+  const letterPurpose = (responses?.[3] || "").trim();
+  const hasLegacyAudiencePurpose =
+    Boolean(speechAudience || speechPurpose || letterAudience || letterPurpose);
 
   const persistSlice = useCallback(() => {
     if (wantThirdBucket === true) return buckets.slice(0, 3);
@@ -1379,8 +1381,8 @@ export default function ModuleFour({
         </p>
         <StepGuidanceBox label="Why this matters">
           <p>
-            Before you plan paragraphs, reconnect to the audience, purpose, and thesis
-            you already chose. That keeps every paragraph idea tied to your argument.
+            Before you plan paragraphs, reconnect to the thesis and proof directions you
+            already built in Module 3. That keeps every paragraph idea tied to your argument.
           </p>
         </StepGuidanceBox>
 
@@ -1396,36 +1398,46 @@ export default function ModuleFour({
           </p>
         </StepGuidanceBox>
 
-        <StepReferenceNote title="From Module 3 — for reference">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div className="rounded-lg border border-theme-blue/25 bg-white p-3">
-            <p className="font-semibold text-theme-dark mb-2">
-              Speech — <em>I Have a Dream</em>
-            </p>
+        {hasLegacyAudiencePurpose ? (
+          <StepReferenceNote title="From Module 3 — for reference">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="rounded-lg border border-theme-blue/25 bg-white p-3">
+                <p className="font-semibold text-theme-dark mb-2">
+                  Speech — <em>I Have a Dream</em>
+                </p>
+                <p>
+                  <span className="font-semibold">Audience: </span>
+                  {speechAudience || "See your Module 2 evidence notes for a reminder."}
+                </p>
+                <p className="mt-1">
+                  <span className="font-semibold">Purpose: </span>
+                  {speechPurpose || "See your Module 2 evidence notes for a reminder."}
+                </p>
+              </div>
+              <div className="rounded-lg border border-theme-orange/30 bg-white p-3">
+                <p className="font-semibold text-theme-dark mb-2">
+                  Letter — <em>Letter from Birmingham Jail</em>
+                </p>
+                <p>
+                  <span className="font-semibold">Audience: </span>
+                  {letterAudience || "See your Module 2 evidence notes for a reminder."}
+                </p>
+                <p className="mt-1">
+                  <span className="font-semibold">Purpose: </span>
+                  {letterPurpose || "See your Module 2 evidence notes for a reminder."}
+                </p>
+              </div>
+            </div>
+          </StepReferenceNote>
+        ) : (
+          <StepGuidanceBox label="From your earlier work">
             <p>
-              <span className="font-semibold">Audience: </span>
-              {speechAudience}
+              Your thesis and proof plan from Module 3 are on the shelf. You connected quotes
+              to audience and purpose in Module 2—glance at those notes when you need a
+              reminder while you plan each paragraph.
             </p>
-            <p className="mt-1">
-              <span className="font-semibold">Purpose: </span>
-              {speechPurpose}
-            </p>
-          </div>
-          <div className="rounded-lg border border-theme-orange/30 bg-white p-3">
-            <p className="font-semibold text-theme-dark mb-2">
-              Letter — <em>Letter from Birmingham Jail</em>
-            </p>
-            <p>
-              <span className="font-semibold">Audience: </span>
-              {letterAudience}
-            </p>
-            <p className="mt-1">
-              <span className="font-semibold">Purpose: </span>
-              {letterPurpose}
-            </p>
-          </div>
-        </div>
-        </StepReferenceNote>
+          </StepGuidanceBox>
+        )}
 
         {structureLabel ? (
           <StepReferenceNote title="Organization choice (from Module 3)">
@@ -1443,13 +1455,8 @@ export default function ModuleFour({
         <StepGuidanceBox label="Tip">
           <p>
             Your thesis, proof directions, and earlier thinking are on the shelf to your
-            left. Keep them in mind as you plan each paragraph.
-          </p>
-        </StepGuidanceBox>
-        <StepGuidanceBox label="Tip">
-          <p>
-            You may group more than one idea into a paragraph, or you may build one
-            clear idea per paragraph. We will guide you step by step.
+            left. Keep them in mind as you plan each paragraph—you may group more than one
+            idea into a paragraph, or build one clear idea per paragraph.
           </p>
         </StepGuidanceBox>
         <StepActionHeading>
@@ -1461,21 +1468,18 @@ export default function ModuleFour({
     main = (
       <div className={panelClass}>
         <h2 className="text-xl font-extrabold text-theme-blue">
-          Learn what a “bucket” is
+          What is a paragraph plan?
         </h2>
         <p className="text-sm font-semibold text-theme-dark">
           What you will do: read the explanation—no typing yet
         </p>
         <StepGuidanceBox label="Why this matters">
           <p>
-            A <strong>bucket</strong> is a paragraph plan. Later, each bucket becomes a
-            full body paragraph in your essay. Inside one bucket you will keep: the{" "}
-            <strong>main idea</strong> of that paragraph, the{" "}
-            <strong>quotes</strong> that belong there, and{" "}
-            <strong>sentences that explain</strong> why those quotes matter.
+            A <strong>paragraph plan</strong> is the main idea, quotes, and explanation for
+            one body paragraph. Later, each plan becomes full prose in your draft.
           </p>
           <p className="mt-2">
-            You will complete <strong>two</strong> buckets for sure. If your thesis
+            You will complete <strong>two</strong> paragraph plans for sure. If your thesis
             needs another layer, you may add a third.
           </p>
         </StepGuidanceBox>
@@ -1505,7 +1509,7 @@ export default function ModuleFour({
               <p>
                 You already noticed a <strong>pattern</strong> in Module 3—something that
                 shows up in more than one place. Reconnect to that thinking before you
-                plan paragraphs so each bucket grows from work you have already done.
+                plan paragraphs so each paragraph plan grows from work you have already done.
               </p>
             </StepGuidanceBox>
             <StepReferenceNote title="Your Module 3 pattern">
@@ -1818,7 +1822,7 @@ export default function ModuleFour({
         </StepGuidanceBox>
         <StepGuidanceBox label="Think about this">
           <p className="font-semibold text-theme-dark mb-1">
-            Does this quote fit your bucket?
+            Does this quote fit this paragraph plan?
           </p>
           <p>
             For each quote you consider, ask whether it really supports{" "}
@@ -1827,7 +1831,7 @@ export default function ModuleFour({
           </p>
         </StepGuidanceBox>
         <StepReferenceNote title="Paragraph idea you are supporting (read-only)">
-          {(buckets[i]?.claim || "").trim() || "—"}
+          {(buckets[i]?.claim || "").trim() || "Add your paragraph idea on the previous step."}
         </StepReferenceNote>
         <StepActionHeading>
           Your turn: use the checkboxes below to select evidence.
@@ -2051,7 +2055,7 @@ export default function ModuleFour({
                 disabled={!canGoNext()}
                 className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
               >
-                Finish → Module 5 path
+                Continue to Module 5
               </button>
             ) : null}
           </div>

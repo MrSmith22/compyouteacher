@@ -12,9 +12,9 @@ const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const modules = [
   {
     id: 1,
-    title: "Module 1: Review of Rhetorical Strategies",
+    title: "Module 1: Understand the Assignment",
     description:
-      "Watch a video on Ethos, Pathos & Logos and complete a quiz.",
+      "Step 2 of 2: learn rhetorical vocabulary with a short video and quiz.",
     content: {
       videoFile: "/videos/Ethos Pathos and Logos Explained.mp4",
       quiz: [
