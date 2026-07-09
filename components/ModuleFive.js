@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { SortableItem } from "./SortableItem";
 import { outlineBodyFromStudentBuckets } from "@/lib/module4/mapStudentBucketsToOutline";
+import { getParagraphPlanRow } from "@/lib/artifacts/readArtifactsClient";
 
 const roman = (n) =>
   ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n] ||
@@ -57,7 +58,7 @@ export default function ModuleFive() {
 
     outline.forEach((b, i) => {
       const idx = i + 1;
-      out += `${roman(idx)}. ${b.bucket || "Main Idea"}\n`;
+      out += `${roman(idx)}. ${b.bucket || "Body paragraph"}\n`;
       b.points.forEach((pt, j) => {
         if (!pt.trim()) return;
         const letter = String.fromCharCode(65 + j);
@@ -146,27 +147,22 @@ export default function ModuleFive() {
         }
       }
 
-      // 3) If no body yet, seed from Module 4 (student_buckets, then legacy bucket_groups)
+      // 3) If no body yet, seed from Module 4 (paragraph plans API, then legacy bucket_groups)
       if (!savedRow?.outline?.body?.length) {
-        const { data: m4Row, error: m4Err } = await supabase
-          .from("student_buckets")
-          .select("buckets")
-          .eq("user_email", email)
-          .eq("module", 4)
-          .maybeSingle();
+        const m4Result = await getParagraphPlanRow();
 
-        if (m4Err) {
-          console.error("student_buckets fetch error:", m4Err);
+        if (!m4Result.ok) {
+          console.error("student_buckets fetch error:", m4Result.error);
         }
 
-        if (m4Row?.buckets?.length) {
+        if (Array.isArray(m4Result.data?.buckets) && m4Result.data.buckets.length) {
           const { data: tchartData } = await supabase
             .from("tchart_entries")
             .select("*")
             .eq("user_email", email);
 
           const body = outlineBodyFromStudentBuckets(
-            m4Row.buckets,
+            m4Result.data.buckets,
             tchartData || []
           );
           if (body.length) setOutline(body);
@@ -286,8 +282,8 @@ export default function ModuleFive() {
     setOutline((prev) => [
       ...prev,
       {
-        bucket: "New paragraph idea",
-        points: ["Add a supporting detail (observation + evidence)"],
+        bucket: "New paragraph plan",
+        points: ["Add a supporting detail from your evidence"],
       },
     ]);
   };
@@ -307,32 +303,27 @@ export default function ModuleFive() {
 
     if (outline.length > 0 && !force) {
       const ok = window.confirm(
-        "This will replace your current paragraph cards with the latest buckets from Module 4. Continue?"
+        "This will replace your current outline with your latest paragraph plans from Module 4. Continue?"
       );
       if (!ok) return;
     }
 
     setIsImportingBuckets(true);
     try {
-      const { data: m4Row, error: m4Err } = await supabase
-        .from("student_buckets")
-        .select("buckets")
-        .eq("user_email", email)
-        .eq("module", 4)
-        .maybeSingle();
+      const m4Result = await getParagraphPlanRow();
 
-      if (m4Err) {
-        console.error("Could not load Module 4 student_buckets:", m4Err.message);
+      if (!m4Result.ok) {
+        console.error("Could not load Module 4 student_buckets:", m4Result.error?.message);
       }
 
       let body = [];
 
-      if (m4Row?.buckets?.length) {
+      if (Array.isArray(m4Result.data?.buckets) && m4Result.data.buckets.length) {
         const { data: tchartData } = await supabase
           .from("tchart_entries")
           .select("*")
           .eq("user_email", email);
-        body = outlineBodyFromStudentBuckets(m4Row.buckets, tchartData || []);
+        body = outlineBodyFromStudentBuckets(m4Result.data.buckets, tchartData || []);
       }
 
       if (!body.length) {
@@ -346,12 +337,12 @@ export default function ModuleFive() {
 
         if (error) {
           console.error("Could not load buckets from Module 4:", error.message);
-          alert("Could not load buckets from Module 4.");
+          alert("Could not load paragraph plans from Module 4.");
           return;
         }
 
         if (!bucketsData?.buckets?.length) {
-          alert("No buckets found in Module 4 yet.");
+          alert("No paragraph plans found in Module 4 yet.");
           return;
         }
 
@@ -364,14 +355,14 @@ export default function ModuleFive() {
             })
             .filter(Boolean);
           return {
-            bucket: b.name || "New paragraph idea",
+            bucket: b.name || "New paragraph plan",
             points: points.length ? points : [""],
           };
         });
       }
 
       if (!body.length) {
-        alert("No buckets found in Module 4 yet.");
+        alert("No paragraph plans found in Module 4 yet.");
         return;
       }
 
@@ -466,56 +457,64 @@ export default function ModuleFive() {
           {/* Intro / teaching card */}
           <div className="rounded-xl border border-theme-blue/30 bg-white p-4 space-y-3">
             <h1 className="text-3xl font-extrabold text-theme-blue">
-              🧩 Build Your Outline
+              How will you organize your thinking into an outline?
             </h1>
             <p className="text-sm text-theme-dark/80">
-              In this step you turn your thinking from <strong>Modules 3 and 4</strong>{" "}
-              into a classic essay outline.
+              You already built a <strong>thesis</strong> and <strong>paragraph plans</strong> in
+              Modules 3 and 4. Now you are arranging that work so a reader can follow your
+              argument—not starting over.
+            </p>
+            <p className="text-sm font-medium text-theme-dark">
+              Your job in this module: put your paragraph plans in order and shape them into an
+              outline you can draft from.
             </p>
             <ol className="list-decimal list-inside text-sm text-theme-dark/80 space-y-1">
               <li>
-                <strong>Start with your thesis.</strong> This is your big claim
-                comparing the speech and the letter.
+                <strong>Confirm your thesis.</strong> Keep the sentence you sharpened in Module 3,
+                or revise it lightly so it still matches your paragraph plans.
               </li>
               <li>
-                <strong>Each bucket becomes a body paragraph.</strong> Rename each
-                bucket so it sounds like a paragraph idea that supports your thesis.
+                <strong>Organize your paragraph plans.</strong> Each card below grew from a
+                paragraph plan you built in Module 4. Name it, polish the supporting details, and
+                put the paragraphs in an order that makes sense.
               </li>
               <li>
-                <strong>Each point is a smaller “bubble.”</strong> Use your grouped
-                observations and quotes from the buckets as A, B, C details inside each
-                paragraph.
+                <strong>Plan your conclusion.</strong> Decide how you will close the essay and
+                leave the reader with something to think about.
               </li>
             </ol>
             <p className="text-xs text-theme-dark/70">
-              You can drag buckets up or down to change the order of your body
-              paragraphs.
+              <strong>Working Set:</strong> the outline section you are shaping right now.{" "}
+              <strong>Reference Set:</strong> your saved thesis and paragraph plans—you can glance
+              back without rebuilding them.
             </p>
           </div>
 
           {/* Thesis section */}
           <div className="mb-2 bg-white rounded-xl border border-theme-green/40 p-4 space-y-3">
             <h2 className="text-lg font-semibold text-theme-green">
-              1. Thesis Check-in
+              1. Confirm your thesis
             </h2>
+            <p className="text-xs text-theme-dark/70">
+              On your desk: the thesis that will anchor this outline. You are not writing a new
+              thesis—you are checking that the one you already built still fits.
+            </p>
 
             {originalThesis && (
               <div className="text-xs bg-theme-light rounded p-2 mb-2 text-theme-dark">
                 <p className="font-semibold mb-1">
-                  Thesis you wrote in <span className="italic">Module 3</span>:
+                  On the shelf — thesis from <span className="italic">Module 3</span>:
                 </p>
                 <p className="mb-1">{originalThesis}</p>
                 <p className="text-[11px] text-theme-dark/70 mt-1">
-                  You can keep this thesis, tweak the wording, or revise it to better
-                  match the paragraph ideas you are planning below. Just make sure it
-                  still compares the speech and letter and mentions audience, purpose,
-                  and or appeals (ethos, pathos, logos).
+                  You can keep this wording or revise it so it still matches the paragraph plans
+                  below. It should stay the clear main sentence your evidence can prove.
                 </p>
               </div>
             )}
 
             <label className="block font-semibold text-theme-dark mb-1">
-              Your thesis for this essay:
+              Thesis for this outline:
             </label>
             <textarea
               className="w-full border rounded p-2 min-h-[80px]"
@@ -525,17 +524,17 @@ export default function ModuleFive() {
             />
           </div>
 
-          {/* Buckets / body paragraphs */}
+          {/* Paragraph plans / body paragraphs */}
           <div className="bg-white rounded-xl border border-theme-orange/40 p-4">
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h2 className="text-lg font-semibold text-theme-orange">
-                  2. Turn Buckets into Body Paragraphs
+                  2. Organize your paragraph plans
                 </h2>
                 <p className="text-xs text-theme-dark/70 mt-1 max-w-xl">
-                  Each card below started as a <strong>bucket in Module 4</strong>. Rename the
-                  bucket to sound like a paragraph idea, then polish the supporting points
-                  underneath.
+                  On your desk: the body paragraphs you are arranging. Each card began as a{" "}
+                  <strong>paragraph plan</strong> from Module 4. Name the main idea, polish the
+                  supporting details, and drag cards to put your argument in the best order.
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -545,21 +544,23 @@ export default function ModuleFive() {
                   disabled={locked || isImportingBuckets}
                   className="text-sm text-theme-blue border border-theme-blue/40 rounded px-3 py-1.5 hover:bg-theme-blue/10 disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  {isImportingBuckets ? "Importing…" : "↺ Re import from Module 4"}
+                  {isImportingBuckets
+                    ? "Loading paragraph plans…"
+                    : "↺ Load paragraph plans from Module 4"}
                 </button>
                 <button
                   onClick={addBucket}
                   className="bg-theme-green text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
                 >
-                  ➕ Add New Paragraph Idea
+                  Add paragraph plan
                 </button>
               </div>
             </div>
 
             {outline.length === 0 && (
               <p className="text-xs text-theme-dark/70 mb-3">
-                If you do not see any buckets yet, go back to Module 4 to group your ideas,
-                then return here.
+                If you do not see your paragraph plans yet, finish Module 4 first, then return
+                here—or use the button above to load them.
               </p>
             )}
 
@@ -580,7 +581,7 @@ export default function ModuleFive() {
                       onClick={() => deleteBucket(i)}
                       onPointerDown={(e) => e.stopPropagation()}
                       className="text-theme-red font-bold text-sm"
-                      title="Delete this paragraph idea"
+                      title="Remove this paragraph plan"
                     >
                       🗑️
                     </button>
@@ -591,7 +592,7 @@ export default function ModuleFive() {
                       <input
                         type="text"
                         className="w-full border p-2 rounded relative z-10 text-sm"
-                        placeholder={`Supporting detail ${j + 1} (observation + evidence)`}
+                        placeholder={`Supporting detail ${j + 1}`}
                         value={point || ""}
                         onChange={(e) => updatePoint(i, j, e.target.value)}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -614,7 +615,7 @@ export default function ModuleFive() {
                     onPointerDown={(e) => e.stopPropagation()}
                     className="text-xs text-theme-blue mt-1 hover:underline relative z-10"
                   >
-                    ➕ Add another supporting detail
+                    Add supporting detail
                   </button>
                 </div>
               </SortableItem>
@@ -622,20 +623,30 @@ export default function ModuleFive() {
           </div>
 
           {/* Conclusion */}
-          <div className="mb-4 bg-white rounded-xl border border-theme-blue/40 p-4">
-            <h2 className="text-lg font-semibold mb-2 text-theme-blue">
-              3. Plan Your Conclusion
+          <div className="mb-4 bg-white rounded-xl border border-theme-blue/40 p-4 space-y-3">
+            <h2 className="text-lg font-semibold text-theme-blue">
+              3. Plan your conclusion
             </h2>
+            <p className="text-xs text-theme-dark/70">
+              On your desk: how you will close the essay. You are not drafting yet—you are deciding
+              what the ending needs to do.
+            </p>
+            <label className="block text-sm font-medium text-theme-dark">
+              How will you remind the reader of your main point?
+            </label>
             <textarea
               className="w-full border rounded p-2 mb-2 text-sm"
-              placeholder="Restate thesis or summarize your key comparison points..."
+              placeholder="A sentence that brings your argument together—not a copy-paste of your thesis."
               value={conclusion.summary}
               onChange={(e) => setConclusion({ ...conclusion, summary: e.target.value })}
               disabled={locked}
             />
+            <label className="block text-sm font-medium text-theme-dark">
+              What do you want the reader to think about last?
+            </label>
             <textarea
               className="w-full border rounded p-2 text-sm"
-              placeholder="Final thought or call to action for the reader..."
+              placeholder="A final thought that feels earned by the argument you built."
               value={conclusion.finalThought}
               onChange={(e) =>
                 setConclusion({
@@ -655,14 +666,17 @@ export default function ModuleFive() {
             }`}
             disabled={locked}
           >
-            ✅ Finalize Outline & Continue
+            Finish outline and continue
           </button>
 
           {previewText && (
             <div className="mt-8 border-t pt-4">
               <h2 className="text-lg font-semibold mb-2 text-theme-dark">
-                🖨️ Outline Preview (What your outline looks like on paper)
+                Outline preview
               </h2>
+              <p className="text-xs text-theme-dark/70 mb-2">
+                On the shelf — how your organized thinking looks on paper before you draft.
+              </p>
               <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border text-sm">
                 {previewText}
               </pre>

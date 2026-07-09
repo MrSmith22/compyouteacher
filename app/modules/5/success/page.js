@@ -54,13 +54,16 @@ export default function ModuleFiveSuccess() {
       <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
         <div className="text-5xl">🎉</div>
 
-        <h1 className="text-3xl font-bold text-theme-green">Module 5 Complete!</h1>
+        <h1 className="text-3xl font-bold text-theme-green">Module 5 complete</h1>
 
         <p className="text-lg text-theme-dark">
-          Great work finalizing your outline! You’re ready to start drafting your essay.
+          You organized your paragraph plans into an outline. In Module 6, you will turn that
+          outline into a draft—not start over.
         </p>
 
-        {!ready && !errMsg && <p className="text-sm text-gray-600">Saving your progress…</p>}
+        {!ready && !errMsg && (
+          <p className="text-sm text-gray-600">Saving your progress…</p>
+        )}
 
         {errMsg && <p className="text-sm text-red-700">{errMsg}</p>}
 
@@ -69,7 +72,7 @@ export default function ModuleFiveSuccess() {
             href="/modules/6"
             className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
           >
-            Start Module 6 →
+            Start Module 6 — draft your essay
           </Link>
         ) : (
           <button
@@ -77,7 +80,7 @@ export default function ModuleFiveSuccess() {
             disabled
             className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
           >
-            Start Module 6 →
+            Start Module 6 — draft your essay
           </button>
         )}
       </div>
