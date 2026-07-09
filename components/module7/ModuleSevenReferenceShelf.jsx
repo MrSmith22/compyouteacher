@@ -152,10 +152,11 @@ export default function ModuleSevenReferenceShelf({
   sections = [],
   activeStep = null,
   activeBadge = "revising now",
+  highlightWholeDraft = false,
 }) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
   const activeBodyIndex =
-    activeStep?.type === "body" ? activeStep.bodyIndex : -1;
+    !highlightWholeDraft && activeStep?.type === "body" ? activeStep.bodyIndex : -1;
 
   return (
     <aside className="space-y-3 text-left">
@@ -179,7 +180,7 @@ export default function ModuleSevenReferenceShelf({
           <div className="space-y-2">
             <OutlineSectionPreview
               label={`${romanNumeral(0)}. Introduction`}
-              isActive={activeStep?.type === "intro"}
+              isActive={!highlightWholeDraft && activeStep?.type === "intro"}
               activeBadge={activeBadge}
             />
             {body.map((card, index) => (
@@ -193,21 +194,31 @@ export default function ModuleSevenReferenceShelf({
             ))}
             <OutlineSectionPreview
               label={`${romanNumeral(body.length + 1)}. Conclusion`}
-              isActive={activeStep?.type === "conclusion"}
+              isActive={!highlightWholeDraft && activeStep?.type === "conclusion"}
               activeBadge={activeBadge}
             />
           </div>
         </ShelfSection>
 
-        <ShelfSection title="Draft map" emptyText="Your draft sections will appear here.">
-          <div className="space-y-2">
+        <ShelfSection
+          title={highlightWholeDraft ? "Draft map · full draft" : "Draft map"}
+          emptyText="Your draft sections will appear here."
+        >
+          <div
+            className={[
+              "space-y-2",
+              highlightWholeDraft
+                ? "rounded-lg border border-theme-blue/30 bg-theme-blue/5 p-2"
+                : "",
+            ].join(" ")}
+          >
             {sectionSteps.map((step) => (
               <DraftMapPreview
                 key={step.id}
                 step={step}
                 sectionText={sections[step.draftIndex] || ""}
-                isActive={activeStep?.id === step.id}
-                activeBadge={activeBadge}
+                isActive={!highlightWholeDraft && activeStep?.id === step.id}
+                activeBadge={highlightWholeDraft ? "reading aloud" : activeBadge}
               />
             ))}
           </div>

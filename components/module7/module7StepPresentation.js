@@ -1,7 +1,28 @@
 import { SECTION_TYPES } from "@/components/module6/module6StepPresentation";
 
+export const MODULE7_STEP_TYPES = {
+  READ_ALOUD: "read-aloud",
+};
+
 export function getModule7StepPresentation(step, outline) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
+
+  if (step?.type === MODULE7_STEP_TYPES.READ_ALOUD) {
+    return {
+      question: "How does your essay sound when you hear it aloud?",
+      whyMatters: [
+        "Strong writers often hear problems they miss while silently reading.",
+      ],
+      successLooksLike: [
+        "What is one thing you noticed while listening to yourself?",
+      ],
+      coachingMessage:
+        "As you read and listen, notice where you stumbled, which sentences sounded awkward, where ideas repeated, which transitions felt abrupt, and where you needed more explanation.",
+      nextStepText: "Next you will revise your introduction—one section at a time.",
+      workingSetLabel: "Your entire essay",
+      workingSetDescription: "On your desk: your full draft, ready to read aloud.",
+    };
+  }
 
   if (!step) {
     return {
