@@ -42,7 +42,7 @@ export default function ModuleTwoSuccess() {
           onClick={() => router.push("/modules/3")}
           className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
         >
-          Continue to Module 3 — build your thesis
+          Continue to Module 3 — analyze the evidence
         </button>
       </div>
     </div>

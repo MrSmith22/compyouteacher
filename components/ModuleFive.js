@@ -561,7 +561,7 @@ export default function ModuleFive() {
                 >
                   {isImportingBuckets
                     ? "Loading paragraph plans…"
-                    : "↺ Load paragraph plans from Module 4"}
+                    : "Bring in my paragraph plans from Module 4"}
                 </button>
                 <button
                   onClick={addBucket}

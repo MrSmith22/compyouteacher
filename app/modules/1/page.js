@@ -61,7 +61,7 @@ export default function ModuleOnePage() {
   }, [session, status, router]);
 
   if (status === "loading" || checking) {
-    return <p className="p-6">Loading…</p>;
+    return <p className="p-6">Loading your assignment…</p>;
   }
 
   return <ModuleOne savedStudentParaphrase={savedStudentParaphrase} />;

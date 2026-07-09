@@ -183,7 +183,7 @@ export default function ModuleTwoSourcePage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-        <p className="text-sm text-theme-dark/80">Loading…</p>
+        <p className="text-sm text-theme-dark/80">Loading your source texts…</p>
       </div>
     );
   }

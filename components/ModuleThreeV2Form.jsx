@@ -2717,7 +2717,7 @@ export default function ModuleThreeV2Form({
             size="lg"
             className="min-w-[9.5rem] font-semibold"
           >
-            Finish
+            Finish your thesis and continue
           </Button>
         )}
         </div>

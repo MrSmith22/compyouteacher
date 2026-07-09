@@ -86,7 +86,7 @@ export default function ModuleFiveSuccess() {
             href="/modules/6"
             className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
           >
-            Start Module 6 — draft your essay
+            Continue to Module 6 — draft your essay
           </Link>
         ) : (
           <button
@@ -94,7 +94,7 @@ export default function ModuleFiveSuccess() {
             disabled
             className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
           >
-            Start Module 6 — draft your essay
+            Continue to Module 6 — draft your essay
           </button>
         )}
       </div>

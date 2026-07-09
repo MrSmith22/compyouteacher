@@ -51,7 +51,7 @@ export default function ModuleSixSuccess() {
             href="/modules/7"
             className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
           >
-            Continue to Module 7 — revise your draft
+            Continue to Module 7 — strengthen your draft
           </Link>
         ) : (
           <button
@@ -59,7 +59,7 @@ export default function ModuleSixSuccess() {
             disabled
             className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
           >
-            Continue to Module 7 — revise your draft
+            Continue to Module 7 — strengthen your draft
           </button>
         )}
       </div>

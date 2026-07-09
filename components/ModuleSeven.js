@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments";
+import { MLK_ASSIGNMENT_NAME, mlkRhetoricalAnalysisAssignment } from "@/lib/assignments";
+import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
 import {
   getModule6DraftRow,
   getModule7DraftRow,
@@ -69,6 +70,7 @@ export default function ModuleSeven() {
   const [sections, setSections] = useState([]);
   const [locked, setLocked] = useState(false);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [gateBlocked, setGateBlocked] = useState(false);
 
   const [recording, setRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
@@ -83,8 +85,10 @@ export default function ModuleSeven() {
   const audioCtxRef = useRef(null);
   const streamRef = useRef(null);
   const hasLoggedStartRef = useRef(false);
+  const [revisionNotice, setRevisionNotice] = useState(null);
 
   const email = session?.user?.email ?? null;
+  const showDevUnlock = process.env.NODE_ENV === "development";
   const assignmentQuestion = mlkRhetoricalAnalysisAssignment.essentialQuestion;
 
   const sectionSteps = useMemo(
@@ -130,8 +134,21 @@ export default function ModuleSeven() {
     const fetchData = async () => {
       if (!email) return;
 
+      setGateBlocked(false);
       setOutlineLoading(true);
       setOutlineMissing(false);
+
+      const { ok: gateOk } = await requireModuleAccess({
+        userEmail: email,
+        assignmentName: MLK_ASSIGNMENT_NAME,
+        minModule: 7,
+      });
+
+      if (!gateOk) {
+        setGateBlocked(true);
+        setOutlineLoading(false);
+        return;
+      }
 
       const outlineResult = await getOutlineRow(5);
 
@@ -470,6 +487,11 @@ export default function ModuleSeven() {
   };
 
   const restoreModule6Draft = async () => {
+    const confirmed = confirm(
+      "This will replace your current revision with the draft you completed in Module 6. Your current revision will be lost.\n\nDo you want to continue?"
+    );
+    if (!confirmed) return;
+
     const sectionCount = getSectionCountFromOutline(outline);
     const nextSections = await loadSectionsFromModule6(sectionCount);
     setSections(nextSections);
@@ -497,7 +519,10 @@ export default function ModuleSeven() {
 
     if (!result.ok) {
       console.error("Save error:", result.error);
-      alert("We couldn't save your revision. Please try again.");
+      setRevisionNotice({
+        type: "error",
+        message: "We couldn't save your revision. Please try again.",
+      });
       return;
     }
 
@@ -510,13 +535,16 @@ export default function ModuleSeven() {
 
     if (finalized) {
       setLocked(true);
+      setRevisionNotice(null);
       await logActivity(email, "module_completed", meta);
       router.push("/modules/7/success");
     } else {
       await logActivity(email, "revision_saved", meta);
-      alert(
-        "Your revision is saved. Keep improving your draft, or finish revising when you're ready."
-      );
+      setRevisionNotice({
+        type: "success",
+        message:
+          "Your revision is saved. Keep improving your draft, or finish revising when you're ready.",
+      });
     }
   };
 
@@ -544,6 +572,27 @@ export default function ModuleSeven() {
           >
             Sign in
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (gateBlocked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface-base">
+        <div className="max-w-md space-y-4 px-4 text-center">
+          <p className="text-text-primary">
+            Finish Module 6 before you begin revising here.
+          </p>
+          <p className="text-sm text-text-muted">
+            Complete your first draft in Module 6, then return here to strengthen it.
+          </p>
+          <a
+            href="/modules/6"
+            className="inline-block rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white hover:brightness-105"
+          >
+            Go to Module 6
+          </a>
         </div>
       </div>
     );
@@ -678,17 +727,32 @@ export default function ModuleSeven() {
           </div>
         </WorkingSetSection>
 
+        {revisionNotice ? (
+          <div
+            className={[
+              "rounded-lg px-4 py-3 text-sm",
+              revisionNotice.type === "success"
+                ? "border border-theme-green/30 bg-theme-green/5 text-theme-green"
+                : "border border-red-200 bg-red-50 text-red-800",
+            ].join(" ")}
+          >
+            {revisionNotice.message}
+          </div>
+        ) : null}
+
         {locked ? (
           <div className="space-y-2 rounded-lg border border-theme-green/30 bg-theme-green/5 px-4 py-3 text-sm text-theme-green">
             <p className="font-semibold">Your revision is complete for Module 7.</p>
             <p>This draft is locked while you move forward.</p>
-            <button
-              type="button"
-              onClick={() => setLocked(false)}
-              className="rounded-md border border-border-soft bg-white px-3 py-1.5 text-xs text-text-muted"
-            >
-              Unlock for testing
-            </button>
+            {showDevUnlock ? (
+              <button
+                type="button"
+                onClick={() => setLocked(false)}
+                className="rounded-md border border-border-soft bg-white px-3 py-1.5 text-xs text-text-muted"
+              >
+                Unlock for testing
+              </button>
+            ) : null}
           </div>
         ) : null}
 

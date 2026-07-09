@@ -225,7 +225,7 @@ export default function ModuleOnePromptPage() {
   };
 
   if (status === "loading" || loading) {
-    return <p className="p-6">Loading…</p>;
+    return <p className="p-6">Loading your assignment…</p>;
   }
 
   if (!session?.user?.email) {

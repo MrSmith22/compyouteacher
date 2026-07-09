@@ -1978,7 +1978,7 @@ export default function ModuleFour({
           />
         </div>
         <StepGuidanceBox label="Tip">
-          <p>At least one or two sentences (about 12 characters) to finish the module.</p>
+          <p>A sentence or two is enough to show your thinking.</p>
         </StepGuidanceBox>
       </div>
     );
@@ -2045,7 +2045,7 @@ export default function ModuleFour({
                 disabled={!canGoNext()}
                 className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
               >
-                {atSoftIntro ? "Continue" : "Next"}
+                Keep going
               </button>
             ) : null}
             {atReflection ? (
@@ -2055,7 +2055,7 @@ export default function ModuleFour({
                 disabled={!canGoNext()}
                 className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
               >
-                Continue to Module 5
+                Finish your paragraph plans and continue
               </button>
             ) : null}
           </div>
