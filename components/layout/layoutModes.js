@@ -9,6 +9,7 @@ const WORKSPACE_ROUTE_PREFIXES = [
   "/modules/4",
   "/modules/5",
   "/modules/6",
+  "/modules/7",
 ];
 
 function matchesPrefix(pathname, prefix) {
