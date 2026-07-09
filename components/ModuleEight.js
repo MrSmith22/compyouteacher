@@ -5,7 +5,11 @@ import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "../lib/supabaseClient";
+import {
+  getModule7DraftRow,
+  getModule8DraftRow,
+} from "@/lib/artifacts/readArtifactsClient";
+import { upsertModule8DraftArtifact } from "@/lib/artifacts/writeArtifacts";
 import { logActivity } from "../lib/logActivity";
 
 export default function ModuleEight() {
@@ -35,29 +39,17 @@ export default function ModuleEight() {
     const load = async () => {
       if (!email) return;
 
-      // 1) Read from Module 7 (where the “final text” lives after revise)
-      const { data: m7, error: m7err } = await supabase
-        .from("student_drafts")
-        .select("full_text, final_text, final_ready")
-        .eq("user_email", email)
-        .eq("module", 7)
-        .maybeSingle();
-
-      if (m7err) console.error("Module 7 fetch error:", m7err);
+      const m7Result = await getModule7DraftRow();
+      if (!m7Result.ok) console.error("Module 7 fetch error:", m7Result.error);
+      const m7 = m7Result.data;
 
       // Prefer Module 7 final_text, fallback to full_text
       const draft = m7?.final_text || m7?.full_text || "";
       setText(draft);
 
-      // 2) Also check if Module 8 is already locked
-      const { data: m8, error: m8err } = await supabase
-        .from("student_drafts")
-        .select("final_ready, final_text")
-        .eq("user_email", email)
-        .eq("module", 8)
-        .maybeSingle();
-
-      if (m8err) console.error("Module 8 fetch error:", m8err);
+      const m8Result = await getModule8DraftRow();
+      if (!m8Result.ok) console.error("Module 8 fetch error:", m8Result.error);
+      const m8 = m8Result.data;
 
       if (m8?.final_ready) {
         setLocked(true);
@@ -86,19 +78,16 @@ export default function ModuleEight() {
   const saveAndLock = async () => {
     if (!email) return;
 
-    // Write a row specifically for Module 8 and lock it
-    const { error } = await supabase.from("student_drafts").upsert({
-      user_email: email,
-      module: 8,
-      full_text: text, // keep a copy
-      final_text: text, // lock this as final for M8
+    const result = await upsertModule8DraftArtifact({
+      userEmail: email,
+      full_text: text,
+      final_text: text,
       revised: false,
       final_ready: true,
-      updated_at: new Date().toISOString(),
     });
 
-    if (error) {
-      console.error("Module 8 save error:", error);
+    if (!result.ok) {
+      console.error("Module 8 save error:", result.error);
       alert("Save failed.");
       return;
     }

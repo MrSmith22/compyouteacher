@@ -1,5 +1,6 @@
 import type { Module6DraftRow } from "@/lib/supabase/helpers/module6Draft";
 import type { Module7DraftRow } from "@/lib/supabase/helpers/module7Draft";
+import type { Module8DraftRow } from "@/lib/supabase/helpers/module8Draft";
 import {
   getModule6DraftAdmin,
   upsertModule6DraftAdmin,
@@ -8,6 +9,10 @@ import {
   getModule7DraftAdmin,
   upsertModule7DraftAdmin,
 } from "@/lib/supabase/helpers/module7Draft";
+import {
+  getModule8DraftAdmin,
+  upsertModule8DraftAdmin,
+} from "@/lib/supabase/helpers/module8Draft";
 
 export type Module6DraftWriteInput = {
   userEmail: string;
@@ -17,6 +22,14 @@ export type Module6DraftWriteInput = {
 };
 
 export type Module7DraftWriteInput = {
+  userEmail: string;
+  full_text: string;
+  final_text: string | null;
+  revised: boolean;
+  final_ready: boolean;
+};
+
+export type Module8DraftWriteInput = {
   userEmail: string;
   full_text: string;
   final_text: string | null;
@@ -69,6 +82,36 @@ export async function getModule7DraftForUser(userEmail: string) {
 
 export async function upsertModule7DraftForUser(input: Module7DraftWriteInput) {
   const writeRes = await upsertModule7DraftAdmin({
+    userEmail: input.userEmail,
+    full_text: input.full_text,
+    final_text: input.final_text,
+    revised: input.revised,
+    final_ready: input.final_ready,
+  });
+
+  if (writeRes.error) {
+    return { ok: false as const, error: writeRes.error };
+  }
+
+  return { ok: true as const };
+}
+
+export async function getModule8DraftForUser(userEmail: string) {
+  const res = await getModule8DraftAdmin({ userEmail });
+
+  if (res.error) {
+    return {
+      ok: false as const,
+      error: res.error,
+      data: null as Module8DraftRow | null,
+    };
+  }
+
+  return { ok: true as const, data: res.data };
+}
+
+export async function upsertModule8DraftForUser(input: Module8DraftWriteInput) {
+  const writeRes = await upsertModule8DraftAdmin({
     userEmail: input.userEmail,
     full_text: input.full_text,
     final_text: input.final_text,
