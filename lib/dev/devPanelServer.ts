@@ -15,9 +15,13 @@ async function getEssayTextForExportAdmin(userEmail: string) {
     .eq("user_email", userEmail)
     .eq("module", 7)
     .maybeSingle();
-  const m7Text = String(res7.data?.final_text ?? "").trim();
-  if (m7Text) {
-    return { status: "ok" as const, text: m7Text, sourceModule: 7 as const };
+  const m7Final = String(res7.data?.final_text ?? "").trim();
+  if (m7Final) {
+    return { status: "ok" as const, text: m7Final, sourceModule: 7 as const };
+  }
+  const m7Full = String(res7.data?.full_text ?? "").trim();
+  if (m7Full) {
+    return { status: "ok" as const, text: m7Full, sourceModule: 7 as const };
   }
 
   const res6 = await supabase
@@ -412,8 +416,29 @@ export async function setModule9Shortcut(
 
   if (key === "googleDoc") {
     if (enabled) {
-      // Dev panel / seeds: always write the same stub shape as export-to-docs.
-      // Do not require a live Google OAuth roundtrip for harness consistency.
+      const exportRes = await getEssayTextForExportAdmin(userEmail);
+      if (exportRes.status === "ok" && exportRes.text) {
+        try {
+          const { exportEssayToGoogleDocs } = await import(
+            "@/lib/exports/exportEssayToGoogleDocs"
+          );
+          const result = await exportEssayToGoogleDocs({
+            email: userEmail,
+            text: exportRes.text,
+          });
+          return {
+            ok: true as const,
+            source: "production_pipeline" as const,
+            documentId: result.documentId,
+            webViewLink: result.webViewLink,
+          };
+        } catch (err) {
+          console.warn(
+            "[devPanel] Google Doc export failed, using stub:",
+            err instanceof Error ? err.message : err
+          );
+        }
+      }
       const { error } = await supabase.from("exported_docs").upsert(
         {
           user_email: userEmail,
@@ -423,6 +448,7 @@ export async function setModule9Shortcut(
         { onConflict: "user_email" }
       );
       if (error) return { ok: false as const, error: error.message };
+      return { ok: true as const, source: "placeholder_fallback" as const };
     } else {
       await supabase.from("exported_docs").delete().eq("user_email", userEmail);
     }

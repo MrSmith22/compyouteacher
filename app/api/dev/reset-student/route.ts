@@ -64,13 +64,14 @@ export async function POST(req: Request) {
       { key: "student_buckets", table: "student_buckets" },
       { key: "tchart_entries", table: "tchart_entries" },
       { key: "student_exports", table: "student_exports" },
-      
+      { key: "exported_docs", table: "exported_docs" },
 
       // Module-specific tables that can affect gating and UI
       { key: "module3_responses", table: "module3_responses" },
       { key: "module2_sources", table: "module2_sources" },
       { key: "module1_quiz_results", table: "module1_quiz_results" },
       { key: "module9_quiz", table: "module9_quiz" },
+      { key: "module9_checklist", table: "module9_checklist" },
 
       // Logging
       { key: "student_activity_log", table: "student_activity_log" },

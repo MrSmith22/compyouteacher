@@ -84,9 +84,11 @@ export default function DeveloperTestingPanel() {
     setBusy(true);
     setMessage("");
     try {
-      await fn();
-      logDev(label);
-      setMessage(label);
+      const detail = await fn();
+      const nextMessage =
+        typeof detail === "string" && detail.trim() ? detail : label;
+      logDev(nextMessage);
+      setMessage(nextMessage);
       await refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -276,7 +278,7 @@ export default function DeveloperTestingPanel() {
                 disabled={busy}
                 onClick={() =>
                   run("Seeded Module 9 ready", async () => {
-                    await panelAction("seedThrough", {
+                    const result = await panelAction("seedThrough", {
                       target: "module9Ready",
                       module9Options: {
                         googleDoc: true,
@@ -286,6 +288,9 @@ export default function DeveloperTestingPanel() {
                         moduleComplete: false,
                       },
                     });
+                    const docSrc = result?.artifacts?.googleDoc?.source || "—";
+                    const pdfSrc = result?.artifacts?.pdf?.source || "—";
+                    return `Seeded Module 9 ready (Doc: ${docSrc}; PDF: ${pdfSrc})`;
                   })
                 }
               >

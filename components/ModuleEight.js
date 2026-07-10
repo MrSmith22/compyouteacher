@@ -113,6 +113,8 @@ export default function ModuleEight() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const [submissionDocUrl, setSubmissionDocUrl] = useState(null);
+  const [docVerifiedThisSession, setDocVerifiedThisSession] = useState(false);
+  const [previouslyFinalized, setPreviouslyFinalized] = useState(false);
   const [creatingDoc, setCreatingDoc] = useState(false);
   const [popupBlocked, setPopupBlocked] = useState(false);
 
@@ -124,6 +126,7 @@ export default function ModuleEight() {
   const checklistLoadedRef = useRef(false);
   const saveDebounceRef = useRef(null);
   const hasInitialChecklistLoadRef = useRef(false);
+  const navigatedToSuccessRef = useRef(false);
 
   const email = session?.user?.email ?? null;
   const assignmentQuestion = mlkRhetoricalAnalysisAssignment.essentialQuestion;
@@ -192,14 +195,23 @@ export default function ModuleEight() {
         setSubmissionDocUrl(docResult.data.web_view_link);
       }
 
+      // WP-002: never treat final_ready, exported_docs, or seeded history as a
+      // verified Google Doc for this visit. Only a successful Create/Update
+      // in this session sets docVerifiedThisSession.
+      setDocVerifiedThisSession(false);
+
       if (m8?.final_ready) {
-        setLocked(true);
-        setCurrentStepIndex(2);
+        setPreviouslyFinalized(true);
         if (m8?.final_text) {
           const lockedText = String(m8.final_text).trim();
           setFinishedEssayText(lockedText);
           setSections(splitDraftIntoSections(lockedText, sectionCount));
         }
+        // Stay on CREATE_DOC so the student must confirm/export this visit.
+        setCurrentStepIndex(0);
+        setLocked(false);
+      } else {
+        setPreviouslyFinalized(false);
       }
 
       if (!hasLoggedStartRef.current) {
@@ -257,9 +269,29 @@ export default function ModuleEight() {
     };
   }, [session?.user?.email, checklistState, checklistLoading]);
 
-  const handleCreateSubmissionDoc = async () => {
-    if (!email || locked) return;
+  // WP-068: previously finalized students use the same success page as first-time
+  // completion once this-visit export (WP-002) and checklist are satisfied.
+  // Progress advance (WP-067) happens on /modules/8/success.
+  useEffect(() => {
+    if (
+      !previouslyFinalized ||
+      !docVerifiedThisSession ||
+      !checklistComplete ||
+      navigatedToSuccessRef.current
+    ) {
+      return;
+    }
+    navigatedToSuccessRef.current = true;
+    router.push("/modules/8/success");
+  }, [previouslyFinalized, docVerifiedThisSession, checklistComplete, router]);
 
+  const handleCreateOrUpdateSubmissionDoc = async () => {
+    if (!email) return;
+    // Allow export even if Module 8 was previously finalized; block only after
+    // this visit has already verified and locked the success panel.
+    if (locked && docVerifiedThisSession) return;
+
+    const hadExistingDoc = !!submissionDocUrl;
     setCreatingDoc(true);
     try {
       const exportRes = await getFinalTextForExport({ userEmail: email });
@@ -269,6 +301,7 @@ export default function ModuleEight() {
         status: exportRes.status,
         sourceModule: exportRes.sourceModule,
         details: exportRes.details,
+        had_existing_doc: hadExistingDoc,
       });
 
       if (exportRes.status !== "ok" || !exportRes.text) {
@@ -298,7 +331,11 @@ export default function ModuleEight() {
 
       const result = await res.json();
       if (!res.ok) {
-        alert("We could not create your Google Doc. Please try again.");
+        alert(
+          hadExistingDoc
+            ? "We could not update your Google Doc. Please try again."
+            : "We could not create your Google Doc. Please try again."
+        );
         await logActivity(email, "export_to_docs_failed", {
           module: 8,
           status: "api_failed",
@@ -307,6 +344,7 @@ export default function ModuleEight() {
       }
 
       setSubmissionDocUrl(result.url);
+      setDocVerifiedThisSession(true);
 
       await logActivity(email, "export_to_docs", {
         module: 8,
@@ -314,6 +352,7 @@ export default function ModuleEight() {
         sourceModule: exportRes.sourceModule,
         status: exportRes.status,
         details: exportRes.details,
+        updated_existing: hadExistingDoc,
       });
 
       const win = window.open(result.url, "_blank");
@@ -366,6 +405,7 @@ export default function ModuleEight() {
       ...metrics,
     });
 
+    navigatedToSuccessRef.current = true;
     router.push("/modules/8/success");
   };
 
@@ -442,9 +482,11 @@ export default function ModuleEight() {
   const isLastStep = currentStepIndex === MODULE8_WORKSPACE_STEPS.length - 1;
   const { wordCount } = getTextMetrics();
 
-  const canAdvanceFromStep1 = !!submissionDocUrl;
+  const canAdvanceFromStep1 = docVerifiedThisSession;
   const canAdvanceFromStep2 = checklistComplete;
-  const canFinish = submissionDocUrl && checklistComplete;
+  const canFinish = docVerifiedThisSession && !!submissionDocUrl && checklistComplete;
+  const exportControlsDisabled =
+    creatingDoc || (locked && docVerifiedThisSession);
 
   const referenceShelf = (
     <ModuleEightReferenceShelf
@@ -505,10 +547,15 @@ export default function ModuleEight() {
           </div>
 
           <PreparationProgressPanel
-            hasGoogleDoc={!!submissionDocUrl}
+            hasGoogleDoc={docVerifiedThisSession && !!submissionDocUrl}
             checklistComplete={checklistComplete}
             isReadyStep={currentStep.type === MODULE8_STEP_TYPES.READY}
-            preparationComplete={locked || (canFinish && isLastStep)}
+            preparationComplete={
+              docVerifiedThisSession &&
+              !!submissionDocUrl &&
+              checklistComplete &&
+              (locked || isLastStep)
+            }
           />
 
           <p className="text-[11px] leading-relaxed text-text-muted/80">
@@ -542,12 +589,42 @@ export default function ModuleEight() {
                   </p>
                   <button
                     type="button"
-                    onClick={handleCreateSubmissionDoc}
-                    disabled={locked || creatingDoc}
+                    onClick={handleCreateOrUpdateSubmissionDoc}
+                    disabled={exportControlsDisabled}
                     className="mt-4 rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {creatingDoc ? "Creating your Google Doc…" : "Create your Google Doc"}
                   </button>
+                </div>
+              ) : !docVerifiedThisSession ? (
+                <div className="space-y-3 rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-5 py-4 shadow-soft">
+                  <p className="text-sm font-semibold text-text-primary">
+                    Confirm your Google Doc has your latest essay
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    A Google Doc from an earlier visit may still be linked here. Update
+                    it now so the document matches the essay you finished—then continue.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCreateOrUpdateSubmissionDoc}
+                      disabled={exportControlsDisabled}
+                      className="rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {creatingDoc
+                        ? "Updating your Google Doc…"
+                        : "Update Google Doc with your latest essay"}
+                    </button>
+                    <a
+                      href={submissionDocUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-theme-blue underline"
+                    >
+                      Open current Google Doc
+                    </a>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3 rounded-xl border border-theme-green/30 bg-theme-green/5 px-4 py-4">
@@ -555,7 +632,7 @@ export default function ModuleEight() {
                     Your Google Doc is ready
                   </p>
                   <ul className="space-y-1.5 text-sm text-text-primary">
-                    <li>✓ Google Doc created</li>
+                    <li>✓ Google Doc created with your latest essay</li>
                     <li>
                       ✓{" "}
                       <a
@@ -574,13 +651,23 @@ export default function ModuleEight() {
                       If a popup blocker stopped the new tab, use the link above.
                     </p>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(submissionDocUrl)}
-                    className="text-xs text-theme-blue underline"
-                  >
-                    Copy link to your Google Doc
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(submissionDocUrl)}
+                      className="text-xs text-theme-blue underline"
+                    >
+                      Copy link to your Google Doc
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateOrUpdateSubmissionDoc}
+                      disabled={exportControlsDisabled}
+                      className="text-xs text-theme-blue underline disabled:opacity-50"
+                    >
+                      {creatingDoc ? "Updating…" : "Update again with latest essay"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -655,8 +742,15 @@ export default function ModuleEight() {
                 another writing assignment.
               </p>
               <ul className="space-y-2 text-sm text-text-primary">
-                <li className={submissionDocUrl ? "text-theme-green" : "text-text-muted"}>
-                  {submissionDocUrl ? "✓" : "○"} Google Doc created
+                <li
+                  className={
+                    docVerifiedThisSession && submissionDocUrl
+                      ? "text-theme-green"
+                      : "text-text-muted"
+                  }
+                >
+                  {docVerifiedThisSession && submissionDocUrl ? "✓" : "○"} Google Doc
+                  confirmed with latest essay
                 </li>
                 <li className={checklistComplete ? "text-theme-green" : "text-text-muted"}>
                   {checklistComplete ? "✓" : "○"} APA formatting complete
@@ -672,7 +766,8 @@ export default function ModuleEight() {
 
               {!canFinish && !locked ? (
                 <p className="text-xs text-text-muted">
-                  Create your Google Doc and complete the APA checklist before continuing.
+                  Create or update your Google Doc with your latest essay and complete the
+                  APA checklist before continuing.
                 </p>
               ) : null}
             </div>
@@ -684,15 +779,15 @@ export default function ModuleEight() {
             <p className="font-semibold">Your paper is ready.</p>
             <p>
               You prepared your Google Doc and got your paper ready to turn in.
-              Continue to Module 9 to demonstrate your understanding of APA
-              formatting and submit your final PDF.
+              Continue to see your completion screen, then Module 9.
             </p>
-            <Link
-              href="/modules/9"
+            <button
+              type="button"
+              onClick={() => router.push("/modules/8/success")}
               className="inline-block rounded-lg bg-theme-blue px-4 py-2 text-sm font-semibold text-white"
             >
-              Continue to Module 9
-            </Link>
+              Continue
+            </button>
           </div>
         ) : null}
 

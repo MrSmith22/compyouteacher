@@ -10,7 +10,8 @@ export type ExportTextResult = {
 };
 
 /**
- * Get the best available draft text for export: Module 7 final_text, else Module 6 full_text.
+ * Get the best available draft text for export:
+ * Module 7 final_text → Module 7 full_text → Module 6 full_text.
  * Returns metadata so callers can show better student messaging and log what happened.
  * Never throws.
  */
@@ -22,10 +23,9 @@ export async function getFinalTextForExport({
   let m7Error: any | null = null;
   let m6Error: any | null = null;
 
-  // Try Module 7 final_text first
   const res7 = await supabase
     .from("student_drafts")
-    .select("final_text")
+    .select("final_text, full_text")
     .eq("user_email", userEmail)
     .eq("module", 7)
     .maybeSingle();
@@ -33,17 +33,26 @@ export async function getFinalTextForExport({
   if (res7.error) m7Error = res7.error;
 
   const m7 = res7.error ? null : res7.data;
-  const m7Text = m7?.final_text != null ? String(m7.final_text) : "";
-  if (m7Text.trim() !== "") {
+  const m7Final = m7?.final_text != null ? String(m7.final_text) : "";
+  if (m7Final.trim() !== "") {
     return {
-      text: m7Text,
+      text: m7Final,
       status: "ok",
       sourceModule: 7,
       details: "export_text_from_module_7_final_text",
     };
   }
 
-  // Fallback to Module 6 full_text
+  const m7Full = m7?.full_text != null ? String(m7.full_text) : "";
+  if (m7Full.trim() !== "") {
+    return {
+      text: m7Full,
+      status: "ok",
+      sourceModule: 7,
+      details: "export_text_from_module_7_full_text",
+    };
+  }
+
   const res6 = await supabase
     .from("student_drafts")
     .select("full_text")
@@ -66,7 +75,6 @@ export async function getFinalTextForExport({
     };
   }
 
-  // If we got here, we have no usable text
   if (m7Error || m6Error) {
     const parts: string[] = [];
     if (m7Error) parts.push("module7_query_error");

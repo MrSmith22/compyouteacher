@@ -39,8 +39,8 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 | Issue ID | Title | Module | Priority | Category | Status |
 |----------|-------|--------|----------|----------|--------|
-| WP-001 | Generated essay includes Roman numerals and outline headings | 7 | Critical | Bug | Open |
-| WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Open |
+| WP-001 | Generated essay includes Roman numerals and outline headings | 7 | Critical | Bug | Resolved |
+| WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Needs Verification |
 | WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Resolved |
 | WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Open |
 | WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Needs Verification |
@@ -104,8 +104,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
 | WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
 | WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
+| WP-067 | Module 8 completion does not advance progress to Module 9 | 8 | Critical | Persistence / Gate | Needs Verification |
+| WP-068 | Module 8 revisit completion bypasses dedicated success page | 8 | High | Navigation / Flow | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026).*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-069.*
 
 ---
 
@@ -117,7 +119,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Read Aloud; generated full-draft view; all revision screens that display assembled essay
 - **Priority:** Critical
 - **Category:** Bug
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** During Read Aloud, the generated essay contained Roman numerals and outline headings such as “II. King uses emotional appeals…”, “III. King builds credibility…”, and “IV. King uses logical arguments…”. Planning labels appeared inside prose students were meant to revise and submit.
 
@@ -133,11 +135,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 3. Confirm essay contains only introduction, body paragraphs, and conclusion prose — no outline labels.
 4. Confirm sidebar still shows planning artifacts where appropriate.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/module7/module7DraftSections.js` (`getEssayProseBlocks`); `components/module7/EssayProseView.jsx`; Module 7 Read Aloud and Module 8 finished-essay preview
 
-**Resolution notes:**
+**Resolution notes:** Assembled-essay views now render prose-only blocks via `getEssayProseBlocks` / `EssayProseView`. Planning labels (Roman numerals, outline titles) remain on shelves/maps only. Verified during the WP-065 walkthrough (July 2026): Module 7 Read Aloud prose-only behavior remained intact.
 
-**Resolved in commit:**
+**Resolved in commit:** (presentation fix present prior to this log sync; closed after WP-065 verification confirmation)
 
 ---
 
@@ -147,7 +149,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Google Doc creation/export screens in Module 8
 - **Priority:** Critical
 - **Category:** Bug / Architecture
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Early in Module 8, the Google Doc appeared to contain an older essay from a previous test. Later, Module 9’s export button generated the correct newest essay. The export engine works, but at least one export path references stale information.
 
@@ -163,9 +165,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 3. Confirm all paths produce identical, current content.
 4. Re-test after a prior test account has an old Google Doc on record.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/supabase/helpers/studentDrafts.ts` (`getFinalTextForExport`); `components/ModuleEight.js`; `components/ModuleNine.js`; `lib/exports/exportEssayToGoogleDocs.ts`; `app/api/export-to-docs/route.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) `getFinalTextForExport` now resolves Module 7 `final_text` → Module 7 `full_text` → Module 6 `full_text`, matching on-screen essay selection. Module 8 no longer treats a leftover `exported_docs` link **or** `student_drafts` module-8 `final_ready` as verified: on load, `docVerifiedThisSession` is always false and the CREATE_DOC step is shown. Continue / “Ready” / “Google Doc Created” unlock only after a successful Create/Update export initiated in the current Module 8 visit. Previously finalized Module 8 rows still require that this-visit export (then restore the success panel once checklist is complete). Awaiting re-verification after the `final_ready` bypass removal.
 
 **Resolved in commit:**
 
@@ -1968,4 +1970,63 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-005 Needs Verification (Module 9 reading width / spacing; presentation-only).*
+### WP-067 — Module 8 completion does not advance progress to Module 9
+
+- **Module:** 8
+- **Screen or area:** In-module “Continue to Module 9” success panel (after Google Doc + checklist)
+- **Priority:** Critical
+- **Category:** Persistence / Gate
+- **Status:** Needs Verification
+
+**Walkthrough observation:** After completing Module 8 (Google Doc created/updated, APA checklist complete, Ready), clicking Continue to Module 9 navigated to `/modules/9`, but the Module 9 gate rejected entry with “Finish Module 8 before starting Module 9.” Developer Panel showed `current_module: 8`.
+
+**Why it matters educationally:** Students believe they finished Module 8 and are blocked at the next door with no clear recovery. Trust in progress and submission flow breaks.
+
+**Why it matters technically or operationally:** The WP-002 in-module locked success panel used a plain `<Link href="/modules/9">`, bypassing `/modules/8/success` and `advanceCurrentModuleOnSuccess`. Navigation succeeded without persisting progress.
+
+**Recommended smallest reasonable fix:** On Continue, call `advanceCurrentModuleOnSuccess({ completedModuleNumber: 8 })`, confirm the write, then navigate to Module 9. Reuse the existing production progress helper (same as other module success pages).
+
+**Verification steps:**
+1. Reset Student; Seed Complete Essay; open Module 8.
+2. Create/Update Google Doc; complete checklist until Ready.
+3. Click Continue to Module 9.
+4. Confirm Developer Panel `current_module` is 9 and Module 9 loads without the Module 8 gate message.
+
+**Related files:** `components/ModuleEight.js`; `lib/supabase/helpers/studentAssignments.ts` (`advanceCurrentModuleOnSuccess`); `app/modules/8/success/page.js`
+
+**Resolution notes:** (July 2026) Replaced the direct Module 9 link with `continueToModuleNine`, which awaits `advanceCurrentModuleOnSuccess` for completed module 8 before `router.push("/modules/9")`. Errors surface an alert and do not navigate. The `/modules/8/success` path remains unchanged for the Finish preparing flow. Awaiting walkthrough re-verification.
+
+**Resolved in commit:**
+
+---
+
+### WP-068 — Module 8 revisit completion bypasses dedicated success page
+
+- **Module:** 8
+- **Screen or area:** Completion / transition to Module 9
+- **Priority:** High
+- **Category:** Navigation / Flow
+- **Status:** Needs Verification
+
+**Walkthrough observation:** First-time Module 8 completion routed through `/modules/8/success`. Previously finalized / Seed Complete Essay revisits showed an in-module success panel and navigated straight to Module 9, skipping the dedicated success screen.
+
+**Why it matters educationally:** Students should get one consistent celebration and transition before Module 9, whether first visit or revisit after a required Google Doc refresh.
+
+**Why it matters technically or operationally:** WP-002’s `previouslyFinalized` path set `locked` and used a direct Module 9 continue handler, diverging from `finishPreparing` → `/modules/8/success`.
+
+**Recommended smallest reasonable fix:** When revisit requirements are met (this-visit export + checklist), navigate to the existing Module 8 success page. Keep progress advance on that page (WP-067). Do not change export or checklist gates (WP-002).
+
+**Verification steps:**
+1. First-time path: Finish preparing → confirm `/modules/8/success` → Continue to Module 9.
+2. Revisit path: Reset; Seed Complete Essay; Module 8; Create/Update Doc; complete checklist → confirm `/modules/8/success` before Module 9.
+3. Confirm `current_module` advances to 9 from the success page.
+
+**Related files:** `components/ModuleEight.js`; `app/modules/8/success/page.js`
+
+**Resolution notes:** (July 2026) Revisit completion now `router.push("/modules/8/success")` once `previouslyFinalized && docVerifiedThisSession && checklistComplete` (one-shot via ref). Removed direct Module 9 advance from the in-module panel; any residual locked Continue also goes to the success page. WP-002 session export and success-page `advanceCurrentModuleOnSuccess` unchanged. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 10, 2026 — WP-068 Needs Verification (unified Module 8 success page).*
