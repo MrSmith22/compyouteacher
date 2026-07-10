@@ -1,0 +1,5364 @@
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 1
+
+Executive Vision, Educational Philosophy, and Global Design Principles
+
+Document Status: Master Specification
+
+Audience: Project Manager Chat
+
+Purpose: This document defines the instructional philosophy, UX philosophy, implementation priorities, and detailed revision guidance for the next phase of the Writing Processor. It is intended to become the primary design reference used to generate Cursor implementation prompts.
+
+---
+
+## 1. Purpose of this Document
+
+The first complete end to end walkthrough of the Writing Processor has now been completed.
+
+This walkthrough was not intended to redesign the application.
+
+Instead, its purpose was to validate the instructional experience before students use the software.
+
+One of the most important discoveries from the walkthrough is that the architecture of the application is fundamentally working.
+
+That changes the nature of development.
+
+Earlier development focused primarily on:
+
+* persistence
+* routing
+* progress tracking
+* data structures
+* module transitions
+* Google Docs integration
+* exports
+* saving student work
+
+Those architectural concerns have largely been solved.
+
+Phase II is therefore not an architecture project.
+
+It is an instructional design project.
+
+The objective is no longer:
+
+“Can the software do this?”
+
+Instead it becomes:
+
+“Does the software teach this as well as an exceptional teacher would?”
+
+That distinction is critical.
+
+---
+
+## 2. Overall Assessment
+
+The Writing Processor has reached an important milestone.
+
+After completing the entire walkthrough, my conclusion is:
+
+The instructional sequence is considerably stronger than the current user experience communicates.
+
+The underlying pedagogy is excellent.
+
+The sequencing is excellent.
+
+The artifacts students produce are excellent.
+
+The progression between modules is excellent.
+
+What remains is helping students experience those strengths.
+
+Almost every issue discovered during the walkthrough can be categorized as one of the following:
+
+* insufficient instructional coaching
+* insufficient scaffolding
+* excessive cognitive load
+* weak visual hierarchy
+* weak instructional hierarchy
+* insufficient explanation of purpose
+* students expected to infer expert behaviors
+
+Notice what is not on this list.
+
+Very few issues involved:
+
+* broken workflows
+* missing architecture
+* incorrect sequencing
+* poor educational goals
+
+That is extremely encouraging.
+
+It means we should preserve the architecture while improving the educational experience.
+
+---
+
+## 3. The Most Important Discovery
+
+The single most important discovery from the walkthrough is this:
+
+The Writing Processor is not an essay builder.
+
+It is a digital writing teacher.
+
+That sounds like a small wording change.
+
+It is not.
+
+Those two products behave completely differently.
+
+An essay builder asks students questions.
+
+A writing teacher teaches students how to answer those questions.
+
+Throughout the walkthrough we repeatedly discovered pages that effectively asked:
+
+Write this.
+
+Revise this.
+
+Strengthen this.
+
+Choose this.
+
+Explain this.
+
+These are perfectly reasonable prompts.
+
+Unfortunately, they assume students already know how experienced writers think.
+
+The Writing Processor should never make that assumption.
+
+Instead it should constantly model expert thinking.
+
+---
+
+## 4. Core Educational Philosophy
+
+This statement should become one of the foundational design principles for the entire application.
+
+The Writing Processor teaches students how experienced writers think.
+
+Not simply:
+
+how to produce an essay.
+
+Not simply:
+
+how to answer prompts.
+
+It teaches the invisible thinking process that strong writers perform naturally.
+
+Every screen should therefore answer:
+
+What are experienced writers thinking about right now?
+
+Then teach that thinking.
+
+---
+
+## 5. Teaching Before Asking
+
+One of the clearest patterns discovered throughout Modules 6 through 9 was this:
+
+The software frequently asks students to perform tasks before teaching them how.
+
+Examples include:
+
+Draft the introduction.
+
+Strengthen the paragraph.
+
+Revise the conclusion.
+
+Choose stronger wording.
+
+Evaluate APA formatting.
+
+These are all reasonable tasks.
+
+But many students do not yet know how to perform them.
+
+Therefore every page should follow the sequence:
+
+Teach
+
+↓
+
+Model
+
+↓
+
+Coach
+
+↓
+
+Student performs task
+
+↓
+
+### Feedback
+
+Never:
+
+Task
+
+↓
+
+Hope student understands
+
+---
+
+## 6. The Biggest UX Principle
+
+This idea emerged repeatedly throughout the walkthrough.
+
+It may become the defining UX philosophy of the entire Writing Processor.
+
+The application should scaffold attention.
+
+Notice the wording.
+
+Not merely scaffold writing.
+
+Scaffold attention.
+
+This became obvious during Modules 4, 5, and 6.
+
+Students were often looking at:
+
+* thesis
+* outline
+* sidebar
+* paragraph
+* evidence
+* explanations
+* previous work
+* instructions
+
+all simultaneously.
+
+An experienced writer automatically ignores most of that.
+
+A novice writer does not.
+
+Therefore the application should actively teach students:
+
+what deserves attention
+
+and
+
+what can safely be ignored.
+
+---
+
+## 7. Guided Attention
+
+This phrase should appear throughout future design work.
+
+Every page should deliberately narrow the student’s attention.
+
+Instead of asking:
+
+Write your body paragraph.
+
+The application should guide students through something closer to:
+
+Today we’re only thinking about one thing.
+
+↓
+
+Look only at these two quotations.
+
+↓
+
+Ignore everything else.
+
+↓
+
+Ask yourself one question.
+
+↓
+
+Write one explanation.
+
+The student should experience the feeling:
+
+“Oh…
+
+That’s actually all I have to do.”
+
+That “aha” moment became one of the recurring goals identified throughout the walkthrough.
+
+---
+
+## 8. The Goal is Simplicity
+
+This became increasingly clear.
+
+The Writing Processor should constantly create the feeling:
+
+This is simpler than I thought.
+
+Not because the work is easier.
+
+Because the application has reduced the complexity.
+
+Great teachers do this naturally.
+
+The Writing Processor should model that same behavior.
+
+---
+
+## 9. Cognitive Load
+
+Throughout the walkthrough, cognitive load became one of the most discussed topics.
+
+An important clarification emerged.
+
+The problem is not that students are asked to perform difficult thinking.
+
+The thinking itself is appropriate.
+
+The problem is that they are frequently asked to perform:
+
+multiple kinds of thinking
+
+while simultaneously managing:
+
+multiple sources of information.
+
+Those are separate issues.
+
+Future revisions should reduce:
+
+interface complexity
+
+without reducing:
+
+academic rigor.
+
+---
+
+## 10. One Thinking Task Per Screen
+
+This became another guiding principle.
+
+Every screen should revolve around exactly one meaningful cognitive operation.
+
+Examples:
+
+Choose evidence.
+
+Explain evidence.
+
+Compare ideas.
+
+Draft introduction.
+
+Revise conclusion.
+
+Check APA spacing.
+
+Nothing else should compete for attention.
+
+Supporting information should exist only to support that one task.
+
+---
+
+## 11. The Teacher Voice
+
+One of the strongest realizations from the walkthrough was that the application currently alternates between two voices.
+
+Voice One:
+
+Teacher
+
+Voice Two:
+
+Software
+
+Whenever possible, the software voice should disappear.
+
+Instead of saying:
+
+“Complete the paragraph.”
+
+The application should sound like a teacher.
+
+For example:
+
+Let’s look at the notes you already made.
+
+Now let’s turn those ideas into complete sentences.
+
+This sounds dramatically different.
+
+Students feel guided rather than evaluated.
+
+---
+
+## 12. The Student Should Never Feel Alone
+
+This became another recurring philosophy.
+
+Every page should communicate:
+
+I know where you are.
+
+I know what you’ve already accomplished.
+
+I know what comes next.
+
+I’m going to help you succeed.
+
+If a student ever reaches a page and thinks:
+
+“What am I supposed to do?”
+
+the application has failed that screen.
+
+---
+
+## 13. Planning vs Drafting
+
+The walkthrough uncovered an important distinction.
+
+Planning and drafting are fundamentally different cognitive activities.
+
+Planning asks:
+
+What ideas belong?
+
+Drafting asks:
+
+How do I express those ideas?
+
+Therefore Module 6 should never feel like another planning module.
+
+It should feel like translation.
+
+Students are not inventing ideas.
+
+They are translating ideas into polished writing.
+
+That distinction should be made explicit.
+
+---
+
+## 14. Planning Artifacts vs Student Writing
+
+This became particularly important during Module 7.
+
+Planning artifacts include:
+
+Roman numerals
+
+Outline headings
+
+Paragraph labels
+
+Section titles
+
+Planning prompts
+
+These are useful while planning.
+
+They should disappear during drafting and revision.
+
+By Module 7 the student should be reading a genuine essay.
+
+Not an outline wrapped around an essay.
+
+This is an important architectural principle.
+
+Planning representation
+
+and
+
+writing representation
+
+are different objects.
+
+---
+
+## 15. The Role of the Sidebar
+
+Originally the sidebar was treated primarily as storage.
+
+The walkthrough changed this understanding.
+
+The sidebar should become:
+
+an instructional notebook.
+
+It should teach students how writers use previous thinking.
+
+The sidebar should answer:
+
+What have I already figured out?
+
+instead of simply storing previous answers.
+
+Even more importantly:
+
+The application should actively direct students toward the relevant sidebar information instead of assuming they know when to consult it.
+
+---
+
+## 16. The Application Already Knows
+
+One of the strongest philosophical conclusions from the walkthrough is this:
+
+The application should never ask students to remember something it already knows.
+
+If the application already knows:
+
+their thesis
+
+their paragraph plan
+
+their quotations
+
+their reasoning
+
+their conclusion plan
+
+those things should be surfaced exactly when needed.
+
+Students should spend mental effort on writing.
+
+Not on searching.
+
+---
+
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 2
+
+Application Wide Standards, UX Language, Visual Language, and Cross Module Design Principles
+
+---
+
+## 17. Preserve the Existing Architecture
+
+One of the biggest conclusions from the alpha walkthrough is this:
+
+Do not redesign what already works.
+
+The Writing Processor has finally reached a point where:
+
+* progression works
+* persistence works
+* module sequencing works
+* student artifacts are flowing correctly
+* drafting functions
+* revision functions
+* Google Docs integration largely functions
+* exports largely function
+
+Earlier development focused on making the application work.
+
+Phase II focuses on making the application teach.
+
+These are completely different objectives.
+
+Cursor should therefore approach every implementation task with this assumption:
+
+Preserve working architecture whenever possible.
+
+Do not rebuild modules because the UX needs improvement.
+
+Instead:
+
+Improve presentation.
+
+Improve instructional quality.
+
+Improve guidance.
+
+Improve visual hierarchy.
+
+---
+
+## 18. The Four Questions Every Screen Must Answer
+
+Every screen throughout the application should naturally answer four questions.
+
+These questions should become part of every future design review.
+
+---
+
+### Question 1
+
+What am I doing?
+
+Students should immediately understand:
+
+What is today’s task?
+
+Not after reading several paragraphs.
+
+Within seconds.
+
+Examples:
+
+Finding evidence
+
+Planning the thesis
+
+Writing the introduction
+
+Checking APA formatting
+
+Uploading the final PDF
+
+---
+
+### Question 2
+
+Why am I doing this?
+
+Students frequently complete work without understanding why it matters.
+
+The application should always explain:
+
+Why experienced writers perform this step.
+
+How it helps create a better essay.
+
+Why it comes before the next step.
+
+---
+
+### Question 3
+
+How do I do this successfully?
+
+This became one of the biggest weaknesses discovered throughout Modules 6 through 9.
+
+Students are often told:
+
+Revise this.
+
+Strengthen this.
+
+Write this.
+
+Without being taught how.
+
+Every page should provide coaching.
+
+---
+
+### Question 4
+
+How do I know I’m finished?
+
+This question is almost never answered explicitly.
+
+Students often wonder:
+
+Did I do enough?
+
+Can I continue?
+
+What should my answer include?
+
+Instead every page should end with something similar to:
+
+You’re ready to continue when:
+
+✓  Your paragraph has a clear topic sentence.
+
+✓  Every quotation is explained.
+
+✓  Your paragraph connects back to the thesis.
+
+Students should never guess whether they are finished.
+
+---
+
+## 19. The Educational Voice
+
+Throughout the walkthrough, it became obvious that the application sometimes sounds like software.
+
+Examples:
+
+Continue.
+
+Complete.
+
+Next.
+
+Submit.
+
+Those are software commands.
+
+Instead the Writing Processor should consistently sound like a teacher.
+
+Examples:
+
+Let’s look at the evidence you’ve already chosen.
+
+Now let’s turn those ideas into writing.
+
+Notice how this quotation supports your argument.
+
+Great writers ask themselves…
+
+That language changes the emotional experience.
+
+---
+
+## 20. Teaching vs Assigning
+
+This became one of the central themes of the walkthrough.
+
+Software assigns.
+
+Teachers teach.
+
+The Writing Processor should always behave like a teacher.
+
+Bad example:
+
+Write your introduction.
+
+Better:
+
+Your introduction has one job.
+
+Introduce the topic.
+
+Provide a little background.
+
+End with your thesis.
+
+Let’s build it together.
+
+Same task.
+
+Completely different experience.
+
+---
+
+## 21. The Student Should Never Feel Lost
+
+Every screen should answer:
+
+Where am I?
+
+What am I working on?
+
+How does this connect to what I already did?
+
+What happens next?
+
+The student should never experience:
+
+“I don’t know what this page wants.”
+
+Unfortunately, this feeling appeared several times during the walkthrough.
+
+Future revisions should eliminate it completely.
+
+---
+
+## 22. Visual Hierarchy Should Teach
+
+Visual hierarchy should not exist merely for aesthetics.
+
+It should become another teacher.
+
+Large text
+
+means
+
+Important idea.
+
+### Color
+
+means
+
+Current focus.
+
+Cards
+
+mean
+
+Read this first.
+
+Checklists
+
+mean
+
+Verify before continuing.
+
+### Buttons
+
+mean
+
+Action.
+
+If everything looks equally important…
+
+Nothing is important.
+
+---
+
+## 23. Color Needs a Purpose
+
+Throughout the walkthrough we repeatedly noted that many pages felt:
+
+white
+
+flat
+
+bland
+
+Color should not simply decorate.
+
+It should communicate.
+
+Potential examples:
+
+Blue
+
+Instruction
+
+Green
+
+Ideas
+
+Yellow
+
+### Evidence
+
+Purple
+
+Writing
+
+Orange
+
+Revision
+
+Students should gradually learn this language.
+
+Eventually they should recognize meaning before reading.
+
+---
+
+## 24. Buttons vs Hyperlinks
+
+This became another repeated observation.
+
+Students recognize buttons.
+
+Students often overlook hyperlinks.
+
+Whenever the application expects action:
+
+Prefer buttons.
+
+Examples:
+
+Open My Speech
+
+Open My Letter
+
+Create Google Doc
+
+Update Google Doc
+
+Open Submission Document
+
+Download PDF Instructions
+
+Buttons communicate:
+
+Click me.
+
+Links communicate:
+
+Reference.
+
+That distinction matters.
+
+---
+
+## 25. Reduce Reading Without Reducing Teaching
+
+This is subtle.
+
+Several pages contained many words.
+
+The issue was not the amount of reading.
+
+The issue was that the reading did not guide attention.
+
+Instead of:
+
+Large paragraphs.
+
+Use:
+
+Short instructional cards.
+
+Bullet points.
+
+Callout boxes.
+
+Step numbers.
+
+Examples.
+
+Visual separation.
+
+Students are willing to read.
+
+They simply need guidance.
+
+---
+
+## 26. Progressive Disclosure
+
+One of the strongest UX principles identified during the walkthrough.
+
+Never reveal everything at once.
+
+Reveal only what students need now.
+
+Example:
+
+Instead of showing:
+
+Entire outline
+
+### Sidebar
+
+Instructions
+
+Textbox
+
+Checklist
+
+### Buttons
+
+### Examples
+
+All simultaneously…
+
+Show:
+
+Today’s goal.
+
+↓
+
+Relevant evidence.
+
+↓
+
+Today’s writing task.
+
+↓
+
+Textbox.
+
+Everything else becomes secondary.
+
+---
+
+## 27. Students Should Never Search
+
+Searching creates cognitive load.
+
+Whenever students must search for:
+
+the correct quotation
+
+their thesis
+
+their paragraph plan
+
+their conclusion plan
+
+the application has increased difficulty unnecessarily.
+
+The application already knows.
+
+Bring the information forward.
+
+Do not make students hunt.
+
+---
+
+## 28. Planning Should Fade Naturally
+
+Early modules intentionally emphasize structure.
+
+Roman numerals.
+
+Outline labels.
+
+Planning prompts.
+
+This is correct.
+
+But as students move toward drafting…
+
+Those supports should gradually disappear.
+
+By revision…
+
+Students should experience:
+
+A real essay.
+
+Not an outline.
+
+---
+
+## 29. Every Module Needs a Transition
+
+One surprising observation:
+
+The transitions between modules often function mechanically…
+
+But not psychologically.
+
+Students should feel themselves changing roles.
+
+Examples:
+
+Module 3
+
+You’ve gathered evidence.
+
+Next we’ll organize it.
+
+Module 4
+
+You’ve organized your ideas.
+
+Now we’ll build an outline.
+
+Module 5
+
+Your outline is finished.
+
+Now you’ll begin writing.
+
+Module 6
+
+You’ve written a draft.
+
+Now let’s strengthen it.
+
+These transitions reduce anxiety.
+
+---
+
+## 30. Every Page Needs an Objective
+
+Objectives should be concrete.
+
+Avoid:
+
+Complete this section.
+
+Prefer:
+
+Find one quotation.
+
+Explain one quotation.
+
+Write one paragraph.
+
+Strengthen one paragraph.
+
+Download one PDF.
+
+Small objectives create momentum.
+
+---
+
+## 31. Success Criteria
+
+Every screen should include visible success criteria.
+
+Examples:
+
+Today’s goal
+
+Find two quotations.
+
+Explain each quotation.
+
+Connect both to your claim.
+
+When all three are complete…
+
+You’re ready.
+
+Students love certainty.
+
+---
+
+## 32. Celebrate Progress
+
+One thing the application already does reasonably well…
+
+Completion pages.
+
+However…
+
+Progress can be celebrated throughout.
+
+Examples:
+
+Great.
+
+You’ve chosen your evidence.
+
+Now let’s explain why it matters.
+
+Those small celebrations keep students motivated.
+
+---
+
+## 33. Feedback Should Teach
+
+Another recurring theme.
+
+Avoid:
+
+Correct.
+
+Incorrect.
+
+Prefer:
+
+Correct.
+
+This quotation appeals to emotion because…
+
+or
+
+Not quite.
+
+Notice how King is appealing to credibility instead.
+
+Teaching continues through feedback.
+
+---
+
+## 34. Student Artifacts Are Valuable
+
+One of the greatest strengths of the Writing Processor.
+
+Students continuously produce:
+
+observations
+
+claims
+
+evidence
+
+reasoning
+
+thesis
+
+outline
+
+paragraph plans
+
+These are not temporary answers.
+
+They become the building blocks of later modules.
+
+The application should celebrate this.
+
+Examples:
+
+Remember…
+
+You already figured this out.
+
+Let’s use it.
+
+---
+
+## 35. Never Start From Scratch Again
+
+This became perhaps the most important UX philosophy after the walkthrough.
+
+After Module 2…
+
+Students should almost never feel they are beginning from nothing.
+
+Every page should remind them:
+
+You’ve already done the hard thinking.
+
+Now we’re building on it.
+
+That message should appear throughout:
+
+Drafting.
+
+Revision.
+
+Formatting.
+
+Submission.
+
+---
+
+## 36. Every Module Should Feel Different
+
+Not visually.
+
+Psychologically.
+
+Modules 1 through 3
+
+Discovery.
+
+Module 4
+
+Organization.
+
+Module 5
+
+Planning.
+
+Module 6
+
+Writing.
+
+Module 7
+
+Revision.
+
+Module 8
+
+Preparation.
+
+Module 9
+
+Submission.
+
+Students should feel these transitions.
+
+---
+
+## 37. The Overall Emotional Journey
+
+This became clear only after walking through the entire application.
+
+The emotional journey should become:
+
+“I don’t know where to begin.”
+
+↓
+
+“I think I understand.”
+
+↓
+
+“I found evidence.”
+
+↓
+
+“I have a plan.”
+
+↓
+
+“I already know what to write.”
+
+↓
+
+“My essay is coming together.”
+
+↓
+
+“I made it better.”
+
+↓
+
+“My paper is ready.”
+
+↓
+
+“I successfully submitted.”
+
+Every design decision should reinforce this journey.
+
+---
+
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 3
+
+Module 6: Drafting
+
+Complete Design Review and Implementation Specification
+
+---
+
+### Module Overview
+
+Module 6 is where the application undergoes its single biggest cognitive transition.
+
+Up until this point, students have been discovering, organizing, and planning ideas.
+
+Module 6 asks them to write.
+
+This is not simply another module.
+
+It is the moment students often believe:
+
+“Now the hard part begins.”
+
+Ironically, the opposite should be true.
+
+By the time students enter Module 6 they have already completed most of the difficult thinking.
+
+The application needs to communicate this constantly.
+
+Instead, the current implementation unintentionally creates the feeling that students are beginning an entirely new assignment.
+
+That is the largest instructional weakness in Module 6.
+
+---
+
+### Overall Assessment
+
+### What Works Exceptionally Well
+
+The architecture.
+
+The sequencing.
+
+The persistence.
+
+The progression.
+
+The automatic movement from outline to drafting.
+
+The one section at a time workflow.
+
+The drafting engine itself.
+
+All of these should remain.
+
+Nothing discovered during the walkthrough suggests rebuilding Module 6.
+
+Instead, Module 6 should become much more instructional.
+
+---
+
+### Educational Goal of Module 6
+
+The educational goal should no longer be:
+
+Draft an essay.
+
+Instead:
+
+Teach students how experienced writers translate planning into prose.
+
+That wording matters enormously.
+
+Students should never feel they are inventing ideas.
+
+They should feel they are translating ideas they already own.
+
+---
+
+### The Missing Bridge
+
+During the walkthrough one recurring thought appeared almost every page.
+
+Currently the application feels like:
+
+Planning
+
+↓
+
+Blank Page
+
+↓
+
+Essay
+
+There is an entire instructional step missing.
+
+Planning
+
+↓
+
+Translate planning into writing
+
+↓
+
+Essay
+
+Module 6 should become that translation stage.
+
+---
+
+### Core Design Principle
+
+Every drafting screen should begin by reminding students:
+
+You are NOT starting over.
+
+Everything you need already exists.
+
+Your job is simply to turn your notes into complete sentences.
+
+That message should become a recurring theme throughout the module.
+
+---
+
+### Student Mindset
+
+Current mindset
+
+I have to write an essay.
+
+Desired mindset
+
+I already figured out what I want to say.
+
+Now I’m just explaining it.
+
+That emotional shift should become one of the primary goals of Module 6.
+
+---
+
+### Screen Pattern
+
+Every drafting page should follow exactly the same instructional structure.
+
+### Section 1
+
+Where are we?
+
+Example:
+
+Today we’re writing Body Paragraph One.
+
+---
+
+### Section 2
+
+Why does this matter?
+
+Explain:
+
+This paragraph proves the first part of your thesis.
+
+It introduces your strongest evidence for this idea.
+
+---
+
+### Section 3
+
+### What have you already figured out?
+
+Surface previous student work.
+
+Do NOT make students search.
+
+Examples:
+
+Your paragraph idea
+
+Your quotations
+
+Your explanations
+
+Your audience analysis
+
+Your purpose analysis
+
+---
+
+### Section 4
+
+How do experienced writers use these notes?
+
+This is currently missing.
+
+Teach.
+
+Example:
+
+Experienced writers do not copy notes directly.
+
+Instead they:
+
+introduce evidence
+
+explain evidence
+
+connect evidence back to their argument
+
+Then continue.
+
+---
+
+### Section 5
+
+Now write.
+
+Only after the previous sections.
+
+---
+
+### Section 6
+
+### Before continuing…
+
+Checklist.
+
+Examples:
+
+My paragraph has a topic sentence.
+
+Both quotations are explained.
+
+Every sentence supports my main idea.
+
+---
+
+This pattern should become consistent across every drafting page.
+
+---
+
+### Draft Introduction
+
+### Current State
+
+Students are presented with:
+
+A prompt.
+
+Large textbox.
+
+Sidebar.
+
+Minimal coaching.
+
+---
+
+### What Works
+
+Writing one section at a time.
+
+Introduction first.
+
+Good pacing.
+
+---
+
+### Weakness
+
+Students are not reminded of the planning they already completed.
+
+The application has:
+
+their thesis
+
+their essay purpose
+
+their paragraph plan
+
+Yet these are visually secondary.
+
+Students instead experience:
+
+Large blank textbox.
+
+---
+
+### Recommendation
+
+Surface planning directly.
+
+Display:
+
+Your thesis
+
+↓
+
+Your essay purpose
+
+↓
+
+Your paragraph topics
+
+↓
+
+Instruction explaining what introductions do
+
+↓
+
+Textbox
+
+Do not make students hunt through the sidebar.
+
+---
+
+### Educational Opportunity
+
+Teach introductions.
+
+Example:
+
+A strong introduction usually does three things.
+
+Introduces the topic.
+
+Provides context.
+
+Ends with the thesis.
+
+Now explain that YOU already planned these things.
+
+Students simply need to write them naturally.
+
+---
+
+### Draft Body Paragraph Pages
+
+These pages received the largest amount of discussion during the walkthrough.
+
+---
+
+### Current Strengths
+
+The overall workflow.
+
+The order.
+
+The persistence.
+
+The outline integration.
+
+The automatic paragraph sequence.
+
+The sidebar containing previous work.
+
+---
+
+### Biggest Weakness
+
+The application behaves as though students already know how to write body paragraphs.
+
+It frequently asks:
+
+Write this paragraph.
+
+Without modeling:
+
+How experienced writers build paragraphs.
+
+---
+
+### New Page Structure
+
+Every body paragraph should begin with:
+
+Today’s Goal
+
+Write Body Paragraph One.
+
+---
+
+### What have you already figured out?
+
+Main idea.
+
+Show it.
+
+---
+
+### Evidence
+
+Show both quotations.
+
+---
+
+### Reasoning
+
+Show student explanations.
+
+---
+
+### Audience
+
+Show previous work.
+
+---
+
+### Purpose
+
+Show previous work.
+
+---
+
+### Only then…
+
+Ask students to write.
+
+---
+
+### Why This Matters
+
+Students should constantly experience:
+
+“Oh…
+
+Everything is already here.”
+
+Instead of:
+
+“I don’t know what to write.”
+
+---
+
+### Pull Information Forward
+
+The walkthrough repeatedly demonstrated that the sidebar already contains the necessary information.
+
+The problem is not missing information.
+
+The problem is presentation.
+
+Do not expect students to:
+
+Locate.
+
+Remember.
+
+Interpret.
+
+Instead:
+
+Automatically display relevant artifacts inside the drafting workspace.
+
+---
+
+### Sidebar Philosophy
+
+Originally the sidebar functioned as storage.
+
+Module 6 changes its role.
+
+It becomes:
+
+Writer’s Notebook.
+
+The application should teach students to consult previous thinking.
+
+Eventually students internalize this behavior.
+
+---
+
+### Suggested Sidebar Changes
+
+Current sidebar
+
+Very narrow.
+
+Small text.
+
+Little visual emphasis.
+
+Feels secondary.
+
+---
+
+Recommended sidebar
+
+Current paragraph highlighted.
+
+Larger typography.
+
+More spacing.
+
+Visual cards.
+
+Only currently relevant information expanded.
+
+Everything else collapsed.
+
+The sidebar should support.
+
+Not compete.
+
+---
+
+### Color Usage
+
+One of the recurring observations.
+
+Module 6 feels visually flat.
+
+Color should reinforce thinking.
+
+### Example
+
+Blue
+
+Instruction.
+
+Green
+
+Your idea.
+
+Yellow
+
+Evidence.
+
+Purple
+
+Writing.
+
+Orange
+
+Revision reminder.
+
+Students should gradually learn this language.
+
+---
+
+### White Space
+
+Nearly every drafting page feels crowded despite containing relatively little information.
+
+Reason:
+
+Information lacks hierarchy.
+
+### Recommendation
+
+More spacing.
+
+Larger headings.
+
+Instructional cards.
+
+Visual separation.
+
+Reduce the feeling of one continuous form.
+
+---
+
+### Reduce Decisions
+
+Students currently decide:
+
+Where do I look?
+
+What matters?
+
+What should I ignore?
+
+The application should answer those questions.
+
+Never require unnecessary navigation.
+
+---
+
+### Draft Conclusion
+
+This page revealed another instructional opportunity.
+
+Students already completed conclusion planning.
+
+They answered:
+
+How will you restate your thesis?
+
+What final thought will readers leave with?
+
+Yet drafting largely ignores those planning artifacts.
+
+---
+
+New Conclusion Pattern
+
+Remind students:
+
+You already decided:
+
+How to restate your thesis.
+
+What readers should remember.
+
+Show those responses.
+
+Explain how conclusions work.
+
+### Only then…
+
+Ask them to draft.
+
+---
+
+### Experienced Writer Coaching
+
+Throughout Module 6, add recurring coaching such as:
+
+Experienced writers rarely invent ideas while drafting.
+
+They organize ideas first.
+
+Then translate those ideas into complete sentences.
+
+You have already completed the hard thinking.
+
+Now focus on expressing your ideas clearly.
+
+This message should appear repeatedly.
+
+---
+
+### Student Confidence
+
+Every drafting page should leave students feeling:
+
+I know exactly what to do.
+
+I already have everything I need.
+
+I’m simply turning my notes into writing.
+
+That emotional state should become one of the primary success criteria for Module 6.
+
+---
+
+### What Should NOT Change
+
+Do NOT remove:
+
+One section at a time drafting.
+
+Automatic progression.
+
+Outline integration.
+
+Sidebar concept.
+
+Persistence.
+
+Current sequencing.
+
+These are major strengths.
+
+The revisions should enhance instruction rather than replace the workflow.
+
+---
+
+### Module 6 Priority List
+
+### Critical
+
+Surface planning artifacts directly inside drafting workspace.
+
+Teach drafting instead of assigning drafting.
+
+Remove blank page feeling.
+
+---
+
+### High
+
+Increase coaching.
+
+Improve visual hierarchy.
+
+Improve sidebar.
+
+Use instructional color.
+
+---
+
+### Medium
+
+Celebrate progress more often.
+
+Expand “How I know I’m finished.”
+
+Use larger instructional cards.
+
+---
+
+### Final Evaluation
+
+Module 6 is functionally complete.
+
+Its architecture is excellent.
+
+Its instructional experience is not yet equal to the strength of its architecture.
+
+The goal of Phase II is not to rebuild Module 6.
+
+The goal is to transform it from a drafting interface into a digital writing coach.
+
+When students finish Module 6, they should feel:
+
+“I didn’t write this essay from scratch.”
+
+They should instead think:
+
+“The Writing Processor helped me discover my ideas, organize them, and then showed me how to turn them into real writing.”
+
+That is the educational outcome the module should strive to produce.
+
+---
+
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 4
+
+Module 7: Revision
+
+Complete Design Review and Implementation Specification
+
+---
+
+### Module Overview
+
+Module 7 represents the second major cognitive transition in the Writing Processor.
+
+Module 6 teaches students how to produce a complete first draft.
+
+Module 7 should teach students something entirely different:
+
+How experienced writers improve a draft.
+
+This distinction is extremely important.
+
+Most writing software treats revision as proofreading.
+
+The Writing Processor should not.
+
+Revision is not about fixing mistakes.
+
+Revision is about improving communication.
+
+That philosophy should become the foundation of Module 7.
+
+---
+
+### Overall Assessment
+
+Module 7 is structurally one of the strongest modules in the application.
+
+The workflow is logical.
+
+The sequence makes sense.
+
+The technology worked well during testing.
+
+The application successfully:
+
+* assembled the draft
+* recorded audio
+* played audio back
+* moved students through revision
+* preserved student work
+
+The problems discovered were almost entirely instructional rather than technical.
+
+---
+
+### Educational Goal
+
+Current implied goal:
+
+Improve your essay.
+
+Desired goal:
+
+Learn how experienced writers revise.
+
+Those are dramatically different educational experiences.
+
+---
+
+### The Biggest Missing Piece
+
+Throughout Module 7 the application repeatedly asks students:
+
+Strengthen this.
+
+Revise this.
+
+Improve this.
+
+Unfortunately…
+
+Most tenth graders do not actually know what those verbs mean.
+
+The application currently assumes revision knowledge that many students do not possess.
+
+That assumption should be removed.
+
+---
+
+### Core Philosophy
+
+Revision is a skill.
+
+Not a task.
+
+Every revision page should teach one revision strategy.
+
+---
+
+### Revision is Thinking
+
+Students frequently believe revision means:
+
+Fix grammar.
+
+Fix spelling.
+
+Correct punctuation.
+
+That is editing.
+
+Revision is different.
+
+Revision asks:
+
+Is my thinking clear?
+
+Have I explained enough?
+
+Will readers understand?
+
+Have I chosen the best evidence?
+
+Those questions should become the focus of Module 7.
+
+---
+
+### New Educational Sequence
+
+Each revision page should follow this structure.
+
+### Step 1
+
+Read your writing.
+
+---
+
+### Step 2
+
+Notice something.
+
+---
+
+### Step 3
+
+Think like a writer.
+
+---
+
+### Step 4
+
+Improve one thing.
+
+---
+
+### Step 5
+
+Read it again.
+
+This sequence repeats throughout the module.
+
+---
+
+### Read Aloud Screen
+
+This page is one of the strongest instructional ideas in the application.
+
+It should absolutely remain.
+
+---
+
+### Why It Works
+
+Reading aloud naturally reveals:
+
+awkward wording
+
+missing transitions
+
+run on sentences
+
+repetition
+
+unclear explanations
+
+Students often hear problems they never notice while silently reading.
+
+That is excellent pedagogy.
+
+---
+
+### Missed Opportunity
+
+The application currently explains what students should do.
+
+It does not sufficiently explain:
+
+Why.
+
+The page should explicitly tell students:
+
+Reading your paper aloud helps you hear places where your writing does not sound natural.
+
+Professional writers do this frequently.
+
+As you read, do not worry about perfection.
+
+Simply notice places where you hesitate or become confused.
+
+Those are the places you will improve.
+
+---
+
+### Listening Checklist
+
+Students should receive a checklist before recording.
+
+Listen for:
+
+Do I stumble anywhere?
+
+Does anything sound repetitive?
+
+Does a sentence feel too long?
+
+Does an explanation feel incomplete?
+
+Would someone hearing this understand my ideas?
+
+This transforms recording from an activity into a learning strategy.
+
+---
+
+### Recording
+
+Recording worked correctly.
+
+Playback worked correctly.
+
+No functional issues observed.
+
+No major redesign recommended.
+
+---
+
+### Critical Bug
+
+One important issue was discovered.
+
+The generated essay used during read aloud currently contains:
+
+Roman numerals.
+
+Outline headings.
+
+Planning labels.
+
+Examples:
+
+II. King uses emotional appeals…
+
+III. King builds credibility…
+
+IV. King uses logical arguments…
+
+These should NEVER appear inside the essay.
+
+---
+
+### Why This Matters
+
+Those headings belong to:
+
+Planning.
+
+Not writing.
+
+When students hear:
+
+“Two…
+
+King uses emotional appeals…”
+
+they are not hearing their essay.
+
+They are hearing the planning framework.
+
+Revision becomes less authentic.
+
+---
+
+### Design Principle
+
+Planning representation
+
+and
+
+Writing representation
+
+must remain separate.
+
+The generated essay should contain only:
+
+### Introduction
+
+Paragraphs
+
+### Conclusion
+
+Nothing else.
+
+---
+
+### Draft Presentation
+
+Students should feel like they are reading the same paper they would submit to a teacher.
+
+Not:
+
+An outline.
+
+Not:
+
+Planning notes.
+
+A genuine essay.
+
+---
+
+### Introduction Revision
+
+### Current Experience
+
+Strengthen your introduction.
+
+Large textbox.
+
+Little coaching.
+
+---
+
+### New Experience
+
+Every revision page should begin with:
+
+What makes introductions effective?
+
+Teach.
+
+Then:
+
+Read your own introduction.
+
+Then:
+
+Compare your writing to good introductions.
+
+Then:
+
+Improve one thing.
+
+---
+
+### Suggested Coaching
+
+Ask yourself:
+
+Does my introduction clearly introduce the topic?
+
+Have I provided enough context?
+
+Does my thesis clearly express my argument?
+
+Could my opening sentence be stronger?
+
+Students now know exactly how to revise.
+
+---
+
+Body Paragraph Revision
+
+These pages revealed another recurring issue.
+
+Students are told:
+
+Strengthen this paragraph.
+
+But not:
+
+How.
+
+---
+
+### Teaching Revision
+
+Every body paragraph page should teach one strategy.
+
+Examples:
+
+Adding explanation.
+
+Improving transitions.
+
+Clarifying evidence.
+
+Removing repetition.
+
+Improving sentence variety.
+
+Connecting evidence back to the thesis.
+
+Each page should focus on only one or two strategies.
+
+---
+
+### Compare Against Planning
+
+This became one of the strongest ideas from the walkthrough.
+
+The application already knows:
+
+Student paragraph plan.
+
+Evidence.
+
+Explanation.
+
+Audience.
+
+Purpose.
+
+Why not compare those automatically?
+
+Example:
+
+Your outline said:
+
+King builds credibility…
+
+Does your paragraph actually explain HOW King builds credibility?
+
+If not…
+
+Consider adding another sentence.
+
+This becomes authentic revision.
+
+---
+
+### AI Opportunity
+
+One area where AI could provide tremendous value.
+
+Instead of asking:
+
+Strengthen this paragraph.
+
+The application could identify:
+
+One sentence needing clarification.
+
+One weak transition.
+
+One unexplained quotation.
+
+One repetitive phrase.
+
+Then coach the student.
+
+Not rewrite.
+
+Coach.
+
+This aligns perfectly with the philosophy of the Writing Processor.
+
+---
+
+### Conclusion Revision
+
+Current state.
+
+Students revise.
+
+Little instruction.
+
+---
+
+Suggested Structure
+
+Review.
+
+Restate thesis.
+
+Check.
+
+Final thought.
+
+Check.
+
+No new evidence.
+
+Check.
+
+Memorable ending.
+
+Check.
+
+Students should leave understanding WHY conclusions matter.
+
+---
+
+### Student Ownership
+
+Throughout Module 7 avoid language suggesting:
+
+Your writing is wrong.
+
+Prefer:
+
+Your draft is complete.
+
+Now we’re making it even stronger.
+
+This reinforces revision as improvement.
+
+Not correction.
+
+---
+
+### Sidebar
+
+The sidebar remains valuable.
+
+However…
+
+Its purpose changes.
+
+During revision it should become:
+
+Revision notebook.
+
+Not:
+
+Storage.
+
+Highlight only information relevant to the current revision task.
+
+Everything else should collapse.
+
+---
+
+### Visual Language
+
+Revision should feel different from drafting.
+
+Possible visual language.
+
+Blue
+
+Read.
+
+Yellow
+
+Notice.
+
+Orange
+
+Improve.
+
+Green
+
+Finished.
+
+Students gradually associate colors with cognitive actions.
+
+---
+
+### Cognitive Load
+
+Current revision pages often present:
+
+Instructions.
+
+Sidebar.
+
+Draft.
+
+Textbox.
+
+Buttons.
+
+Navigation.
+
+All simultaneously.
+
+Recommendation:
+
+Progressive disclosure.
+
+Reveal only what students need now.
+
+---
+
+### Instructional Cards
+
+Rather than paragraphs of explanation.
+
+Use cards.
+
+Example.
+
+Today’s Revision Strategy
+
+Explain your evidence.
+
+Professional writers ask:
+
+Why does this quotation matter?
+
+Your turn.
+
+Now revise.
+
+This teaches revision.
+
+---
+
+### Success Criteria
+
+Every page should include.
+
+You’re ready to continue when:
+
+Your paragraph clearly explains every quotation.
+
+Every paragraph supports your thesis.
+
+Your ideas flow naturally.
+
+You removed unnecessary repetition.
+
+Students should never wonder whether they revised enough.
+
+---
+
+### Positive Findings
+
+One of the strongest discoveries.
+
+Revision happens one section at a time.
+
+This is excellent.
+
+Do NOT change this.
+
+It dramatically reduces cognitive load.
+
+Students never face revising an entire essay simultaneously.
+
+This is a major instructional strength.
+
+---
+
+### What Should NOT Change
+
+Keep.
+
+Read aloud.
+
+Recording.
+
+Playback.
+
+One section at a time.
+
+Current sequence.
+
+Current persistence.
+
+Current progression.
+
+The architecture is excellent.
+
+Only strengthen the instructional layer.
+
+---
+
+### Priority List
+
+### Critical
+
+Remove outline headings from generated essay.
+
+Teach revision explicitly.
+
+Explain what students should listen for.
+
+---
+
+### High
+
+Compare paragraphs against planning artifacts.
+
+Improve coaching.
+
+Improve visual hierarchy.
+
+---
+
+### Medium
+
+Strengthen sidebar.
+
+Add instructional cards.
+
+Celebrate successful revisions.
+
+---
+
+### Module Summary
+
+Module 7 already contains the foundation of an outstanding revision experience.
+
+Unlike many educational writing systems, it asks students to revise after drafting instead of treating the first draft as the finished product.
+
+That philosophy should absolutely remain.
+
+However, the application currently behaves as though students already know how to revise.
+
+Phase II should transform Module 7 into a true revision workshop.
+
+Every screen should communicate:
+
+“Good writers rarely produce perfect first drafts.”
+
+“Revision is how writers discover their best ideas.”
+
+“I’m going to show you how to do that.”
+
+If Module 6 teaches students to write…
+
+Module 7 should teach them to become writers.
+
+---
+
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 5
+
+Module 8: Preparing for Submission
+
+Complete Design Review and Implementation Specification
+
+---
+
+### Module Overview
+
+Module 8 is unlike every module that comes before it.
+
+Up to this point, the Writing Processor has been teaching students how to think, organize, write, and revise.
+
+Module 8 has a completely different responsibility.
+
+It must help students successfully transition from:
+
+Writing Processor Draft
+
+to
+
+Submission Ready Paper
+
+This transition should feel calm, organized, reassuring, and almost impossible to mess up.
+
+During the walkthrough, we discovered that the overall workflow is good, but the module currently feels more like a technical utility than an instructional experience.
+
+---
+
+### Overall Assessment
+
+### What Works
+
+The overall sequence is excellent.
+
+Students naturally move through:
+
+Revision
+
+↓
+
+Google Doc
+
+↓
+
+APA Formatting
+
+↓
+
+Submission Preparation
+
+↓
+
+Module 9
+
+That sequence should absolutely remain.
+
+No redesign of the workflow is recommended.
+
+Instead, the focus should be on making each page behave more like a teacher than a file management system.
+
+---
+
+### Educational Goal
+
+Current implied goal:
+
+Create a Google Doc.
+
+Desired goal:
+
+Prepare a professional paper for submission.
+
+That wording changes everything.
+
+Google Docs is merely the tool.
+
+Preparing a submission is the educational objective.
+
+---
+
+### Psychological Goal
+
+One thing became obvious during the walkthrough.
+
+By Module 8, students are no longer worried about writing.
+
+They are worried about something else.
+
+They ask questions like:
+
+Did I lose anything?
+
+Is this the correct version?
+
+Did my export work?
+
+Am I submitting the newest essay?
+
+Is my teacher going to see the right paper?
+
+Module 8 should reduce anxiety.
+
+Every page should reassure students.
+
+---
+
+### Student Expectations
+
+Every Module 8 page should begin with four sections.
+
+What are we doing?
+
+Example:
+
+Today we’re preparing your essay for submission.
+
+---
+
+Why does this matter?
+
+Your writing is finished.
+
+Now we’re making sure your teacher receives exactly the paper you intended.
+
+---
+
+What will happen?
+
+We’ll create or update your Google Doc.
+
+You’ll check the formatting.
+
+Then you’ll prepare for submission.
+
+---
+
+What should you do?
+
+Simple numbered steps.
+
+Never assume students already know.
+
+---
+
+### Google Docs Export
+
+This became one of the biggest discoveries of the walkthrough.
+
+---
+
+### What We Observed
+
+Earlier in Module 8:
+
+The Google Doc appeared to contain an older essay from a previous test.
+
+Later…
+
+Module 9 successfully exported the correct essay.
+
+This is extremely valuable information.
+
+---
+
+### Conclusion
+
+The export engine itself appears to work correctly.
+
+The issue is almost certainly architectural.
+
+There appear to be multiple export paths.
+
+One succeeds.
+
+One references stale information.
+
+---
+
+### Design Philosophy
+
+There should only be ONE authoritative export pathway.
+
+Not two.
+
+Not three.
+
+One.
+
+Every export should use exactly the same logic.
+
+---
+
+### Student Mental Model
+
+Students should think:
+
+This button creates or updates my submission document.
+
+They should never wonder:
+
+Which export am I using?
+
+Is this the old version?
+
+Did it overwrite?
+
+Did it make a copy?
+
+---
+
+### Recommended Workflow
+
+### Step One
+
+Student clicks:
+
+Create My Final Google Doc
+
+If no document exists:
+
+Create one.
+
+If one exists:
+
+Update it.
+
+Always.
+
+No exceptions.
+
+---
+
+### Success Message
+
+Instead of:
+
+Google Doc created.
+
+Display something like:
+
+Your submission document has been updated successfully.
+
+Last Updated
+
+July 9, 2026
+
+2:43 PM
+
+Word Count
+
+947 words
+
+Status
+
+Ready for formatting.
+
+This creates trust.
+
+---
+
+### Recovery
+
+One important weakness.
+
+There is currently no obvious recovery path.
+
+Students should always have access to:
+
+Update Google Doc
+
+Create New Google Doc
+
+Open Current Submission Document
+
+Those three actions solve nearly every possible export issue.
+
+---
+
+### Export Verification
+
+The application should verify that:
+
+Current essay
+
+equals
+
+Google Doc contents
+
+If verification fails.
+
+Display:
+
+We found that your Google Doc does not match your latest essay.
+
+Click Update Google Doc to synchronize your work.
+
+Never silently fail.
+
+---
+
+### Buttons
+
+This became one of the strongest recurring recommendations.
+
+Module 8 should almost entirely eliminate hyperlinks.
+
+Students recognize buttons.
+
+Buttons communicate action.
+
+Suggested primary buttons:
+
+Create My Final Google Doc
+
+Update My Final Google Doc
+
+Open My Google Doc
+
+Return to Formatting
+
+Continue
+
+Buttons should be visually prominent.
+
+---
+
+### Language
+
+Avoid technical terminology.
+
+Instead of:
+
+Export
+
+Use:
+
+Create
+
+Update
+
+Open
+
+Continue
+
+Students understand these naturally.
+
+---
+
+### Google Docs Explanation
+
+Current module assumes students understand what the Google Doc represents.
+
+Explain this explicitly.
+
+Example:
+
+This Google Doc will become the paper you submit to your teacher.
+
+Everything you do from this point forward happens inside this document.
+
+That removes ambiguity.
+
+---
+
+### Student Confidence
+
+Throughout Module 8 repeatedly reassure students.
+
+Examples:
+
+Your writing has already been saved.
+
+You can always return and update your Google Doc.
+
+You will review your formatting before submitting.
+
+Nothing is submitted yet.
+
+Students should never fear accidentally submitting too early.
+
+---
+
+### APA Formatting Page
+
+Overall assessment:
+
+Very good.
+
+Needs stronger coaching.
+
+---
+
+### Current Strengths
+
+Logical progression.
+
+Good checklist.
+
+Reasonable pacing.
+
+No functional issues.
+
+---
+
+### Instructional Weakness
+
+Students are told:
+
+Format your paper.
+
+But not:
+
+How.
+
+Or:
+
+Why.
+
+---
+
+### Better Structure
+
+Section One
+
+What APA formatting does.
+
+Section Two
+
+Exactly what students will change.
+
+Section Three
+
+Checklist.
+
+Section Four
+
+Continue.
+
+---
+
+### Important Clarification
+
+Students should know:
+
+The writing is finished.
+
+The ideas are finished.
+
+The only remaining work is formatting.
+
+This reduces anxiety dramatically.
+
+---
+
+### Ready to Submit Screen
+
+One observation.
+
+Students should leave this page feeling:
+
+I’m genuinely ready.
+
+Not:
+
+I guess I’m ready.
+
+---
+
+### Suggested Checklist
+
+Before continuing:
+
+My newest essay appears.
+
+My title page is correct.
+
+My references page is complete.
+
+Everything is double spaced.
+
+The paper looks the way I expect.
+
+These confirmations create confidence.
+
+---
+
+### Escape Hatches
+
+Never trap students.
+
+Allow:
+
+Open Google Doc
+
+Return to Formatting
+
+Update Google Doc
+
+Students should always have a way back.
+
+---
+
+### Transition to Module 9
+
+Current transition works.
+
+Could become much stronger.
+
+Example.
+
+Congratulations.
+
+Your essay is finished.
+
+The only remaining task is preparing the final submission.
+
+In Module 9 you’ll:
+
+Review APA.
+
+Download a PDF.
+
+Upload your paper.
+
+Submit your assignment.
+
+No additional writing will be required.
+
+This reduces unnecessary stress.
+
+---
+
+### Completion Screen
+
+Current completion screen functions well.
+
+Only small improvements recommended.
+
+Celebrate accomplishment more explicitly.
+
+Students have now completed:
+
+Observation.
+
+Analysis.
+
+Planning.
+
+Outlining.
+
+Drafting.
+
+Revision.
+
+Formatting.
+
+That’s worth recognizing.
+
+---
+
+### Visual Design
+
+Module 8 should feel calmer than previous modules.
+
+Large buttons.
+
+Simple cards.
+
+Minimal distractions.
+
+Clear progress.
+
+Students should feel:
+
+I’m almost done.
+
+---
+
+### Color
+
+Suggested language.
+
+Blue
+
+Action.
+
+Green
+
+Completed.
+
+Yellow
+
+Review.
+
+Orange
+
+Needs attention.
+
+Keep consistent with earlier modules.
+
+---
+
+### Architecture Recommendation
+
+One of the most important discoveries.
+
+The Writing Processor should establish a true:
+
+Submission Document
+
+concept.
+
+One authoritative Google Doc.
+
+One authoritative identifier.
+
+One authoritative update routine.
+
+Every export.
+
+Every open.
+
+Every update.
+
+Every verification.
+
+Uses that object.
+
+This mirrors the earlier architectural decision to establish a single source of truth for current module progression.
+
+The same philosophy should govern submission.
+
+---
+
+### Cursor Guidance
+
+Do NOT redesign Module 8.
+
+Do NOT change the sequence.
+
+Instead.
+
+Improve explanation.
+
+Improve recovery.
+
+Improve confidence.
+
+Improve button hierarchy.
+
+Unify export architecture.
+
+Preserve everything else.
+
+---
+
+### Priority List
+
+### Critical
+
+Unify Google Doc export/update workflow.
+
+Eliminate stale document references.
+
+---
+
+### High
+
+Replace hyperlinks with buttons.
+
+Improve export confirmation.
+
+Clarify student expectations.
+
+---
+
+### Medium
+
+Celebrate accomplishments.
+
+Improve transitions.
+
+Expand instructional language.
+
+---
+
+### Module Summary
+
+Module 8 is fundamentally sound.
+
+The walkthrough revealed very few structural issues.
+
+Instead, the remaining work is about trust.
+
+Students need to believe that:
+
+Their writing is safe.
+
+Their newest draft is being used.
+
+Their Google Doc is correct.
+
+Their submission will succeed.
+
+If Module 8 consistently creates that feeling, it becomes a reassuring bridge between writing and submission rather than a technical hurdle.
+
+One sentence summarizes the entire module philosophy:
+
+Module 8 should make students feel confident that the essay they worked so hard to write is safe, accurate, and ready for submission.
+
+---
+
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 6
+
+Module 9: Final Preparation, APA Instruction, Submission, and Course Completion
+
+Complete Design Review and Implementation Specification
+
+---
+
+### Module Overview
+
+Module 9 is the final instructional module in the Writing Processor.
+
+This means it has two responsibilities.
+
+The first is practical.
+
+Students must successfully prepare and submit their essay.
+
+The second is psychological.
+
+Students must leave the Writing Processor feeling successful, confident, and capable of completing future writing assignments independently.
+
+This second responsibility is just as important as the first.
+
+Throughout the walkthrough, Module 9 revealed the largest philosophical inconsistency in the application.
+
+The rest of the Writing Processor teaches.
+
+Module 9 tests.
+
+That inconsistency should be eliminated.
+
+---
+
+### Overall Assessment
+
+Structurally, Module 9 works.
+
+The overall sequence makes sense.
+
+Students:
+
+* review APA expectations
+* export the essay
+* format the document
+* create a PDF
+* upload the PDF
+* complete submission
+
+That sequence should remain.
+
+However, nearly every page should become significantly more instructional.
+
+---
+
+### The Largest Philosophical Issue
+
+The application currently asks students questions about APA formatting before it has taught APA formatting.
+
+This violates one of the central educational principles established earlier in this specification.
+
+Throughout the rest of the application, the pattern is:
+
+Teach
+
+↓
+
+Practice
+
+↓
+
+### Feedback
+
+↓
+
+Continue
+
+Module 9 instead follows:
+
+Quiz
+
+↓
+
+Hope students know the answers
+
+↓
+
+Continue
+
+This should change.
+
+---
+
+### Educational Goal
+
+Current Goal
+
+Can students answer APA questions?
+
+Desired Goal
+
+Can students correctly prepare an APA paper for submission?
+
+Notice the difference.
+
+The objective is not knowledge.
+
+The objective is successful performance.
+
+That distinction should guide every design decision.
+
+---
+
+### Teaching Instead of Testing
+
+One of the strongest recommendations from the walkthrough.
+
+Module 9 should teach APA exactly the same way Module 2 teaches rhetorical appeals.
+
+One small concept.
+
+Immediate practice.
+
+Immediate explanation.
+
+Move forward.
+
+Never assume prior knowledge.
+
+---
+
+### The Student Population
+
+This observation became increasingly important.
+
+The intended users are often:
+
+13 year olds
+
+14 year olds
+
+Beginning high school writers
+
+Many have never formatted an APA paper.
+
+Many have never downloaded a PDF.
+
+Many have never submitted a formal essay.
+
+The application should behave accordingly.
+
+---
+
+### Do Not Teach the Entire APA Manual
+
+This is another major philosophical recommendation.
+
+Students do NOT need to become APA experts.
+
+They need to successfully prepare THIS assignment.
+
+Those are completely different goals.
+
+The Writing Processor should teach only the APA concepts students actually need.
+
+Avoid overwhelming students with comprehensive APA instruction.
+
+---
+
+### Recommendation: Writing Processor APA Guide
+
+Instead of immediately presenting quiz questions, create an internal APA Quick Guide.
+
+This guide should become the student’s primary reference throughout Module 9.
+
+It should remain visible while formatting.
+
+---
+
+### The Quick Guide
+
+Organize it into simple sections.
+
+---
+
+### Title Page
+
+Show a screenshot.
+
+Explain only:
+
+### Title
+
+Student Name
+
+Course
+
+Teacher
+
+Date
+
+Nothing more.
+
+---
+
+### Font
+
+Show:
+
+Times New Roman
+
+12 point
+
+Explain:
+
+Why consistency matters.
+
+---
+
+### Margins
+
+One inch.
+
+Show visually.
+
+---
+
+### Spacing
+
+Double spaced.
+
+Show:
+
+Correct
+
+Incorrect
+
+Students learn visually.
+
+---
+
+### Page Numbers
+
+Show exactly where page numbers appear.
+
+Do not merely describe them.
+
+---
+
+### References
+
+Show:
+
+Alphabetical order
+
+Double spacing
+
+Hanging indent
+
+With screenshots.
+
+---
+
+### In Text Citations
+
+Show one example.
+
+Explain it.
+
+Students do not need an APA lecture.
+
+They need a usable model.
+
+---
+
+### External Resources
+
+During the walkthrough, Purdue OWL was discussed.
+
+Recommendation:
+
+Keep Purdue OWL available.
+
+Do NOT make it the primary instructional material.
+
+Reason.
+
+Purdue OWL is excellent.
+
+It is also overwhelming.
+
+The Writing Processor should simplify.
+
+Not outsource.
+
+---
+
+### Quiz Philosophy
+
+If a quiz remains.
+
+Its purpose changes.
+
+The quiz should reinforce learning.
+
+Not evaluate learning.
+
+Questions become:
+
+Micro practice.
+
+Not assessment.
+
+---
+
+### Example
+
+Instead of asking:
+
+Which font belongs in APA?
+
+First teach.
+
+Then ask.
+
+Immediately explain why.
+
+Move on.
+
+Students leave understanding.
+
+---
+
+### Visual Examples
+
+This module should rely heavily on screenshots.
+
+Students learn formatting visually.
+
+Examples.
+
+Correct title page.
+
+Correct references page.
+
+Correct spacing.
+
+Correct page numbers.
+
+Correct PDF export.
+
+Each concept should include an image.
+
+---
+
+### Screen Layout
+
+One recurring observation.
+
+Current pages are much too narrow.
+
+Everything happens inside a very thin vertical strip.
+
+Meanwhile.
+
+Large portions of the display remain empty.
+
+Recommendation.
+
+Increase working width substantially.
+
+Allow screenshots.
+
+Allow larger buttons.
+
+Allow larger instructional cards.
+
+Reduce scrolling.
+
+---
+
+### One Concept Per Screen
+
+Avoid pages containing:
+
+### Question 1
+
+### Question 2
+
+### Question 3
+
+…
+
+Question 10
+
+Instead.
+
+Question.
+
+Feedback.
+
+Continue.
+
+Repeat.
+
+Students remain focused.
+
+---
+
+### Feedback
+
+Current feedback primarily reports correctness.
+
+New feedback should teach.
+
+Example.
+
+Correct.
+
+APA uses double spacing because it improves readability and leaves room for instructor comments.
+
+Or.
+
+Not quite.
+
+Notice that APA student papers always place the title page first.
+
+Let’s look at the example again.
+
+Students should finish every interaction knowing more than when they started.
+
+---
+
+### Export Page
+
+One of the biggest discoveries during testing.
+
+The Module 9 export button correctly generated the newest essay.
+
+This confirms.
+
+The export engine itself is functioning correctly.
+
+This strengthens the conclusion reached in Module 8.
+
+The export workflow should be unified.
+
+Not duplicated.
+
+---
+
+### Rename the Button
+
+Current.
+
+Export Final Draft to Google Docs.
+
+Recommended.
+
+Create My Final Google Doc.
+
+or.
+
+Update My Final Google Doc.
+
+Students think in terms of documents.
+
+Not exports.
+
+---
+
+### Formatting Page
+
+Overall.
+
+Very successful.
+
+Needs more instructional coaching.
+
+Explain.
+
+Exactly what students should change.
+
+Exactly what students should leave alone.
+
+Example.
+
+Do NOT rewrite your paper here.
+
+Only change formatting.
+
+That sentence alone reduces confusion.
+
+---
+
+### PDF Creation
+
+This page received significant discussion during the walkthrough.
+
+Current instructions are insufficient for younger students.
+
+---
+
+Required Workflow
+
+Provide explicit numbered directions.
+
+Step 1.
+
+Open your Google Doc.
+
+Step 2.
+
+Click File.
+
+Step 3.
+
+Choose Download.
+
+Step 4.
+
+Choose PDF Document (.pdf).
+
+Step 5.
+
+Save the file somewhere easy to find.
+
+Example.
+
+Downloads.
+
+Desktop.
+
+---
+
+Screenshots
+
+This page should almost certainly include screenshots.
+
+Example.
+
+Google Docs menu.
+
+↓
+
+Download.
+
+↓
+
+PDF Document.
+
+Students should never wonder where to click.
+
+---
+
+### Upload Page
+
+Current upload functions correctly.
+
+Needs stronger coaching.
+
+---
+
+### Explain the Process
+
+Students should understand.
+
+Choose File
+
+↓
+
+Locate PDF
+
+↓
+
+Open
+
+↓
+
+Upload
+
+↓
+
+Confirmation
+
+Nothing should remain implicit.
+
+---
+
+### Reassurance
+
+One sentence should appear.
+
+If you accidentally upload the wrong PDF before the deadline, simply upload the correct one.
+
+Students worry about this.
+
+Address it directly.
+
+---
+
+### Final Checklist
+
+Before upload.
+
+Students should verify.
+
+My PDF opens correctly.
+
+My title page appears.
+
+My references page appears.
+
+Everything is double spaced.
+
+This is my newest essay.
+
+These confirmations create confidence.
+
+---
+
+### Success Screen
+
+Current screen works.
+
+Recommendation.
+
+Celebrate more intentionally.
+
+Students have completed.
+
+Observation.
+
+Analysis.
+
+Evidence.
+
+Organization.
+
+Planning.
+
+Drafting.
+
+Revision.
+
+Formatting.
+
+Submission.
+
+The application should recognize this accomplishment.
+
+---
+
+### Suggested Closing Message
+
+Congratulations.
+
+You have completed the entire Writing Processor.
+
+You learned how to:
+
+Analyze evidence.
+
+Build claims.
+
+Organize ideas.
+
+Draft an essay.
+
+Revise writing.
+
+Prepare a professional paper.
+
+Submit your final work.
+
+Those are skills you can use in future writing assignments.
+
+Notice the emphasis.
+
+Learning.
+
+Not simply completion.
+
+---
+
+### Emotional Goal
+
+Students should leave thinking.
+
+Writing essays isn’t magic.
+
+It’s a process.
+
+Now I know that process.
+
+This is perhaps the single most important educational outcome of the entire application.
+
+---
+
+### Technical Recommendations
+
+Preserve.
+
+Current submission workflow.
+
+Current upload workflow.
+
+Current module sequence.
+
+Improve.
+
+Instruction.
+
+Buttons.
+
+Screenshots.
+
+Feedback.
+
+Teaching.
+
+Nothing more.
+
+---
+
+### Priority List
+
+### Critical
+
+Replace testing mindset with teaching mindset.
+
+Create internal APA Quick Guide.
+
+Expand PDF instructions.
+
+---
+
+### High
+
+Increase screen width.
+
+Add screenshots.
+
+Teach every concept before asking questions.
+
+Rename export buttons.
+
+---
+
+### Medium
+
+Improve celebration.
+
+Strengthen feedback.
+
+Improve visual hierarchy.
+
+---
+
+### Final Module Evaluation
+
+Module 9 should not feel like an LMS quiz.
+
+It should feel like a teacher walking beside a student through the final five minutes before submitting an important paper.
+
+Students should finish the Writing Processor believing:
+
+“I know how to do this.”
+
+Not.
+
+“I managed to get through it.”
+
+That distinction represents the difference between software that helps students finish an assignment and software that genuinely teaches them how to become better writers.
+
+---
+
+## PHASE II SUMMARY (Modules 6 through 9)
+
+After completing the complete alpha walkthrough, one overarching conclusion became unmistakably clear.
+
+The Writing Processor’s instructional architecture is stronger than its presentation.
+
+The application’s sequencing, persistence, planning model, and writing workflow are already excellent.
+
+Phase II should therefore preserve the architecture while dramatically strengthening the instructional experience.
+
+If every future Cursor prompt is evaluated against one question—
+
+“Does this change make the Writing Processor feel more like an experienced writing teacher sitting beside the student?”
+
+—then the project will remain aligned with the educational vision that emerged throughout this walkthrough.
+
+---
+
+# WRITING PROCESSOR
+
+# PHASE II MASTER DESIGN SPECIFICATION
+
+## Part 7
+
+Unified Visual Design System, Instructional Language Standards, AI Philosophy, Accessibility, and Phase II Implementation Roadmap
+
+---
+
+### Introduction
+
+The first six sections of this specification focused primarily on what should change within each module.
+
+This section focuses on something even more important.
+
+It defines how the entire application should feel.
+
+One of the strongest realizations during the walkthrough was that many of the issues we identified were not isolated bugs.
+
+They were symptoms of a few recurring design patterns.
+
+Rather than fixing each page independently, Phase II should establish application wide standards that every future screen follows.
+
+Doing so will dramatically improve consistency while reducing future development effort.
+
+---
+
+## PART A
+
+Unified Visual Language
+
+### The Current Situation
+
+One of the most common observations throughout the walkthrough was:
+
+“This page feels bland.”
+
+Interestingly, the problem was rarely the amount of information.
+
+The problem was that everything looked equally important.
+
+Students were presented with:
+
+* instructions
+* buttons
+* examples
+* references
+* sidebars
+* text boxes
+* helper text
+
+all using nearly identical visual weight.
+
+This forces students to determine what deserves attention.
+
+The application should make that decision for them.
+
+---
+
+### Design Principle
+
+Visual hierarchy is instruction.
+
+The interface should literally teach students where to look.
+
+Instead of asking students to decide what matters…
+
+the application should decide.
+
+Every page should visually answer:
+
+Start here.
+
+↓
+
+Now look here.
+
+↓
+
+Now do this.
+
+↓
+
+Now continue.
+
+---
+
+### Information Hierarchy
+
+Every screen should contain only five visual levels.
+
+---
+
+### Level 1
+
+Current task
+
+Largest element.
+
+Example:
+
+Write Body Paragraph One
+
+---
+
+### Level 2
+
+Today’s objective
+
+One sentence.
+
+Example.
+
+Today you’ll explain how King’s emotional appeals support your thesis.
+
+---
+
+### Level 3
+
+Instruction
+
+Teacher explanation.
+
+Small instructional cards.
+
+---
+
+### Level 4
+
+Student work
+
+Planning artifacts.
+
+Evidence.
+
+Text entry.
+
+---
+
+### Level 5
+
+Reference
+
+Sidebar.
+
+Examples.
+
+Optional resources.
+
+Notice something.
+
+Reference material should almost never compete visually with the current task.
+
+---
+
+### Color Philosophy
+
+During the walkthrough we repeatedly discussed color.
+
+The recommendation is not to make the application more colorful.
+
+The recommendation is to make color meaningful.
+
+Students should eventually recognize color without reading.
+
+Suggested language.
+
+Blue
+
+Teacher instruction
+
+Green
+
+Student thinking
+
+Yellow
+
+### Evidence
+
+Purple
+
+Writing
+
+Orange
+
+Revision
+
+Gray
+
+Reference
+
+Color becomes another teacher.
+
+---
+
+### Cards Instead of Paragraphs
+
+Students rarely struggle because there is “too much reading.”
+
+They struggle because information is not chunked.
+
+Instead of long paragraphs.
+
+Use instructional cards.
+
+Example.
+
+---
+
+Today’s Goal
+
+Explain why King uses emotional appeals.
+
+---
+
+Good Writers Ask
+
+How does this quotation affect readers?
+
+---
+
+Your Turn
+
+Write one explanation.
+
+---
+
+This format dramatically improves readability.
+
+---
+
+### White Space
+
+One recurring observation.
+
+Many pages felt crowded despite containing relatively little information.
+
+Recommendation.
+
+Increase spacing.
+
+Separate ideas.
+
+Avoid long uninterrupted vertical forms.
+
+Students should experience breathing room.
+
+---
+
+### Sidebar Standards
+
+The sidebar should never become:
+
+Storage.
+
+Instead it becomes:
+
+Working notebook.
+
+The current task should always be expanded.
+
+Everything else should collapse.
+
+Students should instantly recognize:
+
+“This is the information I need right now.”
+
+---
+
+### Buttons
+
+The application currently mixes:
+
+### Buttons
+
+Hyperlinks
+
+Plain text
+
+Recommendation.
+
+Every action should be a button.
+
+Every button should have a clear hierarchy.
+
+### Primary Button
+
+Continue
+
+Create Google Doc
+
+Upload PDF
+
+### Secondary Button
+
+Open Speech
+
+Open Letter
+
+### Reference Button
+
+APA Guide
+
+Original Source
+
+Students should never wonder what is clickable.
+
+---
+
+## PART B
+
+Instructional Language Standards
+
+---
+
+### Teacher Voice
+
+The Writing Processor should never sound like an LMS.
+
+Avoid.
+
+Complete this task.
+
+Instead.
+
+Let’s work through this together.
+
+---
+
+Avoid.
+
+Continue.
+
+Instead.
+
+I’m ready to continue.
+
+The application should sound conversational without becoming childish.
+
+---
+
+### Explain Before Asking
+
+Every page should introduce:
+
+Why the task matters.
+
+Then explain:
+
+How writers perform the task.
+
+Only then ask students to complete it.
+
+---
+
+### Use Consistent Sections
+
+Every instructional page should follow the same pattern.
+
+Today’s Goal
+
+↓
+
+Why It Matters
+
+↓
+
+How Writers Think
+
+↓
+
+Your Previous Work
+
+↓
+
+Your Turn
+
+↓
+
+How I’ll Know I’m Finished
+
+Students quickly learn this rhythm.
+
+---
+
+### Celebrate Small Wins
+
+Every page should reinforce progress.
+
+Examples.
+
+Great.
+
+You’ve identified strong evidence.
+
+Now let’s explain why it matters.
+
+Or.
+
+Excellent.
+
+Your outline is complete.
+
+You’re ready to begin drafting.
+
+These moments matter.
+
+---
+
+## PART C
+
+AI Philosophy
+
+This section represents one of the most important long term recommendations.
+
+---
+
+### AI Should Coach
+
+Not write.
+
+The Writing Processor should never become:
+
+Essay Generator.
+
+Instead.
+
+Writing Coach.
+
+---
+
+### Appropriate AI Tasks
+
+Point students toward stronger evidence.
+
+Identify missing explanations.
+
+Suggest stronger transitions.
+
+Identify repetition.
+
+Recommend areas needing clarification.
+
+Compare student writing against previous planning.
+
+Ask reflective questions.
+
+All of these strengthen learning.
+
+---
+
+### Inappropriate AI Tasks
+
+Writing complete paragraphs.
+
+Replacing student thinking.
+
+Generating entire essays.
+
+Automatically rewriting work.
+
+Those features undermine the educational philosophy.
+
+---
+
+### AI Feedback Style
+
+AI feedback should follow one structure.
+
+Observation.
+
+↓
+
+Reason.
+
+↓
+
+Suggestion.
+
+Example.
+
+Your explanation tells readers what King says.
+
+Try adding one sentence explaining why that quotation persuades his audience.
+
+This teaches.
+
+---
+
+## PART D
+
+Accessibility and Differentiation
+
+---
+
+### Students Need Different Amounts of Support
+
+One of the major goals of the Writing Processor should be adaptive scaffolding.
+
+Students should receive only as much help as needed.
+
+---
+
+### Progressive Help
+
+Every page should begin simple.
+
+Students who need more support can expand.
+
+Examples.
+
+Need an example?
+
+Need another explanation?
+
+Need a reminder?
+
+This reduces clutter for confident students while supporting struggling learners.
+
+---
+
+### Reading Level
+
+Instruction should generally target approximately:
+
+Grade 6 to Grade 8 reading level.
+
+Remember.
+
+The application teaches writing.
+
+The interface should not become another reading comprehension assignment.
+
+---
+
+### Multimedia
+
+Videos should remain optional.
+
+The application should work fully without them.
+
+Videos become:
+
+Enhancement.
+
+Not dependency.
+
+---
+
+## PART E
+
+Implementation Roadmap
+
+---
+
+### Phase 2A
+
+Highest Priority
+
+Instructional Coaching
+
+Increase scaffolding.
+
+Improve drafting.
+
+Improve revision.
+
+Preserve architecture.
+
+---
+
+### Phase 2B
+
+Visual System
+
+Color.
+
+Cards.
+
+Spacing.
+
+Buttons.
+
+Sidebar redesign.
+
+---
+
+### Phase 2C
+
+Submission
+
+Google Docs.
+
+APA.
+
+PDF.
+
+Recovery.
+
+Verification.
+
+---
+
+### Phase 2D
+
+AI Coaching
+
+Introduce contextual feedback.
+
+Never automatic writing.
+
+---
+
+## PART F
+
+Cursor Work Package Strategy
+
+One lesson from earlier development is worth preserving.
+
+Cursor performs best when work is narrowly scoped.
+
+Avoid prompts like:
+
+“Redesign Module 6.”
+
+Instead use prompts such as:
+
+* Add instructional coaching to the Introduction drafting page.
+* Surface planning artifacts inside Body Paragraph 1.
+* Remove Roman numerals from generated revision essays.
+* Replace Module 8 hyperlinks with primary action buttons.
+* Build the APA Quick Guide screen.
+* Add revision strategy cards to Module 7.
+
+Each prompt should:
+
+* preserve existing functionality,
+* modify one coherent area,
+* include clear success criteria,
+* end with a manual testing checklist.
+
+This incremental approach has served the project well and should continue.
+
+---
+
+### FINAL DESIGN PRINCIPLE
+
+If there is one sentence that should guide every future decision, it is this:
+
+The Writing Processor should make difficult writing feel manageable by revealing one thought, one decision, and one writing move at a time.
+
+The application should never impress students with complexity.
+
+It should impress them with clarity.
+
+When students finish using the Writing Processor, the most important outcome is not that they produced a single essay.
+
+The most important outcome is that they leave believing:
+
+“I understand how writers think. I could do this again.”
+
+Everything in Phase II should reinforce that belief.
+
+---
+
+## Part 8
+
+Complete Issue Log
+
+Not recommendations.
+
+A real issue tracker.
+
+Something like:
+
+---
+
+### WP-001
+
+### Title
+
+Generated essay includes outline headings.
+
+### Severity
+
+### High
+
+### Module
+
+7
+
+### Observed During
+
+Read Aloud
+
+### Current Behavior
+
+Generated draft includes:
+
+II.
+
+III.
+
+IV.
+
+### Expected Behavior
+
+Generated draft contains only essay prose.
+
+### Educational Impact
+
+Students revise an outline instead of an essay.
+
+### Suggested Fix
+
+Strip outline metadata before rendering draft.
+
+---
+
+### WP-002
+
+Google Doc export references stale document.
+
+…
+
+---
+
+Probably 75–150 individual issues.
+
+This becomes your implementation backlog.
+
+---
+
+## Part 9
+
+Everything That Should NOT Change
+
+This is actually one of the most important documents.
+
+Because Cursor has a tendency to redesign working things.
+
+Examples:
+
+Keep
+
+One section at a time drafting.
+
+Keep
+
+Outline workflow.
+
+Keep
+
+Automatic persistence.
+
+Keep
+
+Student artifacts.
+
+Keep
+
+Read aloud.
+
+Keep
+
+Google Docs integration.
+
+Keep
+
+Module sequence.
+
+Keep
+
+Teacher voice.
+
+This protects all of the good work you’ve already done.
+
+---
+
+## Part 10
+
+Student Personas
+
+One thing we kept referencing was
+
+“Imagine a 14 year old.”
+
+I would actually define them.
+
+Example
+
+Student A
+
+High performing.
+
+Needs little scaffolding.
+
+---
+
+### Student B
+
+Average.
+
+Can succeed with guidance.
+
+---
+
+### Student C
+
+Struggling reader.
+
+Needs explicit coaching.
+
+---
+
+Every design decision gets evaluated against those students.
+
+---
+
+## Part 11
+
+Instructional Principles
+
+We identified dozens.
+
+Examples.
+
+Students should never start from scratch after Module 2.
+
+Every page should answer:
+
+What?
+
+Why?
+
+How?
+
+Done?
+
+Planning should disappear into drafting.
+
+Revision teaches thinking.
+
+Formatting teaches professionalism.
+
+Color teaches.
+
+Buttons teach action.
+
+Visual hierarchy teaches attention.
+
+This section becomes the educational constitution of the app.
+
+---
+
+## Part 12
+
+UI Component Standards
+
+This is something Cursor would love.
+
+For example.
+
+Every instructional page contains
+
+Today’s Goal
+
+↓
+
+Why this matters
+
+↓
+
+Teacher Coaching
+
+↓
+
+Student Task
+
+↓
+
+Success Checklist
+
+↓
+
+Continue
+
+Every page.
+
+Now Cursor can implement consistently.
+
+---
+
+## Part 13
+
+AI Standards
+
+Not implementation.
+
+Philosophy.
+
+AI should:
+
+Coach
+
+Question
+
+Guide
+
+Prompt
+
+Compare
+
+Reflect
+
+Never
+
+Write essays.
+
+Replace student thinking.
+
+Bypass learning.
+
+---
+
+## Part 14
+
+Color System
+
+We only touched on this.
+
+I think it deserves its own document.
+
+Blue
+
+Teacher.
+
+Green
+
+Student thinking.
+
+Yellow
+
+Evidence.
+
+Purple
+
+Writing.
+
+Orange
+
+Revision.
+
+Gray
+
+Reference.
+
+Then every screen follows the same visual language.
+
+---
+
+## Part 15
+
+Complete Development Roadmap
+
+This might actually be the single most valuable section.
+
+Instead of
+
+“Improve Module 6.”
+
+Something like
+
+Phase A
+
+Instructional consistency.
+
+40 Cursor prompts.
+
+---
+
+### Phase B
+
+Visual hierarchy.
+
+25 prompts.
+
+---
+
+### Phase C
+
+Drafting improvements.
+
+18 prompts.
+
+---
+
+### Phase D
+
+Revision.
+
+22 prompts.
+
+---
+
+### Phase E
+
+Submission.
+
+15 prompts.
+
+---
+
+### Phase F
+
+Teacher dashboard.
+
+…
+
+It literally becomes a project plan.
+
+---
+
+## Part 16
+
+Long Term Vision
+
+This is the one section we haven’t written.
+
+Not Version 2.
+
+Version 5.
+
+What does the Writing Processor become?
+
+AI coaching.
+
+Teacher analytics.
+
+Adaptive scaffolding.
+
+Multiple assignments.
+
+Vocabulary support.
+
+Rubric prediction.
+
+Live conferencing.
+
+Peer review.
+
+Cross assignment transfer.
+
+Writing portfolio.
+
+Growth analytics.
+
+Teacher intervention alerts.
+
+Etc.
+
+END OF MASTER DESIGN SPECIFICATION
+
+This concludes the Phase II Master Design Specification. It should serve as the authoritative design document for the next development cycle, with all future Cursor prompts evaluated against the instructional philosophy, UX standards, and implementation principles established throughout these seven parts.
