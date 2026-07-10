@@ -485,19 +485,21 @@ export default function ModuleNine() {
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
         <header className="bg-white border border-gray-200 rounded-xl shadow-sm px-5 py-4 space-y-3">
           <h1 className="text-3xl font-extrabold text-theme-blue">📘 Module 9: APA Format and Final Submission</h1>
-          <p className="text-gray-700 text-sm md:text-base">
-            In this module you will take a short APA style review quiz, move your final draft into an APA formatted
-            Google Doc, and then submit a PDF of your essay. APA style is a set of rules for how the paper looks on
-            the page, not a new kind of essay. You are polishing the presentation of strong thinking you have already done.
-          </p>
-          <div className="bg-theme-light border border-gray-200 rounded-lg px-4 py-3 text-sm">
-            <p className="font-semibold mb-1">What you will do in this module:</p>
-            <ol className="list-decimal list-inside space-y-1 text-gray-700">
-              <li>Review the APA checklist below.</li>
-              <li>Take the APA mini quiz to check your understanding.</li>
-              <li>Open the APA Google Docs template and copy your final essay into that document.</li>
-              <li>Use the checklist to adjust font, spacing, title page, page numbers, and references so they match APA rules.</li>
-              <li>Download the Google Doc as a PDF and upload your final paper in the section at the bottom of this page.</li>
+          <div className="text-gray-700 text-sm md:text-base space-y-3">
+            <p>
+              Congratulations—your essay is already finished. In this module, you are
+              preparing that paper for submission. You are not writing new paragraphs
+              or changing your ideas.
+            </p>
+            <p>
+              APA formatting changes how the paper looks on the page, not what it says.
+              You will complete four simple steps:
+            </p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Review the APA checklist.</li>
+              <li>Complete the short APA quiz.</li>
+              <li>Prepare your Google Doc.</li>
+              <li>Download and upload your final PDF.</li>
             </ol>
           </div>
           {!alreadySubmitted && (

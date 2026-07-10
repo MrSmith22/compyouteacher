@@ -12,6 +12,7 @@ import ModuleThreeEvidenceCard from "@/components/module3/ModuleThreeEvidenceCar
 import ModuleThreeProgress from "@/components/module3/ModuleThreeProgress";
 import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
 import ModuleThreeThinkingCanvas from "@/components/module3/ModuleThreeThinkingCanvas";
+import ReopenSourceTextsControl from "@/components/sources/ReopenSourceTextsControl";
 import {
   ReferenceSection,
   WorkingSetSection,
@@ -2680,6 +2681,8 @@ export default function ModuleThreeV2Form({
           {persistError}
         </InfoCallout>
       ) : null}
+
+      <ReopenSourceTextsControl />
 
       {stepContent}
 

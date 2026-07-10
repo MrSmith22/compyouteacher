@@ -50,7 +50,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-009 | Module 8→9 transition could be stronger | 8–9 | Medium | Navigation / Flow | Open |
 | WP-010 | Success and completion pages under-celebrate accomplishment | 6–9 | Medium | Instructional / UX | Open |
 | WP-011 | Vocabulary inconsistency — software/LMS voice instead of teacher voice | App-wide | High | Copy / Voice | Open |
-| WP-012 | Module 6 creates blank-page feeling instead of translation stage | 6 | Critical | Instructional | Open |
+| WP-012 | Module 6 creates blank-page feeling instead of translation stage | 6 | Critical | Instructional | Needs Verification |
 | WP-013 | Module 6 introduction drafting does not surface planning artifacts | 6 | High | Instructional | Open |
 | WP-014 | Module 6 body paragraph pages lack drafting coaching | 6 | High | Instructional | Open |
 | WP-015 | Module 6 conclusion drafting ignores conclusion planning | 6 | High | Instructional | Open |
@@ -101,7 +101,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
-| WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Open |
+| WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Needs Verification |
 | WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
 | WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
 
@@ -441,7 +441,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All drafting screens; Module 6 entry
 - **Priority:** Critical
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Module 6 currently feels like Planning → Blank Page → Essay. Students experience beginning a new assignment even though they have already completed most difficult thinking. The largest instructional weakness in Module 6 is failing to communicate that drafting is translation, not invention.
 
@@ -456,9 +456,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm entry messaging frames drafting as translation.
 3. Confirm drafting pages do not present an unexplained blank-page experience.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js` (Module 9 introductory instructional copy; presentation-only)
 
-**Resolution notes:**
+**Resolution notes:** Presentation-only change per directed implementation: improved Module 9 introductory instructional copy so students understand the essay is already finished, they are preparing for submission (not rewriting), APA changes appearance not ideas, and four simple steps follow. No export, upload, quiz, checklist, API, or persistence functionality changed. Ready for live walkthrough verification of the revised introduction.
 
 **Resolved in commit:**
 
@@ -1883,7 +1883,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Module 3 analysis workflow; saved speech and letter working copies
 - **Priority:** High
 - **Category:** UX / Navigation
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Students who close their saved speech or letter tabs have no way to reopen them from within Module 3. This interrupts the intended workflow of continually referencing evidence while analyzing quotations.
 
@@ -1900,9 +1900,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 4. Confirm the reopened pages show the persisted working copies.
 5. Confirm the same reopen pattern remains available (or is planned) for later evidence-based modules.
 
-**Related files:** Not yet specified.
+**Related files:** `components/ModuleThreeV2Form.jsx`; `components/sources/ReopenSourceTextsControl.jsx`; `lib/sources/openSavedSourceTexts.js`
 
-**Resolution notes:**
+**Resolution notes:** Presentation/navigation-only fix. Added reusable `openSavedSourceTexts` helper (named windows to avoid duplicates) and `ReopenSourceTextsControl`, wired into Module 3 V2. Control hides when both tracked source windows are still open. Does not reset observations, selections, notes, or autosave. Ready for manual verification.
 
 **Resolved in commit:**
 
@@ -1968,4 +1968,4 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-007 marked Resolved after live student walkthrough verification.*
+*Last updated: July 10, 2026 — WP-064 Needs Verification (Module 3 reopen source texts control).*
