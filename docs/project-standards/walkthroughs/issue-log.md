@@ -106,8 +106,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
 | WP-067 | Module 8 completion does not advance progress to Module 9 | 8 | Critical | Persistence / Gate | Needs Verification |
 | WP-068 | Module 8 revisit completion bypasses dedicated success page | 8 | High | Navigation / Flow | Needs Verification |
+| WP-069 | Improve Module 9 final success screen | 9 | High | Instructional / UX | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-069.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-070.*
 
 ---
 
@@ -2029,4 +2030,33 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-068 Needs Verification (unified Module 8 success page).*
+### WP-069 — Improve Module 9 final success screen
+
+- **Module:** 9
+- **Screen or area:** `/modules/9/success` after final PDF submission
+- **Priority:** High
+- **Category:** Instructional / UX
+- **Status:** Needs Verification
+
+**Walkthrough observation:** The Module 9 success screen confirmed submission but read like a generic dialog. Links were primary; students were not clearly told what happened, what each button was for, or whether anything else was required.
+
+**Why it matters educationally:** This is the end of the Writing Processor. A 13–14 year old needs closure, reassurance that the PDF was submitted, and clear next steps—not a bare “Success!” with unlabeled actions.
+
+**Why it matters technically or operationally:** Presentation and copy only. Submission logging, progress advance, and document link loading must stay unchanged.
+
+**Recommended smallest reasonable fix:** Rewrite copy in teacher voice; lead with submission confirmation; label each action (PDF, Google Doc, Dashboard); note records-keeping and “contact teacher before resubmitting”; end with a celebration of completing the Writing Processor.
+
+**Verification steps:**
+1. Complete Module 9 PDF upload and land on the success page.
+2. Confirm a student can answer: Was it submitted? What are these buttons for? Anything else to do? What happens next?
+3. Confirm Open PDF, Open Google Doc, and Back to Dashboard still work.
+
+**Related files:** `app/modules/9/success/page.js`
+
+**Resolution notes:** (July 2026) Success page rewritten with confirmation-first hierarchy, labeled actions with short explanations, teacher-contact guidance, and a closing celebration. No changes to `logActivity`, `advanceCurrentModuleOnSuccess`, or document fetch logic. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 10, 2026 — WP-069 Needs Verification (Module 9 final success screen).*
