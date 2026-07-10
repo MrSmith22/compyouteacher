@@ -51,10 +51,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-010 | Success and completion pages under-celebrate accomplishment | 6–9 | Medium | Instructional / UX | Open |
 | WP-011 | Vocabulary inconsistency — software/LMS voice instead of teacher voice | App-wide | High | Copy / Voice | Open |
 | WP-012 | Module 6 creates blank-page feeling instead of translation stage | 6 | Critical | Instructional | Needs Verification |
-| WP-013 | Module 6 introduction drafting does not surface planning artifacts | 6 | High | Instructional | Open |
-| WP-014 | Module 6 body paragraph pages lack drafting coaching | 6 | High | Instructional | Open |
-| WP-015 | Module 6 conclusion drafting ignores conclusion planning | 6 | High | Instructional | Open |
-| WP-016 | Module 6 missing “how experienced writers use these notes” instruction | 6 | High | Instructional | Open |
+| WP-013 | Module 6 introduction drafting does not surface planning artifacts | 6 | High | Instructional | Needs Verification |
+| WP-014 | Module 6 body paragraph pages lack drafting coaching | 6 | High | Instructional | Needs Verification |
+| WP-015 | Module 6 conclusion drafting ignores conclusion planning | 6 | High | Instructional | Needs Verification |
+| WP-016 | Module 6 missing “how experienced writers use these notes” instruction | 6 | High | Instructional | Needs Verification |
 | WP-017 | Module 6 sidebar too narrow and visually de-emphasized | 6 | High | Visual Design | Open |
 | WP-018 | Module 6 lacks meaningful instructional color semantics | 6 | Medium | Visual Design | Open |
 | WP-019 | Module 6 drafting pages missing consistent six-section screen pattern | 6 | High | Instructional / UX | Open |
@@ -109,8 +109,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-069 | Improve Module 9 final success screen | 9 | High | Instructional / UX | Resolved |
 | WP-070 | Unlock to Test does not restore Module 7 editing | 7 | Critical | Bug / Dev tooling | Resolved |
 | WP-071 | Module 8 always shows Create when a Google Doc already exists | 8 | Medium | Copy / UX | Resolved |
+| WP-072 | Module 9 introduction lacks submission-prep coaching | 9 | High | Instructional / Copy | Resolved |
+| WP-073 | Module 6 drafting pages need explicit “Your job right now” writing steps | 6 | High | Instructional | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-072.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-074.*
 
 ---
 
@@ -258,9 +260,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm working area uses available horizontal space.
 3. Confirm screenshots and buttons fit without excessive vertical scrolling.
 
-**Related files:** `components/ModuleNine.js`
+**Related files:** `components/ModuleNine.js`; `components/layout/ModulePageShell.jsx`; `components/layout/layoutModes.js`; `components/layout/WorkspaceLayout.jsx`
 
-**Resolution notes:** Presentation-only layout spacing adjustment. Widened Module 9 content column (`max-w-4xl` → `max-w-6xl`), increased page and section padding/spacing so instructional text breathes. No redesign, step reordering, copy rewrite, or functionality changes. Ready for live walkthrough verification.
+**Resolution notes:** (July 2026) Root cause: Module 9 used `ReadingLayout` (`max-w-3xl`), so an inner `max-w-6xl` could never widen. Fix: add `/modules/9` to workspace routes; introduce shared `ModulePageShell` (`contentMax` md/lg/xl/none); Module 9 uses `contentMax="lg"` (`max-w-5xl`) for readable single-column width inside the same responsive WorkspaceLayout padding as Modules 6–8. Modules 6–8 wrap with `ModulePageShell` (full width). No workflow, quiz, export, or persistence changes. Awaiting walkthrough verification at desktop and mobile widths.
 
 **Resolved in commit:**
 
@@ -461,9 +463,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm entry messaging frames drafting as translation.
 3. Confirm drafting pages do not present an unexplained blank-page experience.
 
-**Related files:** `components/ModuleNine.js` (Module 9 introductory instructional copy; presentation-only)
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`
 
-**Resolution notes:** Presentation-only change per directed implementation: improved Module 9 introductory instructional copy so students understand the essay is already finished, they are preparing for submission (not rewriting), APA changes appearance not ideas, and four simple steps follow. No export, upload, quiz, checklist, API, or persistence functionality changed. Ready for live walkthrough verification of the revised introduction.
+**Resolution notes:** (July 10, 2026) Presentation-only translation bridge: first drafting section shows an InfoCallout (“You are not starting over”); Module 6 step presentation and meta strip frame drafting as turning the outline into sentences one section at a time. No persistence, navigation, or drafting-logic changes. Awaiting walkthrough verification.
 
 **Resolved in commit:**
 
@@ -475,7 +477,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Draft Introduction screen
 - **Priority:** High
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Students see a prompt, large textbox, and sidebar with minimal coaching. Thesis, essay purpose, and paragraph plan exist but are visually secondary. Students hunt instead of being shown what they already decided.
 
@@ -490,9 +492,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm thesis and purpose appear in the working area without sidebar hunting.
 3. Confirm coaching explains what introductions do before writing begins.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`; `components/module6/ModuleSixStepFrame.jsx`
 
-**Resolution notes:**
+**Resolution notes:** (July 10, 2026) Presentation-only: thesis card (“Your thesis (already written)”) + thesis/outline coaches + intro writer moves appear above the drafting box; richer why/example/self-check copy. Essay purpose / full paragraph-topic strip still limited to outline guide + shelf. Awaiting walkthrough verification.
 
 **Resolved in commit:**
 
@@ -504,7 +506,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Draft Body Paragraph screens
 - **Priority:** High
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Body paragraph pages ask students to “write this paragraph” without modeling how experienced writers build paragraphs. The application behaves as though students already know how to introduce evidence, explain it, and connect it to the thesis.
 
@@ -519,9 +521,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm main idea, quotations, and explanations appear inline.
 3. Confirm a writer-model coach precedes the textbox.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`; `components/module6/ModuleSixStepFrame.jsx`
 
-**Resolution notes:**
+**Resolution notes:** (July 10, 2026) Presentation-only: per-body outline points listed inline; thesis coach; “How writers use these notes” moves; annotated example + self-check. Full quotation/explanation artifact pull-forward from paragraph plans remains partial (still on shelf). Awaiting walkthrough verification.
 
 **Resolved in commit:**
 
@@ -533,7 +535,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Draft Conclusion screen
 - **Priority:** High
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Students already answered how they will restate the thesis and what final thought readers should leave with. The conclusion drafting page largely ignores those planning responses.
 
@@ -546,11 +548,12 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 **Verification steps:**
 1. Complete conclusion planning in Module 5.
 2. Open Draft Conclusion.
-3. Confirm planning responses appear before the textbox with brief coaching.
+3. Confirm prior conclusion answers appear before the textbox.
+4. Confirm coaching explains conclusion structure.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 10, 2026) Presentation-only: conclusion outline summary/finalThought surfaced in the Outline guide; thesis coach + writer moves + annotated example/self-check. Awaiting walkthrough verification.
 
 **Resolved in commit:**
 
@@ -562,7 +565,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All drafting screens (Section 4 of six-section pattern)
 - **Priority:** High
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** The six-section drafting pattern calls for “How do experienced writers use these notes?” This instructional step is currently missing. Students see artifacts (sometimes in the sidebar) but are not taught how to translate notes into prose.
 
@@ -576,9 +579,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Review each Module 6 drafting page.
 2. Confirm a writer-strategy card appears after artifacts and before the textbox.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 10, 2026) Presentation-only: “How writers use these notes” numbered moves appear before the drafting box on intro, body, and conclusion pages. Awaiting walkthrough verification.
 
 **Resolved in commit:**
 
@@ -2123,4 +2126,63 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-002, WP-070, and WP-071 Resolved after live walkthrough verification.*
+### WP-072 — Module 9 introduction lacks submission-prep coaching
+
+- **Module:** 9
+- **Screen or area:** Module 9 header / introductory instructional copy
+- **Priority:** High
+- **Category:** Instructional / Copy
+- **Status:** Resolved
+
+**Walkthrough observation:** Module 9 felt abrupt. Students were presented with APA work without enough context that the essay is already written, they are not writing another essay, they are preparing what they already wrote for submission, and APA changes how the paper looks—not what it says.
+
+**Why it matters educationally:** Younger students need explicit framing before submission tasks so they do not treat Module 9 as another writing assignment.
+
+**Why it matters technically or operationally:** Presentation-only copy on the Module 9 intro surface. No export, upload, quiz, checklist, API, or persistence changes.
+
+**Recommended smallest reasonable fix:** Rewrite the Module 9 introduction so students understand: essay finished; preparing for submission (not rewriting); APA changes appearance; four simple steps follow.
+
+**Verification steps:**
+1. Open Module 9 as a student entering after Module 8.
+2. Confirm intro copy states the essay is finished and this module is submission prep.
+3. Confirm APA is framed as appearance, not new ideas.
+4. Confirm the four steps are listed before work begins.
+
+**Related files:** `components/ModuleNine.js`
+
+**Resolution notes:** (July 2026) Implemented as presentation-only Module 9 header copy (essay already finished; preparing for submission; APA changes appearance; four steps: checklist → quiz → Google Doc → download/upload PDF). Originally mis-logged under WP-012; reassigned to WP-072 after audit (July 10, 2026). Implementation present in codebase; closed as Resolved for the Module 9 intro coaching scope.
+
+**Resolved in commit:** (presentation-only; closed after audit confirmed implementation exists)
+
+---
+
+### WP-073 — Module 6 drafting pages need explicit “Your job right now” writing steps
+
+- **Module:** 6
+- **Screen or area:** Introduction, body, and conclusion drafting pages
+- **Priority:** High
+- **Category:** Instructional
+- **Status:** Needs Verification
+
+**Walkthrough observation:** Module 6 showed planning artifacts (thesis, outline, examples) but still felt like a reference page. A first-time eighth grader could still ask “What do I type first?” because coaching explained concepts without directing the next writing move.
+
+**Why it matters educationally:** Students should not have to infer the drafting process from multiple cards. Each page should walk them through writing that section like a teacher beside them.
+
+**Why it matters technically or operationally:** Presentation-only. Persistence, navigation, and drafting logic stay unchanged.
+
+**Recommended smallest reasonable fix:** Add a prominent “Your job right now” section immediately before the drafting textarea with short numbered steps for introduction, body, and conclusion that reference the thesis and outline cards.
+
+**Verification steps:**
+1. Walk Introduction, one body section, and Conclusion.
+2. At each page ask whether a first-time eighth grader would know exactly what sentence to begin writing next.
+3. Confirm the answer is yes without outside help.
+
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`
+
+**Resolution notes:** (July 10, 2026) Added `jobRightNow` coaching (lead + numbered steps) rendered immediately above the drafting textarea for intro, body, and conclusion. Steps reference the thesis and outline guide cards. Redundant “How writers use these notes” card removed from the workspace to keep the next action obvious. No persistence/workflow/navigation/drafting-logic changes. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 10, 2026 — WP-073 Needs Verification (Module 6 “Your job right now” drafting steps).*

@@ -21,6 +21,7 @@ import {
 } from "@/lib/supabase/helpers/module9Checklist";
 import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
 import {
@@ -522,7 +523,7 @@ export default function ModuleEight() {
   );
 
   return (
-    <div className="w-full pb-10">
+    <ModulePageShell>
       <ModuleSixStepFrame
         question={presentation.question}
         whyMatters={presentation.whyMatters}
@@ -833,6 +834,6 @@ export default function ModuleEight() {
           </div>
         </div>
       </ModuleSixStepFrame>
-    </div>
+    </ModulePageShell>
   );
 }

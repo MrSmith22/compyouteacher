@@ -17,6 +17,7 @@ import {
 import { upsertModule7DraftArtifact } from "@/lib/artifacts/writeArtifacts";
 import { parseApiResponse } from "@/lib/api/clientFetch";
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSevenReferenceShelf from "@/components/module7/ModuleSevenReferenceShelf";
 import ModuleSevenReadAloud from "@/components/module7/ModuleSevenReadAloud";
@@ -707,7 +708,7 @@ export default function ModuleSeven() {
   );
 
   return (
-    <div className="w-full pb-10">
+    <ModulePageShell>
       <ModuleSixStepFrame
         question={presentation.question}
         whyMatters={presentation.whyMatters}
@@ -874,6 +875,6 @@ export default function ModuleSeven() {
           </div>
         </div>
       </ModuleSixStepFrame>
-    </div>
+    </ModulePageShell>
   );
 }

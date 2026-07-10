@@ -16,6 +16,7 @@ import {
 import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
@@ -470,19 +471,25 @@ export default function ModuleNine() {
 
   if (gateOk === false) {
     return (
-      <div className="min-h-screen bg-theme-light flex items-center justify-center p-6">
-        <p className="text-theme-dark">Finish Module 8 before starting Module 9.</p>
-      </div>
+      <ModulePageShell contentMax="md">
+        <p className="text-center text-text-primary">
+          Finish Module 8 before starting Module 9.
+        </p>
+      </ModulePageShell>
     );
   }
 
   if (gateOk !== true) {
-    return <p className="p-6">Loading…</p>;
+    return (
+      <ModulePageShell contentMax="md">
+        <p className="text-text-primary">Loading…</p>
+      </ModulePageShell>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-theme-light">
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-6 py-8 md:px-8 md:py-10">
+    <ModulePageShell contentMax="lg">
+      <div className="space-y-8">
         <header className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
           <h1 className="text-3xl font-extrabold text-theme-blue">📘 Module 9: APA Format and Final Submission</h1>
           <div className="text-gray-700 text-sm md:text-base space-y-3">
@@ -901,6 +908,6 @@ export default function ModuleNine() {
           </section>
         )}
       </div>
-    </div>
+    </ModulePageShell>
   );
 }

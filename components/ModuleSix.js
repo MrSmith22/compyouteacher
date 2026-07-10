@@ -15,8 +15,10 @@ import {
 import { upsertModule6DraftArtifact } from "@/lib/artifacts/writeArtifacts";
 import { parseApiResponse } from "@/lib/api/clientFetch";
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
+import InfoCallout from "@/components/ui/InfoCallout";
 import {
   buildDraftSectionSteps,
   getWritingSectionLabel,
@@ -312,6 +314,22 @@ export default function ModuleSix() {
   const isLastSection = currentSectionIndex === sectionSteps.length - 1;
   const sectionLabel = getWritingSectionLabel(currentStep);
 
+  const activeOutlinePoints =
+    currentStep.type === "body" &&
+    Array.isArray(outline?.body?.[currentStep.bodyIndex]?.points)
+      ? outline.body[currentStep.bodyIndex].points
+          .map((point) => String(point || "").trim())
+          .filter(Boolean)
+      : [];
+
+  const conclusionPlanLines = [];
+  if (currentStep.type === "conclusion" && outline?.conclusion) {
+    const summary = String(outline.conclusion.summary || "").trim();
+    const finalThought = String(outline.conclusion.finalThought || "").trim();
+    if (summary) conclusionPlanLines.push(`Restate / summarize: ${summary}`);
+    if (finalThought) conclusionPlanLines.push(`Final thought: ${finalThought}`);
+  }
+
   const referenceShelf = (
     <ModuleSixReferenceShelf
       assignmentQuestion={assignmentQuestion}
@@ -325,10 +343,11 @@ export default function ModuleSix() {
   );
 
   return (
-    <div className="w-full pb-10">
+    <ModulePageShell>
       <ModuleSixStepFrame
           question={presentation.question}
           whyMatters={presentation.whyMatters}
+          example={presentation.example}
           successLooksLike={presentation.successLooksLike}
           coachingMessage={presentation.coachingMessage}
           nextStepText={presentation.nextStepText}
@@ -337,7 +356,8 @@ export default function ModuleSix() {
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
             <p className="text-[11px] leading-relaxed text-text-muted">
               Module 6 · Draft · section {currentSectionIndex + 1} of{" "}
-              {sectionSteps.length}. Same workspace—one section at a time.
+              {sectionSteps.length}. Translate your outline into sentences—one
+              section at a time.
             </p>
             {!locked ? (
               <p className="text-[11px] leading-relaxed text-text-muted/80">
@@ -346,13 +366,94 @@ export default function ModuleSix() {
             ) : null}
           </div>
 
+          {isFirstSection && !locked ? (
+            <InfoCallout title="You are not starting over.">
+              <p>
+                You already finished the hard thinking. Your outline is your guide.
+                Now turn those notes into complete sentences—one section at a time.
+              </p>
+            </InfoCallout>
+          ) : null}
+
+          <div className="space-y-3 text-left">
+            <div className="rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-4 py-3 shadow-soft">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-blue">
+                Your thesis (already written)
+              </p>
+              {thesisText ? (
+                <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary whitespace-pre-wrap">
+                  {thesisText}
+                </p>
+              ) : (
+                <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                  Your thesis will appear here once it is saved from planning.
+                </p>
+              )}
+              {presentation.thesisCoach ? (
+                <p className="mt-2 text-xs leading-relaxed text-text-muted">
+                  {presentation.thesisCoach}
+                </p>
+              ) : null}
+            </div>
+
+            {presentation.outlineCoach || activeOutlinePoints.length > 0 || conclusionPlanLines.length > 0 ? (
+              <div className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Outline guide for this section
+                </p>
+                {presentation.outlineCoach ? (
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    {presentation.outlineCoach}
+                  </p>
+                ) : null}
+                {activeOutlinePoints.length > 0 ? (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
+                    {activeOutlinePoints.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {conclusionPlanLines.length > 0 ? (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
+                    {conclusionPlanLines.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
           <WorkingSetSection
             className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
             label={presentation.workingSetLabel}
             description={presentation.workingSetDescription}
           >
-            <div className="space-y-3 text-left">
+            <div className="space-y-4 text-left">
               <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
+
+              {presentation.jobRightNow?.steps?.length ? (
+                <div className="rounded-xl border-2 border-theme-orange/30 bg-theme-orange/5 px-4 py-4 shadow-soft">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-orange">
+                    Your job right now
+                  </p>
+                  {presentation.jobRightNow.lead ? (
+                    <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary">
+                      {presentation.jobRightNow.lead}
+                    </p>
+                  ) : null}
+                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-primary">
+                    {presentation.jobRightNow.steps.map((stepText) => (
+                      <li key={stepText}>{stepText}</li>
+                    ))}
+                  </ol>
+                  <p className="mt-3 text-xs leading-relaxed text-text-muted">
+                    Start with Step 1 in the box below. Then keep going through the
+                    steps in order.
+                  </p>
+                </div>
+              ) : null}
+
               <textarea
                 spellCheck
                 autoCorrect="on"
@@ -363,7 +464,7 @@ export default function ModuleSix() {
                 value={draft[draftIndex] || ""}
                 onChange={(e) => updateSection(draftIndex, e.target.value)}
                 disabled={locked}
-                placeholder="Draft this section in your own words…"
+                placeholder="Start with Step 1 from Your job right now…"
               />
             </div>
           </WorkingSetSection>
@@ -404,6 +505,6 @@ export default function ModuleSix() {
             </div>
           </div>
         </ModuleSixStepFrame>
-    </div>
+    </ModulePageShell>
   );
 }

@@ -15,6 +15,20 @@ function normalizeWhyMatters(whyMatters) {
   return [];
 }
 
+function normalizeExample(example) {
+  if (!example) return null;
+  if (typeof example === "string" && example.trim()) {
+    return { sample: example.trim(), whyItWorks: "" };
+  }
+  if (typeof example === "object") {
+    const sample = String(example.sample || example.text || "").trim();
+    const whyItWorks = String(example.whyItWorks || example.annotation || "").trim();
+    if (!sample) return null;
+    return { sample, whyItWorks };
+  }
+  return null;
+}
+
 export default function ModuleSixStepFrame({
   question,
   whyMatters,
@@ -26,6 +40,7 @@ export default function ModuleSixStepFrame({
   nextStepText = "",
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
+  const exampleBlock = normalizeExample(example);
   const successItems = Array.isArray(successLooksLike)
     ? successLooksLike.filter(Boolean)
     : [];
@@ -48,7 +63,7 @@ export default function ModuleSixStepFrame({
           </header>
 
           <div className="max-w-2xl space-y-2 text-left">
-            <details className="rounded-lg bg-surface-soft/40 px-4 py-2.5">
+            <details className="rounded-lg bg-surface-soft/40 px-4 py-2.5" open>
               <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
                 Why this matters
               </summary>
@@ -69,11 +84,21 @@ export default function ModuleSixStepFrame({
 
             <details className="rounded-lg bg-surface-soft/40 px-4 py-2.5">
               <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                An example
+                An example (and why it works)
               </summary>
-              <div className="mt-2">
-                {example ? (
-                  <p className="text-sm leading-relaxed text-text-primary">{example}</p>
+              <div className="mt-2 space-y-2">
+                {exampleBlock ? (
+                  <>
+                    <p className="text-sm leading-relaxed text-text-primary whitespace-pre-wrap">
+                      {exampleBlock.sample}
+                    </p>
+                    {exampleBlock.whyItWorks ? (
+                      <p className="text-sm leading-relaxed text-text-muted">
+                        <span className="font-medium text-text-primary">Why this works: </span>
+                        {exampleBlock.whyItWorks}
+                      </p>
+                    ) : null}
+                  </>
                 ) : (
                   <p className="text-sm leading-relaxed text-text-muted">
                     If you&apos;re not sure yet, start with a simple answer you can test.
@@ -84,20 +109,15 @@ export default function ModuleSixStepFrame({
 
             <details className="rounded-lg bg-surface-soft/40 px-4 py-2.5">
               <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                Reflection: how do I know I&apos;m finished?
+                Self-check before you continue
               </summary>
               <div className="mt-2">
                 {successItems.length > 0 ? (
-                  <>
-                    <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
-                      {successItems.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                    <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                      If your thinking is clear enough to explain, it&apos;s clear enough to keep going.
-                    </p>
-                  </>
+                  <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+                    {successItems.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
                 ) : (
                   <p className="text-sm leading-relaxed text-text-muted">
                     If your thinking is clear enough to explain, it&apos;s clear enough to keep going.

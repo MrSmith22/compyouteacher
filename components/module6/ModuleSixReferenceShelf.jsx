@@ -125,14 +125,21 @@ export default function ModuleSixReferenceShelf({
           On the shelf
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-text-muted/80">
-          Thesis and outline stay visible. Open the rest when you need a reminder.
+          Your thesis and the outline section marked “drafting now” are your guides.
+          Open the rest when you need a reminder.
         </p>
       </div>
 
       <Card padding="sm" elevation="soft" surface="soft" className="space-y-3">
-        <ShelfSection title="Thesis" artifactType="thesis" emptyText="Your thesis will appear here.">
+        <ShelfSection
+          title="Your thesis (already written)"
+          artifactType="thesis"
+          emptyText="Your thesis will appear here."
+        >
           {thesis ? (
-            <p className="whitespace-pre-wrap text-sm text-text-primary">{thesis}</p>
+            <p className="whitespace-pre-wrap text-sm font-medium text-text-primary">
+              {thesis}
+            </p>
           ) : null}
         </ShelfSection>
 
