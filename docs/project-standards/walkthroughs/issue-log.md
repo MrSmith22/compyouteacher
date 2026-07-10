@@ -40,7 +40,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | Issue ID | Title | Module | Priority | Category | Status |
 |----------|-------|--------|----------|----------|--------|
 | WP-001 | Generated essay includes Roman numerals and outline headings | 7 | Critical | Bug | Resolved |
-| WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Needs Verification |
+| WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Resolved |
 | WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Resolved |
 | WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Open |
 | WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Needs Verification |
@@ -107,8 +107,8 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-067 | Module 8 completion does not advance progress to Module 9 | 8 | Critical | Persistence / Gate | Resolved |
 | WP-068 | Module 8 revisit completion bypasses dedicated success page | 8 | High | Navigation / Flow | Resolved |
 | WP-069 | Improve Module 9 final success screen | 9 | High | Instructional / UX | Resolved |
-| WP-070 | Unlock to Test does not restore Module 7 editing | 7 | Critical | Bug / Dev tooling | Needs Verification |
-| WP-071 | Module 8 always shows Create when a Google Doc already exists | 8 | Medium | Copy / UX | Needs Verification |
+| WP-070 | Unlock to Test does not restore Module 7 editing | 7 | Critical | Bug / Dev tooling | Resolved |
+| WP-071 | Module 8 always shows Create when a Google Doc already exists | 8 | Medium | Copy / UX | Resolved |
 
 *Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-072.*
 
@@ -152,7 +152,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Google Doc creation/export screens in Module 8
 - **Priority:** Critical
 - **Category:** Bug / Architecture
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** Early in Module 8, the Google Doc appeared to contain an older essay from a previous test. Later, Module 9’s export button generated the correct newest essay. The export engine works, but at least one export path references stale information.
 
@@ -170,9 +170,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `lib/supabase/helpers/studentDrafts.ts` (`getFinalTextForExport`); `components/ModuleEight.js`; `components/ModuleNine.js`; `lib/exports/exportEssayToGoogleDocs.ts`; `app/api/export-to-docs/route.js`
 
-**Resolution notes:** (July 2026) `getFinalTextForExport` now resolves Module 7 `final_text` → Module 7 `full_text` → Module 6 `full_text`, matching on-screen essay selection. Module 8 no longer treats a leftover `exported_docs` link **or** `student_drafts` module-8 `final_ready` as verified: on load, `docVerifiedThisSession` is always false and the CREATE_DOC step is shown. Continue / “Ready” / “Google Doc Created” unlock only after a successful Create/Update export initiated in the current Module 8 visit. Previously finalized Module 8 rows still require that this-visit export (then restore the success panel once checklist is complete). Awaiting re-verification after the `final_ready` bypass removal.
+**Resolution notes:** (July 2026) `getFinalTextForExport` now resolves Module 7 `final_text` → Module 7 `full_text` → Module 6 `full_text`, matching on-screen essay selection. Module 8 no longer treats a leftover `exported_docs` link **or** `student_drafts` module-8 `final_ready` as verified: on load, `docVerifiedThisSession` is always false and the CREATE_DOC step is shown. Continue / “Ready” / “Google Doc Created” unlock only after a successful Create/Update export initiated in the current Module 8 visit. Previously finalized Module 8 rows still require that this-visit export (then restore the success panel once checklist is complete). Verified in live walkthrough (July 10, 2026): Reset → Seed Complete Essay → Module 8 export matched current essay; Module 7 revise with marker `WP002-VERIFY-0710` → Save → Finalize → Module 8 Update exported a new Doc containing the marker.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after live walkthrough verification)
 
 ---
 
@@ -2067,7 +2067,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Finalized Module 7 revision workspace; development-only Unlock to Test control
 - **Priority:** Critical
 - **Category:** Bug / Dev tooling
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** After finalizing Module 7, Unlock to Test did not restore editable revision fields. The essay stayed read-only, blocking WP-002 verification that requires revising text before export.
 
@@ -2086,9 +2086,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `components/ModuleSeven.js`
 
-**Resolution notes:** (July 2026) Unlock to Test (development only) now sets `devUnlockedForTestingRef` so overlapping loads cannot re-apply `final_ready` lock, clears UI lock, and navigates from Read Aloud to the first revision field. Save revision still clears `final_ready` / updates `full_text` as before. Production students never see the control. Awaiting walkthrough verification.
+**Resolution notes:** (July 2026) Unlock to Test (development only) now sets `devUnlockedForTestingRef` so overlapping loads cannot re-apply `final_ready` lock, clears UI lock, and navigates from Read Aloud to the first revision field. Save revision still clears `final_ready` / updates `full_text` as before. Production students never see the control. Verified in live walkthrough (July 10, 2026) during WP-002 verification: Unlock to Test restored editing; marker text could be inserted, saved, and finalized.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after live walkthrough verification)
 
 ---
 
@@ -2098,7 +2098,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Google Doc creation/export step (working-set label and primary action)
 - **Priority:** Medium
 - **Category:** Copy / UX
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** After a Google Doc already existed for the assignment, Module 8 still presented “Create your Google Doc,” which suggested a brand-new document would always be made.
 
@@ -2117,10 +2117,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `components/ModuleEight.js`; `components/module8/module8StepPresentation.js`
 
-**Resolution notes:** (July 2026) `getModule8StepPresentation` now accepts `hasExistingDoc` from `submissionDocUrl`. Working-set label/description and the unverified existing-doc primary button use “Update your Google Doc.” No export, gating, or persistence changes. Awaiting walkthrough verification.
+**Resolution notes:** (July 2026) `getModule8StepPresentation` now accepts `hasExistingDoc` from `submissionDocUrl`. Working-set label/description and the unverified existing-doc primary button use “Update your Google Doc.” No export, gating, or persistence changes. Verified in live walkthrough (July 10, 2026): after an existing export, Module 8 primary control read “Update your Google Doc.”
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after live walkthrough verification)
 
 ---
 
-*Last updated: July 10, 2026 — WP-071 Needs Verification (Module 8 Create vs Update wording).*
+*Last updated: July 10, 2026 — WP-002, WP-070, and WP-071 Resolved after live walkthrough verification.*
