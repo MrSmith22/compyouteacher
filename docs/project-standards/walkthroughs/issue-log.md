@@ -102,9 +102,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Open |
-| WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Needs Verification |
+| WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
+| WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026).*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026).*
 
 ---
 
@@ -1913,7 +1914,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Drafting workspace label above each section textbox
 - **Priority:** High
 - **Category:** Instructional / UX
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** After WP-001 fixed assembled-essay rendering in Modules 7–8, Module 6 drafting still showed outline-oriented labels such as “I. Introduction” and “II. King uses emotional appeals…” above the writing textbox. Students felt they were filling an outline rather than drafting an essay.
 
@@ -1931,10 +1932,40 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`
 
-**Resolution notes:** Presentation-only fix. Added `getModule6DraftingLabel()` and used it for the Module 6 drafting textbox label. Roman numerals and bucket/claim titles removed from that label; shelf/outline unchanged. Ready for manual verification.
+**Resolution notes:** Fully verified through manual walkthrough testing (July 2026). Module 6 drafting labels now use writing language (Introduction, Body Paragraph 1, Body Paragraph 2, Conclusion). Outline shelf still shows Roman numerals (planning representation preserved). Autosave persisted across refresh. WP-001 Read Aloud prose-only behavior remained intact. Module 8 continued to function normally. No persistence or export regressions. Follow-up consistency for Module 7 revision labels logged as WP-066.
 
-**Resolved in commit:**
+**Resolved in commit:** (presentation-only fix; closed after manual verification)
 
 ---
 
-*Last updated: July 10, 2026 — WP-065 implemented (Module 6 drafting labels); status Needs Verification.*
+### WP-066 — Align Module 7 revision labels with Module 6 writing language
+
+- **Module:** 7
+- **Screen or area:** Revision workspace label above each section textbox
+- **Priority:** Medium
+- **Category:** Instructional / UX
+- **Status:** Resolved
+
+**Walkthrough observation:** After WP-065, Module 6 drafting uses writing labels (Introduction, Body Paragraph 1, Conclusion), but Module 7 revision pages still show outline-oriented labels such as “II. Conclusion” above revision textboxes. Not a WP-065 failure—scope was Module 6 only—but the writing experience is now inconsistent across drafting and revision.
+
+**Why it matters educationally:** Students moving from Module 6 to Module 7 should continue feeling they are revising an essay, not returning to outline language. Matching writing-oriented labels preserves the planning-vs-writing separation established by WP-001 and WP-065.
+
+**Why it matters technically or operationally:** Presentation-only enhancement. Outline shelves, draft maps, and planning artifacts should remain unchanged. Same pattern as `getModule6DraftingLabel()` can likely be reused or mirrored for Module 7 revision chrome.
+
+**Recommended smallest reasonable fix:** Simplify Module 7 revision textbox labels to match Module 6 writing language (Introduction, Body Paragraph N, Conclusion). Leave outline shelves and planning artifacts unchanged.
+
+**Verification steps:**
+1. Open Module 7 revision for intro, body, and conclusion sections.
+2. Confirm labels use writing language with no Roman numerals or bucket titles above the textbox.
+3. Confirm the Module 7 shelf/draft map still shows planning outline language.
+4. Confirm revision, autosave, and Read Aloud prose-only behavior still work.
+
+**Related files:** `components/ModuleSeven.js`; `components/ModuleSix.js`; `components/module6/module6StepPresentation.js` (`getWritingSectionLabel`)
+
+**Resolution notes:** Fully verified through manual walkthrough testing (July 2026). Module 6 and Module 7 now share the same writing labels via `getWritingSectionLabel()`. Drafting and revision textareas display Introduction, Body Paragraph 1, Body Paragraph 2, …, Conclusion. Roman numerals have been removed from writing surfaces. Planning artifacts (left shelf, outline, and draft map) continue to display Roman numerals and outline labels. Read Aloud remains prose only. No regressions were observed in navigation, revision flow, or persistence during walkthrough verification.
+
+**Resolved in commit:** (presentation-only fix; closed after manual verification)
+
+---
+
+*Last updated: July 10, 2026 — WP-066 marked Resolved after walkthrough verification.*

@@ -29,7 +29,7 @@ import {
 } from "@/components/module7/module7DraftSections";
 import {
   buildDraftSectionSteps,
-  romanNumeral,
+  getWritingSectionLabel,
 } from "@/components/module6/module6StepPresentation";
 import { getModule7StepPresentation, MODULE7_STEP_TYPES } from "@/components/module7/module7StepPresentation";
 import { logActivity } from "../lib/logActivity";
@@ -646,7 +646,7 @@ export default function ModuleSeven() {
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === sectionSteps.length;
   const sectionLabel = currentRevisionStep
-    ? `${romanNumeral(currentRevisionStep.roman)}. ${currentRevisionStep.title}`
+    ? getWritingSectionLabel(currentRevisionStep)
     : "";
   const sectionIsEmpty = !String(sections[draftIndex] || "").trim();
 

@@ -41,10 +41,10 @@ export function buildDraftSectionSteps(outline) {
 }
 
 /**
- * Writing-language label for the Module 6 drafting textbox.
- * Planning labels (Roman numerals, bucket/claim titles) stay on the shelf.
+ * Writing-language label for drafting/revision textboxes (Modules 6–7).
+ * Planning labels (Roman numerals, bucket/claim titles) stay on shelves/maps.
  */
-export function getModule6DraftingLabel(step) {
+export function getWritingSectionLabel(step) {
   if (!step) return "Draft";
   if (step.type === SECTION_TYPES.INTRO) return "Introduction";
   if (step.type === SECTION_TYPES.CONCLUSION) return "Conclusion";

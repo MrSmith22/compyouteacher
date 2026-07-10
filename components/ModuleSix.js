@@ -19,7 +19,7 @@ import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
 import {
   buildDraftSectionSteps,
-  getModule6DraftingLabel,
+  getWritingSectionLabel,
   getModule6StepPresentation,
 } from "@/components/module6/module6StepPresentation";
 
@@ -310,7 +310,7 @@ export default function ModuleSix() {
   const draftIndex = currentStep.draftIndex;
   const isFirstSection = currentSectionIndex === 0;
   const isLastSection = currentSectionIndex === sectionSteps.length - 1;
-  const sectionLabel = getModule6DraftingLabel(currentStep);
+  const sectionLabel = getWritingSectionLabel(currentStep);
 
   const referenceShelf = (
     <ModuleSixReferenceShelf
