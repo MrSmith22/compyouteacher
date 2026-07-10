@@ -1,0 +1,123 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { isDevToolingEnabled } from "@/lib/dev/isDevToolingEnabled";
+import {
+  completeCurrentModule,
+  deleteGoogleDocRecord,
+  getDevPanelStatus,
+  prepareGoogleDocExport,
+  resetCurrentModule,
+  setCurrentModule,
+  setModule9Shortcut,
+} from "@/lib/dev/devPanelServer";
+
+function deny() {
+  return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+}
+
+async function requireDevSession() {
+  if (!isDevToolingEnabled()) return { error: deny() as NextResponse };
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email;
+  if (!email) {
+    return {
+      error: NextResponse.json(
+        { ok: false, error: "not_signed_in" },
+        { status: 401 }
+      ),
+    };
+  }
+  return { email };
+}
+
+export async function GET() {
+  const auth = await requireDevSession();
+  if ("error" in auth && auth.error) return auth.error;
+
+  try {
+    const status = await getDevPanelStatus(auth.email!);
+    return NextResponse.json({ ok: true, status });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "status_failed";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  const auth = await requireDevSession();
+  if ("error" in auth && auth.error) return auth.error;
+  const email = auth.email!;
+
+  let body: Record<string, unknown> = {};
+  try {
+    body = await req.json();
+  } catch {
+    body = {};
+  }
+
+  const action = typeof body.action === "string" ? body.action : "";
+
+  try {
+    switch (action) {
+      case "setModule": {
+        const moduleNumber = Number(body.module);
+        const result = await setCurrentModule(email, moduleNumber);
+        return NextResponse.json(result);
+      }
+      case "previousModule": {
+        const status = await getDevPanelStatus(email);
+        const next = Math.max(1, (status.currentModule ?? 1) - 1);
+        const result = await setCurrentModule(email, next);
+        return NextResponse.json(result);
+      }
+      case "nextModule": {
+        const status = await getDevPanelStatus(email);
+        const next = Math.min(10, (status.currentModule ?? 1) + 1);
+        const result = await setCurrentModule(email, next);
+        return NextResponse.json(result);
+      }
+      case "completeCurrentModule": {
+        const result = await completeCurrentModule(email);
+        return NextResponse.json(result);
+      }
+      case "resetCurrentModule": {
+        const moduleNumber =
+          body.module != null ? Number(body.module) : undefined;
+        const result = await resetCurrentModule(email, moduleNumber);
+        return NextResponse.json(result);
+      }
+      case "module9Shortcut": {
+        const key = body.key as
+          | "googleDoc"
+          | "checklist"
+          | "quiz"
+          | "pdf"
+          | "moduleComplete";
+        const enabled = !!body.enabled;
+        const result = await setModule9Shortcut(email, key, enabled);
+        return NextResponse.json(result);
+      }
+      case "prepareGoogleDocExport": {
+        const result = await prepareGoogleDocExport(email);
+        return NextResponse.json(result);
+      }
+      case "deleteGoogleDoc": {
+        const result = await deleteGoogleDocRecord(email);
+        return NextResponse.json(result);
+      }
+      case "status": {
+        const status = await getDevPanelStatus(email);
+        return NextResponse.json({ ok: true, status });
+      }
+      default:
+        return NextResponse.json(
+          { ok: false, error: `Unknown action: ${action}` },
+          { status: 400 }
+        );
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "action_failed";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}

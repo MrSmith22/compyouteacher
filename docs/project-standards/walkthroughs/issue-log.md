@@ -43,7 +43,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Open |
 | WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Resolved |
 | WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Open |
-| WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Open |
+| WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Needs Verification |
 | WP-006 | Module 9 tests APA knowledge before teaching it | 9 | Critical | Instructional | Open |
 | WP-007 | PDF download instructions insufficient for younger students | 9 | Critical | Instructional | Resolved |
 | WP-008 | Module 6→7 transition lacks psychological coaching | 6–7 | High | Navigation / Flow | Open |
@@ -101,7 +101,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
-| WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Needs Verification |
+| WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
 | WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
 | WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
 
@@ -238,7 +238,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All Module 9 screens (quiz, formatting, PDF, upload, completion)
 - **Priority:** High
 - **Category:** Visual Design
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Module 9 pages render inside a very narrow vertical strip while large portions of the display remain empty. Screenshots, instructional cards, and action buttons are cramped compared to Modules 6–8.
 
@@ -253,9 +253,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm working area uses available horizontal space.
 3. Confirm screenshots and buttons fit without excessive vertical scrolling.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`
 
-**Resolution notes:**
+**Resolution notes:** Presentation-only layout spacing adjustment. Widened Module 9 content column (`max-w-4xl` → `max-w-6xl`), increased page and section padding/spacing so instructional text breathes. No redesign, step reordering, copy rewrite, or functionality changes. Ready for live walkthrough verification.
 
 **Resolved in commit:**
 
@@ -1883,7 +1883,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Module 3 analysis workflow; saved speech and letter working copies
 - **Priority:** High
 - **Category:** UX / Navigation
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** Students who close their saved speech or letter tabs have no way to reopen them from within Module 3. This interrupts the intended workflow of continually referencing evidence while analyzing quotations.
 
@@ -1902,9 +1902,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `components/ModuleThreeV2Form.jsx`; `components/sources/ReopenSourceTextsControl.jsx`; `lib/sources/openSavedSourceTexts.js`
 
-**Resolution notes:** Presentation/navigation-only fix. Added reusable `openSavedSourceTexts` helper (named windows to avoid duplicates) and `ReopenSourceTextsControl`, wired into Module 3 V2. Control hides when both tracked source windows are still open. Does not reset observations, selections, notes, or autosave. Ready for manual verification.
+**Resolution notes:** Fully verified through walkthrough testing (July 2026). Reopen Source Texts opens both saved working copies. Closing both source windows causes the control to reappear. Reopening focuses/reopens the saved copies correctly. No duplicate windows are created. The control hides while both managed source windows remain open. Student observations, selections, notes, and autosaved work remain intact. Refresh preserves all work. Reopened windows display the persisted working copies rather than blank or original pages.
 
-**Resolved in commit:**
+**Resolved in commit:** (navigation-only fix; closed after walkthrough verification)
 
 ---
 
@@ -1968,4 +1968,4 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-064 Needs Verification (Module 3 reopen source texts control).*
+*Last updated: July 10, 2026 — WP-005 Needs Verification (Module 9 reading width / spacing; presentation-only).*

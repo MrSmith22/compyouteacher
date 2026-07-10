@@ -4,6 +4,14 @@ import ReadingLayout from "@/components/layout/ReadingLayout";
 import WorkspaceLayout from "@/components/layout/WorkspaceLayout";
 import { LAYOUT_MODES, resolveLayoutMode } from "@/components/layout/layoutModes";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const DeveloperTestingPanel =
+  process.env.NODE_ENV === "development"
+    ? dynamic(() => import("@/components/dev/DeveloperTestingPanel"), {
+        ssr: false,
+      })
+    : null;
 
 export default function AppLayoutShell({ children }) {
   const pathname = usePathname() || "/";
@@ -11,5 +19,10 @@ export default function AppLayoutShell({ children }) {
   const Layout =
     layoutMode === LAYOUT_MODES.WORKSPACE ? WorkspaceLayout : ReadingLayout;
 
-  return <Layout>{children}</Layout>;
+  return (
+    <Layout>
+      {children}
+      {DeveloperTestingPanel ? <DeveloperTestingPanel /> : null}
+    </Layout>
+  );
 }

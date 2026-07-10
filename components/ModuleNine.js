@@ -482,8 +482,8 @@ export default function ModuleNine() {
 
   return (
     <div className="min-h-screen bg-theme-light">
-      <div className="p-6 space-y-6 max-w-4xl mx-auto">
-        <header className="bg-white border border-gray-200 rounded-xl shadow-sm px-5 py-4 space-y-3">
+      <div className="mx-auto w-full max-w-6xl space-y-8 px-6 py-8 md:px-8 md:py-10">
+        <header className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
           <h1 className="text-3xl font-extrabold text-theme-blue">📘 Module 9: APA Format and Final Submission</h1>
           <div className="text-gray-700 text-sm md:text-base space-y-3">
             <p>
@@ -548,7 +548,7 @@ export default function ModuleNine() {
         </header>
 
         {alreadySubmitted && (
-          <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
             <h2 className="text-lg font-semibold text-theme-dark">Submitted: Final PDF received</h2>
             <p className="text-sm text-gray-700">Your work for this module is complete. Use the links below to open your documents.</p>
             <div className="flex flex-wrap gap-3">
@@ -577,7 +577,7 @@ export default function ModuleNine() {
         )}
 
         {(!guidedMode || activeStep <= 3) && (activeStep === 1 || activeStep === 2 || activeStep === 3) && !alreadySubmitted && (
-        <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 space-y-3 shadow-sm">
+        <section className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
             <span role="img" aria-label="checklist">📋</span>
             APA Formatting Checklist
@@ -637,7 +637,7 @@ export default function ModuleNine() {
         )}
 
         {(!guidedMode || viewedStep === 1) && !alreadySubmitted && (
-        <section className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
+        <section className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
             <span role="img" aria-label="quiz">✏️</span>
             Step 1 of 4: Quiz{submitted ? " ✓" : ""}
@@ -721,7 +721,7 @@ export default function ModuleNine() {
         )}
 
         {(!guidedMode || viewedStep === 2) && submitted && !alreadySubmitted && (
-        <section ref={step2Ref} className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
+        <section ref={step2Ref} className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
             <span role="img" aria-label="export">✍</span>
             Step 2 of 4: Export to Google Docs{exportUrl ? " ✓" : ""}
@@ -772,7 +772,7 @@ export default function ModuleNine() {
         )}
 
         {(!guidedMode || viewedStep === 3) && submitted && exportUrl && !alreadySubmitted && (
-        <section ref={step3Ref} className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
+        <section ref={step3Ref} className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
           <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
             <span role="img" aria-label="confirm">✅</span>
             Step 3 of 4: Format Checklist Confirmation{checklistComplete ? " ✓" : ""}
@@ -833,7 +833,7 @@ export default function ModuleNine() {
         )}
 
         {(!guidedMode || viewedStep === 4) && submitted && exportUrl && checklistComplete && !alreadySubmitted && (
-          <section ref={step4Ref} className="border border-gray-200 rounded-xl bg-white px-5 py-4 shadow-sm space-y-3">
+          <section ref={step4Ref} className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
             <h2 className="text-lg font-semibold text-theme-dark flex items-center gap-2">
               <span role="img" aria-label="upload">📤</span>
               Step 4 of 4: Submit Your Final Essay as a PDF

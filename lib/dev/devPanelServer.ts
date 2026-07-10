@@ -1,0 +1,348 @@
+/**
+ * Server-side helpers for the Developer Testing Panel.
+ * DEV ONLY — called exclusively from /api/dev/panel.
+ */
+import { DEFAULT_ASSIGNMENT_NAME } from "@/lib/assignments";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+const MAX_MODULE = 10;
+
+async function getEssayTextForExportAdmin(userEmail: string) {
+  const supabase = getSupabaseAdmin();
+  const res7 = await supabase
+    .from("student_drafts")
+    .select("final_text, full_text")
+    .eq("user_email", userEmail)
+    .eq("module", 7)
+    .maybeSingle();
+  const m7Text = String(res7.data?.final_text ?? "").trim();
+  if (m7Text) {
+    return { status: "ok" as const, text: m7Text, sourceModule: 7 as const };
+  }
+
+  const res6 = await supabase
+    .from("student_drafts")
+    .select("full_text")
+    .eq("user_email", userEmail)
+    .eq("module", 6)
+    .maybeSingle();
+  const m6Text = String(res6.data?.full_text ?? "").trim();
+  if (m6Text) {
+    return { status: "ok" as const, text: m6Text, sourceModule: 6 as const };
+  }
+
+  return { status: "missing" as const, text: "", sourceModule: null };
+}
+
+type DeleteSpec = {
+  table: string;
+  filters?: Record<string, string | number>;
+};
+
+const MODULE_RESET_MAP: Record<number, DeleteSpec[]> = {
+  1: [{ table: "module1_quiz_results" }],
+  2: [{ table: "module2_sources" }, { table: "tchart_entries" }],
+  3: [
+    { table: "student_buckets", filters: { module: 3 } },
+    { table: "module3_responses" },
+  ],
+  4: [{ table: "student_buckets", filters: { module: 4 } }],
+  5: [{ table: "student_outlines" }],
+  6: [{ table: "student_drafts", filters: { module: 6 } }],
+  7: [
+    { table: "student_drafts", filters: { module: 7 } },
+    { table: "student_readaloud" },
+  ],
+  8: [{ table: "student_drafts", filters: { module: 8 } }],
+  9: [
+    { table: "module9_quiz" },
+    { table: "module9_checklist" },
+    { table: "student_exports", filters: { module: 9, kind: "final_pdf" } },
+  ],
+};
+
+async function deleteBySpec(userEmail: string, spec: DeleteSpec) {
+  const supabase = getSupabaseAdmin();
+  let q = supabase.from(spec.table).delete({ count: "exact" }).eq("user_email", userEmail);
+  if (spec.filters) {
+    for (const [key, value] of Object.entries(spec.filters)) {
+      q = q.eq(key, value);
+    }
+  }
+  const { error, count } = await q;
+  return { table: spec.table, deleted: typeof count === "number" ? count : 0, error: error?.message ?? null };
+}
+
+export async function getDevPanelStatus(userEmail: string) {
+  const supabase = getSupabaseAdmin();
+  const assignmentName = DEFAULT_ASSIGNMENT_NAME;
+
+  const [
+    assignmentRes,
+    exportDocRes,
+    quizRes,
+    checklistRes,
+    pdfRes,
+    draft6Res,
+    draft7Res,
+  ] = await Promise.all([
+    supabase
+      .from("student_assignments")
+      .select("current_module, assignment_name, status, resume_path")
+      .eq("user_email", userEmail)
+      .eq("assignment_name", assignmentName)
+      .maybeSingle(),
+    supabase
+      .from("exported_docs")
+      .select("web_view_link, document_id, updated_at")
+      .eq("user_email", userEmail)
+      .maybeSingle(),
+    supabase
+      .from("module9_quiz")
+      .select("score, total, submitted_at")
+      .eq("user_email", userEmail)
+      .maybeSingle(),
+    supabase
+      .from("module9_checklist")
+      .select("items, complete, updated_at")
+      .eq("user_email", userEmail)
+      .maybeSingle(),
+    supabase
+      .from("student_exports")
+      .select("id, public_url, file_name, uploaded_at")
+      .eq("user_email", userEmail)
+      .eq("module", 9)
+      .eq("kind", "final_pdf")
+      .maybeSingle(),
+    supabase
+      .from("student_drafts")
+      .select("full_text, locked, updated_at")
+      .eq("user_email", userEmail)
+      .eq("module", 6)
+      .maybeSingle(),
+    supabase
+      .from("student_drafts")
+      .select("full_text, final_text, locked, updated_at")
+      .eq("user_email", userEmail)
+      .eq("module", 7)
+      .maybeSingle(),
+  ]);
+
+  const currentModule =
+    typeof assignmentRes.data?.current_module === "number"
+      ? assignmentRes.data.current_module
+      : null;
+
+  const checklistItems = Array.isArray(checklistRes.data?.items)
+    ? checklistRes.data.items
+    : null;
+  const checklistComplete =
+    checklistRes.data?.complete === true ||
+    (Array.isArray(checklistItems) &&
+      checklistItems.length > 0 &&
+      checklistItems.every(Boolean));
+
+  return {
+    userEmail,
+    assignmentName,
+    currentModule,
+    assignmentStatus: assignmentRes.data?.status ?? null,
+    resumePath: assignmentRes.data?.resume_path ?? null,
+    googleDocUrl: exportDocRes.data?.web_view_link ?? null,
+    googleDocId: exportDocRes.data?.document_id ?? null,
+    quizComplete: !!quizRes.data?.submitted_at,
+    quizScore:
+      quizRes.data?.score != null
+        ? `${quizRes.data.score}/${quizRes.data.total ?? "?"}`
+        : null,
+    checklistComplete,
+    pdfUploaded: !!pdfRes.data,
+    pdfFileName: pdfRes.data?.file_name ?? null,
+    draft6Present: !!draft6Res.data?.full_text,
+    draft7Present: !!(draft7Res.data?.final_text || draft7Res.data?.full_text),
+    moduleComplete: typeof currentModule === "number" && currentModule > 9,
+  };
+}
+
+export async function setCurrentModule(userEmail: string, moduleNumber: number) {
+  const supabase = getSupabaseAdmin();
+  const next = Math.min(Math.max(1, Math.floor(moduleNumber)), MAX_MODULE);
+  const now = new Date().toISOString();
+  const resumePath = `/modules/${Math.min(next, 9)}`;
+
+  const { error } = await supabase.from("student_assignments").upsert(
+    {
+      user_email: userEmail,
+      assignment_name: DEFAULT_ASSIGNMENT_NAME,
+      current_module: next,
+      resume_path: resumePath,
+      status: "in_progress",
+      updated_at: now,
+      started_at: now,
+    },
+    { onConflict: "user_email,assignment_name" }
+  );
+
+  if (error) return { ok: false as const, error: error.message, module: next };
+  return { ok: true as const, module: next, resumePath };
+}
+
+export async function completeCurrentModule(userEmail: string) {
+  const status = await getDevPanelStatus(userEmail);
+  const current = status.currentModule ?? 1;
+  return setCurrentModule(userEmail, current + 1);
+}
+
+export async function resetCurrentModule(userEmail: string, moduleNumber?: number) {
+  const status = await getDevPanelStatus(userEmail);
+  const module = moduleNumber ?? status.currentModule ?? 1;
+  const specs = MODULE_RESET_MAP[module] ?? [];
+  const results = [];
+  for (const spec of specs) {
+    results.push(await deleteBySpec(userEmail, spec));
+  }
+  return { ok: true as const, module, results };
+}
+
+export async function setModule9Shortcut(
+  userEmail: string,
+  key:
+    | "googleDoc"
+    | "checklist"
+    | "quiz"
+    | "pdf"
+    | "moduleComplete",
+  enabled: boolean
+) {
+  const supabase = getSupabaseAdmin();
+  const now = new Date().toISOString();
+
+  if (key === "checklist") {
+    if (enabled) {
+      const items = Array(6).fill(true);
+      const { error } = await supabase.from("module9_checklist").upsert(
+        {
+          user_email: userEmail,
+          items,
+          complete: true,
+          updated_at: now,
+        },
+        { onConflict: "user_email" }
+      );
+      if (error) return { ok: false as const, error: error.message };
+    } else {
+      await supabase.from("module9_checklist").delete().eq("user_email", userEmail);
+    }
+    return { ok: true as const };
+  }
+
+  if (key === "quiz") {
+    if (enabled) {
+      const { error } = await supabase.from("module9_quiz").upsert({
+        user_email: userEmail,
+        score: 10,
+        total: 10,
+        submitted_at: now,
+      });
+      if (error) return { ok: false as const, error: error.message };
+    } else {
+      await supabase.from("module9_quiz").delete().eq("user_email", userEmail);
+    }
+    return { ok: true as const };
+  }
+
+  if (key === "pdf") {
+    if (enabled) {
+      const existing = await supabase
+        .from("student_exports")
+        .select("id")
+        .eq("user_email", userEmail)
+        .eq("module", 9)
+        .eq("kind", "final_pdf")
+        .maybeSingle();
+      if (!existing.data) {
+        const docId = `dev_${Date.now()}`;
+        const { error } = await supabase.from("student_exports").insert({
+          doc_id: docId,
+          user_email: userEmail,
+          module: 9,
+          kind: "final_pdf",
+          file_name: "dev-stub.pdf",
+          storage_path: `dev/${userEmail}/dev-stub.pdf`,
+          public_url: "https://example.com/dev-stub.pdf",
+          web_view_link: "https://example.com/dev-stub.pdf",
+          uploaded_at: now,
+          grading_status: "ungraded",
+        });
+        if (error) return { ok: false as const, error: error.message };
+      }
+    } else {
+      await supabase
+        .from("student_exports")
+        .delete()
+        .eq("user_email", userEmail)
+        .eq("module", 9)
+        .eq("kind", "final_pdf");
+    }
+    return { ok: true as const };
+  }
+
+  if (key === "googleDoc") {
+    if (enabled) {
+      // Prefer real export when essay text exists; otherwise stub a row.
+      const exportRes = await getEssayTextForExportAdmin(userEmail);
+      if (exportRes.status === "ok" && exportRes.text) {
+        return {
+          ok: true as const,
+          needsClientExport: true as const,
+          text: exportRes.text,
+        };
+      }
+      const { error } = await supabase.from("exported_docs").upsert(
+        {
+          user_email: userEmail,
+          document_id: `dev-doc-${Date.now()}`,
+          web_view_link: "https://docs.google.com/document/d/dev-stub/edit",
+        },
+        { onConflict: "user_email" }
+      );
+      if (error) return { ok: false as const, error: error.message };
+    } else {
+      await supabase.from("exported_docs").delete().eq("user_email", userEmail);
+    }
+    return { ok: true as const };
+  }
+
+  if (key === "moduleComplete") {
+    if (enabled) {
+      return setCurrentModule(userEmail, 10);
+    }
+    return setCurrentModule(userEmail, 9);
+  }
+
+  return { ok: false as const, error: "Unknown shortcut" };
+}
+
+export async function deleteGoogleDocRecord(userEmail: string) {
+  const supabase = getSupabaseAdmin();
+  const { error, count } = await supabase
+    .from("exported_docs")
+    .delete({ count: "exact" })
+    .eq("user_email", userEmail);
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const, deleted: typeof count === "number" ? count : 0 };
+}
+
+export async function prepareGoogleDocExport(userEmail: string) {
+  const exportRes = await getEssayTextForExportAdmin(userEmail);
+  if (exportRes.status !== "ok" || !exportRes.text) {
+    return {
+      ok: false as const,
+      error:
+        exportRes.status === "missing"
+          ? "No essay text found (complete Module 6/7 first)."
+          : "Could not load essay text for export.",
+    };
+  }
+  return { ok: true as const, text: exportRes.text, sourceModule: exportRes.sourceModule };
+}
