@@ -836,15 +836,34 @@ export default function ModuleNine() {
               <span role="img" aria-label="upload">📤</span>
               Step 4 of 4: Submit Your Final Essay as a PDF
             </h2>
-            <p className="text-sm text-gray-700">
-              In Google Docs, choose File → Download → PDF. Save the file where you can find it, then upload that PDF here.
-              This is the version your teacher will grade.
-            </p>
+            <div className="text-sm text-gray-700 space-y-3">
+              <p>Follow these steps to turn your Google Doc into a PDF:</p>
+              <ol className="list-decimal list-inside space-y-2">
+                <li>Open your Google Doc.</li>
+                <li>
+                  Click <strong>File</strong> at the top of the page.
+                </li>
+                <li>
+                  Click <strong>Download</strong>.
+                </li>
+                <li>
+                  Click <strong>PDF Document (.pdf)</strong>.
+                </li>
+                <li>
+                  Save the PDF somewhere easy to find, such as your{" "}
+                  <strong>Downloads</strong> folder or your <strong>Desktop</strong>.
+                </li>
+              </ol>
+              <p>
+                When the PDF has finished downloading, come back to this page and
+                upload that PDF. This is the version your teacher will grade.
+              </p>
+            </div>
 
             <div className="bg-theme-light border border-gray-200 rounded-lg px-4 py-3 text-xs space-y-1 mb-3">
-              <p className="font-semibold">Upload checklist:</p>
-              <p>• In Google Docs: File → Download → PDF</p>
+              <p className="font-semibold">Before you upload:</p>
               <p>• Make sure your file name ends with .pdf</p>
+              <p>• Choose the PDF you just downloaded—not a Word file or a screenshot</p>
             </div>
 
             <input

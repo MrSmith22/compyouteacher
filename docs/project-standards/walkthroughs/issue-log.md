@@ -45,7 +45,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Open |
 | WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Open |
 | WP-006 | Module 9 tests APA knowledge before teaching it | 9 | Critical | Instructional | Open |
-| WP-007 | PDF download instructions insufficient for younger students | 9 | Critical | Instructional | Open |
+| WP-007 | PDF download instructions insufficient for younger students | 9 | Critical | Instructional | Resolved |
 | WP-008 | Module 6→7 transition lacks psychological coaching | 6–7 | High | Navigation / Flow | Open |
 | WP-009 | Module 8→9 transition could be stronger | 8–9 | Medium | Navigation / Flow | Open |
 | WP-010 | Success and completion pages under-celebrate accomplishment | 6–9 | Medium | Instructional / UX | Open |
@@ -296,7 +296,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** PDF creation / download instructions page
 - **Priority:** Critical
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Current PDF instructions do not provide enough guidance for students who have never downloaded a PDF from Google Docs. Walkthrough discussion identified this as a significant blocker for the target age group.
 
@@ -311,11 +311,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm they can download a PDF without teacher assistance.
 3. Confirm saved file location is clear.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js` (Step 4 instructional block)
 
-**Resolution notes:**
+**Resolution notes:** Verified through a live student walkthrough. The revised Module 9 PDF download instructions successfully guided the student through: (1) opening the Google Doc, (2) clicking File, (3) choosing Download, (4) selecting PDF Document (.pdf), (5) saving the PDF in an easy-to-find location, (6) returning to the Writing Processor, and (7) uploading the PDF successfully. The numbered instructions were clear and appropriate for middle school students. Confirmed unchanged: Google Doc creation, export behavior, file picker, PDF upload, submission completion, APA quiz, APA checklist, and progress tracking. No application code was modified during verification closure.
 
-**Resolved in commit:**
+**Resolved in commit:** (presentation-only fix; closed after live walkthrough verification)
 
 ---
 
@@ -1968,4 +1968,4 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-066 marked Resolved after walkthrough verification.*
+*Last updated: July 10, 2026 — WP-007 marked Resolved after live student walkthrough verification.*
