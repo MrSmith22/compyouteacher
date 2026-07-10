@@ -11,6 +11,8 @@ import {
   setCurrentModule,
   setModule9Shortcut,
 } from "@/lib/dev/devPanelServer";
+import { runSeedThrough, type SeedThroughTarget } from "@/lib/dev/seeds";
+import type { SeedModule9Options } from "@/lib/dev/seeds/seedModule9Ready";
 
 function deny() {
   return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
@@ -104,6 +106,43 @@ export async function POST(req: Request) {
       }
       case "deleteGoogleDoc": {
         const result = await deleteGoogleDocRecord(email);
+        return NextResponse.json(result);
+      }
+      case "seedThrough": {
+        const targetRaw = body.target;
+        let target: SeedThroughTarget | null = null;
+        if (
+          targetRaw === 2 ||
+          targetRaw === 3 ||
+          targetRaw === 4 ||
+          targetRaw === 5 ||
+          targetRaw === 6 ||
+          targetRaw === 7 ||
+          targetRaw === "2" ||
+          targetRaw === "3" ||
+          targetRaw === "4" ||
+          targetRaw === "5" ||
+          targetRaw === "6" ||
+          targetRaw === "7"
+        ) {
+          target = Number(targetRaw) as 2 | 3 | 4 | 5 | 6 | 7;
+        } else if (targetRaw === "completeEssay" || targetRaw === "module9Ready") {
+          target = targetRaw;
+        }
+
+        if (!target) {
+          return NextResponse.json(
+            { ok: false, error: "Invalid seed target" },
+            { status: 400 }
+          );
+        }
+
+        const module9Options =
+          body.module9Options && typeof body.module9Options === "object"
+            ? (body.module9Options as SeedModule9Options)
+            : undefined;
+
+        const result = await runSeedThrough(email, target, module9Options);
         return NextResponse.json(result);
       }
       case "status": {

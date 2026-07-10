@@ -85,6 +85,9 @@ export async function getDevPanelStatus(userEmail: string) {
     pdfRes,
     draft6Res,
     draft7Res,
+    outlineRes,
+    buckets4Res,
+    tchartRes,
   ] = await Promise.all([
     supabase
       .from("student_assignments")
@@ -122,15 +125,41 @@ export async function getDevPanelStatus(userEmail: string) {
       .maybeSingle(),
     supabase
       .from("student_drafts")
-      .select("full_text, final_text, locked, updated_at")
+      .select("full_text, final_text, locked, final_ready, updated_at")
       .eq("user_email", userEmail)
       .eq("module", 7)
       .maybeSingle(),
+    supabase
+      .from("student_outlines")
+      .select("outline, finalized, updated_at")
+      .eq("user_email", userEmail)
+      .eq("module", 5)
+      .maybeSingle(),
+    supabase
+      .from("student_buckets")
+      .select("buckets")
+      .eq("user_email", userEmail)
+      .eq("module", 4)
+      .maybeSingle(),
+    supabase
+      .from("tchart_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("user_email", userEmail),
   ]);
 
+  const assignmentRow = assignmentRes.data ?? null;
+  const assignmentError = assignmentRes.error?.message ?? null;
+
+  const rawModule = assignmentRow?.current_module;
+  const coercedModule =
+    typeof rawModule === "number"
+      ? rawModule
+      : typeof rawModule === "string" && rawModule.trim() !== "" && Number.isFinite(Number(rawModule))
+        ? Number(rawModule)
+        : null;
   const currentModule =
-    typeof assignmentRes.data?.current_module === "number"
-      ? assignmentRes.data.current_module
+    coercedModule != null && Number.isFinite(coercedModule)
+      ? coercedModule
       : null;
 
   const checklistItems = Array.isArray(checklistRes.data?.items)
@@ -142,12 +171,22 @@ export async function getDevPanelStatus(userEmail: string) {
       checklistItems.length > 0 &&
       checklistItems.every(Boolean));
 
+  const outlineExists = !!outlineRes.data?.outline;
+  const outlineFinalized = outlineRes.data?.finalized === true;
+  const paragraphPlans = Array.isArray(buckets4Res.data?.buckets)
+    ? buckets4Res.data.buckets.length
+    : 0;
+  const observationsCount =
+    typeof tchartRes.count === "number" ? tchartRes.count : 0;
+
   return {
     userEmail,
     assignmentName,
+    assignmentRowFound: !!assignmentRow,
+    assignmentError,
     currentModule,
-    assignmentStatus: assignmentRes.data?.status ?? null,
-    resumePath: assignmentRes.data?.resume_path ?? null,
+    assignmentStatus: assignmentRow?.status ?? null,
+    resumePath: assignmentRow?.resume_path ?? null,
     googleDocUrl: exportDocRes.data?.web_view_link ?? null,
     googleDocId: exportDocRes.data?.document_id ?? null,
     quizComplete: !!quizRes.data?.submitted_at,
@@ -159,31 +198,103 @@ export async function getDevPanelStatus(userEmail: string) {
     pdfUploaded: !!pdfRes.data,
     pdfFileName: pdfRes.data?.file_name ?? null,
     draft6Present: !!draft6Res.data?.full_text,
+    draft6Locked: draft6Res.data?.locked === true,
     draft7Present: !!(draft7Res.data?.final_text || draft7Res.data?.full_text),
+    draft7FinalReady: draft7Res.data?.final_ready === true,
+    outlineExists,
+    outlineFinalized,
+    paragraphPlans,
+    observationsCount,
+    googleDoc: !!exportDocRes.data?.web_view_link || !!exportDocRes.data?.document_id,
+    pdf: !!pdfRes.data,
     moduleComplete: typeof currentModule === "number" && currentModule > 9,
   };
 }
 
 export async function setCurrentModule(userEmail: string, moduleNumber: number) {
   const supabase = getSupabaseAdmin();
+  if (!Number.isFinite(moduleNumber)) {
+    return { ok: false as const, error: "Invalid module number", module: null };
+  }
   const next = Math.min(Math.max(1, Math.floor(moduleNumber)), MAX_MODULE);
   const now = new Date().toISOString();
   const resumePath = `/modules/${Math.min(next, 9)}`;
+  const assignmentName = DEFAULT_ASSIGNMENT_NAME;
 
-  const { error } = await supabase.from("student_assignments").upsert(
-    {
+  // Prefer explicit update/insert over upsert so we never depend on onConflict
+  // matching, and so we do not rewrite started_at on every jump.
+  const existingRes = await supabase
+    .from("student_assignments")
+    .select("id, current_module")
+    .eq("user_email", userEmail)
+    .eq("assignment_name", assignmentName)
+    .maybeSingle();
+
+  if (existingRes.error) {
+    return {
+      ok: false as const,
+      error: existingRes.error.message,
+      module: next,
+    };
+  }
+
+  if (existingRes.data?.id) {
+    const { error } = await supabase
+      .from("student_assignments")
+      .update({
+        current_module: next,
+        resume_path: resumePath,
+        status: "in_progress",
+        updated_at: now,
+      })
+      .eq("user_email", userEmail)
+      .eq("assignment_name", assignmentName);
+
+    if (error) {
+      return { ok: false as const, error: error.message, module: next };
+    }
+  } else {
+    const { error } = await supabase.from("student_assignments").insert({
       user_email: userEmail,
-      assignment_name: DEFAULT_ASSIGNMENT_NAME,
+      assignment_name: assignmentName,
       current_module: next,
       resume_path: resumePath,
       status: "in_progress",
-      updated_at: now,
       started_at: now,
-    },
-    { onConflict: "user_email,assignment_name" }
-  );
+      updated_at: now,
+    });
 
-  if (error) return { ok: false as const, error: error.message, module: next };
+    if (error) {
+      return { ok: false as const, error: error.message, module: next };
+    }
+  }
+
+  const verify = await supabase
+    .from("student_assignments")
+    .select("current_module")
+    .eq("user_email", userEmail)
+    .eq("assignment_name", assignmentName)
+    .maybeSingle();
+
+  const verifiedRaw = verify.data?.current_module;
+  const verified =
+    typeof verifiedRaw === "number"
+      ? verifiedRaw
+      : typeof verifiedRaw === "string" && Number.isFinite(Number(verifiedRaw))
+        ? Number(verifiedRaw)
+        : null;
+
+  if (verify.error) {
+    return { ok: false as const, error: verify.error.message, module: next };
+  }
+  if (verified !== next) {
+    return {
+      ok: false as const,
+      error: `Write did not stick (expected current_module=${next}, got ${String(verifiedRaw)})`,
+      module: next,
+    };
+  }
+
   return { ok: true as const, module: next, resumePath };
 }
 

@@ -191,18 +191,111 @@ export default function DeveloperTestingPanel() {
             <div className="space-y-0.5 rounded border border-slate-200 bg-white p-2 text-[11px] leading-snug">
               <div>User: {status?.userEmail || email || "—"}</div>
               <div>Assignment: {status?.assignmentName || "—"}</div>
+              <div>
+                Assignment row:{" "}
+                {status?.assignmentRowFound
+                  ? "found"
+                  : status?.assignmentError
+                    ? `error (${status.assignmentError})`
+                    : "missing"}
+              </div>
               <div>Current module: {status?.currentModule ?? "—"}</div>
-              <div>Google Doc: {status?.googleDocUrl ? "Yes" : "No"}</div>
+              <div>
+                Outline exists:{" "}
+                {status?.outlineExists
+                  ? status?.outlineFinalized
+                    ? "Yes (finalized)"
+                    : "Yes"
+                  : "No"}
+              </div>
+              <div>
+                Draft exists:{" "}
+                {status?.draft6Present
+                  ? status?.draft6Locked
+                    ? "Yes (locked)"
+                    : "Yes"
+                  : "No"}
+              </div>
+              <div>
+                Revision exists:{" "}
+                {status?.draft7Present
+                  ? status?.draft7FinalReady
+                    ? "Yes (final)"
+                    : "Yes"
+                  : "No"}
+              </div>
+              <div>Paragraph plans: {status?.paragraphPlans ?? 0}</div>
+              <div>Observations: {status?.observationsCount ?? 0}</div>
+              <div>Google Doc: {status?.googleDoc || status?.googleDocUrl ? "Yes" : "No"}</div>
+              <div>PDF: {status?.pdf || status?.pdfUploaded ? "Yes" : "No"}</div>
               <div>Quiz: {status?.quizComplete ? status.quizScore || "Done" : "No"}</div>
               <div>Checklist: {status?.checklistComplete ? "Complete" : "Incomplete"}</div>
-              <div>PDF uploaded: {status?.pdfUploaded ? "Yes" : "No"}</div>
-              <div>Draft M6: {status?.draft6Present ? "Yes" : "No"}</div>
-              <div>Revision M7: {status?.draft7Present ? "Yes" : "No"}</div>
               <div>Module 9+ complete: {status?.moduleComplete ? "Yes" : "No"}</div>
             </div>
             <button type="button" className={`${btn} mt-1`} disabled={busy} onClick={() => run("Status refreshed", refresh)}>
               Refresh status
             </button>
+          </section>
+
+          <section>
+            <p className={sectionTitle}>Seed prerequisites</p>
+            <div className="flex flex-wrap gap-1">
+              {[
+                [2, "Seed through Module 2"],
+                [3, "Seed through Module 3"],
+                [4, "Seed through Module 4"],
+                [5, "Seed through Module 5"],
+                [6, "Seed through Module 6"],
+                [7, "Seed through Module 7"],
+              ].map(([n, label]) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={btn}
+                  disabled={busy}
+                  onClick={() =>
+                    run(label, async () => {
+                      await panelAction("seedThrough", { target: n });
+                    })
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded complete essay", async () => {
+                    await panelAction("seedThrough", { target: "completeEssay" });
+                  })
+                }
+              >
+                Seed complete essay
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded Module 9 ready", async () => {
+                    await panelAction("seedThrough", {
+                      target: "module9Ready",
+                      module9Options: {
+                        googleDoc: true,
+                        checklist: true,
+                        quiz: true,
+                        pdf: true,
+                        moduleComplete: false,
+                      },
+                    });
+                  })
+                }
+              >
+                Seed Module 9 ready
+              </button>
+            </div>
           </section>
 
           <section>
