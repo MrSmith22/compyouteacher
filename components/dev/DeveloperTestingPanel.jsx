@@ -137,21 +137,10 @@ export default function DeveloperTestingPanel() {
         }
 
         if (key === "googleDoc" && enabled) {
-          const result = await panelAction("module9Shortcut", {
+          await panelAction("module9Shortcut", {
             key: "googleDoc",
             enabled: true,
           });
-          if (result.needsClientExport && result.text) {
-            const res = await fetch("/api/export-to-docs", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text: result.text, email }),
-            });
-            if (!res.ok) {
-              const body = await res.json().catch(() => ({}));
-              throw new Error(body.error || "Export failed");
-            }
-          }
           return;
         }
 
@@ -226,7 +215,14 @@ export default function DeveloperTestingPanel() {
               </div>
               <div>Paragraph plans: {status?.paragraphPlans ?? 0}</div>
               <div>Observations: {status?.observationsCount ?? 0}</div>
-              <div>Google Doc: {status?.googleDoc || status?.googleDocUrl ? "Yes" : "No"}</div>
+              <div>
+                Google Doc:{" "}
+                {status?.googleDoc || status?.googleDocUrl
+                  ? "Yes"
+                  : status?.googleDocError
+                    ? `No (${status.googleDocError})`
+                    : "No"}
+              </div>
               <div>PDF: {status?.pdf || status?.pdfUploaded ? "Yes" : "No"}</div>
               <div>Quiz: {status?.quizComplete ? status.quizScore || "Done" : "No"}</div>
               <div>Checklist: {status?.checklistComplete ? "Complete" : "Incomplete"}</div>

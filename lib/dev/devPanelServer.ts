@@ -97,7 +97,7 @@ export async function getDevPanelStatus(userEmail: string) {
       .maybeSingle(),
     supabase
       .from("exported_docs")
-      .select("web_view_link, document_id, updated_at")
+      .select("web_view_link, document_id, created_at")
       .eq("user_email", userEmail)
       .maybeSingle(),
     supabase
@@ -189,6 +189,7 @@ export async function getDevPanelStatus(userEmail: string) {
     resumePath: assignmentRow?.resume_path ?? null,
     googleDocUrl: exportDocRes.data?.web_view_link ?? null,
     googleDocId: exportDocRes.data?.document_id ?? null,
+    googleDocError: exportDocRes.error?.message ?? null,
     quizComplete: !!quizRes.data?.submitted_at,
     quizScore:
       quizRes.data?.score != null
@@ -371,19 +372,30 @@ export async function setModule9Shortcut(
         .eq("module", 9)
         .eq("kind", "final_pdf")
         .maybeSingle();
-      if (!existing.data) {
-        const docId = `dev_${Date.now()}`;
+      if (existing.error) return { ok: false as const, error: existing.error.message };
+
+      const pdfFields = {
+        file_name: "dev-stub.pdf",
+        storage_path: `dev/${userEmail}/dev-stub.pdf`,
+        public_url: "https://example.com/dev-stub.pdf",
+        web_view_link: "https://example.com/dev-stub.pdf",
+        uploaded_at: now,
+        grading_status: "ungraded",
+      };
+
+      if (existing.data?.id) {
+        const { error } = await supabase
+          .from("student_exports")
+          .update(pdfFields)
+          .eq("id", existing.data.id);
+        if (error) return { ok: false as const, error: error.message };
+      } else {
         const { error } = await supabase.from("student_exports").insert({
-          doc_id: docId,
+          doc_id: `dev_${Date.now()}`,
           user_email: userEmail,
           module: 9,
           kind: "final_pdf",
-          file_name: "dev-stub.pdf",
-          storage_path: `dev/${userEmail}/dev-stub.pdf`,
-          public_url: "https://example.com/dev-stub.pdf",
-          web_view_link: "https://example.com/dev-stub.pdf",
-          uploaded_at: now,
-          grading_status: "ungraded",
+          ...pdfFields,
         });
         if (error) return { ok: false as const, error: error.message };
       }
@@ -400,15 +412,8 @@ export async function setModule9Shortcut(
 
   if (key === "googleDoc") {
     if (enabled) {
-      // Prefer real export when essay text exists; otherwise stub a row.
-      const exportRes = await getEssayTextForExportAdmin(userEmail);
-      if (exportRes.status === "ok" && exportRes.text) {
-        return {
-          ok: true as const,
-          needsClientExport: true as const,
-          text: exportRes.text,
-        };
-      }
+      // Dev panel / seeds: always write the same stub shape as export-to-docs.
+      // Do not require a live Google OAuth roundtrip for harness consistency.
       const { error } = await supabase.from("exported_docs").upsert(
         {
           user_email: userEmail,

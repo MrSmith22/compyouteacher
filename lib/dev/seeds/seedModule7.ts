@@ -5,6 +5,7 @@ import { nowIso, seedEssayFullText } from "@/lib/dev/seeds/seedContent";
 
 /**
  * Seed a finalized Module 7 revision so Module 8 can load immediately.
+ * Overwrites the working M7 copy created by seedModule6.
  */
 export async function seedModule7(userEmail: string) {
   const prior = await seedModule6(userEmail);
@@ -14,18 +15,18 @@ export async function seedModule7(userEmail: string) {
   const now = nowIso();
   const text = seedEssayFullText();
 
-  const { error } = await supabase.from("student_drafts").upsert(
-    {
-      user_email: userEmail,
-      module: 7,
+  const { error } = await supabase
+    .from("student_drafts")
+    .update({
       full_text: text,
       final_text: text,
       revised: true,
       final_ready: true,
       updated_at: now,
-    },
-    { onConflict: "user_email,module" }
-  );
+    })
+    .eq("user_email", userEmail)
+    .eq("module", 7);
+
   if (error) {
     return { ok: false as const, error: error.message };
   }
