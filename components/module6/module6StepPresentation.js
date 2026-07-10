@@ -40,6 +40,24 @@ export function buildDraftSectionSteps(outline) {
   return steps;
 }
 
+/**
+ * Writing-language label for the Module 6 drafting textbox.
+ * Planning labels (Roman numerals, bucket/claim titles) stay on the shelf.
+ */
+export function getModule6DraftingLabel(step) {
+  if (!step) return "Draft";
+  if (step.type === SECTION_TYPES.INTRO) return "Introduction";
+  if (step.type === SECTION_TYPES.CONCLUSION) return "Conclusion";
+  if (step.type === SECTION_TYPES.BODY) {
+    const n =
+      typeof step.bodyIndex === "number" && step.bodyIndex >= 0
+        ? step.bodyIndex + 1
+        : 1;
+    return `Body Paragraph ${n}`;
+  }
+  return "Draft";
+}
+
 export function getModule6StepPresentation(step, outline) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
 

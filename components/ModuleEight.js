@@ -27,7 +27,8 @@ import {
   getSectionCountFromOutline,
   splitDraftIntoSections,
 } from "@/components/module7/module7DraftSections";
-import { buildDraftSectionSteps, romanNumeral } from "@/components/module6/module6StepPresentation";
+import EssayProseView from "@/components/module7/EssayProseView";
+import { buildDraftSectionSteps } from "@/components/module6/module6StepPresentation";
 import {
   getModule8StepPresentation,
   MODULE8_STEP_TYPES,
@@ -462,18 +463,11 @@ export default function ModuleEight() {
         Your finished essay ({wordCount} words) — reference only
       </summary>
       <div className={`mt-3 ${FINISHED_ESSAY_PREVIEW_CLASS}`}>
-        {sectionSteps.map((step) => {
-          const text = String(sections[step.draftIndex] || "").trim();
-          if (!text) return null;
-          return (
-            <div key={step.id} className="mb-4 last:mb-0">
-              <p className="mb-1 text-xs font-medium text-text-muted">
-                {romanNumeral(step.roman)}. {step.title}
-              </p>
-              <p className="whitespace-pre-wrap">{text}</p>
-            </div>
-          );
-        })}
+        <EssayProseView
+          sectionSteps={sectionSteps}
+          sections={sections}
+          blockClassName="mb-4 last:mb-0"
+        />
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
         Your finished essay stays here (reference only). Your Google Doc is the

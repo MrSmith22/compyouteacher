@@ -19,8 +19,8 @@ import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
 import {
   buildDraftSectionSteps,
+  getModule6DraftingLabel,
   getModule6StepPresentation,
-  romanNumeral,
 } from "@/components/module6/module6StepPresentation";
 
 const DRAFT_TEXTAREA_CLASS =
@@ -310,10 +310,7 @@ export default function ModuleSix() {
   const draftIndex = currentStep.draftIndex;
   const isFirstSection = currentSectionIndex === 0;
   const isLastSection = currentSectionIndex === sectionSteps.length - 1;
-  const sectionLabel =
-    currentStep.type === "body"
-      ? `${romanNumeral(currentStep.roman)}. ${currentStep.title}`
-      : `${romanNumeral(currentStep.roman)}. ${currentStep.title}`;
+  const sectionLabel = getModule6DraftingLabel(currentStep);
 
   const referenceShelf = (
     <ModuleSixReferenceShelf

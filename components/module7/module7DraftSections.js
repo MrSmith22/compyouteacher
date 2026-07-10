@@ -28,3 +28,19 @@ export function splitDraftIntoSections(fullText, sectionCount) {
 export function joinSections(sections) {
   return (Array.isArray(sections) ? sections : []).join("\n\n");
 }
+
+/**
+ * Writing representation only: section prose for essay-as-paper views.
+ * Does not include Roman numerals, outline titles, or other planning labels.
+ */
+export function getEssayProseBlocks(sectionSteps, sections) {
+  const steps = Array.isArray(sectionSteps) ? sectionSteps : [];
+  const parts = Array.isArray(sections) ? sections : [];
+  return steps
+    .map((step) => {
+      const text = String(parts[step?.draftIndex] ?? "").trim();
+      if (!text) return null;
+      return { key: step.id ?? `section-${step.draftIndex}`, text };
+    })
+    .filter(Boolean);
+}

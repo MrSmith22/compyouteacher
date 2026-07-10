@@ -20,6 +20,7 @@ import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSevenReferenceShelf from "@/components/module7/ModuleSevenReferenceShelf";
 import ModuleSevenReadAloud from "@/components/module7/ModuleSevenReadAloud";
+import EssayProseView from "@/components/module7/EssayProseView";
 import {
   alignSectionsToOutline,
   getSectionCountFromOutline,
@@ -695,24 +696,16 @@ export default function ModuleSeven() {
           {isReadAloudStep ? (
             <div className="space-y-4 text-left">
               <div className={FULL_DRAFT_READ_CLASS}>
-                {sectionSteps.map((step) => {
-                  const text = String(sections[step.draftIndex] || "").trim();
-                  if (!text) return null;
-                  return (
-                    <div key={step.id} className="mb-6 last:mb-0">
-                      <p className="mb-2 text-sm font-medium text-text-primary">
-                        {romanNumeral(step.roman)}. {step.title}
-                      </p>
-                      <p className="whitespace-pre-wrap">{text}</p>
-                    </div>
-                  );
-                })}
-                {!fullText.trim() ? (
-                  <p className="text-sm leading-relaxed text-text-muted">
-                    Your draft from Module 6 will appear here. Return to Module 6 if
-                    you need to finish your first draft.
-                  </p>
-                ) : null}
+                <EssayProseView
+                  sectionSteps={sectionSteps}
+                  sections={sections}
+                  emptyFallback={
+                    <p className="text-sm leading-relaxed text-text-muted">
+                      Your draft from Module 6 will appear here. Return to Module 6 if
+                      you need to finish your first draft.
+                    </p>
+                  }
+                />
               </div>
               <ModuleSevenReadAloud
                 prominent

@@ -41,7 +41,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 |----------|-------|--------|----------|----------|--------|
 | WP-001 | Generated essay includes Roman numerals and outline headings | 7 | Critical | Bug | Open |
 | WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Open |
-| WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Needs Verification |
+| WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Resolved |
 | WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Open |
 | WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Open |
 | WP-006 | Module 9 tests APA knowledge before teaching it | 9 | Critical | Instructional | Open |
@@ -101,8 +101,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
+| WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Open |
+| WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026).*
 
 ---
 
@@ -174,7 +176,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Source preparation wizard (speech and letter stages); analysis-phase entry; downstream Module 2–4 routes
 - **Priority:** Critical
 - **Category:** Persistence / Gate
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** The walkthrough student had speech text persisted (`mlk_text`) but letter text empty (`lfbj_text`). The student could continue through Module 2 because local textarea content satisfied progression checks even though the letter was never saved. Later pages correctly reported “No saved letter found yet.”
 
@@ -191,11 +193,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 4. Refresh mid-wizard and confirm resume lands on the correct incomplete stage.
 5. Attempt direct navigation to Module 2 analysis or Module 3 with incomplete sources; confirm redirect.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/module2/module2SourceReadiness.ts`; `lib/module2/useModule2SourcePreparationGate.js`; `app/modules/2/page.js`; `app/modules/2/layout.js`; `app/modules/3/page.js`; `app/modules/4/page.js`
 
-**Resolution notes:**
+**Resolution notes:** Fully verified through manual walkthrough testing (July 2026). All source persistence gates passed. Refresh preserved saved copies. Direct navigation to `/modules/2/tcharts`, `/modules/2/analysis`, `/modules/2/success`, and `/modules/3` behaved correctly (incomplete sources redirected to Module 2). Saved state correctly required persistence before progression; Continue and progress controls could not bypass unsaved sources.
 
-**Resolved in commit:**
+**Resolved in commit:** (implementation present prior to verification; status closed after manual walkthrough confirmation)
 
 ---
 
@@ -1874,4 +1876,65 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 9, 2026 — created from Phase II Master Design Specification walkthrough findings.*
+### WP-064 — Students cannot reopen saved source texts during Module 3 analysis
+
+- **Module:** 3 (ultimately all evidence-based modules)
+- **Screen or area:** Module 3 analysis workflow; saved speech and letter working copies
+- **Priority:** High
+- **Category:** UX / Navigation
+- **Status:** Open
+
+**Walkthrough observation:** Students who close their saved speech or letter tabs have no way to reopen them from within Module 3. This interrupts the intended workflow of continually referencing evidence while analyzing quotations.
+
+**Why it matters educationally:** Analysis depends on continual reference to the working source copies. Without one-click access to reopen saved texts, students lose the “look first, then write” habit and may invent or misremember quotations.
+
+**Why it matters technically or operationally:** Saved source routes (`/texts/speech`, `/texts/letter`) already exist, but Module 3 does not surface a durable reopen control. The same gap will recur in later evidence-based modules unless access is provided consistently.
+
+**Recommended smallest reasonable fix:** Add one-click controls in Module 3 to reopen the student’s saved speech and letter working copies. Design the pattern so it can be reused across all evidence-based modules, not only Module 3.
+
+**Verification steps:**
+1. Complete Module 2 with both sources saved.
+2. Open Module 3 and open the saved speech and letter tabs, then close those tabs.
+3. Confirm Module 3 provides a clear one-click way to reopen each saved copy.
+4. Confirm the reopened pages show the persisted working copies.
+5. Confirm the same reopen pattern remains available (or is planned) for later evidence-based modules.
+
+**Related files:** Not yet specified.
+
+**Resolution notes:**
+
+**Resolved in commit:**
+
+---
+
+### WP-065 — Transition Module 6 from outline language to writing language
+
+- **Module:** 6
+- **Screen or area:** Drafting workspace label above each section textbox
+- **Priority:** High
+- **Category:** Instructional / UX
+- **Status:** Needs Verification
+
+**Walkthrough observation:** After WP-001 fixed assembled-essay rendering in Modules 7–8, Module 6 drafting still showed outline-oriented labels such as “I. Introduction” and “II. King uses emotional appeals…” above the writing textbox. Students felt they were filling an outline rather than drafting an essay.
+
+**Why it matters educationally:** Module 6 is the transition from planning to writing. Drafting chrome should use writing language (Introduction, Body Paragraph 1, Conclusion) so students experience the workspace as essay writing, not outline completion.
+
+**Why it matters technically or operationally:** Presentation-only change. Section order, autosave, persistence, shelves, and Modules 5/7/8/9 must remain unchanged. Planning labels stay on the outline shelf.
+
+**Recommended smallest reasonable fix:** Replace the Module 6 drafting textbox label with writing-oriented labels; leave `buildDraftSectionSteps` titles and shelf/outline rendering untouched.
+
+**Verification steps:**
+1. Open Module 6 with a multi-body outline.
+2. Confirm each drafting textbox label uses writing language (no Roman numerals; no claim/bucket titles).
+3. Confirm the left shelf still shows the outline with Roman numerals and bucket titles.
+4. Confirm drafting, autosave, and section navigation still work.
+
+**Related files:** `components/ModuleSix.js`; `components/module6/module6StepPresentation.js`
+
+**Resolution notes:** Presentation-only fix. Added `getModule6DraftingLabel()` and used it for the Module 6 drafting textbox label. Roman numerals and bucket/claim titles removed from that label; shelf/outline unchanged. Ready for manual verification.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 10, 2026 — WP-065 implemented (Module 6 drafting labels); status Needs Verification.*
