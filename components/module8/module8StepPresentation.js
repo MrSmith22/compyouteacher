@@ -10,7 +10,7 @@ export const MODULE8_WORKSPACE_STEPS = [
   { id: "ready", type: MODULE8_STEP_TYPES.READY },
 ];
 
-export function getModule8StepPresentation(step) {
+export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}) {
   if (step?.type === MODULE8_STEP_TYPES.CREATE_DOC) {
     return {
       question: "How do you get your finished essay into a Google Doc?",
@@ -26,9 +26,12 @@ export function getModule8StepPresentation(step) {
       coachingMessage:
         "You are preparing the paper your teacher will read—not changing what you wrote.",
       nextStepText: "Next you will format your paper in APA style inside your Google Doc.",
-      workingSetLabel: "Create your Google Doc",
-      workingSetDescription:
-        "Your finished essay will be placed into a Google Doc—the paper you'll format before turning it in.",
+      workingSetLabel: hasExistingDoc
+        ? "Update your Google Doc"
+        : "Create your Google Doc",
+      workingSetDescription: hasExistingDoc
+        ? "A Google Doc already exists for this assignment. Update it so it has your latest essay before you format."
+        : "Your finished essay will be placed into a Google Doc—the paper you'll format before turning it in.",
     };
   }
 

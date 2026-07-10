@@ -104,11 +104,13 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
 | WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
 | WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
-| WP-067 | Module 8 completion does not advance progress to Module 9 | 8 | Critical | Persistence / Gate | Needs Verification |
-| WP-068 | Module 8 revisit completion bypasses dedicated success page | 8 | High | Navigation / Flow | Needs Verification |
-| WP-069 | Improve Module 9 final success screen | 9 | High | Instructional / UX | Needs Verification |
+| WP-067 | Module 8 completion does not advance progress to Module 9 | 8 | Critical | Persistence / Gate | Resolved |
+| WP-068 | Module 8 revisit completion bypasses dedicated success page | 8 | High | Navigation / Flow | Resolved |
+| WP-069 | Improve Module 9 final success screen | 9 | High | Instructional / UX | Resolved |
+| WP-070 | Unlock to Test does not restore Module 7 editing | 7 | Critical | Bug / Dev tooling | Needs Verification |
+| WP-071 | Module 8 always shows Create when a Google Doc already exists | 8 | Medium | Copy / UX | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-070.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-072.*
 
 ---
 
@@ -1977,7 +1979,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** In-module “Continue to Module 9” success panel (after Google Doc + checklist)
 - **Priority:** Critical
 - **Category:** Persistence / Gate
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** After completing Module 8 (Google Doc created/updated, APA checklist complete, Ready), clicking Continue to Module 9 navigated to `/modules/9`, but the Module 9 gate rejected entry with “Finish Module 8 before starting Module 9.” Developer Panel showed `current_module: 8`.
 
@@ -1995,9 +1997,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `components/ModuleEight.js`; `lib/supabase/helpers/studentAssignments.ts` (`advanceCurrentModuleOnSuccess`); `app/modules/8/success/page.js`
 
-**Resolution notes:** (July 2026) Replaced the direct Module 9 link with `continueToModuleNine`, which awaits `advanceCurrentModuleOnSuccess` for completed module 8 before `router.push("/modules/9")`. Errors surface an alert and do not navigate. The `/modules/8/success` path remains unchanged for the Finish preparing flow. Awaiting walkthrough re-verification.
+**Resolution notes:** (July 2026) Completion routes through `/modules/8/success`, which calls `advanceCurrentModuleOnSuccess` for completed module 8 before Continue to Module 9. Verified in live walkthrough: Module 8 success page is shown; Continue advances correctly; `current_module` becomes 9; Module 9 opens normally with no gating or redirect issues.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after live walkthrough verification)
 
 ---
 
@@ -2007,7 +2009,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Completion / transition to Module 9
 - **Priority:** High
 - **Category:** Navigation / Flow
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** First-time Module 8 completion routed through `/modules/8/success`. Previously finalized / Seed Complete Essay revisits showed an in-module success panel and navigated straight to Module 9, skipping the dedicated success screen.
 
@@ -2024,9 +2026,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `components/ModuleEight.js`; `app/modules/8/success/page.js`
 
-**Resolution notes:** (July 2026) Revisit completion now `router.push("/modules/8/success")` once `previouslyFinalized && docVerifiedThisSession && checklistComplete` (one-shot via ref). Removed direct Module 9 advance from the in-module panel; any residual locked Continue also goes to the success page. WP-002 session export and success-page `advanceCurrentModuleOnSuccess` unchanged. Awaiting walkthrough verification.
+**Resolution notes:** (July 2026) Revisit completion now `router.push("/modules/8/success")` once `previouslyFinalized && docVerifiedThisSession && checklistComplete` (one-shot via ref). Removed direct Module 9 advance from the in-module panel; any residual locked Continue also goes to the success page. WP-002 session export and success-page `advanceCurrentModuleOnSuccess` unchanged. Verified in live walkthrough: seeded/revisit completion routes through `/modules/8/success`; success page displays correctly; Continue proceeds into Module 9; shared completion flow works as intended.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after live walkthrough verification)
 
 ---
 
@@ -2036,7 +2038,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** `/modules/9/success` after final PDF submission
 - **Priority:** High
 - **Category:** Instructional / UX
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** The Module 9 success screen confirmed submission but read like a generic dialog. Links were primary; students were not clearly told what happened, what each button was for, or whether anything else was required.
 
@@ -2053,10 +2055,72 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `app/modules/9/success/page.js`
 
-**Resolution notes:** (July 2026) Success page rewritten with confirmation-first hierarchy, labeled actions with short explanations, teacher-contact guidance, and a closing celebration. No changes to `logActivity`, `advanceCurrentModuleOnSuccess`, or document fetch logic. Awaiting walkthrough verification.
+**Resolution notes:** (July 2026) Success page rewritten with confirmation-first hierarchy, labeled actions with short explanations, teacher-contact guidance, and a closing celebration. No changes to `logActivity`, `advanceCurrentModuleOnSuccess`, or document fetch logic. Verified in live walkthrough: updated completion copy is clear for middle school students; all buttons function correctly; final screen clearly communicates that submission is complete; student expectations are clear.
+
+**Resolved in commit:** (closed after live walkthrough verification)
+
+---
+
+### WP-070 — Unlock to Test does not restore Module 7 editing
+
+- **Module:** 7
+- **Screen or area:** Finalized Module 7 revision workspace; development-only Unlock to Test control
+- **Priority:** Critical
+- **Category:** Bug / Dev tooling
+- **Status:** Needs Verification
+
+**Walkthrough observation:** After finalizing Module 7, Unlock to Test did not restore editable revision fields. The essay stayed read-only, blocking WP-002 verification that requires revising text before export.
+
+**Why it matters educationally:** Development-only, but it blocks walkthrough verification of submission trust (WP-002).
+
+**Why it matters technically or operationally:** Unlock only flipped local `locked` state. Overlapping Module 7 loads could re-apply `final_ready` locking, and unlock left testers on Read Aloud (prose-only), so no drafting field appeared editable.
+
+**Recommended smallest reasonable fix:** Dev-only unlock that (1) sets a session flag so late loads cannot re-lock, (2) clears the UI lock, and (3) moves to the first revision textarea. Production finalize behavior unchanged.
+
+**Verification steps:**
+1. Finalize an essay in Module 7.
+2. Return to Module 7 and click Unlock to Test.
+3. Type into a revision field.
+4. Save revision successfully.
+5. Confirm the new text persists after reload.
+
+**Related files:** `components/ModuleSeven.js`
+
+**Resolution notes:** (July 2026) Unlock to Test (development only) now sets `devUnlockedForTestingRef` so overlapping loads cannot re-apply `final_ready` lock, clears UI lock, and navigates from Read Aloud to the first revision field. Save revision still clears `final_ready` / updates `full_text` as before. Production students never see the control. Awaiting walkthrough verification.
 
 **Resolved in commit:**
 
 ---
 
-*Last updated: July 10, 2026 — WP-069 Needs Verification (Module 9 final success screen).*
+### WP-071 — Module 8 always shows Create when a Google Doc already exists
+
+- **Module:** 8
+- **Screen or area:** Google Doc creation/export step (working-set label and primary action)
+- **Priority:** Medium
+- **Category:** Copy / UX
+- **Status:** Needs Verification
+
+**Walkthrough observation:** After a Google Doc already existed for the assignment, Module 8 still presented “Create your Google Doc,” which suggested a brand-new document would always be made.
+
+**Why it matters educationally:** Students need accurate action language during submission prep. “Create” when a doc already exists increases anxiety and confusion about which paper is authoritative.
+
+**Why it matters technically or operationally:** Wording only. Existence is already known via `submissionDocUrl` / `exported_docs`; export and session verification gates are unchanged.
+
+**Recommended smallest reasonable fix:** When a submission Google Doc link is already present, show “Update your Google Doc” for the working-set label and primary button; otherwise keep “Create your Google Doc.”
+
+**Verification steps:**
+1. Reset Student.
+2. Seed Complete Essay.
+3. Export a Google Doc.
+4. Return to Module 8.
+5. Confirm the primary control reads “Update your Google Doc.”
+
+**Related files:** `components/ModuleEight.js`; `components/module8/module8StepPresentation.js`
+
+**Resolution notes:** (July 2026) `getModule8StepPresentation` now accepts `hasExistingDoc` from `submissionDocUrl`. Working-set label/description and the unverified existing-doc primary button use “Update your Google Doc.” No export, gating, or persistence changes. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 10, 2026 — WP-071 Needs Verification (Module 8 Create vs Update wording).*

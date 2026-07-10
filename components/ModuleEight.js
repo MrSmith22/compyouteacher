@@ -138,8 +138,11 @@ export default function ModuleEight() {
 
   const currentStep = MODULE8_WORKSPACE_STEPS[currentStepIndex] ?? MODULE8_WORKSPACE_STEPS[0];
   const presentation = useMemo(
-    () => getModule8StepPresentation(currentStep),
-    [currentStep]
+    () =>
+      getModule8StepPresentation(currentStep, {
+        hasExistingDoc: !!submissionDocUrl,
+      }),
+    [currentStep, submissionDocUrl]
   );
 
   const checklistComplete = checklistState.every(Boolean);
@@ -614,7 +617,7 @@ export default function ModuleEight() {
                     >
                       {creatingDoc
                         ? "Updating your Google Doc…"
-                        : "Update Google Doc with your latest essay"}
+                        : "Update your Google Doc"}
                     </button>
                     <a
                       href={submissionDocUrl}

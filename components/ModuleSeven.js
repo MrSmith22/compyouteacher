@@ -91,6 +91,9 @@ export default function ModuleSeven() {
   const audioCtxRef = useRef(null);
   const streamRef = useRef(null);
   const hasLoggedStartRef = useRef(false);
+  // Dev-only: once Unlock to Test is used, ignore late load results that would
+  // re-apply final_ready locking (common with overlapping fetches in development).
+  const devUnlockedForTestingRef = useRef(false);
   const [revisionNotice, setRevisionNotice] = useState(null);
 
   const email = session?.user?.email ?? null;
@@ -142,6 +145,8 @@ export default function ModuleSeven() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       if (!email) return;
 
@@ -155,6 +160,8 @@ export default function ModuleSeven() {
         minModule: 7,
       });
 
+      if (cancelled) return;
+
       if (!gateOk) {
         setGateBlocked(true);
         setOutlineLoading(false);
@@ -162,6 +169,8 @@ export default function ModuleSeven() {
       }
 
       const outlineResult = await getOutlineRow(5);
+
+      if (cancelled) return;
 
       if (!outlineResult.ok) {
         console.error("Error loading outline for Module 7:", outlineResult.error);
@@ -186,6 +195,8 @@ export default function ModuleSeven() {
         getParagraphPlanRow(),
       ]);
 
+      if (cancelled) return;
+
       if (!obsResult.ok) {
         console.error("Error loading observations for Module 7:", obsResult.error);
       }
@@ -198,6 +209,7 @@ export default function ModuleSeven() {
       try {
         const thesisRes = await fetch("/api/module3/thesis");
         const thesisJson = await parseApiResponse(thesisRes);
+        if (cancelled) return;
         const thesisRow = thesisJson?.thesis ?? null;
         if (thesisRow) {
           if (!String(outlineRow?.outline?.thesis || "").trim() && thesisRow.thesis) {
@@ -213,6 +225,8 @@ export default function ModuleSeven() {
         console.error("Error loading thesis for Module 7 reference shelf:", err);
       }
 
+      if (cancelled) return;
+
       if (!m7Result.ok) {
         console.error("Module 7 fetch error:", m7Result.error);
       }
@@ -222,10 +236,16 @@ export default function ModuleSeven() {
 
       if (m7Data?.full_text) {
         initialSections = splitDraftIntoSections(m7Data.full_text, sectionCount);
-        setLocked(m7Data.final_ready === true);
+        // WP-070: do not re-lock after Unlock to Test (stale/overlapping loads).
+        if (!devUnlockedForTestingRef.current) {
+          setLocked(m7Data.final_ready === true);
+        }
       } else {
         initialSections = await loadSectionsFromModule6(sectionCount);
-        setLocked(false);
+        if (cancelled) return;
+        if (!devUnlockedForTestingRef.current) {
+          setLocked(false);
+        }
       }
 
       setSections(initialSections);
@@ -240,6 +260,8 @@ export default function ModuleSeven() {
       } catch {
         // ignore network errors
       }
+
+      if (cancelled) return;
 
       setAudioURL(publicUrl);
 
@@ -256,6 +278,9 @@ export default function ModuleSeven() {
     };
 
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -513,6 +538,21 @@ export default function ModuleSeven() {
     }
   };
 
+  const unlockForTesting = () => {
+    if (!showDevUnlock) return;
+    // Dev-only session unlock: restore pre-finalization editing without changing
+    // production finalize behavior. Persisted final_ready is cleared on Save.
+    devUnlockedForTestingRef.current = true;
+    setLocked(false);
+    setRevisionNotice({
+      type: "success",
+      message:
+        "Testing unlock active. Revision fields are editable again. Save revision to keep your changes.",
+    });
+    // Read Aloud is prose-only; move to the first drafting field immediately.
+    setCurrentStepIndex((index) => (index === 0 ? 1 : index));
+  };
+
   const saveDraft = async ({ finalized = false } = {}) => {
     if (!email) {
       alert("Sign in to save your revision and continue.");
@@ -546,6 +586,7 @@ export default function ModuleSeven() {
     };
 
     if (finalized) {
+      devUnlockedForTestingRef.current = false;
       setLocked(true);
       setRevisionNotice(null);
       await logActivity(email, "module_completed", meta);
@@ -780,10 +821,10 @@ export default function ModuleSeven() {
             {showDevUnlock ? (
               <button
                 type="button"
-                onClick={() => setLocked(false)}
+                onClick={unlockForTesting}
                 className="rounded-md border border-border-soft bg-white px-3 py-1.5 text-xs text-text-muted"
               >
-                Unlock for testing
+                Unlock to Test
               </button>
             ) : null}
           </div>
