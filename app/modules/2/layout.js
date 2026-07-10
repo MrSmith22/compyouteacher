@@ -7,6 +7,10 @@ import Panel from "@/components/ui/Panel";
 import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
 import { isPathAllowedForModule } from "@/lib/supabase/helpers/moduleGate";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
+import {
+  isModule2AnalysisPhasePath,
+  isModule2SourcePreparationComplete,
+} from "@/lib/module2/module2SourceReadiness";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
@@ -31,11 +35,12 @@ export default function ModuleTwoLayout({ children }) {
       return;
     }
     let cancelled = false;
-    getStudentAssignment({
-      userEmail: session.user.email,
-      assignmentName: ASSIGNMENT_NAME,
-    })
-      .then(({ data, error }) => {
+    (async () => {
+      try {
+        const { data, error } = await getStudentAssignment({
+          userEmail: session.user.email,
+          assignmentName: ASSIGNMENT_NAME,
+        });
         if (cancelled) return;
         if (error) {
           setAllowed(false);
@@ -45,15 +50,29 @@ export default function ModuleTwoLayout({ children }) {
           data && typeof data.current_module === "number"
             ? data.current_module
             : 0;
-        const ok = isPathAllowedForModule(pathname, current);
-        setAllowed(ok);
-        if (!ok) {
+        const moduleOk = isPathAllowedForModule(pathname, current);
+        if (!moduleOk) {
+          setAllowed(false);
           router.replace("/modules/2");
+          return;
         }
-      })
-      .catch(() => {
+
+        if (isModule2AnalysisPhasePath(pathname)) {
+          const res = await fetch("/api/module2/sources");
+          const sourceData = res.ok ? await res.json() : null;
+          const sourcesOk = isModule2SourcePreparationComplete(sourceData);
+          setAllowed(sourcesOk);
+          if (!sourcesOk) {
+            router.replace("/modules/2");
+          }
+          return;
+        }
+
+        setAllowed(true);
+      } catch {
         if (!cancelled) setAllowed(false);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };

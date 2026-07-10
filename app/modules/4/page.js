@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { loadModule4PageData } from "@/lib/module4/loadModule4PageData";
 import ModuleFour from "@/components/ModuleFour";
+import { isModule2SourcePreparationCompleteForUser } from "@/lib/module2/module2SourceReadiness";
 
 export default async function ModuleFourPage() {
   const session = await getServerSession(authOptions);
@@ -10,6 +11,11 @@ export default async function ModuleFourPage() {
 
   if (!email) {
     redirect("/");
+  }
+
+  const sourcesReady = await isModule2SourcePreparationCompleteForUser(email);
+  if (!sourcesReady) {
+    redirect("/modules/2");
   }
 
   const {

@@ -11,6 +11,16 @@ import {
   WorkingSetSection,
 } from "@/components/module3/ModuleThreeDeskFrame";
 import { MLK_ASSIGNMENT_NAME, mlkAssignmentDefinition } from "@/lib/assignments";
+import {
+  evaluatePersistedLetter,
+  evaluatePersistedSpeech,
+  fetchModule2SourcesFromApi,
+  getPersistedLetterText,
+  getPersistedSpeechText,
+  hasPersistedLetter,
+  hasPersistedSpeech,
+  isModule2SourcePreparationComplete,
+} from "@/lib/module2/module2SourceReadiness";
 
 const STAGE_LABELS = [
   "Get ready",
@@ -28,21 +38,6 @@ const LETTER_SOURCE = MODULE2_SOURCES.letter;
 const SPEECH_URL = SPEECH_SOURCE.officialSourceUrl;
 const LETTER_URL = LETTER_SOURCE.officialSourceUrl;
 
-const SPEECH_MIN_LENGTH = 500;
-const LETTER_MIN_LENGTH = 1000;
-const SPEECH_PHRASES = [
-  "five score years ago",
-  "i have a dream",
-  "let freedom ring",
-  "free at last! free at last!",
-];
-const LETTER_PHRASES = [
-  "my dear fellow clergymen",
-  "injustice anywhere is a threat to justice everywhere",
-  "justice too long delayed is justice denied",
-  "wait has almost always meant never",
-];
-
 export default function ModuleTwoSourcePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -58,29 +53,37 @@ export default function ModuleTwoSourcePage() {
   const [speechSourceUrl, setSpeechSourceUrl] = useState(SPEECH_URL);
   const [speechFullText, setSpeechFullText] = useState("");
   const [savingSpeech, setSavingSpeech] = useState(false);
+  const [speechSavedOk, setSpeechSavedOk] = useState(false);
+  const [speechSaveError, setSpeechSaveError] = useState(null);
 
   // Stage 3: letter
   const [letterSourceUrl, setLetterSourceUrl] = useState(LETTER_URL);
   const [letterFullText, setLetterFullText] = useState("");
   const [savingLetter, setSavingLetter] = useState(false);
+  const [letterSavedOk, setLetterSavedOk] = useState(false);
+  const [letterSaveError, setLetterSaveError] = useState(null);
 
-  const fetchSources = useCallback(async () => {
+  const applyLoadedSources = useCallback((data) => {
+    setSources(data);
+    if (data?.speech_full_text) setSpeechFullText(data.speech_full_text);
+    if (data?.speech_source_url) setSpeechSourceUrl(data.speech_source_url);
+    if (data?.letter_full_text) setLetterFullText(data.letter_full_text);
+    if (data?.letter_source_url) setLetterSourceUrl(data.letter_source_url);
+    setSpeechSavedOk(hasPersistedSpeech(data));
+    setLetterSavedOk(hasPersistedLetter(data));
+  }, []);
+
+  const fetchSources = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
-      const res = await fetch("/api/module2/sources");
-      if (res.ok) {
-        const data = await res.json();
-        setSources(data);
-        if (data?.speech_full_text) setSpeechFullText(data.speech_full_text);
-        if (data?.speech_source_url) setSpeechSourceUrl(data.speech_source_url);
-        if (data?.letter_full_text) setLetterFullText(data.letter_full_text);
-        if (data?.letter_source_url) setLetterSourceUrl(data.letter_source_url);
-      }
+      const data = await fetchModule2SourcesFromApi();
+      if (data) applyLoadedSources(data);
     } catch (err) {
       console.error("Error loading module2 sources:", err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  }, []);
+  }, [applyLoadedSources]);
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -95,13 +98,35 @@ export default function ModuleTwoSourcePage() {
     logActivity(session.user.email, "module_started", { module: 2 });
   }, [session]);
 
-  const goToStep = (stepNum) => {
-    setStage(Math.max(0, Math.min(6, stepNum - 1)));
+  const canReachStage = (targetStage) => {
+    if (targetStage <= 0) return true;
+    if (targetStage === 1) return true;
+    if (targetStage === 2) return knowledgeCheckSubmitted;
+    if (targetStage === 3) return hasPersistedSpeech(sources);
+    if (targetStage === 4) {
+      return hasPersistedSpeech(sources) && hasPersistedLetter(sources);
+    }
+    if (targetStage >= 5) return isModule2SourcePreparationComplete(sources);
+    return false;
   };
 
+  const goToStep = (stepNum) => {
+    const targetStage = Math.max(0, Math.min(6, stepNum - 1));
+    if (!canReachStage(targetStage)) return;
+    setStage(targetStage);
+  };
+
+  useEffect(() => {
+    if (stage === 4 && session?.user?.email) {
+      fetchSources({ silent: true });
+    }
+  }, [stage, session?.user?.email, fetchSources]);
+
   const saveSpeech = async () => {
-    if (!session?.user?.email) return;
+    if (!session?.user?.email) return false;
     setSavingSpeech(true);
+    setSpeechSaveError(null);
+    setSpeechSavedOk(false);
     try {
       const res = await fetch("/api/module2/sources", {
         method: "POST",
@@ -111,20 +136,36 @@ export default function ModuleTwoSourcePage() {
           speech_full_text: speechFullText.trim(),
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSources(data);
+      if (!res.ok) {
+        setSpeechSaveError("Could not save your speech copy. Please try again.");
+        return false;
       }
+
+      const verified = await fetchModule2SourcesFromApi();
+      if (!verified || !hasPersistedSpeech(verified)) {
+        setSpeechSaveError(
+          "Your speech copy did not save correctly. Please try again."
+        );
+        return false;
+      }
+
+      applyLoadedSources(verified);
+      setSpeechSavedOk(true);
+      return true;
     } catch (err) {
       console.error("Error saving speech:", err);
+      setSpeechSaveError("Could not save your speech copy. Please try again.");
+      return false;
     } finally {
       setSavingSpeech(false);
     }
   };
 
   const saveLetter = async () => {
-    if (!session?.user?.email) return;
+    if (!session?.user?.email) return false;
     setSavingLetter(true);
+    setLetterSaveError(null);
+    setLetterSavedOk(false);
     try {
       const res = await fetch("/api/module2/sources", {
         method: "POST",
@@ -134,21 +175,35 @@ export default function ModuleTwoSourcePage() {
           letter_full_text: letterFullText.trim(),
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSources(data);
+      if (!res.ok) {
+        setLetterSaveError("Could not save your letter copy. Please try again.");
+        return false;
       }
+
+      const verified = await fetchModule2SourcesFromApi();
+      if (!verified || !hasPersistedLetter(verified)) {
+        setLetterSaveError(
+          "Your letter copy did not save correctly. Please try again."
+        );
+        return false;
+      }
+
+      applyLoadedSources(verified);
+      setLetterSavedOk(true);
+      return true;
     } catch (err) {
       console.error("Error saving letter:", err);
+      setLetterSaveError("Could not save your letter copy. Please try again.");
+      return false;
     } finally {
       setSavingLetter(false);
     }
   };
 
   const canContinueFromStage2 =
-    speechSourceUrl.trim() !== "" && speechFullText.trim() !== "";
+    speechSavedOk && hasPersistedSpeech(sources);
   const canContinueFromStage3 =
-    letterSourceUrl.trim() !== "" && letterFullText.trim() !== "";
+    letterSavedOk && hasPersistedLetter(sources);
 
   const toggleKnowledgeAnswer = (key) => {
     setKnowledgeCheckAnswers((prev) =>
@@ -156,29 +211,15 @@ export default function ModuleTwoSourcePage() {
     );
   };
 
-  const speechChecks = (() => {
-    const text = (sources?.speech_full_text || speechFullText || "").trim().toLowerCase();
-    const allPhrasesFound = SPEECH_PHRASES.every((phrase) => text.includes(phrase));
-    return {
-      lengthOk: text.length >= SPEECH_MIN_LENGTH,
-      allPhrasesFound,
-    };
-  })();
-
-  const letterChecks = (() => {
-    const text = (sources?.letter_full_text || letterFullText || "").trim().toLowerCase();
-    const phraseCount = LETTER_PHRASES.filter((phrase) => text.includes(phrase)).length;
-    const atLeastTwoPhrases = phraseCount >= 2;
-    return {
-      lengthOk: text.length >= LETTER_MIN_LENGTH,
-      allPhrasesFound: atLeastTwoPhrases,
-    };
-  })();
-
-  const speechAllPass =
-    speechChecks.lengthOk && speechChecks.allPhrasesFound;
-  const letterAllPass =
-    letterChecks.lengthOk && letterChecks.allPhrasesFound;
+  const speechChecks = evaluatePersistedSpeech(sources);
+  const letterChecks = evaluatePersistedLetter(sources);
+  const speechAllPass = speechChecks.complete;
+  const letterAllPass = letterChecks.complete;
+  const persistedSpeechText = getPersistedSpeechText(sources);
+  const persistedLetterText = getPersistedLetterText(sources);
+  const stage4BothPersisted = isModule2SourcePreparationComplete(sources);
+  const canContinueFromStage4 = stage4BothPersisted;
+  const canContinueFromStage5 = isModule2SourcePreparationComplete(sources);
 
   if (status === "loading" || loading) {
     return (
@@ -449,7 +490,11 @@ export default function ModuleTwoSourcePage() {
                   <input
                     type="url"
                     value={speechSourceUrl}
-                    onChange={(e) => setSpeechSourceUrl(e.target.value)}
+                    onChange={(e) => {
+                      setSpeechSourceUrl(e.target.value);
+                      setSpeechSavedOk(false);
+                      setSpeechSaveError(null);
+                    }}
                     className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
                   />
                 </div>
@@ -459,7 +504,11 @@ export default function ModuleTwoSourcePage() {
                   </label>
                   <textarea
                     value={speechFullText}
-                    onChange={(e) => setSpeechFullText(e.target.value)}
+                    onChange={(e) => {
+                      setSpeechFullText(e.target.value);
+                      setSpeechSavedOk(false);
+                      setSpeechSaveError(null);
+                    }}
                     placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
                     rows={14}
                     className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
@@ -479,15 +528,21 @@ export default function ModuleTwoSourcePage() {
               </div>
             </WorkingSetSection>
 
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={saveSpeech}
-                disabled={savingSpeech}
+                disabled={savingSpeech || !speechSourceUrl.trim() || !speechFullText.trim()}
                 className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60"
               >
                 {savingSpeech ? "Saving…" : "Save my speech copy"}
               </button>
+              {speechSavedOk ? (
+                <span className="text-sm font-medium text-theme-green">✓ Saved</span>
+              ) : null}
+              {speechSaveError ? (
+                <span className="text-sm text-theme-red">{speechSaveError}</span>
+              ) : null}
               <button
                 type="button"
                 onClick={() => setStage(3)}
@@ -497,6 +552,11 @@ export default function ModuleTwoSourcePage() {
                 Continue
               </button>
             </div>
+            {!canContinueFromStage2 && speechFullText.trim() ? (
+              <p className="text-xs text-theme-dark/60">
+                Save your speech copy before continuing.
+              </p>
+            ) : null}
           </Panel>
         )}
 
@@ -566,7 +626,11 @@ export default function ModuleTwoSourcePage() {
                   <input
                     type="url"
                     value={letterSourceUrl}
-                    onChange={(e) => setLetterSourceUrl(e.target.value)}
+                    onChange={(e) => {
+                      setLetterSourceUrl(e.target.value);
+                      setLetterSavedOk(false);
+                      setLetterSaveError(null);
+                    }}
                     className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
                   />
                 </div>
@@ -576,7 +640,11 @@ export default function ModuleTwoSourcePage() {
                   </label>
                   <textarea
                     value={letterFullText}
-                    onChange={(e) => setLetterFullText(e.target.value)}
+                    onChange={(e) => {
+                      setLetterFullText(e.target.value);
+                      setLetterSavedOk(false);
+                      setLetterSaveError(null);
+                    }}
                     placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
                     rows={14}
                     className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
@@ -596,15 +664,21 @@ export default function ModuleTwoSourcePage() {
               </div>
             </WorkingSetSection>
 
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={saveLetter}
-                disabled={savingLetter}
+                disabled={savingLetter || !letterSourceUrl.trim() || !letterFullText.trim()}
                 className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60"
               >
                 {savingLetter ? "Saving…" : "Save my letter copy"}
               </button>
+              {letterSavedOk ? (
+                <span className="text-sm font-medium text-theme-green">✓ Saved</span>
+              ) : null}
+              {letterSaveError ? (
+                <span className="text-sm text-theme-red">{letterSaveError}</span>
+              ) : null}
               <button
                 type="button"
                 onClick={() => setStage(4)}
@@ -614,6 +688,11 @@ export default function ModuleTwoSourcePage() {
                 Continue
               </button>
             </div>
+            {!canContinueFromStage3 && letterFullText.trim() ? (
+              <p className="text-xs text-theme-dark/60">
+                Save your letter copy before continuing.
+              </p>
+            ) : null}
           </Panel>
         )}
 
@@ -632,6 +711,21 @@ export default function ModuleTwoSourcePage() {
               </p>
             </div>
             <div className="grid gap-4">
+              {!hasPersistedSpeech(sources) ? (
+                <div className="rounded-lg border border-theme-red/40 bg-theme-red/5 p-4">
+                  <p className="text-sm text-theme-dark">
+                    Your speech copy is not saved yet. Go back and click
+                    &ldquo;Save my speech copy&rdquo; before continuing.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setStage(2)}
+                    className="mt-2 text-sm text-theme-blue font-medium underline"
+                  >
+                    Return to save the speech
+                  </button>
+                </div>
+              ) : (
               <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
                 <p className="font-semibold text-theme-dark">
                   {sources?.speech_source_title || SPEECH_SOURCE.title}
@@ -648,8 +742,7 @@ export default function ModuleTwoSourcePage() {
                   {sources?.speech_source_url || SPEECH_URL}
                 </a>
                 <p className="text-xs text-theme-dark/60">
-                  {(sources?.speech_full_text || speechFullText || "").length}{" "}
-                  characters
+                  {persistedSpeechText.length} characters (saved)
                 </p>
                 {speechAllPass ? (
                   <p className="text-sm text-theme-dark/75 pt-1">
@@ -662,6 +755,22 @@ export default function ModuleTwoSourcePage() {
                   </p>
                 )}
               </div>
+              )}
+              {!hasPersistedLetter(sources) ? (
+                <div className="rounded-lg border border-theme-red/40 bg-theme-red/5 p-4">
+                  <p className="text-sm text-theme-dark">
+                    Your letter copy is not saved yet. Go back and click
+                    &ldquo;Save my letter copy&rdquo; before continuing.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setStage(3)}
+                    className="mt-2 text-sm text-theme-blue font-medium underline"
+                  >
+                    Return to save the letter
+                  </button>
+                </div>
+              ) : (
               <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
                 <p className="font-semibold text-theme-dark">
                   {sources?.letter_source_title || LETTER_SOURCE.title}
@@ -678,8 +787,7 @@ export default function ModuleTwoSourcePage() {
                   {sources?.letter_source_url || LETTER_URL}
                 </a>
                 <p className="text-xs text-theme-dark/60">
-                  {(sources?.letter_full_text || letterFullText || "").length}{" "}
-                  characters
+                  {persistedLetterText.length} characters (saved)
                 </p>
                 {letterAllPass ? (
                   <p className="text-sm text-theme-dark/75 pt-1">
@@ -692,6 +800,7 @@ export default function ModuleTwoSourcePage() {
                   </p>
                 )}
               </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 pt-2">
               <button
@@ -704,11 +813,17 @@ export default function ModuleTwoSourcePage() {
               <button
                 type="button"
                 onClick={() => setStage(5)}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
+                disabled={!canContinueFromStage4}
+                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Continue
               </button>
             </div>
+            {!canContinueFromStage4 ? (
+              <p className="text-xs text-theme-dark/60">
+                Both source texts must be saved before you can continue.
+              </p>
+            ) : null}
           </Panel>
         )}
 
@@ -762,7 +877,8 @@ export default function ModuleTwoSourcePage() {
               <button
                 type="button"
                 onClick={() => setStage(6)}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
+                disabled={!canContinueFromStage5}
+                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Continue
               </button>
@@ -797,7 +913,13 @@ export default function ModuleTwoSourcePage() {
               <button
                 type="button"
                 onClick={async () => {
-                  // Record resume path so progression treats /modules/2/analysis as valid for Module 2
+                  const verified = await fetchModule2SourcesFromApi();
+                  if (!isModule2SourcePreparationComplete(verified)) {
+                    if (verified) applyLoadedSources(verified);
+                    setStage(4);
+                    return;
+                  }
+                  applyLoadedSources(verified);
                   if (session?.user?.email) {
                     try {
                       await fetch("/api/assignments/resume", {
@@ -814,10 +936,16 @@ export default function ModuleTwoSourcePage() {
                   }
                   router.push("/modules/2/analysis");
                 }}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
+                disabled={!isModule2SourcePreparationComplete(sources)}
+                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Continue
               </button>
+              {!isModule2SourcePreparationComplete(sources) ? (
+                <p className="text-xs text-theme-dark/60 mt-2">
+                  Both source texts must be saved before beginning analysis.
+                </p>
+              ) : null}
             </div>
           </Panel>
         )}

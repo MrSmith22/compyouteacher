@@ -1,7 +1,9 @@
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import ModuleThreeV2Form from "@/components/ModuleThreeV2Form";
 import ModuleThreeStartLogger from "@/components/module3/ModuleThreeStartLogger";
+import { isModule2SourcePreparationCompleteForUser } from "@/lib/module2/module2SourceReadiness";
 import {
   getClaimArtifact,
   getDraftArtifact,
@@ -76,6 +78,14 @@ async function loadInitialCanvasArtifacts(email) {
 export default async function ModuleThreePage() {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
+
+  if (email) {
+    const sourcesReady = await isModule2SourcePreparationCompleteForUser(email);
+    if (!sourcesReady) {
+      redirect("/modules/2");
+    }
+  }
+
   const initialCanvasArtifacts = await loadInitialCanvasArtifacts(email);
 
   return (
