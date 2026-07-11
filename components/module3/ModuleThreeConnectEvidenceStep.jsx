@@ -11,7 +11,6 @@ import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import {
   CONNECT_BLOCKED_CHOOSE_RELATION,
   CONNECT_BLOCKED_DOES_NOT_FIT,
-  CONNECT_BLOCKED_WRITE_NOTE,
   CONNECT_CROSS_REVIEW_HEADING,
   CONNECT_CROSS_REVIEW_QUESTIONS,
   CONNECT_MINIMUM,
@@ -23,6 +22,7 @@ import {
   getConnectCoachingLines,
   getConnectContinueHint,
   getConnectEvidencePhase,
+  getConnectionNoteFeedback,
   getConnectWorkingEvidence,
   getRelationChoice,
   inferUiChoiceFromConnection,
@@ -292,23 +292,31 @@ function QuotationConnectionTask({
               ))}
             </ul>
           </details>
-          {!safeText(connection?.note) ? (
-            <p
-              role="status"
-              aria-live="polite"
-              className="mt-2 rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-sm text-text-primary"
-            >
-              {CONNECT_BLOCKED_WRITE_NOTE}
-            </p>
-          ) : (
-            <p
-              role="status"
-              aria-live="polite"
-              className="mt-2 rounded-lg border border-theme-green/35 bg-theme-green/10 px-3 py-2 text-sm text-text-primary"
-            >
-              Connection saved for this quotation.
-            </p>
-          )}
+          {(() => {
+            const noteFeedback = getConnectionNoteFeedback({
+              note: connection?.note || "",
+            });
+            return (
+              <div className="mt-2 space-y-1">
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className={`rounded-lg border px-3 py-2 text-sm leading-relaxed text-text-primary ${
+                    noteFeedback.ready
+                      ? "border-theme-green/35 bg-theme-green/10"
+                      : "border-theme-orange/35 bg-theme-orange/10"
+                  }`}
+                >
+                  {noteFeedback.message}
+                </p>
+                {noteFeedback.characterHint ? (
+                  <p className="text-xs text-text-muted" aria-hidden="true">
+                    {noteFeedback.characterHint}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })()}
         </label>
       ) : null}
     </section>

@@ -221,14 +221,25 @@ describe("CONNECT — completed review and readiness", () => {
 
   it("12. editing one connection preserves the other", () => {
     const evidenceConnections = {
-      a: { selected: true, relation: "supports", note: "First stays." },
-      b: { selected: true, relation: "complicates", note: "Second stays." },
+      a: {
+        selected: true,
+        relation: "supports",
+        note: "First connection stays intact here.",
+      },
+      b: {
+        selected: true,
+        relation: "complicates",
+        note: "Second connection stays intact here.",
+      },
     };
     const next = {
       ...evidenceConnections,
-      a: { ...evidenceConnections.a, note: "First edited." },
+      a: {
+        ...evidenceConnections.a,
+        note: "First connection was carefully edited.",
+      },
     };
-    assert.equal(next.b.note, "Second stays.");
+    assert.equal(next.b.note, "Second connection stays intact here.");
     assert.equal(isValidExplainedConnection(next.b), true);
   });
 
@@ -261,8 +272,16 @@ describe("CONNECT — completed review and readiness", () => {
       quote("b", { sourceType: "letter" }),
     ];
     const evidenceConnections = {
-      a: { selected: true, relation: "supports", note: "Speech helps." },
-      b: { selected: true, relation: "complicates", note: "Letter complicates." },
+      a: {
+        selected: true,
+        relation: "supports",
+        note: "Speech words prove delay harms people.",
+      },
+      b: {
+        selected: true,
+        relation: "complicates",
+        note: "Letter detail makes the idea more precise.",
+      },
     };
 
     const review = buildCrossConnectionReview({
@@ -308,7 +327,7 @@ describe("CONNECT — completed review and readiness", () => {
       getConnectContinueHint({
         workingEvidence: [quote("a"), quote("b", { sourceType: "letter" })],
         evidenceConnections: {
-          a: { selected: true, relation: "supports", note: "Done." },
+          a: { selected: true, relation: "supports", note: "Done with first explanation." },
         },
         activeEvidenceId: "b",
         activeUiChoice: "",

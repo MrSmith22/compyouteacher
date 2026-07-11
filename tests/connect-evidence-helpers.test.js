@@ -194,20 +194,28 @@ describe("connectEvidenceHelpers", () => {
 
   it("preserves other connections when one entry is updated", () => {
     const evidenceConnections = {
-      a: { selected: true, relation: "supports", note: "First stays." },
-      b: { selected: true, relation: "complicates", note: "Second stays." },
+      a: {
+        selected: true,
+        relation: "supports",
+        note: "First connection stays intact here.",
+      },
+      b: {
+        selected: true,
+        relation: "complicates",
+        note: "Second connection stays intact here.",
+      },
     };
 
     const next = {
       ...evidenceConnections,
       a: {
         ...evidenceConnections.a,
-        note: "First edited.",
+        note: "First connection was carefully edited.",
       },
     };
 
-    assert.equal(next.b.note, "Second stays.");
-    assert.equal(next.a.note, "First edited.");
+    assert.equal(next.b.note, "Second connection stays intact here.");
+    assert.equal(next.a.note, "First connection was carefully edited.");
     assert.equal(isValidExplainedConnection(next.b), true);
   });
 
@@ -277,7 +285,7 @@ describe("connectEvidenceHelpers", () => {
         activeEvidenceId: "a",
         activeUiChoice: "supports",
       }),
-      "Write a clear connection note for this quotation."
+      "Explain how this quotation helps, complicates, or sharpens your idea."
     );
   });
 });

@@ -381,7 +381,7 @@ function mergeSupportEvidence(workingEvidence, evidenceConnections, strengthenin
   for (const evidence of workingEvidence) {
     const connection = evidenceConnections[evidence.id];
     const strengtheningNote = safeText(strengtheningNotes[evidence.id]);
-    const hasConnection = connection?.selected && safeText(connection.note);
+    const hasConnection = isValidExplainedConnection(connection);
 
     if (hasConnection || strengtheningNote) {
       supportMap.set(evidence.id, evidence);
