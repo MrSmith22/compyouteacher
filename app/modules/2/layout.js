@@ -11,6 +11,10 @@ import {
   isModule2AnalysisPhasePath,
   isModule2SourcePreparationComplete,
 } from "@/lib/module2/module2SourceReadiness";
+import {
+  getModule2AnalysisAccessDecision,
+  readRhetoricalSituationDevBypassFlag,
+} from "@/lib/module2/rhetoricalSituationGate";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
@@ -19,6 +23,8 @@ const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
  * /analysis remains as a compatibility redirect to /tcharts.
  * Gate by module family: allow any path under /modules/2 when current_module >= 2;
  * otherwise send the student to the Module 2 root.
+ *
+ * Analysis routes also require the rhetorical-situation lesson (or grandfathering).
  */
 export default function ModuleTwoLayout({ children }) {
   const pathname = usePathname();
@@ -59,13 +65,44 @@ export default function ModuleTwoLayout({ children }) {
         }
 
         if (isModule2AnalysisPhasePath(pathname)) {
-          const res = await fetch("/api/module2/sources");
-          const sourceData = res.ok ? await res.json() : null;
-          const sourcesOk = isModule2SourcePreparationComplete(sourceData);
-          setAllowed(sourcesOk);
-          if (!sourcesOk) {
-            router.replace("/modules/2");
+          const statusRes = await fetch(
+            "/api/module2/rhetorical-situation-status"
+          );
+          if (cancelled) return;
+
+          if (!statusRes.ok) {
+            // Cannot verify lesson readiness — do not open analysis on failure.
+            const res = await fetch("/api/module2/sources");
+            const sourceData = res.ok ? await res.json() : null;
+            const sourcesOk = isModule2SourcePreparationComplete(sourceData);
+            const access = getModule2AnalysisAccessDecision({
+              sourcesReady: sourcesOk,
+              lessonSatisfied:
+                sourcesOk && readRhetoricalSituationDevBypassFlag(),
+            });
+            setAllowed(access.allowed);
+            if (!access.allowed) {
+              router.replace(access.redirectTo || "/modules/2");
+            }
+            return;
           }
+
+          const statusData = await statusRes.json();
+          const lessonSatisfied =
+            Boolean(statusData.lessonComplete) ||
+            readRhetoricalSituationDevBypassFlag();
+          const access = getModule2AnalysisAccessDecision({
+            sourcesReady: Boolean(statusData.sourcesReady),
+            lessonSatisfied,
+          });
+
+          if (!access.allowed) {
+            setAllowed(false);
+            router.replace(access.redirectTo || "/modules/2");
+            return;
+          }
+
+          setAllowed(true);
           return;
         }
 
@@ -117,7 +154,7 @@ export default function ModuleTwoLayout({ children }) {
   if (pathname?.startsWith("/modules/2") && allowed === false) {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-        <p className="text-sm text-theme-dark/80">Redirecting…</p>
+        <p className="text-sm text-theme-dark/80">Taking you to the next step…</p>
       </div>
     );
   }

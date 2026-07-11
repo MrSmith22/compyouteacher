@@ -13,6 +13,11 @@ import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import { makeStudentKey } from "@/lib/storage/studentCache";
+import {
+  MODULE2_MEET_SITUATIONS_FOCUS_PATH,
+  getModule2AnalysisAccessDecision,
+  readRhetoricalSituationDevBypassFlag,
+} from "@/lib/module2/rhetoricalSituationGate";
 
 const APPEALS = ["ethos", "pathos", "logos"];
 const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
@@ -124,6 +129,7 @@ export default function ModuleTwoTCharts() {
   const { data: session } = useSession();
   const email = session?.user?.email ?? null;
 
+  const [lessonAccessChecked, setLessonAccessChecked] = useState(false);
   const [activeAppeal, setActiveAppeal] = useState("ethos");
   const [activeTextType, setActiveTextType] = useState("speech"); // "speech" | "letter" (presentation only)
   const [sources, setSources] = useState({ speechUrl: "", letterUrl: "" });
@@ -135,9 +141,44 @@ export default function ModuleTwoTCharts() {
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Load saved sources from API (for original URLs)
+  // Independent lesson gate (layout also enforces; this blocks direct entry).
   useEffect(() => {
     if (!email) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/module2/rhetorical-situation-status");
+        if (cancelled) return;
+        if (!res.ok) {
+          router.replace(MODULE2_MEET_SITUATIONS_FOCUS_PATH);
+          return;
+        }
+        const statusData = await res.json();
+        const access = getModule2AnalysisAccessDecision({
+          sourcesReady: Boolean(statusData.sourcesReady),
+          lessonSatisfied:
+            Boolean(statusData.lessonComplete) ||
+            readRhetoricalSituationDevBypassFlag(),
+        });
+        if (!access.allowed) {
+          router.replace(access.redirectTo || MODULE2_MEET_SITUATIONS_FOCUS_PATH);
+          return;
+        }
+        setLessonAccessChecked(true);
+      } catch {
+        if (!cancelled) {
+          router.replace(MODULE2_MEET_SITUATIONS_FOCUS_PATH);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [email, router]);
+
+  // Load saved sources from API (for original URLs)
+  useEffect(() => {
+    if (!email || !lessonAccessChecked) return;
     let cancelled = false;
     fetch("/api/module2/sources")
       .then((res) => (res.ok ? res.json() : null))
@@ -154,7 +195,7 @@ export default function ModuleTwoTCharts() {
 
   // Load persisted analysis: Supabase first, then localStorage fallback
   useEffect(() => {
-    if (!email) return;
+    if (!email || !lessonAccessChecked) return;
 
     let cancelled = false;
 
@@ -540,6 +581,14 @@ export default function ModuleTwoTCharts() {
           isLastAppeal ? "finishing Module 2" : nextAppealLabel
         }.`
       : null;
+
+  if (!lessonAccessChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-theme-light p-6 text-theme-dark">
+        <p className="text-sm text-theme-dark/80">Checking your progress…</p>
+      </div>
+    );
+  }
 
   return (
     <ModulePageShell>

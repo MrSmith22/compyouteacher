@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import Panel from "@/components/ui/Panel";
@@ -26,44 +26,80 @@ import {
   hasPersistedSpeech,
   isModule2SourcePreparationComplete,
 } from "@/lib/module2/module2SourceReadiness";
+import {
+  MODULE2_WIZARD_STEPS,
+  MODULE2_TCHARTS_RESUME_PATH,
+  getSaveStageContextCallout,
+  getWizardStepNumber,
+} from "@/lib/module2/rhetoricalSituationLesson";
+import {
+  MODULE2_STAGE6_LOCKED_MESSAGE,
+  canReachModule2WizardStage,
+  readRhetoricalSituationDevBypassFlag,
+} from "@/lib/module2/rhetoricalSituationGate";
+import ModuleTwoMeetSituationsStep from "@/components/module2/ModuleTwoMeetSituationsStep";
 
-const WIZARD_STEPS = [
-  { stage: 0, label: "Get ready" },
-  { stage: 1, label: "Can we trust these sources?" },
-  { stage: 2, label: "Save the speech" },
-  { stage: 3, label: "Save the letter" },
-  { stage: 4, label: "Evidence notebook complete" },
-  { stage: 6, label: "Begin reading like a writer" },
-];
+const WIZARD_STEPS = MODULE2_WIZARD_STEPS;
 
 function wizardStepNumber(stage) {
-  if (stage === 5) return 6;
-  const index = WIZARD_STEPS.findIndex((step) => step.stage === stage);
-  return index >= 0 ? index + 1 : 1;
+  return getWizardStepNumber(stage, WIZARD_STEPS);
 }
 
-function WizardProgressList({ stage }) {
+function WizardProgressList({
+  stage,
+  lessonSatisfied = false,
+  sourcesReady = false,
+  onLockedSelect,
+}) {
   const currentIdx = WIZARD_STEPS.findIndex((step) => step.stage === stage);
   return (
     <ol className="space-y-1.5">
       {WIZARD_STEPS.map((step, index) => {
         const isCompleted = index < currentIdx;
         const isCurrent = index === currentIdx;
+        const stage6Locked = step.stage === 6 && sourcesReady && !lessonSatisfied;
+
         return (
-          <li
-            key={step.label}
-            className={`flex items-start gap-2 text-xs leading-snug ${
-              isCurrent
-                ? "font-semibold text-theme-blue"
-                : isCompleted
-                  ? "text-theme-green"
-                  : "text-text-muted"
-            }`}
-          >
-            <span className="mt-0.5 w-4 shrink-0 tabular-nums">
-              {isCompleted ? "✓" : index + 1}
-            </span>
-            <span>{step.label}</span>
+          <li key={step.label}>
+            <button
+              type="button"
+              onClick={() => {
+                if (stage6Locked) {
+                  onLockedSelect?.(MODULE2_STAGE6_LOCKED_MESSAGE);
+                }
+              }}
+              className={`flex w-full items-start gap-2 rounded-md px-1 py-0.5 text-left text-xs leading-snug ${
+                isCurrent
+                  ? "font-semibold text-theme-blue"
+                  : isCompleted
+                    ? "text-theme-green"
+                    : "text-text-muted"
+              }`}
+              aria-current={isCurrent ? "step" : undefined}
+              aria-disabled={stage6Locked ? "true" : undefined}
+            >
+              <span className="mt-0.5 w-4 shrink-0 tabular-nums" aria-hidden="true">
+                {isCompleted ? "✓" : stage6Locked ? "○" : index + 1}
+              </span>
+              <span>
+                {step.label}
+                {isCurrent ? (
+                  <span className="mt-0.5 block font-normal text-text-muted">
+                    Current
+                  </span>
+                ) : null}
+                {stage6Locked ? (
+                  <span className="mt-0.5 block font-normal text-text-muted">
+                    Locked — finish Meet the two situations first
+                  </span>
+                ) : null}
+                {isCompleted && !isCurrent ? (
+                  <span className="mt-0.5 block font-normal text-text-muted">
+                    Completed
+                  </span>
+                ) : null}
+              </span>
+            </button>
           </li>
         );
       })}
@@ -76,13 +112,20 @@ const SPEECH_SOURCE = MODULE2_SOURCES.speech;
 const LETTER_SOURCE = MODULE2_SOURCES.letter;
 const SPEECH_URL = SPEECH_SOURCE.officialSourceUrl;
 const LETTER_URL = LETTER_SOURCE.officialSourceUrl;
+const SPEECH_SAVE_CALLOUT = getSaveStageContextCallout(SPEECH_SOURCE);
+const LETTER_SAVE_CALLOUT = getSaveStageContextCallout(LETTER_SOURCE);
+const SITUATION_COMPARISON = mlkAssignmentDefinition.situationComparison || null;
 
 export default function ModuleTwoSourcePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [stage, setStage] = useState(0);
   const [sources, setSources] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lessonSatisfied, setLessonSatisfied] = useState(false);
+  const [lockedStepMessage, setLockedStepMessage] = useState("");
+  const [returnedToMeetLesson, setReturnedToMeetLesson] = useState(false);
 
   // Knowledge check stage 1
   const [knowledgeCheckAnswers, setKnowledgeCheckAnswers] = useState([]);
@@ -137,35 +180,89 @@ export default function ModuleTwoSourcePage() {
     logActivity(session.user.email, "module_started", { module: 2 });
   }, [session]);
 
-  const canReachStage = (targetStage) => {
-    if (targetStage <= 0) return true;
-    if (targetStage === 1) return true;
-    if (targetStage === 2) return knowledgeCheckSubmitted;
-    if (targetStage === 3) return hasPersistedSpeech(sources);
-    if (targetStage === 4) {
-      return hasPersistedSpeech(sources) && hasPersistedLetter(sources);
+  const fetchLessonStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/module2/rhetorical-situation-status");
+      if (!res.ok) return;
+      const data = await res.json();
+      const satisfied =
+        Boolean(data.lessonComplete) || readRhetoricalSituationDevBypassFlag();
+      setLessonSatisfied(satisfied);
+    } catch (err) {
+      console.error("Error loading rhetorical-situation status:", err);
     }
-    if (targetStage >= 5) return isModule2SourcePreparationComplete(sources);
-    return false;
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    fetchLessonStatus();
+  }, [session?.user?.email, fetchLessonStatus]);
+
+  useEffect(() => {
+    const focus = searchParams?.get("focus");
+    if (focus !== "meet-situations") return;
+    if (!isModule2SourcePreparationComplete(sources) && loading) return;
+    if (!isModule2SourcePreparationComplete(sources)) return;
+    setReturnedToMeetLesson(true);
+    setStage(5);
+  }, [searchParams, sources, loading]);
+
+  const canReachStage = (targetStage) =>
+    canReachModule2WizardStage({
+      targetStage,
+      sourcesReady: isModule2SourcePreparationComplete(sources),
+      lessonSatisfied,
+      knowledgeCheckSubmitted,
+      speechSaved: hasPersistedSpeech(sources),
+    });
 
   const goToStep = (stepNum) => {
     const step = WIZARD_STEPS[stepNum - 1];
-    if (!step || !canReachStage(step.stage)) return;
-    setStage(step.stage);
+    if (!step) return;
+    if (canReachStage(step.stage)) {
+      setLockedStepMessage("");
+      setStage(step.stage);
+      return;
+    }
+    if (
+      step.stage === 6 &&
+      isModule2SourcePreparationComplete(sources) &&
+      !lessonSatisfied
+    ) {
+      setLockedStepMessage(MODULE2_STAGE6_LOCKED_MESSAGE);
+    }
   };
 
-  useEffect(() => {
-    if (stage === 5) {
-      setStage(6);
+  const persistLessonComplete = useCallback(async () => {
+    try {
+      const res = await fetch("/api/module2/rhetorical-situation-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ complete: true }),
+      });
+      if (!res.ok) return false;
+      setLessonSatisfied(true);
+      setLockedStepMessage("");
+      return true;
+    } catch {
+      return false;
     }
-  }, [stage]);
+  }, []);
 
   useEffect(() => {
     if (stage === 4 && session?.user?.email) {
       fetchSources({ silent: true });
     }
   }, [stage, session?.user?.email, fetchSources]);
+
+  useEffect(() => {
+    if (stage < 6) return;
+    if (lessonSatisfied) return;
+    if (!isModule2SourcePreparationComplete(sources)) return;
+    setStage(5);
+    setReturnedToMeetLesson(true);
+    setLockedStepMessage(MODULE2_STAGE6_LOCKED_MESSAGE);
+  }, [stage, lessonSatisfied, sources]);
 
   const saveSpeech = async () => {
     if (!session?.user?.email) return false;
@@ -309,6 +406,15 @@ export default function ModuleTwoSourcePage() {
                     "Get ready"
                   }
                   onStepClick={goToStep}
+                  isStepLocked={(stepNum) => {
+                    const step = WIZARD_STEPS[stepNum - 1];
+                    return (
+                      step?.stage === 6 &&
+                      isModule2SourcePreparationComplete(sources) &&
+                      !lessonSatisfied
+                    );
+                  }}
+                  lockedHint={lockedStepMessage || undefined}
                 />
               </div>
             </aside>
@@ -488,7 +594,21 @@ export default function ModuleTwoSourcePage() {
                     Save the speech
                   </p>
                 </div>
-                <WizardProgressList stage={2} />
+                <WizardProgressList
+                  stage={2}
+                  sourcesReady={isModule2SourcePreparationComplete(sources)}
+                  lessonSatisfied={lessonSatisfied}
+                  onLockedSelect={setLockedStepMessage}
+                />
+                {lockedStepMessage ? (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className="rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-xs leading-relaxed text-text-primary"
+                  >
+                    {lockedStepMessage}
+                  </p>
+                ) : null}
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -507,6 +627,17 @@ export default function ModuleTwoSourcePage() {
                   first text you will keep using across The Writing Processor.
                 </p>
               </header>
+
+              {SPEECH_SAVE_CALLOUT ? (
+                <div className="rounded-xl border border-theme-blue/25 bg-theme-blue/[0.06] px-4 py-3 text-left">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-theme-blue">
+                    Speech · Situation
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-text-primary">
+                    {SPEECH_SAVE_CALLOUT}
+                  </p>
+                </div>
+              ) : null}
 
               <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
@@ -765,7 +896,21 @@ export default function ModuleTwoSourcePage() {
                     Save the letter
                   </p>
                 </div>
-                <WizardProgressList stage={3} />
+                <WizardProgressList
+                  stage={3}
+                  sourcesReady={isModule2SourcePreparationComplete(sources)}
+                  lessonSatisfied={lessonSatisfied}
+                  onLockedSelect={setLockedStepMessage}
+                />
+                {lockedStepMessage ? (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className="rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-xs leading-relaxed text-text-primary"
+                  >
+                    {lockedStepMessage}
+                  </p>
+                ) : null}
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -784,6 +929,17 @@ export default function ModuleTwoSourcePage() {
                   second text you will keep using across The Writing Processor.
                 </p>
               </header>
+
+              {LETTER_SAVE_CALLOUT ? (
+                <div className="rounded-xl border border-theme-orange/25 bg-theme-orange/[0.06] px-4 py-3 text-left">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-theme-orange">
+                    Letter · Situation
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-text-primary">
+                    {LETTER_SAVE_CALLOUT}
+                  </p>
+                </div>
+              ) : null}
 
               <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
@@ -1043,7 +1199,21 @@ export default function ModuleTwoSourcePage() {
                     Evidence notebook complete
                   </p>
                 </div>
-                <WizardProgressList stage={4} />
+                <WizardProgressList
+                  stage={4}
+                  sourcesReady={isModule2SourcePreparationComplete(sources)}
+                  lessonSatisfied={lessonSatisfied}
+                  onLockedSelect={setLockedStepMessage}
+                />
+                {lockedStepMessage ? (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className="rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-xs leading-relaxed text-text-primary"
+                  >
+                    {lockedStepMessage}
+                  </p>
+                ) : null}
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -1202,7 +1372,7 @@ export default function ModuleTwoSourcePage() {
                 <div className="pt-1">
                   <button
                     type="button"
-                    onClick={() => setStage(6)}
+                    onClick={() => setStage(5)}
                     disabled={!canContinueFromStage4}
                     className={`rounded-lg px-5 py-2.5 text-base font-semibold ${
                       canContinueFromStage4
@@ -1210,7 +1380,7 @@ export default function ModuleTwoSourcePage() {
                         : "cursor-not-allowed bg-gray-300 text-gray-500"
                     }`}
                   >
-                    Continue
+                    Meet the two situations
                   </button>
                   {!canContinueFromStage4 ? (
                     <p className="mt-2 text-xs text-text-muted">
@@ -1281,14 +1451,28 @@ export default function ModuleTwoSourcePage() {
                   What comes next
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  You&apos;ll begin noticing examples of ethos, pathos, and logos
-                  in these texts. Those observations become grouped evidence and
-                  eventually your essay.
+                  Before you analyze the quotations, you’ll learn who King was
+                  addressing in each work and what he was trying to accomplish.
                 </p>
               </div>
             </aside>
           </WorkspaceGuide>
         </WorkspaceColumns>
+      ) : stage === 5 ? (
+        <ModuleTwoMeetSituationsStep
+          wizardSteps={WIZARD_STEPS}
+          wizardStepNumber={wizardStepNumber(5)}
+          assignmentSources={MODULE2_SOURCES}
+          situationComparison={SITUATION_COMPARISON}
+          initialComplete={lessonSatisfied}
+          returnFromProtectedRoute={returnedToMeetLesson}
+          onLessonComplete={persistLessonComplete}
+          onBack={() => setStage(4)}
+          onContinue={() => {
+            setReturnedToMeetLesson(false);
+            setStage(6);
+          }}
+        />
       ) : stage === 6 ? (
         <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
@@ -1324,8 +1508,22 @@ export default function ModuleTwoSourcePage() {
                     Begin reading like a writer
                   </p>
                 </div>
-                <WizardProgressList stage={6} />
+                <WizardProgressList
+                  stage={6}
+                  sourcesReady={isModule2SourcePreparationComplete(sources)}
+                  lessonSatisfied={lessonSatisfied}
+                  onLockedSelect={setLockedStepMessage}
+                />
               </div>
+              {lockedStepMessage ? (
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className="rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-xs leading-relaxed text-text-primary"
+                >
+                  {lockedStepMessage}
+                </p>
+              ) : null}
             </aside>
           </WorkspaceSidebar>
 
@@ -1336,11 +1534,11 @@ export default function ModuleTwoSourcePage() {
                   Start here
                 </p>
                 <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
-                  You are no longer collecting documents.
+                  Begin reading like a writer.
                 </h1>
                 <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
-                  You are now reading like a writer—looking for the moves King
-                  makes so you can use them as evidence later.
+                  You now understand the two situations. Next, look for how King
+                  adapts ethos, pathos, and logos to each audience and purpose.
                 </p>
               </header>
 
@@ -1381,7 +1579,9 @@ export default function ModuleTwoSourcePage() {
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-text-muted">
                       Find places where King builds trust (ethos), stirs feeling
-                      (pathos), or uses reasoning (logos).
+                      (pathos), or uses reasoning (logos). Notice not only which
+                      appeal King uses, but why it might fit the audience and
+                      situation.
                     </p>
                   </li>
                   <li className="rounded-xl border border-border-soft/70 bg-white px-4 py-4 shadow-soft md:px-5">
@@ -1403,7 +1603,14 @@ export default function ModuleTwoSourcePage() {
                   </li>
                 </ol>
 
-                <div className="pt-1">
+                <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:items-center">
+                  <button
+                    type="button"
+                    onClick={() => setStage(5)}
+                    className="rounded-lg border border-border-soft bg-white px-4 py-2.5 text-sm font-medium text-text-primary"
+                  >
+                    Back
+                  </button>
                   <button
                     type="button"
                     onClick={async () => {
@@ -1421,14 +1628,14 @@ export default function ModuleTwoSourcePage() {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                               assignment_name: MLK_ASSIGNMENT_NAME,
-                              resume_path: "/modules/2/tcharts",
+                              resume_path: MODULE2_TCHARTS_RESUME_PATH,
                             }),
                           });
                         } catch (err) {
                           console.error("Resume path update failed:", err);
                         }
                       }
-                      router.push("/modules/2/tcharts");
+                      router.push(MODULE2_TCHARTS_RESUME_PATH);
                     }}
                     disabled={!canContinueFromStage6}
                     className={`rounded-lg px-5 py-2.5 text-base font-semibold ${
@@ -1526,6 +1733,15 @@ export default function ModuleTwoSourcePage() {
               "Can we trust these sources?"
             }
             onStepClick={goToStep}
+            isStepLocked={(stepNum) => {
+              const step = WIZARD_STEPS[stepNum - 1];
+              return (
+                step?.stage === 6 &&
+                isModule2SourcePreparationComplete(sources) &&
+                !lessonSatisfied
+              );
+            }}
+            lockedHint={lockedStepMessage || undefined}
           />
 
         {/* Stage 1: Why these are trustworthy */}

@@ -16,6 +16,11 @@ import { useSession } from "next-auth/react";
 import { clearStudentCache } from "@/lib/storage/studentCache";
 import { openSavedSourceTexts } from "@/lib/sources/openSavedSourceTexts";
 import { upsertModule9Checklist } from "@/lib/supabase/helpers/module9Checklist";
+import {
+  isRhetoricalSituationDevBypassAvailable,
+  readRhetoricalSituationDevBypassFlag,
+  writeRhetoricalSituationDevBypassFlag,
+} from "@/lib/module2/rhetoricalSituationGate";
 
 function logDev(...args) {
   console.log("[Dev Panel]", ...args);
@@ -315,6 +320,47 @@ export default function DeveloperTestingPanel() {
               ))}
             </div>
           </section>
+
+          {isRhetoricalSituationDevBypassAvailable() ? (
+            <section>
+              <p className={sectionTitle}>Module 2 lesson bypass</p>
+              <p className="mb-1 text-[10px] leading-snug text-slate-600">
+                Development only. Lets you open T Charts without finishing Meet
+                the two situations.
+              </p>
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  className={btn}
+                  disabled={busy}
+                  onClick={() =>
+                    run("Lesson bypass on", async () => {
+                      writeRhetoricalSituationDevBypassFlag(true);
+                      return "Meet-the-two-situations bypass enabled for this tab";
+                    })
+                  }
+                >
+                  Enable lesson bypass
+                </button>
+                <button
+                  type="button"
+                  className={btn}
+                  disabled={busy}
+                  onClick={() =>
+                    run("Lesson bypass off", async () => {
+                      writeRhetoricalSituationDevBypassFlag(false);
+                      return "Meet-the-two-situations bypass cleared";
+                    })
+                  }
+                >
+                  Clear lesson bypass
+                </button>
+                <span className="self-center text-[10px] text-slate-600">
+                  {readRhetoricalSituationDevBypassFlag() ? "ON" : "OFF"}
+                </span>
+              </div>
+            </section>
+          ) : null}
 
           <section>
             <p className={sectionTitle}>Progress</p>

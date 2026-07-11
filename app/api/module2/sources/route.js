@@ -50,7 +50,33 @@ function rowToResponse(row, today) {
     letter_source_title: LETTER_RESPONSE_DEFAULTS.letter_source_title,
     letter_author: LETTER_RESPONSE_DEFAULTS.letter_author,
     letter_accessed_date: today,
+    rhetorical_situation_completed_at:
+      row.rhetorical_situation_completed_at ?? null,
   };
+}
+
+const SOURCES_SELECT =
+  "id, user_email, mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation, lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation, rhetorical_situation_completed_at, created_at, updated_at";
+
+const SOURCES_SELECT_LEGACY =
+  "id, user_email, mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation, lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation, created_at, updated_at";
+
+async function selectModule2SourcesRow(supabase, email) {
+  const withColumn = await supabase
+    .from("module2_sources")
+    .select(SOURCES_SELECT)
+    .eq("user_email", email)
+    .maybeSingle();
+
+  if (!withColumn.error) {
+    return withColumn;
+  }
+
+  return supabase
+    .from("module2_sources")
+    .select(SOURCES_SELECT_LEGACY)
+    .eq("user_email", email)
+    .maybeSingle();
 }
 
 export async function GET() {
@@ -68,13 +94,7 @@ export async function GET() {
 
   try {
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
-      .from("module2_sources")
-      .select(
-        "id, user_email, mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation, lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation, created_at, updated_at"
-      )
-      .eq("user_email", email)
-      .maybeSingle();
+    const { data, error } = await selectModule2SourcesRow(supabase, email);
 
     if (error) {
       console.error("module2_sources GET error:", error);
@@ -119,14 +139,7 @@ export async function POST(req) {
 
   try {
     const supabase = getSupabaseAdmin();
-    const { data: existing } = await supabase
-      .from("module2_sources")
-      .select(
-        "id, user_email, mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation, lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation, created_at, updated_at"
-      )
-      .eq("user_email", email)
-      .maybeSingle();
-
+    const { data: existing } = await selectModule2SourcesRow(supabase, email);
     const row = existing || {};
 
     // Incoming body uses new names; normalize
@@ -161,16 +174,30 @@ export async function POST(req) {
         letterFullText !== "" ? letterFullText : row.lfbj_text ?? null,
       lfbj_transcript_year: row.lfbj_transcript_year ?? null,
       lfbj_citation: row.lfbj_citation ?? null,
+      // Preserve durable lesson completion; never clear it when saving texts.
+      rhetorical_situation_completed_at:
+        row.rhetorical_situation_completed_at ?? null,
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("module2_sources")
       .upsert(payload, { onConflict: "user_email" })
-      .select(
-        "id, user_email, mlk_url, mlk_text, mlk_site_name, mlk_transcript_year, mlk_citation, lfbj_url, lfbj_text, lfbj_site_name, lfbj_transcript_year, lfbj_citation, created_at, updated_at"
-      )
+      .select(SOURCES_SELECT)
       .maybeSingle();
+
+    if (error) {
+      // Environments that have not run the migration yet.
+      const legacyPayload = { ...payload };
+      delete legacyPayload.rhetorical_situation_completed_at;
+      const legacy = await supabase
+        .from("module2_sources")
+        .upsert(legacyPayload, { onConflict: "user_email" })
+        .select(SOURCES_SELECT_LEGACY)
+        .maybeSingle();
+      data = legacy.data;
+      error = legacy.error;
+    }
 
     if (error) {
       console.error("module2_sources POST error:", error);

@@ -8,6 +8,11 @@ import {
   getModule2Sources,
   upsertModule2LetterSource,
 } from "@/lib/supabase/helpers/module2Sources";
+import {
+  MODULE2_MEET_SITUATIONS_FOCUS_PATH,
+  getModule2AnalysisAccessDecision,
+  readRhetoricalSituationDevBypassFlag,
+} from "@/lib/module2/rhetoricalSituationGate";
 
 const SPEECH_SOURCE = mlkAssignmentDefinition.sources.speech;
 const LETTER_SOURCE = mlkAssignmentDefinition.sources.letter;
@@ -218,6 +223,32 @@ export default function ModuleTwoChooseLetter() {
             upsertErr
           );
         }
+      }
+
+      // Legacy letter flow must still respect the Meet-the-two-situations requirement.
+      try {
+        const statusRes = await fetch(
+          "/api/module2/rhetorical-situation-status"
+        );
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          const access = getModule2AnalysisAccessDecision({
+            sourcesReady: Boolean(statusData.sourcesReady),
+            lessonSatisfied:
+              Boolean(statusData.lessonComplete) ||
+              readRhetoricalSituationDevBypassFlag(),
+          });
+          if (!access.allowed) {
+            router.push(access.redirectTo || MODULE2_MEET_SITUATIONS_FOCUS_PATH);
+            return;
+          }
+        } else {
+          router.push(MODULE2_MEET_SITUATIONS_FOCUS_PATH);
+          return;
+        }
+      } catch {
+        router.push(MODULE2_MEET_SITUATIONS_FOCUS_PATH);
+        return;
       }
 
       router.push("/modules/2/tcharts");

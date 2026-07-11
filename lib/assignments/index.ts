@@ -58,6 +58,8 @@ export interface RhetoricalSituationDefinition {
     audience?: string;
     purpose?: string;
   };
+  /** Brief context line shown on Module 2 save stages. */
+  saveStageCallout?: string;
   authoritativeSources?: AuthoritativeSourceReference[];
 }
 
