@@ -11,6 +11,10 @@ import {
   MLK_ASSIGNMENT_ID,
   MLK_ASSIGNMENT_NAME,
 } from "./identity";
+import {
+  MLK_RHETORICAL_SITUATIONS,
+  MLK_SITUATION_COMPARISON,
+} from "./rhetoricalSituations";
 
 export {
   DEFAULT_ASSIGNMENT_ID,
@@ -28,12 +32,48 @@ export type {
 
 export { mlkRhetoricalAnalysisAssignment };
 
+export interface AuthoritativeSourceReference {
+  name: string;
+  url: string;
+}
+
+/**
+ * Structured rhetorical-situation context. Entirely optional so assignments
+ * without this data keep working; screens fall back to the legacy single
+ * `audience` and `purpose` strings.
+ */
+export interface RhetoricalSituationDefinition {
+  date?: string;
+  occasion?: string;
+  form?: string;
+  immediateAudience?: string;
+  broaderAudience?: string;
+  audienceSituation?: string;
+  purposes?: string[];
+  historicalContext?: string;
+  whyFormMatters?: string;
+  /** Compact Form/Audience/Purpose cue for quotation cards. */
+  compactCue?: {
+    form?: string;
+    audience?: string;
+    purpose?: string;
+  };
+  authoritativeSources?: AuthoritativeSourceReference[];
+}
+
+export interface SituationComparisonDefinition {
+  shared?: string[];
+  different?: string[];
+  caveat?: string;
+}
+
 export interface AssignmentSourceDefinition {
   sourceType: SourceType;
   label: string;
   title: string;
   audience: string;
   purpose: string;
+  rhetoricalSituation?: RhetoricalSituationDefinition;
   searchQuery: string;
   officialSourceUrl: string;
   officialSiteName: string;
@@ -83,6 +123,7 @@ export interface AssignmentDefinitionSections {
   task: AssignmentTaskDefinition;
   sourceIntelligence: AssignmentSourceIntelligenceDefinition;
   observationSchema: AssignmentObservationSchemaDefinition;
+  situationComparison?: SituationComparisonDefinition;
 }
 
 export interface AssignmentDefinitionLegacyFields {
@@ -112,6 +153,7 @@ const mlkAssignmentSources: Record<SourceType, AssignmentSourceDefinition> = {
     title: mlkRhetoricalAnalysisAssignment.speech.title,
     audience: mlkRhetoricalAnalysisAssignment.speech.audience,
     purpose: mlkRhetoricalAnalysisAssignment.speech.purpose,
+    rhetoricalSituation: MLK_RHETORICAL_SITUATIONS.speech,
     searchQuery: "full text I Have a Dream speech",
     officialSourceUrl:
       "https://www.archives.gov/files/social-media/transcripts/transcript-march-pt3-of-3-2602934.pdf",
@@ -139,6 +181,7 @@ const mlkAssignmentSources: Record<SourceType, AssignmentSourceDefinition> = {
     title: mlkRhetoricalAnalysisAssignment.letter.title,
     audience: mlkRhetoricalAnalysisAssignment.letter.audience,
     purpose: mlkRhetoricalAnalysisAssignment.letter.purpose,
+    rhetoricalSituation: MLK_RHETORICAL_SITUATIONS.letter,
     searchQuery: "full text Letter from Birmingham Jail",
     officialSourceUrl:
       "https://www.africa.upenn.edu/Articles_Gen/Letter_Birmingham.html",
@@ -194,6 +237,7 @@ Your goal is not to summarize what King says, but to explain how and why he says
     rhetoricalStrategies: mlkRhetoricalAnalysisAssignment.rhetoricalStrategies,
     guidedPassages: mlkRhetoricalAnalysisAssignment.guidedPassages,
   },
+  situationComparison: MLK_SITUATION_COMPARISON,
 };
 
 function withLegacyAssignmentAliases(

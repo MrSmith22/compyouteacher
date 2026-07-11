@@ -7,6 +7,22 @@ const MARKER_LABELS = {
   repeated: "Repeated",
 };
 
+/** Speech = cool blue · Letter = warm orange (matches Module 2). */
+const SOURCE_IDENTITY = {
+  speech: {
+    chip: "border border-theme-blue/30 bg-theme-blue/10 text-theme-blue",
+    accentBar: "border-l-[3px] border-l-theme-blue",
+    softWash: "bg-theme-blue/[0.04]",
+    panelBorder: "border-theme-blue/25",
+  },
+  letter: {
+    chip: "border border-theme-orange/30 bg-theme-orange/10 text-theme-orange",
+    accentBar: "border-l-[3px] border-l-theme-orange",
+    softWash: "bg-theme-orange/[0.04]",
+    panelBorder: "border-theme-orange/25",
+  },
+};
+
 function MetaTag({ children, tone = "default" }) {
   const toneClassName =
     tone === "marker"
@@ -50,8 +66,131 @@ export default function ModuleThreeEvidenceCard({
   children = null,
   compact = false,
   showArtifactLabel = true,
+  /** Grouping mode: speech/letter accents, no tags/markers/implementation labels. */
+  grouping = false,
+  /** Optional student-facing appeal chip (e.g. "Pathos · feeling"). Opt-in per screen. */
+  appealChip = "",
+  /**
+   * Optional in-card rhetorical-situation footer: { form, audience, purpose }.
+   * Rendered inside the card boundary after the student note.
+   */
+  situationFooter = null,
 }) {
   const observationLine = observationPreview(evidence.observation);
+  const sourceIdentity =
+    SOURCE_IDENTITY[evidence.sourceType] || SOURCE_IDENTITY.speech;
+
+  if (grouping) {
+    return (
+      <Card
+        padding="sm"
+        className={[
+          "border transition-all duration-150",
+          sourceIdentity.accentBar,
+          selected
+            ? "border-theme-green/30 bg-theme-green/[0.04] ring-1 ring-theme-green/15"
+            : `${sourceIdentity.panelBorder} ${sourceIdentity.softWash} hover:border-theme-blue/20`,
+        ].join(" ")}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1.5 text-left">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span
+                className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${sourceIdentity.chip}`}
+              >
+                {evidence.sourceLabel || evidence.sourceType}
+              </span>
+              {appealChip ? (
+                <span className="inline-flex rounded-md border border-theme-dark/15 bg-white/80 px-2 py-0.5 text-[11px] font-medium text-text-primary">
+                  {appealChip}
+                </span>
+              ) : null}
+            </div>
+            <p className="text-sm font-semibold text-text-primary">
+              {evidence.sourceTitle}
+            </p>
+          </div>
+
+          {onToggleSelected ? (
+            <label
+              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors duration-150 ${
+                selected
+                  ? "border-theme-green/30 bg-theme-green/10 text-theme-green"
+                  : "border-border-soft bg-white text-text-primary hover:border-theme-blue/20 hover:bg-theme-blue/5"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => onToggleSelected?.(evidence.id)}
+                className="accent-theme-green"
+              />
+              {selected ? "In this group" : "Add to group"}
+            </label>
+          ) : null}
+        </div>
+
+        {evidence.quote ? (
+          <blockquote className="mt-3 rounded-lg bg-white/80 px-4 py-3 text-sm italic leading-relaxed text-theme-dark/85">
+            &ldquo;{evidence.quote}&rdquo;
+          </blockquote>
+        ) : null}
+
+        {observationLine ? (
+          <p className="mt-3 text-sm leading-relaxed text-text-muted">
+            <span className="font-semibold text-text-primary">Your note: </span>
+            {observationLine}
+          </p>
+        ) : null}
+
+        {situationFooter?.form ||
+        situationFooter?.audience ||
+        situationFooter?.purpose ? (
+          <footer
+            aria-label={`Rhetorical situation for ${
+              evidence.sourceLabel || evidence.sourceTitle || "this quotation"
+            }`}
+            className={`mt-3 rounded-lg border border-theme-dark/10 px-3 py-2.5 ${sourceIdentity.softWash}`}
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+              Rhetorical situation
+            </p>
+            <dl className="mt-1.5 space-y-1.5">
+              {situationFooter.form ? (
+                <div className="text-left">
+                  <dt className="text-[11px] font-semibold text-text-muted">Form</dt>
+                  <dd className="text-sm leading-snug text-text-primary">
+                    {situationFooter.form}
+                  </dd>
+                </div>
+              ) : null}
+              {situationFooter.audience ? (
+                <div className="text-left">
+                  <dt className="text-[11px] font-semibold text-text-muted">Audience</dt>
+                  <dd className="text-sm leading-snug text-text-primary">
+                    {situationFooter.audience}
+                  </dd>
+                </div>
+              ) : null}
+              {situationFooter.purpose ? (
+                <div className="text-left">
+                  <dt className="text-[11px] font-semibold text-text-muted">Purpose</dt>
+                  <dd className="text-sm leading-snug text-text-primary">
+                    {situationFooter.purpose}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          </footer>
+        ) : null}
+
+        {children ? (
+          <div className="mt-4 border-t border-border-soft/60 pt-4">{children}</div>
+        ) : null}
+      </Card>
+    );
+  }
+
   const hasExpandedDetails =
     Boolean(onMarkerChange) ||
     evidence.tags.length > 0 ||
