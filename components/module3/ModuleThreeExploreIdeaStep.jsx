@@ -1,18 +1,29 @@
 "use client";
 
 import ModuleThreeEvidenceCard from "@/components/module3/ModuleThreeEvidenceCard";
+import ModuleThreePromptCompass from "@/components/module3/ModuleThreePromptCompass";
 import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
 import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import {
   IDEA_LEADING_QUESTIONS,
+  IDEA_READY_MESSAGE,
   IDEA_SENTENCE_STARTERS,
+  IDEA_STARTERS_LABEL,
+  IDEA_STATEMENT_BLOCKED_MESSAGE,
   IDEA_STATEMENT_MINIMUM,
+  IDEA_WHY_BLOCKED_MESSAGE,
   IDEA_WHY_LEADING_QUESTIONS,
   IDEA_WHY_MINIMUM,
+  IDEA_WHY_NOT_THESIS_NOTE,
   getExploreIdeaPhase,
 } from "@/lib/module3/exploreIdeaHelpers";
+import {
+  IDEA_COMPASS_FOCUS_ID,
+  IDEA_COMPASS_FRAMING_LINE,
+} from "@/lib/module3/promptCompassHelpers";
+import { getQuotationSituationFooter } from "@/lib/shared/rhetoricalSituationHelpers";
 
 const ANSWER_TEXTAREA_CLASS =
   "min-h-[140px] w-full rounded-xl border-2 border-theme-dark/20 bg-white p-4 text-base leading-relaxed text-text-primary shadow-sm placeholder:text-text-muted/60 focus:border-theme-dark/35 focus:outline-none focus:ring-4 focus:ring-theme-dark/[0.06]";
@@ -35,6 +46,8 @@ export default function ModuleThreeExploreIdeaStep({
   progressCompleted = [],
   progressNext = "",
   otherPatterns = [],
+  assignmentPrompt = "",
+  assignmentSources = null,
 }) {
   const phase = getExploreIdeaPhase({
     statement: ideaStatement,
@@ -109,6 +122,12 @@ export default function ModuleThreeExploreIdeaStep({
             </div>
           </header>
 
+          <ModuleThreePromptCompass
+            assignmentPrompt={assignmentPrompt}
+            focusQuestionId={IDEA_COMPASS_FOCUS_ID}
+            framingLine={IDEA_COMPASS_FRAMING_LINE}
+          />
+
           <section className="space-y-4" aria-labelledby="idea-artifacts-heading">
             <div className="text-left">
               <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-text-primary">
@@ -118,16 +137,47 @@ export default function ModuleThreeExploreIdeaStep({
                 id="idea-artifacts-heading"
                 className="mt-1.5 text-lg font-semibold text-text-primary md:text-xl"
               >
-                Here is the pattern you chose.
+                Here is the thinking you are building on.
               </h2>
               <p className="mt-1 text-sm text-text-muted">
                 Group: <span className="font-medium text-text-primary">{groupName}</span>
               </p>
             </div>
 
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Step 1 · These quotations…
+              </p>
+              {selectedPatternEvidence.length === 0 ? (
+                <p className="rounded-lg border border-theme-orange/30 bg-theme-orange/10 px-4 py-3 text-sm text-text-primary">
+                  This observation needs linked quotations. Go back to the previous step and
+                  connect at least two quotations.
+                </p>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {selectedPatternEvidence.map((evidence) => {
+                    const sourceDefinition =
+                      assignmentSources?.[evidence.sourceType] || null;
+                    const situationFooter = sourceDefinition
+                      ? getQuotationSituationFooter(sourceDefinition)
+                      : null;
+                    return (
+                      <ModuleThreeEvidenceCard
+                        key={`idea-selected-${evidence.id}`}
+                        evidence={evidence}
+                        grouping
+                        showArtifactLabel={false}
+                        situationFooter={situationFooter}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <div className="rounded-xl border-2 border-theme-blue/30 bg-theme-blue/[0.05] px-4 py-4 md:px-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-blue">
-                Chosen observation
+                Step 2 · …led you to this observation
               </p>
               {patternText ? (
                 <p className="mt-2 text-base leading-relaxed text-text-primary">
@@ -140,28 +190,12 @@ export default function ModuleThreeExploreIdeaStep({
               )}
             </div>
 
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-text-primary">
-                These are the quotations that helped you notice it.
-              </p>
-              {selectedPatternEvidence.length === 0 ? (
-                <p className="rounded-lg border border-theme-orange/30 bg-theme-orange/10 px-4 py-3 text-sm text-text-primary">
-                  This observation needs linked quotations. Go back to the previous step and
-                  connect at least two quotations.
-                </p>
-              ) : (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {selectedPatternEvidence.map((evidence) => (
-                    <ModuleThreeEvidenceCard
-                      key={`idea-selected-${evidence.id}`}
-                      evidence={evidence}
-                      grouping
-                      showArtifactLabel={false}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            <p className="text-sm leading-relaxed text-text-primary">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Step 3 ·{" "}
+              </span>
+              Now you are asking what that observation might mean.
+            </p>
           </section>
 
           <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15">
@@ -176,9 +210,9 @@ export default function ModuleThreeExploreIdeaStep({
               this pattern matters.
             </p>
             <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-primary">
-              <li>Read the chosen pattern.</li>
-              <li>Look at the quotations together.</li>
-              <li>Ask what larger idea they might reveal.</li>
+              <li>Reread the quotations above, including who each one addresses and why.</li>
+              <li>Reread the observation they led you to.</li>
+              <li>Ask what larger idea about King’s choices they might reveal together.</li>
               <li>Write your first interpretation in your own words.</li>
             </ol>
           </div>
@@ -194,14 +228,17 @@ export default function ModuleThreeExploreIdeaStep({
               >
                 Write your first idea.
               </h2>
-              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">
+              <p className="mt-3 text-sm font-medium text-text-primary">
+                Questions to help you look (you do not need to answer them all):
+              </p>
+              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">
                 {IDEA_LEADING_QUESTIONS.map((question) => (
                   <li key={question}>{question}</li>
                 ))}
               </ul>
               <details className="mt-3 rounded-lg bg-surface-soft/60 px-3 py-2">
                 <summary className="cursor-pointer text-xs font-medium text-text-muted">
-                  Optional sentence starters
+                  {IDEA_STARTERS_LABEL}
                 </summary>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-text-muted">
                   {IDEA_SENTENCE_STARTERS.map((starter) => (
@@ -233,7 +270,7 @@ export default function ModuleThreeExploreIdeaStep({
                   aria-live="polite"
                   className="mt-3 rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-sm leading-relaxed text-text-primary"
                 >
-                  Write one clear idea about what this pattern might mean.
+                  {IDEA_STATEMENT_BLOCKED_MESSAGE}
                 </p>
               ) : (
                 <p
@@ -241,10 +278,22 @@ export default function ModuleThreeExploreIdeaStep({
                   aria-live="polite"
                   className="mt-3 rounded-lg border border-theme-green/35 bg-theme-green/10 px-3 py-2 text-sm leading-relaxed text-text-primary"
                 >
-                  Good. Now take the idea one step further.
+                  Good. Now take the idea one step further below.
                 </p>
               )}
             </div>
+
+            {!phase.showWhyMatters ? (
+              <div className="rounded-xl border border-dashed border-border-soft bg-surface-soft/40 px-4 py-3 text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  Coming next
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                  After you write your idea, you will explain why it is worth exploring. Then
+                  Keep going takes you to testing your idea against each quotation.
+                </p>
+              </div>
+            ) : null}
           </section>
 
           {phase.showWhyMatters ? (
@@ -257,15 +306,16 @@ export default function ModuleThreeExploreIdeaStep({
                   Explain why this idea is worth exploring.
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                  Worthwhile ideas help readers understand something important about King’s
-                  message, his audience, his purpose, the relationship between the two texts,
-                  or how his rhetorical choices work.
+                  A worthwhile idea helps you answer the assignment. Ask yourself:
                 </p>
                 <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">
                   {IDEA_WHY_LEADING_QUESTIONS.map((question) => (
                     <li key={question}>{question}</li>
                   ))}
                 </ul>
+                <p className="mt-3 rounded-lg bg-surface-soft/60 px-3 py-2 text-sm leading-relaxed text-text-muted">
+                  {IDEA_WHY_NOT_THESIS_NOTE}
+                </p>
               </div>
 
               <div className="rounded-xl border-2 border-theme-blue/25 bg-white p-4 md:p-5">
@@ -287,7 +337,7 @@ export default function ModuleThreeExploreIdeaStep({
                     aria-live="polite"
                     className="mt-3 rounded-lg border border-theme-orange/35 bg-theme-orange/10 px-3 py-2 text-sm leading-relaxed text-text-primary"
                   >
-                    Explain why this idea feels worth exploring.
+                    {IDEA_WHY_BLOCKED_MESSAGE}
                   </p>
                 ) : null}
               </div>
@@ -298,9 +348,15 @@ export default function ModuleThreeExploreIdeaStep({
             <div
               role="status"
               aria-live="polite"
-              className="rounded-xl border border-theme-green/35 bg-theme-green/10 px-4 py-3 text-sm leading-relaxed text-text-primary"
+              className="rounded-xl border-2 border-theme-green/35 bg-theme-green/10 px-4 py-4 text-left md:px-5"
             >
-              You now have an idea you can test against your quotations.
+              <p className="text-base font-semibold leading-snug text-text-primary">
+                {IDEA_READY_MESSAGE}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-text-primary">
+                When you choose Keep going, you will look at each quotation and ask how it
+                supports, complicates, or sharpens this idea.
+              </p>
             </div>
           ) : null}
 
@@ -370,8 +426,8 @@ export default function ModuleThreeExploreIdeaStep({
               What comes next
             </p>
             <p className="text-sm leading-relaxed text-text-muted">
-              Next, you will look at each quotation and explain how it supports—or
-              challenges—this idea.
+              Next, you will look at each quotation and ask how it supports, complicates, or
+              sharpens this idea.
             </p>
           </div>
         </aside>

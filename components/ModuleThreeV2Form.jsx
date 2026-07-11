@@ -50,12 +50,15 @@ import {
   IDEA_WHY_MINIMUM,
   canContinueFromExploreIdea,
   getExploreIdeaContinueHint,
+  getExploreIdeaReadyMessage,
 } from "@/lib/module3/exploreIdeaHelpers";
 import {
   CONNECT_MINIMUM,
   getConnectContinueHint,
   getConnectEvidencePhase,
+  getConnectReadyMessage,
   getConnectWorkingEvidence,
+  getEarlierPassStageIds,
   inferUiChoiceFromConnection,
   isValidExplainedConnection,
 } from "@/lib/module3/connectEvidenceHelpers";
@@ -1017,6 +1020,12 @@ export default function ModuleThreeV2Form({
       if (currentStep === STEP_IDS.REVIEW) {
         return getReviewReadyMessage(selectedCluster);
       }
+      if (currentStep === STEP_IDS.IDEA) {
+        return getExploreIdeaReadyMessage();
+      }
+      if (currentStep === STEP_IDS.CONNECT) {
+        return getConnectReadyMessage();
+      }
       return "";
     }
 
@@ -1698,6 +1707,19 @@ export default function ModuleThreeV2Form({
   // Single shared artifact chain for every Module 3 screen. Step components
   // no longer render their own copy, so it appears exactly once per screen.
   const artifactChainStage = getArtifactChainStageForStep(currentStep);
+  const earlierPassStageIds = getEarlierPassStageIds({
+    currentStep,
+    claimPreview: safeText(workingClaim),
+    thesisPreview: safeText(thesisStatement),
+    stepsBeforeClaim: [
+      STEP_IDS.REVIEW,
+      STEP_IDS.PATTERNS,
+      STEP_IDS.IDEA,
+      STEP_IDS.CONNECT,
+      STEP_IDS.EVALUATE,
+      STEP_IDS.GATHER,
+    ],
+  });
   const evaluateReady = canContinueFromEvaluate({
     evidenceStrength,
     gapNote,
@@ -1728,6 +1750,7 @@ export default function ModuleThreeV2Form({
       claimPreview={safeText(workingClaim)}
       thesisPreview={safeText(thesisStatement)}
       currentStage={artifactChainStage}
+      earlierPassStageIds={earlierPassStageIds}
     />
   );
 
@@ -1848,6 +1871,8 @@ export default function ModuleThreeV2Form({
         progressCompleted={canvasState.progressStory?.completed || []}
         progressNext={canvasState.progressStory?.next || ""}
         otherPatterns={otherPatterns}
+        assignmentPrompt={ASSIGNMENT.task.prompt}
+        assignmentSources={ASSIGNMENT.sourceIntelligence.sources}
       />
     );
   }
@@ -1864,6 +1889,8 @@ export default function ModuleThreeV2Form({
         onUpdateConnection={applyConnectionPatch}
         progressCompleted={canvasState.progressStory?.completed || []}
         progressNext={canvasState.progressStory?.next || ""}
+        assignmentPrompt={ASSIGNMENT.task.prompt}
+        assignmentSources={ASSIGNMENT.sourceIntelligence.sources}
       />
     );
   }

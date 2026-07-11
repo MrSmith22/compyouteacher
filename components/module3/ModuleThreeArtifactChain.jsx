@@ -17,6 +17,8 @@ export default function ModuleThreeArtifactChain({
   claimPreview = "",
   thesisPreview = "",
   currentStage = "connections",
+  /** Stage ids (e.g. claim, thesis) that were saved before revisiting this step. */
+  earlierPassStageIds = [],
 }) {
   const stages = [
     {
@@ -113,6 +115,11 @@ export default function ModuleThreeArtifactChain({
             >
               {stage.preview}
             </p>
+            {earlierPassStageIds.includes(stage.id) && stage.started ? (
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.14em] text-text-muted">
+                Saved from an earlier pass
+              </p>
+            ) : null}
           </li>
         ))}
       </ol>

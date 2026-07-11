@@ -30,7 +30,9 @@ const {
   getExploreIdeaPhase,
   getExploreIdeaContinueHint,
   canContinueFromExploreIdea,
+  IDEA_STATEMENT_BLOCKED_MESSAGE,
   IDEA_STATEMENT_MINIMUM,
+  IDEA_WHY_BLOCKED_MESSAGE,
   IDEA_WHY_MINIMUM,
 } = require("../lib/module3/exploreIdeaHelpers.js");
 
@@ -562,14 +564,14 @@ describe("exploreIdeaHelpers", () => {
   it("explains remaining explore_idea requirements", () => {
     assert.equal(
       getExploreIdeaContinueHint({ statement: "", whyMatters: "" }),
-      "Write one clear idea about what this pattern might mean."
+      IDEA_STATEMENT_BLOCKED_MESSAGE
     );
     assert.equal(
       getExploreIdeaContinueHint({
         statement: "King may be showing that delay itself becomes injustice.",
         whyMatters: "",
       }),
-      "Explain why this idea feels worth exploring."
+      IDEA_WHY_BLOCKED_MESSAGE
     );
     assert.equal(
       getExploreIdeaContinueHint({
