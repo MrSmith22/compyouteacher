@@ -5,13 +5,14 @@ export const LAYOUT_MODES = {
 
 /**
  * Interactive student modules share WorkspaceLayout (wide shell + responsive padding).
- * ReadingLayout (max-w-3xl) remains for Module 1, dashboards, and success-style reading pages
- * that are not under these prefixes.
+ * ReadingLayout (max-w-3xl) remains for dashboards and pages outside these prefixes.
  *
+ * Module 1 uses workspace so prompt breakdown matches Modules 2–9 (M1.1).
  * Module 9 is workspace so its single-column content can use ModulePageShell widths
  * instead of being capped by ReadingLayout’s max-w-3xl (WP-005).
  */
 const WORKSPACE_ROUTE_PREFIXES = [
+  "/modules/1",
   "/modules/2",
   "/modules/3",
   "/modules/4",

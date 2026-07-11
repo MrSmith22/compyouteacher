@@ -115,8 +115,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-075 | Replace ambiguous Module 6 writing terminology with student-friendly language | 6 | Medium | Copy / Voice | Needs Verification |
 | WP-076 | Build the Introduction page around the reader, not the writing | 6 | High | Instructional | Needs Verification |
 | WP-077 | Make supporting resources impossible to miss on Module 6 drafting pages | 6 | High | Instructional / UX | Needs Verification |
+| WP-078 | Module 1 prompt page lacks clear first-task hierarchy | 1 | High | Instructional / UX | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-078.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-079.*
 
 ---
 
@@ -2304,4 +2305,35 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-077 Needs Verification (Module 6 Need Help discoverability).*
+### WP-078 — Module 1 prompt page lacks clear first-task hierarchy
+
+- **Module:** 1
+- **Screen or area:** `/modules/1/prompt` (Step 1 prompt breakdown)
+- **Priority:** High
+- **Category:** Instructional / UX
+- **Status:** Resolved
+
+**Walkthrough observation:** The first prompt breakdown page stacked Step 1 of 2, explanatory copy, reassurance, Welcome headings, and the assignment before any answerable question. Students could read several blocks without knowing what to do first.
+
+**Why it matters educationally:** The first Module 1 task must make the immediate action obvious within seconds. Competing top-of-page headings create the “lost” feeling described in the walkthrough.
+
+**Why it matters technically or operationally:** Presentation and shared workspace layout only. Prompt breakdown persistence, MC/paraphrase logic, save API, and progression to Step 2 unchanged.
+
+**Recommended smallest reasonable fix:** Make the concrete task the primary heading; demote reassurance/background; place the assignment as Need Help reference; adopt the shared WorkspaceLayout rhythm used in later modules.
+
+**Verification steps:**
+1. Open `/modules/1/prompt` as a reset student.
+2. Confirm a first-time student can name the task within about five seconds.
+3. Confirm Welcome/background does not compete as a primary heading.
+4. Confirm assignment is available under Need Help and does not dominate the top.
+5. Confirm save still advances to video/quiz and reload restores answers.
+
+**Related files:** `app/modules/1/prompt/page.js`; `components/layout/layoutModes.js`
+
+**Resolution notes:** (July 10, 2026) Implemented Start here → Your job right now → work → Need Help on the shared drafting workspace shell. Module 1 routes use WorkspaceLayout. Jason verified PASS on live walkthrough (July 10, 2026). Related app-wide WP-048 / WP-050 / WP-051 / WP-062 remain Open (not closed by this Module 1 fix).
+
+**Resolved in commit:** (presentation-only; closed after live verification PASS)
+
+---
+
+*Last updated: July 10, 2026 — WP-078 Resolved (Module 1 prompt first-task hierarchy / M1.1).*
