@@ -6,6 +6,11 @@ import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import Panel from "@/components/ui/Panel";
 import ProgressDots from "@/components/ui/ProgressDots";
+import ModulePageShell from "@/components/layout/ModulePageShell";
+import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
+import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
+import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
+import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import {
   ReferenceSection,
   WorkingSetSection,
@@ -223,89 +228,816 @@ export default function ModuleTwoSourcePage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-        <p className="text-sm text-theme-dark/80">Loading your source texts…</p>
-      </div>
+      <ModulePageShell>
+        <p className="p-2 text-text-muted">Loading your source texts…</p>
+      </ModulePageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-theme-light text-theme-dark p-6">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-extrabold text-theme-dark mb-1">
-          Module 2: Your source texts
-        </h1>
-        <p className="text-sm text-theme-dark/70 mb-4">
-          I’ll help you save clean copies of the two texts we’ll study.
-        </p>
+    <ModulePageShell>
+      {stage === 0 ? (
+        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+          <WorkspaceSidebar className="opacity-80 lg:col-span-1">
+            <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Module 2
+                </p>
+                <p className="text-sm font-semibold text-text-primary">
+                  Prepare and read the sources
+                </p>
+              </div>
+              <div className="space-y-1 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Where you are
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  Get ready · First screen
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  You are starting an evidence notebook, not writing the essay
+                  yet.
+                </p>
+              </div>
+              <div className="border-t border-border-soft/60 pt-4">
+                <ProgressDots
+                  total={7}
+                  activeStep={stage + 1}
+                  label={STAGE_LABELS[stage]}
+                  onStepClick={goToStep}
+                />
+              </div>
+            </aside>
+          </WorkspaceSidebar>
 
-        <ProgressDots
-          total={7}
-          activeStep={stage + 1}
-          label={STAGE_LABELS[stage]}
-          onStepClick={goToStep}
-        />
+          <WorkspaceCenter className="min-w-0">
+            <div className="space-y-6 md:space-y-8">
+              <header className="space-y-3 py-1 text-left md:py-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
+                  Start here
+                </p>
+                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                  You&apos;re not reading randomly. You&apos;re starting your
+                  evidence notebook.
+                </h1>
+                <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
+                  Save clean working copies of the two King texts. These become
+                  the notebook you will keep using across The Writing Processor.
+                </p>
+              </header>
 
-        {/* Stage 0: Welcome */}
-        {stage === 0 && (
-          <Panel className="space-y-4">
-            <div className="text-left space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Today’s question
-              </p>
-              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
-                What texts are we going to study?
-              </h2>
-              <p className="text-sm text-theme-dark/75">
-                Before we analyze anything, we need accurate copies of the texts.
-              </p>
-            </div>
+              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+                  Your job right now
+                </p>
+                <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
+                  Begin your personal evidence notebook by saving the speech and
+                  the letter.
+                </p>
+                <ol className="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
+                  <li>Check that the sources come from trusted archives.</li>
+                  <li>Save your own copy of the speech.</li>
+                  <li>Save your own copy of the letter.</li>
+                </ol>
+                <p className="mt-4 text-sm font-medium leading-relaxed text-text-primary">
+                  You are building a notebook you will return to—not writing the
+                  essay yet.
+                </p>
+              </div>
 
-            <WorkingSetSection
-              label="What you’ll do"
-              description="One small step at a time. You don’t need to rush."
-            >
-              <div className="space-y-3 text-theme-dark/85">
-                <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    Why are we doing this?
+              <div className="space-y-3 rounded-xl border border-border-soft/70 bg-white/80 px-4 py-5 shadow-soft sm:px-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                  Workspace
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  When you&apos;re ready, begin the short source-preparation
+                  steps.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setStage(1)}
+                  className="rounded-lg bg-theme-blue px-4 py-2 font-medium text-white"
+                >
+                  Let&apos;s begin
+                </button>
+              </div>
+
+              <section
+                id="module-2-need-help"
+                className="scroll-mt-24 space-y-4 rounded-xl border-2 border-theme-orange/25 bg-theme-orange/[0.04] px-4 py-5 md:px-5"
+                aria-labelledby="module-2-need-help-heading"
+              >
+                <div className="space-y-1 text-left">
+                  <p
+                    id="module-2-need-help-heading"
+                    className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+                  >
+                    Need Help
                   </p>
-                  <p className="text-sm text-theme-dark/75">
-                    Strong analysis starts with a trustworthy, complete text.
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Extra coaching lives here if you want it—then come back to
+                    Let&apos;s begin.
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    What should I do?
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Why these sources matter
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    These are not texts to read once and leave behind. They
+                    become the core of your evidence notebook—the working copies
+                    you will reopen when you collect quotes, explain appeals, and
+                    later group evidence in Module 3.
                   </p>
-                  <ul className="mt-1 list-disc list-inside space-y-1 text-sm text-theme-dark/75">
-                    <li>Check that our sources are trustworthy</li>
-                    <li>Save your own copy of the speech</li>
-                    <li>Save your own copy of the letter</li>
+                </details>
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    What you are looking for
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    Right now you are not hunting for quotes yet. You are setting
+                    up accurate notebook copies of the speech and the letter so
+                    later evidence work stays grounded in the real documents.
+                  </p>
+                </details>
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Self-check before you continue
+                  </summary>
+                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+                    <li>
+                      You know you are starting an evidence notebook, not just
+                      finishing a reading.
+                    </li>
+                    <li>You are not writing the essay on this screen.</li>
+                    <li>
+                      You are ready to check the archives and save both texts.
+                    </li>
                   </ul>
+                </details>
+              </section>
+            </div>
+          </WorkspaceCenter>
+
+          <WorkspaceGuide className="opacity-90">
+            <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+              <div className="space-y-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  From your teacher
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  Writers keep an evidence notebook nearby. They do not invent
+                  quotes from memory—they return to the same working texts again
+                  and again.
+                </p>
+              </div>
+
+              <div className="space-y-2 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  What comes next
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Next you will save both texts into your notebook, then add one
+                  useful example at a time. Later modules—including Module
+                  3—will keep using that same notebook to group evidence,
+                  sharpen a thesis, and plan the essay.
+                </p>
+              </div>
+            </aside>
+          </WorkspaceGuide>
+        </WorkspaceColumns>
+      ) : stage === 2 ? (
+        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+          <WorkspaceSidebar className="opacity-80 lg:col-span-1">
+            <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Module 2
+                </p>
+                <p className="text-sm font-semibold text-text-primary">
+                  Prepare and read the sources
+                </p>
+              </div>
+              <div className="space-y-1 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Where you are
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  Save the speech
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  First page of your evidence notebook.
+                </p>
+              </div>
+              <div className="space-y-3 border-t border-border-soft/60 pt-4">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                    Progress
+                  </p>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Step 3 of 7
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    {STAGE_LABELS[2]}
+                  </p>
                 </div>
+                <ol className="space-y-1.5">
+                  {STAGE_LABELS.map((label, index) => {
+                    const stepNum = index + 1;
+                    const current = stage + 1;
+                    const isCompleted = stepNum < current;
+                    const isCurrent = stepNum === current;
+                    return (
+                      <li
+                        key={label}
+                        className={`flex items-start gap-2 text-xs leading-snug ${
+                          isCurrent
+                            ? "font-semibold text-theme-blue"
+                            : isCompleted
+                              ? "text-theme-green"
+                              : "text-text-muted"
+                        }`}
+                      >
+                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
+                          {isCompleted ? "✓" : stepNum}
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </aside>
+          </WorkspaceSidebar>
+
+          <WorkspaceCenter className="min-w-0">
+            <div className="space-y-5 md:space-y-6">
+              <header className="space-y-2 text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
+                  Start here
+                </p>
+                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                  Add the speech to your evidence notebook.
+                </h1>
+                <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
+                  Paste the full speech into the notebook below. This is the
+                  first text you will keep using across The Writing Processor.
+                </p>
+              </header>
+
+              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+                  Your job right now
+                </p>
+                <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
+                  Open the speech, copy the full text, paste it into your
+                  notebook, and save.
+                </p>
+                <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
+                  <li>Open the official speech source under Need Help.</li>
+                  <li>Copy the full speech (not just a short excerpt).</li>
+                  <li>Paste it into the notebook page below and click Save.</li>
+                </ol>
+              </div>
+
+              {/* Evidence notebook document — dominant desk surface, not a form card */}
+              <section
+                aria-labelledby="module-2-speech-notebook-heading"
+                className="min-w-0"
+              >
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                      Evidence notebook
+                    </p>
+                    <h2
+                      id="module-2-speech-notebook-heading"
+                      className="text-lg font-semibold text-text-primary"
+                    >
+                      Speech
+                    </h2>
+                  </div>
+                  {speechSavedOk ? (
+                    <span className="text-sm font-semibold text-theme-green">
+                      ✓ Saved to your evidence notebook
+                    </span>
+                  ) : (
+                    <span className="text-sm text-text-muted">
+                      Not saved yet
+                    </span>
+                  )}
+                </div>
+
+                <textarea
+                  id="module2-speech-full-text"
+                  value={speechFullText}
+                  onChange={(e) => {
+                    setSpeechFullText(e.target.value);
+                    setSpeechSavedOk(false);
+                    setSpeechSaveError(null);
+                  }}
+                  placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
+                  rows={18}
+                  className="min-h-[min(480px,58vh)] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 md:px-6 md:py-5"
+                />
+
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                  <button
+                    type="button"
+                    onClick={saveSpeech}
+                    disabled={
+                      savingSpeech ||
+                      !speechSourceUrl.trim() ||
+                      !speechFullText.trim()
+                    }
+                    className="rounded-lg bg-theme-green px-5 py-2.5 text-base font-semibold text-white disabled:opacity-60"
+                  >
+                    {savingSpeech ? "Saving…" : "Save my speech copy"}
+                  </button>
+                  {speechSaveError ? (
+                    <span className="text-sm text-theme-red">
+                      {speechSaveError}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 border-t border-border-soft/60 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStage(3)}
+                    disabled={!canContinueFromStage2}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium ${
+                      canContinueFromStage2
+                        ? "bg-theme-blue text-white"
+                        : "cursor-not-allowed bg-gray-300 text-gray-500"
+                    }`}
+                  >
+                    Continue
+                  </button>
+                  {!canContinueFromStage2 ? (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Save your speech copy before continuing.
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Speech saved. Continue to add the letter to your notebook.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section
+                id="module-2-speech-need-help"
+                className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
+                aria-labelledby="module-2-speech-need-help-heading"
+              >
+                <div className="space-y-1 text-left">
+                  <p
+                    id="module-2-speech-need-help-heading"
+                    className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+                  >
+                    Need Help
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Supporting tools only. The notebook above is where your work
+                    lives.
+                  </p>
+                </div>
+
+                <div className="space-y-3 rounded-lg bg-white/60 px-3 py-3">
+                  <a
+                    href={SPEECH_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block rounded-lg bg-theme-blue px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  >
+                    Open the official speech source
+                  </a>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Source text accessed through the{" "}
+                    {SPEECH_SOURCE.officialSiteName}.
+                  </p>
+                </div>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5" open>
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    How to copy (quick steps)
+                  </summary>
+                  <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">
+                    <li>Open the source in a new tab.</li>
+                    <li>Select all (Command + A / Control + A).</li>
+                    <li>Copy (Command + C / Control + C).</li>
+                    <li>Come back here and paste into your notebook.</li>
+                  </ol>
+                </details>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    A note about formatting
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    The official transcript may include extra lines (applause,
+                    labels, etc.). That is okay—save it exactly as it appears.
+                  </p>
+                </details>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Advanced: speech source URL
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-sm leading-relaxed text-text-muted">
+                      This is usually already filled in. Only change it if your
+                      teacher asks you to.
+                    </p>
+                    <input
+                      id="module2-speech-source-url"
+                      type="url"
+                      value={speechSourceUrl}
+                      onChange={(e) => {
+                        setSpeechSourceUrl(e.target.value);
+                        setSpeechSavedOk(false);
+                        setSpeechSaveError(null);
+                      }}
+                      className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
+                    />
+                  </div>
+                </details>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Self-check before you continue
+                  </summary>
+                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+                    <li>You pasted the full speech, not a short excerpt.</li>
+                    <li>You clicked Save and see the saved confirmation.</li>
+                    <li>
+                      Next you will add the letter as the second notebook page.
+                    </li>
+                  </ul>
+                </details>
+              </section>
+            </div>
+          </WorkspaceCenter>
+
+          <WorkspaceGuide className="opacity-90">
+            <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+              <div className="space-y-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  From your teacher
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  This notebook page is yours. You will come back to this same
+                  speech whenever you need a quote or want to check the real
+                  words.
+                </p>
+              </div>
+
+              <div className="space-y-2 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  What comes next
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  After you save the speech, you will add the letter the same
+                  way. Together they become the source pair for your evidence
+                  notebook.
+                </p>
+              </div>
+            </aside>
+          </WorkspaceGuide>
+        </WorkspaceColumns>
+      ) : stage === 3 ? (
+        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+          <WorkspaceSidebar className="opacity-80 lg:col-span-1">
+            <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Module 2
+                </p>
+                <p className="text-sm font-semibold text-text-primary">
+                  Prepare and read the sources
+                </p>
+              </div>
+              <div className="space-y-1 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Where you are
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  Save the letter
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Your speech is already in your evidence notebook. This is the
+                  second text.
+                </p>
+              </div>
+              <div className="space-y-3 border-t border-border-soft/60 pt-4">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                    Progress
+                  </p>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Step 4 of 7
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    {STAGE_LABELS[3]}
+                  </p>
+                </div>
+                <ol className="space-y-1.5">
+                  {STAGE_LABELS.map((label, index) => {
+                    const stepNum = index + 1;
+                    const current = stage + 1;
+                    const isCompleted = stepNum < current;
+                    const isCurrent = stepNum === current;
+                    return (
+                      <li
+                        key={label}
+                        className={`flex items-start gap-2 text-xs leading-snug ${
+                          isCurrent
+                            ? "font-semibold text-theme-blue"
+                            : isCompleted
+                              ? "text-theme-green"
+                              : "text-text-muted"
+                        }`}
+                      >
+                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
+                          {isCompleted ? "✓" : stepNum}
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </aside>
+          </WorkspaceSidebar>
+
+          <WorkspaceCenter className="min-w-0">
+            <div className="space-y-6 md:space-y-8">
+              <header className="space-y-3 py-1 text-left md:py-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
+                  Start here
+                </p>
+                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                  Add the letter to your evidence notebook.
+                </h1>
+                <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
+                  You already saved the speech. Save the letter next so your
+                  notebook has both texts you will use later.
+                </p>
+              </header>
+
+              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+                  Your job right now
+                </p>
+                <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
+                  Open the letter, copy the full text, paste it here, and save.
+                </p>
+                <ol className="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
+                  <li>Open the official letter source under Need Help.</li>
+                  <li>Copy the full letter (not just a short excerpt).</li>
+                  <li>Paste it in the workspace below and click Save.</li>
+                </ol>
+                <p className="mt-4 text-sm font-medium leading-relaxed text-text-primary">
+                  Saving both texts gives you the source pair for the rest of
+                  The Writing Processor.
+                </p>
+              </div>
+
+              <div className="space-y-4 rounded-xl border-2 border-theme-blue/25 bg-white/80 px-4 py-5 shadow-soft sm:px-5">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                    Workspace
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Paste the full letter here, then save it to your notebook.
+                  </p>
+                </div>
+
                 <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    How will I know I’m finished?
-                  </p>
-                  <p className="text-sm text-theme-dark/75">
-                    You’ll have two saved texts you can open anytime while you work.
-                  </p>
+                  <label
+                    htmlFor="module2-letter-full-text"
+                    className="block text-sm font-medium text-text-primary"
+                  >
+                    Letter text
+                  </label>
+                  <textarea
+                    id="module2-letter-full-text"
+                    value={letterFullText}
+                    onChange={(e) => {
+                      setLetterFullText(e.target.value);
+                      setLetterSavedOk(false);
+                      setLetterSaveError(null);
+                    }}
+                    placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
+                    rows={14}
+                    className="mt-2 min-h-[16rem] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-3 text-sm leading-6 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 sm:min-h-[20rem]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                  <button
+                    type="button"
+                    onClick={saveLetter}
+                    disabled={
+                      savingLetter ||
+                      !letterSourceUrl.trim() ||
+                      !letterFullText.trim()
+                    }
+                    className="rounded-lg bg-theme-green px-5 py-2.5 text-base font-semibold text-white disabled:opacity-60"
+                  >
+                    {savingLetter ? "Saving…" : "Save my letter copy"}
+                  </button>
+                  {letterSavedOk ? (
+                    <span className="text-sm font-semibold text-theme-green">
+                      ✓ Saved to your evidence notebook
+                    </span>
+                  ) : null}
+                  {letterSaveError ? (
+                    <span className="text-sm text-theme-red">
+                      {letterSaveError}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="border-t border-border-soft/60 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStage(4)}
+                    disabled={!canContinueFromStage3}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium ${
+                      canContinueFromStage3
+                        ? "bg-theme-blue text-white"
+                        : "cursor-not-allowed bg-gray-300 text-gray-500"
+                    }`}
+                  >
+                    Continue
+                  </button>
+                  {!canContinueFromStage3 ? (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Save your letter copy before continuing.
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Letter saved. Continue to check that both texts look
+                      complete.
+                    </p>
+                  )}
                 </div>
               </div>
-            </WorkingSetSection>
 
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setStage(1)}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium"
+              <section
+                id="module-2-letter-need-help"
+                className="scroll-mt-24 space-y-4 rounded-xl border-2 border-theme-orange/25 bg-theme-orange/[0.04] px-4 py-5 md:px-5"
+                aria-labelledby="module-2-letter-need-help-heading"
               >
-                Let’s begin
-              </button>
+                <div className="space-y-1 text-left">
+                  <p
+                    id="module-2-letter-need-help-heading"
+                    className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+                  >
+                    Need Help
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Open the source and copy steps live here. Use them, then
+                    come back to paste and save above.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-3 space-y-3">
+                  <p className="text-xs font-medium text-text-muted">
+                    Official letter source
+                  </p>
+                  <a
+                    href={LETTER_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block rounded-lg bg-theme-blue px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  >
+                    Open the official letter source
+                  </a>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    This text is hosted by the {LETTER_SOURCE.officialSiteName},
+                    which provides historical documents for academic study.
+                  </p>
+                </div>
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5" open>
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    How to copy (quick steps)
+                  </summary>
+                  <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">
+                    <li>Open the source in a new tab.</li>
+                    <li>Select all (Command + A / Control + A).</li>
+                    <li>Copy (Command + C / Control + C).</li>
+                    <li>Come back here and paste (Command + V / Control + V).</li>
+                  </ol>
+                </details>
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    A note about formatting
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    The official page may include extra lines or labels. That is
+                    okay—save it exactly as it appears.
+                  </p>
+                </details>
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Advanced: letter source URL
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-sm leading-relaxed text-text-muted">
+                      This is usually already filled in. Only change it if your
+                      teacher asks you to.
+                    </p>
+                    <label
+                      htmlFor="module2-letter-source-url"
+                      className="block text-xs font-medium text-text-muted"
+                    >
+                      Letter source URL
+                    </label>
+                    <input
+                      id="module2-letter-source-url"
+                      type="url"
+                      value={letterSourceUrl}
+                      onChange={(e) => {
+                        setLetterSourceUrl(e.target.value);
+                        setLetterSavedOk(false);
+                        setLetterSaveError(null);
+                      }}
+                      className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
+                    />
+                    <p className="text-xs text-text-muted">
+                      Source text accessed through the{" "}
+                      {LETTER_SOURCE.officialSiteName}.
+                    </p>
+                  </div>
+                </details>
+
+                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Self-check before you continue
+                  </summary>
+                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+                    <li>You pasted the full letter, not a short excerpt.</li>
+                    <li>You clicked Save and see the saved confirmation.</li>
+                    <li>
+                      Your notebook will then have both the speech and the
+                      letter.
+                    </li>
+                  </ul>
+                </details>
+              </section>
             </div>
-          </Panel>
-        )}
+          </WorkspaceCenter>
+
+          <WorkspaceGuide className="opacity-90">
+            <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+              <div className="space-y-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  From your teacher
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  The speech is already in your notebook. Add the letter the same
+                  way so you always have both texts when you look for evidence.
+                </p>
+              </div>
+
+              <div className="space-y-2 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  What comes next
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  After you save, you will quickly check that both notebook
+                  copies look complete. Then you will keep using this same pair
+                  of texts throughout The Writing Processor.
+                </p>
+              </div>
+            </aside>
+          </WorkspaceGuide>
+        </WorkspaceColumns>
+      ) : (
+        <div className="mx-auto w-full max-w-3xl">
+          <h1 className="mb-1 text-2xl font-extrabold text-theme-dark">
+            Module 2: Your source texts
+          </h1>
+          <p className="mb-4 text-sm text-theme-dark/70">
+            I’ll help you save clean copies of the two texts we’ll study.
+          </p>
+
+          <ProgressDots
+            total={7}
+            activeStep={stage + 1}
+            label={STAGE_LABELS[stage]}
+            onStepClick={goToStep}
+          />
 
         {/* Stage 1: Why these are trustworthy */}
         {stage === 1 && (
@@ -416,283 +1148,6 @@ export default function ModuleTwoSourcePage() {
                 Continue
               </button>
             </div>
-          </Panel>
-        )}
-
-        {/* Stage 2: Get the speech */}
-        {stage === 2 && (
-          <Panel className="space-y-4">
-            <div className="text-left space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Today’s question
-              </p>
-              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
-                What important information should we save before we start reading?
-              </h2>
-              <p className="text-sm text-theme-dark/75">
-                We’re going to save your own working copy of the speech.
-              </p>
-            </div>
-
-            <ReferenceSection
-              label="Official source (reference)"
-              description="Open it, look first, then come back to paste."
-            >
-              <div className="space-y-2">
-                <a
-                  href={SPEECH_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-                >
-                  Open the official speech source
-                </a>
-                <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
-                  <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
-                    How to copy (quick steps)
-                  </summary>
-                  <ol className="mt-3 list-decimal list-inside space-y-1 text-sm text-theme-dark/75">
-                    <li>Open the source in a new tab.</li>
-                    <li>Select all (Command + A / Control + A).</li>
-                    <li>Copy (Command + C / Control + C).</li>
-                    <li>Come back here and paste (Command + V / Control + V).</li>
-                  </ol>
-                </details>
-                <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
-                  <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
-                    A note about formatting
-                  </summary>
-                  <p className="mt-3 text-sm text-theme-dark/75">
-                    The official transcript may include extra lines (applause, labels, etc.).
-                    That’s okay—save it exactly as it appears.
-                  </p>
-                </details>
-              </div>
-            </ReferenceSection>
-
-            <WorkingSetSection
-              label="Your saved copy (working set)"
-              description="Paste the full speech here so you can use it later."
-            >
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    What should I do?
-                  </p>
-                  <p className="text-sm text-theme-dark/75">
-                    Copy the full speech from the official source, then paste it below.
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-dark mb-1">
-                    Speech source URL
-                  </label>
-                  <input
-                    type="url"
-                    value={speechSourceUrl}
-                    onChange={(e) => {
-                      setSpeechSourceUrl(e.target.value);
-                      setSpeechSavedOk(false);
-                      setSpeechSaveError(null);
-                    }}
-                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-dark mb-1">
-                    Speech full text
-                  </label>
-                  <textarea
-                    value={speechFullText}
-                    onChange={(e) => {
-                      setSpeechFullText(e.target.value);
-                      setSpeechSavedOk(false);
-                      setSpeechSaveError(null);
-                    }}
-                    placeholder={SPEECH_SOURCE.transcriptTextPlaceholder}
-                    rows={14}
-                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    How will I know I’m finished?
-                  </p>
-                  <p className="text-sm text-theme-dark/75">
-                    You pasted the full text (not just an excerpt) and clicked save.
-                  </p>
-                  <p className="text-xs text-theme-dark/60 mt-1">
-                    Source text accessed through the {SPEECH_SOURCE.officialSiteName}.
-                  </p>
-                </div>
-              </div>
-            </WorkingSetSection>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={saveSpeech}
-                disabled={savingSpeech || !speechSourceUrl.trim() || !speechFullText.trim()}
-                className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60"
-              >
-                {savingSpeech ? "Saving…" : "Save my speech copy"}
-              </button>
-              {speechSavedOk ? (
-                <span className="text-sm font-medium text-theme-green">✓ Saved</span>
-              ) : null}
-              {speechSaveError ? (
-                <span className="text-sm text-theme-red">{speechSaveError}</span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setStage(3)}
-                disabled={!canContinueFromStage2}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
-            </div>
-            {!canContinueFromStage2 && speechFullText.trim() ? (
-              <p className="text-xs text-theme-dark/60">
-                Save your speech copy before continuing.
-              </p>
-            ) : null}
-          </Panel>
-        )}
-
-        {/* Stage 3: Get the letter */}
-        {stage === 3 && (
-          <Panel className="space-y-4">
-            <div className="text-left space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Today’s question
-              </p>
-              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
-                Where did this letter come from, and how do we save it?
-              </h2>
-              <p className="text-sm text-theme-dark/75">
-                Now we’ll save your working copy of the letter.
-              </p>
-            </div>
-
-            <ReferenceSection
-              label="Official source (reference)"
-              description="Open it, look first, then come back to paste."
-            >
-              <div className="space-y-2">
-                <p className="text-sm text-theme-dark/75">
-                  This text is hosted by the {LETTER_SOURCE.officialSiteName}, which provides
-                  historical documents for academic study.
-                </p>
-                <a
-                  href={LETTER_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-                >
-                  Open the official letter source
-                </a>
-                <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
-                  <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
-                    How to copy (quick steps)
-                  </summary>
-                  <ol className="mt-3 list-decimal list-inside space-y-1 text-sm text-theme-dark/75">
-                    <li>Open the source in a new tab.</li>
-                    <li>Select all (Command + A / Control + A).</li>
-                    <li>Copy (Command + C / Control + C).</li>
-                    <li>Come back here and paste (Command + V / Control + V).</li>
-                  </ol>
-                </details>
-              </div>
-            </ReferenceSection>
-
-            <WorkingSetSection
-              label="Your saved copy (working set)"
-              description="Paste the full letter here so you can use it later."
-            >
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    What should I do?
-                  </p>
-                  <p className="text-sm text-theme-dark/75">
-                    Copy the full letter from the official source, then paste it below.
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-dark mb-1">
-                    Letter source URL
-                  </label>
-                  <input
-                    type="url"
-                    value={letterSourceUrl}
-                    onChange={(e) => {
-                      setLetterSourceUrl(e.target.value);
-                      setLetterSavedOk(false);
-                      setLetterSaveError(null);
-                    }}
-                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-theme-dark mb-1">
-                    Letter full text
-                  </label>
-                  <textarea
-                    value={letterFullText}
-                    onChange={(e) => {
-                      setLetterFullText(e.target.value);
-                      setLetterSavedOk(false);
-                      setLetterSaveError(null);
-                    }}
-                    placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
-                    rows={14}
-                    className="w-full border border-border-soft rounded-lg px-3 py-2 bg-white text-theme-dark font-sans text-sm"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-theme-dark">
-                    How will I know I’m finished?
-                  </p>
-                  <p className="text-sm text-theme-dark/75">
-                    You pasted the full text (not just an excerpt) and clicked save.
-                  </p>
-                  <p className="text-xs text-theme-dark/60 mt-1">
-                    Source text accessed through the {LETTER_SOURCE.officialSiteName}.
-                  </p>
-                </div>
-              </div>
-            </WorkingSetSection>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={saveLetter}
-                disabled={savingLetter || !letterSourceUrl.trim() || !letterFullText.trim()}
-                className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60"
-              >
-                {savingLetter ? "Saving…" : "Save my letter copy"}
-              </button>
-              {letterSavedOk ? (
-                <span className="text-sm font-medium text-theme-green">✓ Saved</span>
-              ) : null}
-              {letterSaveError ? (
-                <span className="text-sm text-theme-red">{letterSaveError}</span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setStage(4)}
-                disabled={!canContinueFromStage3}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
-            </div>
-            {!canContinueFromStage3 && letterFullText.trim() ? (
-              <p className="text-xs text-theme-dark/60">
-                Save your letter copy before continuing.
-              </p>
-            ) : null}
           </Panel>
         )}
 
@@ -949,7 +1404,8 @@ export default function ModuleTwoSourcePage() {
             </div>
           </Panel>
         )}
-      </div>
-    </div>
+        </div>
+      )}
+    </ModulePageShell>
   );
 }
