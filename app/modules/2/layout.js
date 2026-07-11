@@ -15,7 +15,8 @@ import {
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 /**
- * Module 2 has multiple subroutes (/, /analysis, /tcharts, /form, /source, /letter, /success).
+ * Module 2 has multiple subroutes (/, /tcharts, /form, /source, /letter, /success).
+ * /analysis remains as a compatibility redirect to /tcharts.
  * Gate by module family: allow any path under /modules/2 when current_module >= 2;
  * otherwise send the student to the Module 2 root.
  */

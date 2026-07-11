@@ -27,15 +27,49 @@ import {
   isModule2SourcePreparationComplete,
 } from "@/lib/module2/module2SourceReadiness";
 
-const STAGE_LABELS = [
-  "Get ready",
-  "Can we trust these sources?",
-  "Save the speech",
-  "Save the letter",
-  "Check: do they look complete?",
-  "Use your saved copies",
-  "Ready to begin analysis",
+const WIZARD_STEPS = [
+  { stage: 0, label: "Get ready" },
+  { stage: 1, label: "Can we trust these sources?" },
+  { stage: 2, label: "Save the speech" },
+  { stage: 3, label: "Save the letter" },
+  { stage: 4, label: "Evidence notebook complete" },
+  { stage: 6, label: "Begin reading like a writer" },
 ];
+
+function wizardStepNumber(stage) {
+  if (stage === 5) return 6;
+  const index = WIZARD_STEPS.findIndex((step) => step.stage === stage);
+  return index >= 0 ? index + 1 : 1;
+}
+
+function WizardProgressList({ stage }) {
+  const currentIdx = WIZARD_STEPS.findIndex((step) => step.stage === stage);
+  return (
+    <ol className="space-y-1.5">
+      {WIZARD_STEPS.map((step, index) => {
+        const isCompleted = index < currentIdx;
+        const isCurrent = index === currentIdx;
+        return (
+          <li
+            key={step.label}
+            className={`flex items-start gap-2 text-xs leading-snug ${
+              isCurrent
+                ? "font-semibold text-theme-blue"
+                : isCompleted
+                  ? "text-theme-green"
+                  : "text-text-muted"
+            }`}
+          >
+            <span className="mt-0.5 w-4 shrink-0 tabular-nums">
+              {isCompleted ? "✓" : index + 1}
+            </span>
+            <span>{step.label}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
 const SPEECH_SOURCE = MODULE2_SOURCES.speech;
@@ -116,10 +150,16 @@ export default function ModuleTwoSourcePage() {
   };
 
   const goToStep = (stepNum) => {
-    const targetStage = Math.max(0, Math.min(6, stepNum - 1));
-    if (!canReachStage(targetStage)) return;
-    setStage(targetStage);
+    const step = WIZARD_STEPS[stepNum - 1];
+    if (!step || !canReachStage(step.stage)) return;
+    setStage(step.stage);
   };
+
+  useEffect(() => {
+    if (stage === 5) {
+      setStage(6);
+    }
+  }, [stage]);
 
   useEffect(() => {
     if (stage === 4 && session?.user?.email) {
@@ -224,7 +264,7 @@ export default function ModuleTwoSourcePage() {
   const persistedLetterText = getPersistedLetterText(sources);
   const stage4BothPersisted = isModule2SourcePreparationComplete(sources);
   const canContinueFromStage4 = stage4BothPersisted;
-  const canContinueFromStage5 = isModule2SourcePreparationComplete(sources);
+  const canContinueFromStage6 = isModule2SourcePreparationComplete(sources);
 
   if (status === "loading" || loading) {
     return (
@@ -262,9 +302,12 @@ export default function ModuleTwoSourcePage() {
               </div>
               <div className="border-t border-border-soft/60 pt-4">
                 <ProgressDots
-                  total={7}
-                  activeStep={stage + 1}
-                  label={STAGE_LABELS[stage]}
+                  total={WIZARD_STEPS.length}
+                  activeStep={wizardStepNumber(stage)}
+                  label={
+                    WIZARD_STEPS[wizardStepNumber(stage) - 1]?.label ||
+                    "Get ready"
+                  }
                   onStepClick={goToStep}
                 />
               </div>
@@ -439,37 +482,13 @@ export default function ModuleTwoSourcePage() {
                     Progress
                   </p>
                   <p className="text-sm font-semibold text-text-primary">
-                    Step 3 of 7
+                    Step {wizardStepNumber(2)} of {WIZARD_STEPS.length}
                   </p>
                   <p className="text-sm leading-relaxed text-text-muted">
-                    {STAGE_LABELS[2]}
+                    Save the speech
                   </p>
                 </div>
-                <ol className="space-y-1.5">
-                  {STAGE_LABELS.map((label, index) => {
-                    const stepNum = index + 1;
-                    const current = stage + 1;
-                    const isCompleted = stepNum < current;
-                    const isCurrent = stepNum === current;
-                    return (
-                      <li
-                        key={label}
-                        className={`flex items-start gap-2 text-xs leading-snug ${
-                          isCurrent
-                            ? "font-semibold text-theme-blue"
-                            : isCompleted
-                              ? "text-theme-green"
-                              : "text-text-muted"
-                        }`}
-                      >
-                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
-                          {isCompleted ? "✓" : stepNum}
-                        </span>
-                        <span>{label}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <WizardProgressList stage={2} />
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -740,37 +759,13 @@ export default function ModuleTwoSourcePage() {
                     Progress
                   </p>
                   <p className="text-sm font-semibold text-text-primary">
-                    Step 4 of 7
+                    Step {wizardStepNumber(3)} of {WIZARD_STEPS.length}
                   </p>
                   <p className="text-sm leading-relaxed text-text-muted">
-                    {STAGE_LABELS[3]}
+                    Save the letter
                   </p>
                 </div>
-                <ol className="space-y-1.5">
-                  {STAGE_LABELS.map((label, index) => {
-                    const stepNum = index + 1;
-                    const current = stage + 1;
-                    const isCompleted = stepNum < current;
-                    const isCurrent = stepNum === current;
-                    return (
-                      <li
-                        key={label}
-                        className={`flex items-start gap-2 text-xs leading-snug ${
-                          isCurrent
-                            ? "font-semibold text-theme-blue"
-                            : isCompleted
-                              ? "text-theme-green"
-                              : "text-text-muted"
-                        }`}
-                      >
-                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
-                          {isCompleted ? "✓" : stepNum}
-                        </span>
-                        <span>{label}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <WizardProgressList stage={3} />
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -1030,10 +1025,10 @@ export default function ModuleTwoSourcePage() {
                   Where you are
                 </p>
                 <p className="text-sm leading-relaxed text-text-primary">
-                  Check your notebook
+                  Evidence notebook complete
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  Confirm both texts are saved before analysis.
+                  Both texts are saved. Open them and keep them nearby.
                 </p>
               </div>
               <div className="space-y-3 border-t border-border-soft/60 pt-4">
@@ -1042,37 +1037,13 @@ export default function ModuleTwoSourcePage() {
                     Progress
                   </p>
                   <p className="text-sm font-semibold text-text-primary">
-                    Step 5 of 7
+                    Step {wizardStepNumber(4)} of {WIZARD_STEPS.length}
                   </p>
                   <p className="text-sm leading-relaxed text-text-muted">
-                    {STAGE_LABELS[4]}
+                    Evidence notebook complete
                   </p>
                 </div>
-                <ol className="space-y-1.5">
-                  {STAGE_LABELS.map((label, index) => {
-                    const stepNum = index + 1;
-                    const current = stage + 1;
-                    const isCompleted = stepNum < current;
-                    const isCurrent = stepNum === current;
-                    return (
-                      <li
-                        key={label}
-                        className={`flex items-start gap-2 text-xs leading-snug ${
-                          isCurrent
-                            ? "font-semibold text-theme-blue"
-                            : isCompleted
-                              ? "text-theme-green"
-                              : "text-text-muted"
-                        }`}
-                      >
-                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
-                          {isCompleted ? "✓" : stepNum}
-                        </span>
-                        <span>{label}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <WizardProgressList stage={4} />
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -1084,8 +1055,12 @@ export default function ModuleTwoSourcePage() {
                   Start here
                 </p>
                 <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
-                  Your evidence notebook is ready.
+                  Your evidence notebook is complete.
                 </h1>
+                <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
+                  Both King texts are saved. These are the pages you will keep
+                  returning to while you find evidence and write your essay.
+                </p>
               </header>
 
               <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
@@ -1093,17 +1068,20 @@ export default function ModuleTwoSourcePage() {
                   Your job right now
                 </p>
                 <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
-                  Take one last look to make sure both texts were saved
-                  correctly.
+                  Open both saved texts and keep them open while you work.
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-text-primary">
-                  If something looks wrong, go back and fix it now. Otherwise
-                  continue into analysis.
-                </p>
+                <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
+                  <li>Open your saved speech.</li>
+                  <li>Open your saved letter.</li>
+                  <li>
+                    Leave both open so you can look at the real words instead of
+                    guessing from memory.
+                  </li>
+                </ol>
               </div>
 
               <section
-                aria-labelledby="module-2-check-notebook-heading"
+                aria-labelledby="module-2-notebook-complete-heading"
                 className="min-w-0 space-y-4"
               >
                 <div>
@@ -1111,10 +1089,10 @@ export default function ModuleTwoSourcePage() {
                     Evidence notebook
                   </p>
                   <h2
-                    id="module-2-check-notebook-heading"
+                    id="module-2-notebook-complete-heading"
                     className="text-lg font-semibold text-text-primary"
                   >
-                    Your saved texts
+                    Open your saved pages
                   </h2>
                 </div>
 
@@ -1210,10 +1188,21 @@ export default function ModuleTwoSourcePage() {
                   )}
                 </div>
 
-                <div className="pt-2">
+                <div className="rounded-xl border border-border-soft/70 bg-surface-soft/50 px-4 py-4 md:px-5">
+                  <p className="text-sm font-semibold text-text-primary">
+                    Keep both texts open
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                    You will keep referring to these pages while you notice
+                    examples of ethos, pathos, and logos. Accurate quotes come
+                    from looking at the real words—not from memory.
+                  </p>
+                </div>
+
+                <div className="pt-1">
                   <button
                     type="button"
-                    onClick={() => setStage(5)}
+                    onClick={() => setStage(6)}
                     disabled={!canContinueFromStage4}
                     className={`rounded-lg px-5 py-2.5 text-base font-semibold ${
                       canContinueFromStage4
@@ -1221,7 +1210,7 @@ export default function ModuleTwoSourcePage() {
                         : "cursor-not-allowed bg-gray-300 text-gray-500"
                     }`}
                   >
-                    Continue to Analysis
+                    Continue
                   </button>
                   {!canContinueFromStage4 ? (
                     <p className="mt-2 text-xs text-text-muted">
@@ -1232,13 +1221,13 @@ export default function ModuleTwoSourcePage() {
               </section>
 
               <section
-                id="module-2-check-need-help"
+                id="module-2-notebook-complete-need-help"
                 className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
-                aria-labelledby="module-2-check-need-help-heading"
+                aria-labelledby="module-2-notebook-complete-need-help-heading"
               >
                 <div className="space-y-1 text-left">
                   <p
-                    id="module-2-check-need-help-heading"
+                    id="module-2-notebook-complete-need-help-heading"
                     className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
                   >
                     Need Help
@@ -1247,18 +1236,29 @@ export default function ModuleTwoSourcePage() {
 
                 <details className="rounded-lg bg-white/60 px-3 py-2.5" open>
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                    How do I know everything copied correctly?
+                    Why keep referring to these texts?
                   </summary>
                   <div className="mt-2 space-y-2 text-sm leading-relaxed text-text-muted">
                     <p>
-                      Open each saved text and skim the beginning and ending.
-                      You should see a full document, not a short excerpt.
+                      Your essay will be built from evidence you find in these
+                      two documents. Keeping them open makes it easier to find
+                      strong examples and copy quotes accurately.
                     </p>
                     <p>
                       If a text looks too short or incomplete, go back to Save
                       the speech or Save the letter, paste again, and save.
                     </p>
                   </div>
+                </details>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    What if I accidentally close one?
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    No problem. Come back to this page and open it again. Your
+                    saved notebook copy is still here.
+                  </p>
                 </details>
               </section>
             </div>
@@ -1271,8 +1271,8 @@ export default function ModuleTwoSourcePage() {
                   From your teacher
                 </p>
                 <p className="text-sm leading-relaxed text-text-primary">
-                  A quick check now prevents confusion later. Your notebook only
-                  helps if both texts are really there.
+                  Collecting the documents is done. Next you shift from saving
+                  texts to reading them like a writer.
                 </p>
               </div>
 
@@ -1281,15 +1281,15 @@ export default function ModuleTwoSourcePage() {
                   What comes next
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  You&apos;ll begin finding examples of ethos, pathos, and logos
-                  inside these texts. Those examples become the building blocks
-                  of your essay.
+                  You&apos;ll begin noticing examples of ethos, pathos, and logos
+                  in these texts. Those observations become grouped evidence and
+                  eventually your essay.
                 </p>
               </div>
             </aside>
           </WorkspaceGuide>
         </WorkspaceColumns>
-      ) : stage === 5 ? (
+      ) : stage === 6 ? (
         <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
             <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
@@ -1306,10 +1306,10 @@ export default function ModuleTwoSourcePage() {
                   Where you are
                 </p>
                 <p className="text-sm leading-relaxed text-text-primary">
-                  Open your notebook
+                  Begin reading like a writer
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  Preparation is done. Analysis comes next.
+                  Document collecting is finished. Analysis begins next.
                 </p>
               </div>
               <div className="space-y-3 border-t border-border-soft/60 pt-4">
@@ -1318,37 +1318,13 @@ export default function ModuleTwoSourcePage() {
                     Progress
                   </p>
                   <p className="text-sm font-semibold text-text-primary">
-                    Step 6 of 7
+                    Step {wizardStepNumber(6)} of {WIZARD_STEPS.length}
                   </p>
                   <p className="text-sm leading-relaxed text-text-muted">
-                    {STAGE_LABELS[5]}
+                    Begin reading like a writer
                   </p>
                 </div>
-                <ol className="space-y-1.5">
-                  {STAGE_LABELS.map((label, index) => {
-                    const stepNum = index + 1;
-                    const current = stage + 1;
-                    const isCompleted = stepNum < current;
-                    const isCurrent = stepNum === current;
-                    return (
-                      <li
-                        key={label}
-                        className={`flex items-start gap-2 text-xs leading-snug ${
-                          isCurrent
-                            ? "font-semibold text-theme-blue"
-                            : isCompleted
-                              ? "text-theme-green"
-                              : "text-text-muted"
-                        }`}
-                      >
-                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
-                          {isCompleted ? "✓" : stepNum}
-                        </span>
-                        <span>{label}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <WizardProgressList stage={6} />
               </div>
             </aside>
           </WorkspaceSidebar>
@@ -1360,11 +1336,11 @@ export default function ModuleTwoSourcePage() {
                   Start here
                 </p>
                 <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
-                  Open both pages of your evidence notebook.
+                  You are no longer collecting documents.
                 </h1>
                 <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
-                  These texts stay open while you work so you can look for
-                  evidence instead of relying on memory.
+                  You are now reading like a writer—looking for the moves King
+                  makes so you can use them as evidence later.
                 </p>
               </header>
 
@@ -1372,108 +1348,113 @@ export default function ModuleTwoSourcePage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
                   Your job right now
                 </p>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-base font-semibold leading-snug text-text-primary">
-                  <li>Open your saved speech.</li>
-                  <li>Open your saved letter.</li>
-                  <li>
-                    Keep both open while you begin finding examples of ethos,
-                    pathos, and logos.
-                  </li>
-                </ol>
+                <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
+                  Shift your mindset from saving texts to noticing how they work.
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-text-primary md:text-base">
+                  With your notebook open, you will begin spotting examples of
+                  ethos, pathos, and logos. You are not writing the essay yet—you
+                  are gathering the observations that will become it.
+                </p>
               </div>
 
               <section
-                aria-labelledby="module-2-open-notebook-heading"
+                aria-labelledby="module-2-reading-like-writer-heading"
                 className="min-w-0 space-y-4"
               >
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
-                    Workspace
+                    How this connects
                   </p>
                   <h2
-                    id="module-2-open-notebook-heading"
+                    id="module-2-reading-like-writer-heading"
                     className="text-lg font-semibold text-text-primary"
                   >
-                    Open your notebook pages
+                    From observations to essay
                   </h2>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-6 md:py-8">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
-                      Evidence notebook
+                <ol className="space-y-3">
+                  <li className="rounded-xl border border-border-soft/70 bg-white px-4 py-4 shadow-soft md:px-5">
+                    <p className="text-sm font-semibold text-text-primary">
+                      1. Notice
                     </p>
-                    <p className="mt-2 text-xl font-semibold text-text-primary">
-                      Speech
+                    <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                      Find places where King builds trust (ethos), stirs feeling
+                      (pathos), or uses reasoning (logos).
                     </p>
-                    <p className="mt-1 text-sm text-text-muted">
-                      {SPEECH_SOURCE.title}
+                  </li>
+                  <li className="rounded-xl border border-border-soft/70 bg-white px-4 py-4 shadow-soft md:px-5">
+                    <p className="text-sm font-semibold text-text-primary">
+                      2. Group
                     </p>
-                    <a
-                      href="/texts/speech"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-theme-blue px-4 py-3 text-base font-semibold text-white hover:opacity-90"
-                    >
-                      Open saved speech
-                    </a>
-                  </div>
-
-                  <div className="rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-6 md:py-8">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
-                      Evidence notebook
+                    <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                      Later, those observations become grouped evidence you can
+                      organize and compare.
                     </p>
-                    <p className="mt-2 text-xl font-semibold text-text-primary">
-                      Letter
+                  </li>
+                  <li className="rounded-xl border border-border-soft/70 bg-white px-4 py-4 shadow-soft md:px-5">
+                    <p className="text-sm font-semibold text-text-primary">
+                      3. Write
                     </p>
-                    <p className="mt-1 text-sm text-text-muted">
-                      {LETTER_SOURCE.title}
+                    <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                      That grouped evidence becomes the foundation of your essay.
                     </p>
-                    <a
-                      href="/texts/letter"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-theme-blue px-4 py-3 text-base font-semibold text-white hover:opacity-90"
-                    >
-                      Open saved letter
-                    </a>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-border-soft/70 bg-surface-soft/50 px-4 py-4 md:px-5">
-                  <p className="text-sm font-semibold text-text-primary">
-                    Ready?
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
-                    Both notebook pages are open and ready beside your Writing
-                    Processor.
-                  </p>
-                </div>
+                  </li>
+                </ol>
 
                 <div className="pt-1">
                   <button
                     type="button"
-                    onClick={() => setStage(6)}
-                    disabled={!canContinueFromStage5}
+                    onClick={async () => {
+                      const verified = await fetchModule2SourcesFromApi();
+                      if (!isModule2SourcePreparationComplete(verified)) {
+                        if (verified) applyLoadedSources(verified);
+                        setStage(4);
+                        return;
+                      }
+                      applyLoadedSources(verified);
+                      if (session?.user?.email) {
+                        try {
+                          await fetch("/api/assignments/resume", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              assignment_name: MLK_ASSIGNMENT_NAME,
+                              resume_path: "/modules/2/tcharts",
+                            }),
+                          });
+                        } catch (err) {
+                          console.error("Resume path update failed:", err);
+                        }
+                      }
+                      router.push("/modules/2/tcharts");
+                    }}
+                    disabled={!canContinueFromStage6}
                     className={`rounded-lg px-5 py-2.5 text-base font-semibold ${
-                      canContinueFromStage5
+                      canContinueFromStage6
                         ? "bg-theme-blue text-white"
                         : "cursor-not-allowed bg-gray-300 text-gray-500"
                     }`}
                   >
                     Continue
                   </button>
+                  {!canContinueFromStage6 ? (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Both source texts must be saved before beginning analysis.
+                    </p>
+                  ) : null}
                 </div>
               </section>
 
               <section
-                id="module-2-open-need-help"
+                id="module-2-reading-need-help"
                 className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
-                aria-labelledby="module-2-open-need-help-heading"
+                aria-labelledby="module-2-reading-need-help-heading"
               >
                 <div className="space-y-1 text-left">
                   <p
-                    id="module-2-open-need-help-heading"
+                    id="module-2-reading-need-help-heading"
                     className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
                   >
                     Need Help
@@ -1482,32 +1463,22 @@ export default function ModuleTwoSourcePage() {
 
                 <details className="rounded-lg bg-white/60 px-3 py-2.5" open>
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                    Why keep the notebook open?
+                    What does “reading like a writer” mean?
                   </summary>
                   <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                    Writers look at the real words while they work. Keeping both
-                    texts open makes it easier to find accurate quotes instead of
-                    guessing from memory.
+                    It means paying attention to how the writing works—not just
+                    what it says. You look for choices that persuade, then save
+                    those moments as evidence.
                   </p>
                 </details>
 
                 <details className="rounded-lg bg-white/60 px-3 py-2.5">
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                    What if I accidentally close one?
+                    Do I write my essay on the next page?
                   </summary>
                   <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                    No problem. Come back to this page and open it again. Your
-                    saved notebook copy is still here.
-                  </p>
-                </details>
-
-                <details className="rounded-lg bg-white/60 px-3 py-2.5">
-                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                    Can I reopen them later?
-                  </summary>
-                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                    Yes. You can reopen your saved speech and letter whenever you
-                    need them during analysis and later modules.
+                    No. Next you begin collecting observations. The essay comes
+                    after you have grouped evidence and built a plan.
                   </p>
                 </details>
               </section>
@@ -1521,8 +1492,8 @@ export default function ModuleTwoSourcePage() {
                   From your teacher
                 </p>
                 <p className="text-sm leading-relaxed text-text-primary">
-                  You have your evidence notebook open. Now you are ready to
-                  begin thinking like a writer.
+                  Saving texts was preparation. From here on, every observation
+                  you make is material for your essay.
                 </p>
               </div>
 
@@ -1531,10 +1502,8 @@ export default function ModuleTwoSourcePage() {
                   What comes next
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  Next you&apos;ll begin looking for examples of ethos, pathos,
-                  and logos. Those observations become your evidence. Later
-                  you&apos;ll organize that evidence into groups and build your
-                  thesis in Module 3.
+                  You&apos;ll enter analysis with your notebook open and begin
+                  noticing rhetorical strategies in the speech and letter.
                 </p>
               </div>
             </aside>
@@ -1550,9 +1519,12 @@ export default function ModuleTwoSourcePage() {
           </p>
 
           <ProgressDots
-            total={7}
-            activeStep={stage + 1}
-            label={STAGE_LABELS[stage]}
+            total={WIZARD_STEPS.length}
+            activeStep={wizardStepNumber(stage)}
+            label={
+              WIZARD_STEPS[wizardStepNumber(stage) - 1]?.label ||
+              "Can we trust these sources?"
+            }
             onStepClick={goToStep}
           />
 
@@ -1667,72 +1639,9 @@ export default function ModuleTwoSourcePage() {
             </div>
           </Panel>
         )}
-
-        {/* Stage 6: Begin rhetorical analysis */}
-        {stage === 6 && (
-          <Panel className="space-y-4">
-            <div className="text-left space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Today’s question
-              </p>
-              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
-                Are you ready to begin analysis?
-              </h2>
-              <p className="text-sm text-theme-dark/75">
-                You’ve saved both texts. Next, you’ll start noticing rhetorical choices.
-              </p>
-            </div>
-            <ReferenceSection
-              label="What’s next (reference)"
-              description="Just so you know what you’re walking into."
-            >
-              <p className="text-sm text-theme-dark/75">
-                You’ll look for how King uses rhetorical strategies and how those
-                choices connect to audience and purpose.
-              </p>
-            </ReferenceSection>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  const verified = await fetchModule2SourcesFromApi();
-                  if (!isModule2SourcePreparationComplete(verified)) {
-                    if (verified) applyLoadedSources(verified);
-                    setStage(4);
-                    return;
-                  }
-                  applyLoadedSources(verified);
-                  if (session?.user?.email) {
-                    try {
-                      await fetch("/api/assignments/resume", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          assignment_name: MLK_ASSIGNMENT_NAME,
-                          resume_path: "/modules/2/analysis",
-                        }),
-                      });
-                    } catch (err) {
-                      console.error("Resume path update failed:", err);
-                    }
-                  }
-                  router.push("/modules/2/analysis");
-                }}
-                disabled={!isModule2SourcePreparationComplete(sources)}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
-              {!isModule2SourcePreparationComplete(sources) ? (
-                <p className="text-xs text-theme-dark/60 mt-2">
-                  Both source texts must be saved before beginning analysis.
-                </p>
-              ) : null}
-            </div>
-          </Panel>
-        )}
         </div>
       )}
+
     </ModulePageShell>
   );
 }

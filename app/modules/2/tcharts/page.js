@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import Panel from "@/components/ui/Panel";
-import {
-  ReferenceSection,
-  WorkingSetSection,
-} from "@/components/module3/ModuleThreeDeskFrame";
+import ModulePageShell from "@/components/layout/ModulePageShell";
+import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
+import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
+import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
+import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import ModuleTwoNotebook from "@/components/module2/ModuleTwoNotebook";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
@@ -18,6 +18,42 @@ const APPEALS = ["ethos", "pathos", "logos"];
 const MODULE2_SOURCES = mlkAssignmentDefinition.sources;
 const FALLBACK_SPEECH_URL = MODULE2_SOURCES.speech.analysisFallbackUrl;
 const FALLBACK_LETTER_URL = MODULE2_SOURCES.letter.analysisFallbackUrl;
+
+/**
+ * Subtle visual identity for Speech vs Letter.
+ * Reuse across Ethos / Pathos / Logos evidence workspaces.
+ * Speech = cool blue · Letter = warm orange (complementary, not loud).
+ */
+const SOURCE_IDENTITY = {
+  speech: {
+    label: "Speech",
+    inPhrase: "in the speech",
+    accentText: "text-theme-blue",
+    accentBar: "border-l-[3px] border-l-theme-blue",
+    softWash: "bg-theme-blue/[0.04]",
+    chip: "border border-theme-blue/30 bg-theme-blue/10 text-theme-blue",
+    panelBorder: "border-theme-blue/25",
+    sidebarCurrent:
+      "border-theme-blue/40 bg-theme-blue/10 text-theme-blue ring-1 ring-theme-blue/15",
+    sidebarComplete: "border-theme-green/30 bg-theme-green/5 text-theme-green",
+    sidebarNext: "border-border-soft/70 bg-white text-text-primary",
+  },
+  letter: {
+    label: "Letter",
+    inPhrase: "in the letter",
+    accentText: "text-theme-orange",
+    accentBar: "border-l-[3px] border-l-theme-orange",
+    softWash: "bg-theme-orange/[0.04]",
+    chip: "border border-theme-orange/30 bg-theme-orange/10 text-theme-orange",
+    panelBorder: "border-theme-orange/25",
+    sidebarCurrent:
+      "border-theme-orange/40 bg-theme-orange/10 text-theme-orange ring-1 ring-theme-orange/15",
+    sidebarComplete: "border-theme-green/30 bg-theme-green/5 text-theme-green",
+    sidebarNext:
+      "border-theme-orange/35 bg-theme-orange/[0.07] text-text-primary",
+  },
+};
+
 
 const OBSERVATION_SEP = "\n---AUDIENCE---\n";
 const OBSERVATION_SEP2 = "\n---PURPOSE---\n";
@@ -262,26 +298,160 @@ export default function ModuleTwoTCharts() {
   };
 
   const appealLabels = { ethos: "Ethos", pathos: "Pathos", logos: "Logos" };
-  const introCopy = {
-    ethos:
-      "Ethos is about credibility and trust. Look for moments where Dr. King presents himself as moral, responsible, experienced, or worth listening to.",
-    pathos:
-      "Pathos is about emotion. Look for words or images that stir feelings such as hope, anger, guilt, pride, fear, or compassion.",
-    logos:
-      "Logos is about logic and reasoning. Look for facts, clear claims, cause-and-effect reasoning, or examples that support King's argument.",
-  };
 
-  const guidingQuestionByAppeal = {
-    ethos: "What makes this quote an example of ethos?",
-    pathos: "What feeling is this quote trying to stir?",
-    logos: "What makes this quote an example of logos?",
+  /** Progressive coaching copy — template for all appeals; Ethos is the reference pattern. */
+  const coachingByAppeal = {
+    ethos: {
+      phase1: {
+        headline: {
+          speech:
+            "Find one place in the speech where King tries to seem trustworthy.",
+          letter:
+            "Find one place in the letter where King tries to seem trustworthy.",
+        },
+        coach:
+          "Ethos is when King is trying to show readers that he is trustworthy, reasonable, honest, fair, or someone worth believing.",
+        guides: [
+          "Where does King seem trustworthy?",
+          "Where does he establish credibility?",
+          "Where does he sound fair or reasonable?",
+          "What words make you believe him?",
+        ],
+        job: {
+          speech: "Paste one short quote from the speech.",
+          letter: "Paste one short quote from the letter.",
+        },
+        placeholder: "Paste one short quote here.",
+      },
+      phase2: {
+        headline: "Why do you think this makes King seem trustworthy?",
+        coach:
+          "There is not one perfect answer. In your own words, explain why you chose this quote. Point to what makes King sound trustworthy, fair, or worth believing.",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Explain why this quote makes King seem trustworthy.",
+        placeholder: "Explain in your own words…",
+      },
+      phase3: {
+        headline: "How might this affect King’s audience?",
+        coach:
+          "Imagine how readers might react. Would this make readers trust King? Would it make him sound fair? Would they believe him more?",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Explain how this might affect King’s audience.",
+        placeholder: "Describe a possible audience reaction…",
+      },
+      phase4: {
+        headline: "How does this help King accomplish his purpose?",
+        coach:
+          "King’s purpose is what he is trying to achieve with his audience. Connect the trustworthy language in your quote to his larger goal.",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Connect this quote to King’s larger purpose.",
+        placeholder: "Connect the quote to King’s purpose…",
+      },
+    },
+    pathos: {
+      phase1: {
+        headline: {
+          speech:
+            "Find one place in the speech where King tries to stir strong feeling.",
+          letter:
+            "Find one place in the letter where King tries to stir strong feeling.",
+        },
+        coach:
+          "Pathos is when King is trying to make readers feel something—hope, anger, guilt, pride, fear, compassion, or urgency—so they care about his message.",
+        guides: [
+          "Where does King try to make people feel something?",
+          "Where does the language sound emotional or vivid?",
+          "What words might stir hope, anger, or compassion?",
+        ],
+        job: {
+          speech: "Paste one short quote from the speech.",
+          letter: "Paste one short quote from the letter.",
+        },
+        placeholder: "Paste one short quote here.",
+      },
+      phase2: {
+        headline: "Why do you think this quote stirs feeling?",
+        coach:
+          "There is not one perfect answer. In your own words, explain why you chose this quote and what feeling it seems to create.",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Explain why this quote stirs feeling.",
+        placeholder: "Explain in your own words…",
+      },
+      phase3: {
+        headline: "How might this affect King’s audience?",
+        coach:
+          "Imagine how readers might react. Would this make them care more? Feel urgency? Feel hope, anger, or compassion?",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Explain how this might affect King’s audience.",
+        placeholder: "Describe a possible audience reaction…",
+      },
+      phase4: {
+        headline: "How does this help King accomplish his purpose?",
+        coach:
+          "King’s purpose is what he is trying to achieve with his audience. Connect the emotional language in your quote to his larger goal.",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Connect this quote to King’s larger purpose.",
+        placeholder: "Connect the quote to King’s purpose…",
+      },
+    },
+    logos: {
+      phase1: {
+        headline: {
+          speech:
+            "Find one place in the speech where King uses reasoning or clear logic.",
+          letter:
+            "Find one place in the letter where King uses reasoning or clear logic.",
+        },
+        coach:
+          "Logos is when King is trying to persuade with facts, examples, cause-and-effect thinking, or clear reasoning so his argument makes sense.",
+        guides: [
+          "Where does King give a reason or example?",
+          "Where does he explain cause and effect?",
+          "What words make his argument feel logical?",
+        ],
+        job: {
+          speech: "Paste one short quote from the speech.",
+          letter: "Paste one short quote from the letter.",
+        },
+        placeholder: "Paste one short quote here.",
+      },
+      phase2: {
+        headline: "Why do you think this quote shows reasoning?",
+        coach:
+          "There is not one perfect answer. In your own words, explain why you chose this quote and what makes it feel logical or well reasoned.",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Explain why this quote shows reasoning.",
+        placeholder: "Explain in your own words…",
+      },
+      phase3: {
+        headline: "How might this affect King’s audience?",
+        coach:
+          "Imagine how readers might react. Would this make his argument clearer? Would they find it more convincing or harder to dismiss?",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Explain how this might affect King’s audience.",
+        placeholder: "Describe a possible audience reaction…",
+      },
+      phase4: {
+        headline: "How does this help King accomplish his purpose?",
+        coach:
+          "King’s purpose is what he is trying to achieve with his audience. Connect the reasoning in your quote to his larger goal.",
+        bridge: "Great. Now let’s think about one more thing.",
+        job: "Connect this quote to King’s larger purpose.",
+        placeholder: "Connect the quote to King’s purpose…",
+      },
+    },
   };
 
   const activeLabel = appealLabels[activeAppeal];
+  const sourceId = SOURCE_IDENTITY[activeTextType];
   const activeSourceTitle =
     activeTextType === "speech"
       ? MODULE2_SOURCES.speech.title
       : MODULE2_SOURCES.letter.title;
+  const activeTextLabel = sourceId.label;
+  const coaching = coachingByAppeal[activeAppeal];
+  const phase1Headline = coaching.phase1.headline[activeTextType];
+  const phase1Job = coaching.phase1.job[activeTextType];
 
   const quoteField = activeTextType === "speech" ? "speechQuote" : "letterQuote";
   const whyField = activeTextType === "speech" ? "speechWhy" : "letterWhy";
@@ -290,211 +460,167 @@ export default function ModuleTwoTCharts() {
   const purposeField =
     activeTextType === "speech" ? "speechPurpose" : "letterPurpose";
 
+  const quoteValue = String(currentFields[quoteField] || "").trim();
+  const whyValue = String(currentFields[whyField] || "").trim();
+  const audienceValue = String(currentFields[audienceField] || "").trim();
+  const purposeValue = String(currentFields[purposeField] || "").trim();
+
+  const showPhase2 = quoteValue.length > 0;
+  const showPhase3 = showPhase2 && whyValue.length > 0;
+  const showPhase4 = showPhase3 && audienceValue.length > 0;
+  const thisTextComplete = showPhase4 && purposeValue.length > 0;
+
+  const speechComplete = speechFilledForCurrent;
+  const letterComplete = letterFilledForCurrent;
+  const bothTextsComplete = allFilledForCurrent;
+
+  const waitingForLetterAfterSpeech =
+    speechComplete && !letterComplete && activeTextType === "speech";
+  const waitingForSpeechAfterLetter =
+    letterComplete && !speechComplete && activeTextType === "letter";
+
+  const letterTitle = MODULE2_SOURCES.letter.title;
+  const speechTitle = MODULE2_SOURCES.speech.title;
+
+  const currentJob = waitingForLetterAfterSpeech
+    ? `Continue to the letter to find one ${activeLabel} example.`
+    : waitingForSpeechAfterLetter
+      ? `Continue to the speech to find one ${activeLabel} example.`
+      : bothTextsComplete
+        ? isLastAppeal
+          ? "Both texts are complete. Save and finish when you are ready."
+          : `Both texts are complete. Continue to ${appealLabels[nextAppeal]} when you are ready.`
+        : !showPhase2
+          ? phase1Job
+          : !showPhase3
+            ? coaching.phase2.job
+            : !showPhase4
+              ? coaching.phase3.job
+              : !thisTextComplete
+                ? coaching.phase4.job
+                : `This ${activeTextType} is complete.`;
+
+  const speechSidebarClass = speechComplete
+    ? SOURCE_IDENTITY.speech.sidebarComplete
+    : activeTextType === "speech"
+      ? SOURCE_IDENTITY.speech.sidebarCurrent
+      : SOURCE_IDENTITY.speech.sidebarNext;
+
+  const letterSidebarClass = letterComplete
+    ? SOURCE_IDENTITY.letter.sidebarComplete
+    : activeTextType === "letter"
+      ? SOURCE_IDENTITY.letter.sidebarCurrent
+      : speechComplete
+        ? SOURCE_IDENTITY.letter.sidebarNext
+        : "border-border-soft/70 bg-white text-text-primary";
+
+  const speechSidebarLabel = speechComplete
+    ? "✓ Speech complete"
+    : activeTextType === "speech"
+      ? "Speech (current)"
+      : "Speech";
+
+  const letterSidebarLabel = letterComplete
+    ? "✓ Letter complete"
+    : activeTextType === "letter"
+      ? "Letter (current)"
+      : speechComplete
+        ? "→ Letter next"
+        : "Letter (next)";
+
+  const nextAppealLabel = nextAppeal ? appealLabels[nextAppeal] : null;
+  const saveContinueLabel = isLastAppeal
+    ? "Save and finish"
+    : `Continue to ${nextAppealLabel} →`;
+
+  const unlockHint = !speechComplete
+    ? `Complete the Speech example to continue.`
+    : !letterComplete
+      ? `Complete the Letter example to unlock ${
+          isLastAppeal ? "finishing Module 2" : nextAppealLabel
+        }.`
+      : null;
+
   return (
-    <div className="min-h-screen bg-theme-light text-theme-dark p-6">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="space-y-2 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-            Today’s question
-          </p>
-          <h1 className="text-2xl font-extrabold text-theme-dark leading-snug">
-            {guidingQuestionByAppeal[activeAppeal]}
-          </h1>
-          <p className="text-sm text-theme-dark/70">
-            We’ll study one quote at a time. Keep it short and accurate.
-          </p>
-        </div>
-
-        <WorkingSetSection
-          label={`${activeLabel} • ${activeTextType === "speech" ? "Speech" : "Letter"}`}
-          description="Read your quote first. Then explain what you notice in simple words."
-        >
-          <div className="space-y-5">
-            <div className="rounded-2xl border border-theme-dark/12 bg-white px-6 py-6 shadow-soft ring-1 ring-theme-dark/[0.03] md:px-8 md:py-7">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-theme-dark/50">
-                The quote you’re studying
+    <ModulePageShell>
+      <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+        <WorkspaceSidebar className="opacity-80 lg:col-span-1">
+          <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                Module 2
               </p>
-              <p className="mt-2 text-xs text-theme-dark/55">
-                From: {activeSourceTitle}
-              </p>
-              <textarea
-                className="mt-4 w-full min-h-[140px] rounded-xl border border-theme-dark/12 bg-white px-4 py-4 text-[15px] leading-[1.8] text-theme-dark focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
-                value={currentFields[quoteField]}
-                onChange={(e) => updateAppeal(activeAppeal, quoteField, e.target.value)}
-                placeholder={`Paste one short quote from the ${activeTextType}.`}
-              />
-              <p className="mt-3 text-sm text-theme-dark/70">
-                You don’t need a perfect quote. Choose one that clearly fits{" "}
-                <span className="font-semibold text-theme-dark">{activeLabel}</span>.
+              <p className="text-sm font-semibold text-text-primary">
+                Collect evidence
               </p>
             </div>
 
-            <div className="space-y-5 text-left">
-              {[
-                {
-                  lead: "First…",
-                  field: whyField,
-                  label: `What makes this quote ${activeLabel}?`,
-                  reassurance: "There isn’t one perfect answer—just explain what you notice.",
-                  good: "Good answers point to specific words or details in the quote.",
-                  placeholder: "Explain why this quote fits this appeal.",
-                },
-                {
-                  lead: "Next…",
-                  field: audienceField,
-                  label: "How might this affect the audience?",
-                  reassurance:
-                    "Use your own words. Your explanation matters more than fancy vocabulary.",
-                  good:
-                    "Good answers explain a cause → effect (what King does → what it makes people think/feel).",
-                  placeholder: "Describe a possible audience reaction.",
-                },
-                {
-                  lead: "Finally…",
-                  field: purposeField,
-                  label: "How does this help King’s purpose?",
-                  reassurance:
-                    "It’s okay to be simple. Just make the connection as clearly as you can.",
-                  good:
-                    "Good answers connect the quote to the bigger goal of the text.",
-                  placeholder: "Connect the quote to King’s purpose.",
-                },
-              ].map((step) => (
-                <div key={step.field} className="space-y-2">
-                  <p className="text-sm font-semibold text-theme-dark">
-                    {step.lead}{" "}
-                    <span className="font-normal text-theme-dark/80">
-                      {step.label}
-                    </span>
-                  </p>
-                  <p className="text-sm text-theme-dark/70">{step.reassurance}</p>
-                  <textarea
-                    className="w-full min-h-[96px] rounded-lg border border-theme-dark/12 bg-white px-3 py-3 text-sm text-theme-dark focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
-                    value={currentFields[step.field]}
-                    onChange={(e) => updateAppeal(activeAppeal, step.field, e.target.value)}
-                    placeholder={step.placeholder}
-                  />
-                  <p className="text-xs text-theme-dark/55">
-                    What good answers usually do: {step.good}
-                  </p>
-                </div>
-              ))}
+            <div className="space-y-1 border-t border-border-soft/60 pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                Where you are
+              </p>
+              <p className="text-sm leading-relaxed text-text-primary">
+                {activeLabel}
+              </p>
+              <p
+                className={`inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${sourceId.chip}`}
+              >
+                Analyzing: {activeTextLabel}
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Appeal {appealIndex + 1} of {APPEALS.length}. One quote from each
+                text.
+              </p>
             </div>
-          </div>
-        </WorkingSetSection>
 
-        <ReferenceSection
-          label="Shelf"
-          description="Glance here when you need it, then come back to your quote."
-        >
-          <div className="space-y-4">
-            <ModuleTwoNotebook
-              sources={sources}
-              sourceTitles={{
-                speechTitle: MODULE2_SOURCES.speech.title,
-                letterTitle: MODULE2_SOURCES.letter.title,
-              }}
-              tcharts={{
-                formData,
-                appealLabels,
-              }}
-            />
-
-            <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
-              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
-                Keep the texts open
-              </summary>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => openInNewTab("/texts/speech")}
-                  className="text-left bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-                >
-                  Open my saved speech copy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openInNewTab(sources.speechUrl || FALLBACK_SPEECH_URL)}
-                  className="text-left bg-theme-blue/90 text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-                >
-                  Open original speech source
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openInNewTab("/texts/letter")}
-                  className="text-left bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-                >
-                  Open my saved letter copy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openInNewTab(sources.letterUrl || FALLBACK_LETTER_URL)}
-                  className="text-left bg-theme-blue/90 text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
-                >
-                  Open original letter source
-                </button>
-              </div>
-            </details>
-
-            <details
-              className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3"
-              open
-            >
-              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
-                What are we looking for?
-              </summary>
-              <div className="mt-3 space-y-2">
-                <p className="text-sm font-semibold text-theme-dark">
-                  {activeLabel}
-                </p>
-                <p className="text-sm text-theme-dark/75">{introCopy[activeAppeal]}</p>
-              </div>
-            </details>
-
-            <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
-              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
-                Choose which text you’re working with
-              </summary>
-              <div className="mt-3 flex flex-wrap gap-2">
+            <div className="space-y-3 border-t border-border-soft/60 pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                Text progress
+              </p>
+              <div className="flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => setActiveTextType("speech")}
                   className={[
-                    "text-sm px-3 py-1.5 rounded-lg border transition-colors",
-                    activeTextType === "speech"
-                      ? "bg-theme-blue text-white border-theme-blue"
-                      : "bg-white text-theme-dark/80 border-theme-dark/10 hover:bg-theme-dark/5",
+                    "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                    speechSidebarClass,
                   ].join(" ")}
                 >
-                  Speech {speechFilledForCurrent ? "✓" : ""}
+                  <span className="block font-semibold">
+                    {speechSidebarLabel}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] opacity-80">
+                    {MODULE2_SOURCES.speech.title}
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTextType("letter")}
                   className={[
-                    "text-sm px-3 py-1.5 rounded-lg border transition-colors",
-                    activeTextType === "letter"
-                      ? "bg-theme-blue text-white border-theme-blue"
-                      : "bg-white text-theme-dark/80 border-theme-dark/10 hover:bg-theme-dark/5",
+                    "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                    letterSidebarClass,
                   ].join(" ")}
                 >
-                  Letter {letterFilledForCurrent ? "✓" : ""}
+                  <span className="block font-semibold">
+                    {letterSidebarLabel}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] opacity-80">
+                    {MODULE2_SOURCES.letter.title}
+                  </span>
                 </button>
               </div>
-              <p className="mt-2 text-sm text-theme-dark/70">
-                For each appeal, you’ll save <strong>one</strong> quote from the speech
-                and <strong>one</strong> quote from the letter.
-              </p>
-            </details>
+              {bothTextsComplete ? (
+                <p className="text-xs font-medium text-theme-green">
+                  ✓ Speech complete · ✓ Letter complete
+                </p>
+              ) : null}
+            </div>
 
-            <details className="rounded-lg border border-theme-dark/10 bg-white px-4 py-3">
-              <summary className="cursor-pointer select-none text-sm font-medium text-theme-dark/80">
+            <div className="space-y-3 border-t border-border-soft/60 pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
                 Appeal progress
-              </summary>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-left">
-                <span className="text-sm text-theme-dark/70">
-                  Appeal {appealIndex + 1} of {APPEALS.length}
-                </span>
+              </p>
+              <div className="flex flex-col gap-2">
                 {APPEALS.map((a, i) => (
                   <button
                     key={a}
@@ -504,60 +630,422 @@ export default function ModuleTwoTCharts() {
                       setActiveTextType("speech");
                     }}
                     className={[
-                      "text-sm px-2.5 py-1.5 rounded-lg border transition-colors",
+                      "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                       activeAppeal === a
-                        ? "bg-theme-blue text-white border-theme-blue"
-                        : "bg-white text-theme-dark/80 border-theme-dark/10 hover:bg-theme-dark/5",
+                        ? "border-theme-blue bg-theme-blue text-white"
+                        : "border-border-soft/70 bg-white text-text-primary hover:bg-surface-soft",
                     ].join(" ")}
                   >
                     {i + 1}. {appealLabels[a]}
                   </button>
                 ))}
               </div>
-            </details>
-          </div>
-        </ReferenceSection>
+            </div>
+          </aside>
+        </WorkspaceSidebar>
 
-        {/* D. Continue control */}
-        <Panel className="space-y-3">
-          {!allFilledForCurrent && (
-            <p className="text-left text-sm text-theme-dark/80">
-              Finished means: you have one complete quote + explanation for the speech
-              and one complete quote + explanation for the letter.
-            </p>
-          )}
-          {allFilledForCurrent && (
-            <p className="text-left text-sm text-theme-dark/80">
-              Nice work. You’re ready to add this evidence to your library.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={saveAndContinue}
-              disabled={!allFilledForCurrent || saving}
-              className="bg-theme-green text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLastAppeal
-                ? "Save and finish"
-                : `Save and continue to ${nextAppeal ? appealLabels[nextAppeal] : ""}`}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/modules/2")}
-              className="text-theme-blue font-medium underline"
-            >
-              Back to Module 2
-            </button>
-          </div>
-        </Panel>
+        <WorkspaceCenter className="min-w-0">
+          <div className="space-y-5 md:space-y-6">
+            {waitingForLetterAfterSpeech || waitingForSpeechAfterLetter ? (
+              <section className="space-y-5 rounded-xl border-2 border-theme-green/30 bg-theme-green/5 px-5 py-6 shadow-soft md:px-8 md:py-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-green">
+                  Nice work
+                </p>
+                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.35rem] md:leading-[1.08]">
+                  {waitingForLetterAfterSpeech
+                    ? `Great job. You found one example of ${activeLabel} from the speech. Now let’s find one from ${letterTitle}.`
+                    : `Great job. You found one example of ${activeLabel} from the letter. Now let’s find one from ${speechTitle}.`}
+                </h1>
+                <div className="space-y-2 text-sm text-text-muted">
+                  <p>
+                    {speechComplete ? "✓ Speech complete" : "Speech still needed"}
+                  </p>
+                  <p>
+                    {letterComplete
+                      ? "✓ Letter complete"
+                      : "→ Letter next"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveTextType(
+                      waitingForLetterAfterSpeech ? "letter" : "speech"
+                    )
+                  }
+                  className="rounded-lg bg-theme-blue px-5 py-2.5 text-base font-semibold text-white hover:opacity-90"
+                >
+                  {waitingForLetterAfterSpeech
+                    ? "Continue to Letter →"
+                    : "Continue to Speech →"}
+                </button>
+                <details className="rounded-lg bg-white/70 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Review or edit your {activeTextType} answers
+                  </summary>
+                  <p className="mt-2 text-sm text-text-muted">
+                    Your answers are saved below. You can change them anytime
+                    before you move on.
+                  </p>
+                </details>
+              </section>
+            ) : (
+              <>
+                <header
+                  className={`space-y-3 rounded-xl border px-4 py-4 text-left md:px-5 ${sourceId.panelBorder} ${sourceId.softWash} ${sourceId.accentBar}`}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
+                      Start here
+                    </p>
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] ${sourceId.chip}`}
+                    >
+                      {activeTextLabel}
+                    </span>
+                  </div>
+                  <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                    {phase1Headline}
+                  </h1>
+                  <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
+                    Working with: {activeSourceTitle}. Keep your evidence
+                    notebook open while you work.
+                  </p>
+                </header>
 
-        {toast && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-theme-dark text-white text-sm px-3 py-2 rounded shadow">
-            {toast}
+                <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+                    Your job right now
+                  </p>
+                  <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
+                    {currentJob}
+                  </p>
+                </div>
+              </>
+            )}
+
+            <section
+              aria-labelledby="module-2-tchart-workspace-heading"
+              className={`min-w-0 space-y-5 ${
+                waitingForLetterAfterSpeech || waitingForSpeechAfterLetter
+                  ? "opacity-70"
+                  : ""
+              }`}
+            >
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                    Workspace
+                  </p>
+                  <h2
+                    id="module-2-tchart-workspace-heading"
+                    className="text-lg font-semibold text-text-primary"
+                  >
+                    {activeTextLabel} · one question at a time
+                  </h2>
+                </div>
+                <span
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold ${sourceId.chip}`}
+                >
+                  Source: {activeTextLabel}
+                </span>
+              </div>
+
+              {/* Phase 1 — quote only */}
+              <div
+                className={`space-y-4 rounded-xl border-2 bg-white px-5 py-6 shadow-soft md:px-8 md:py-8 ${sourceId.panelBorder} ${sourceId.accentBar}`}
+              >                <div className="space-y-3 text-left">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+                    Coach
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-primary md:text-base">
+                    {coaching.phase1.coach}
+                  </p>
+                  <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-muted">
+                    {coaching.phase1.guides.map((q) => (
+                      <li key={q}>{q}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="border-t border-border-soft/60 pt-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+                    Paste one short quote from the {activeTextType}
+                  </p>
+                  <textarea
+                    className="mt-3 w-full min-h-[160px] rounded-xl border border-border-soft/70 bg-white px-4 py-4 text-[15px] leading-[1.8] text-text-primary focus:outline-none focus:ring-2 focus:ring-theme-blue/30 md:min-h-[180px]"
+                    value={currentFields[quoteField]}
+                    onChange={(e) =>
+                      updateAppeal(activeAppeal, quoteField, e.target.value)
+                    }
+                    placeholder={coaching.phase1.placeholder}
+                  />
+                </div>
+              </div>
+
+              {/* Phase 2 — why */}
+              {showPhase2 ? (
+                <div className="space-y-4 rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-8 md:py-8">
+                  <p className="text-sm font-medium text-theme-green">
+                    {coaching.phase2.bridge}
+                  </p>
+                  <h3 className="text-xl font-bold leading-snug text-text-primary md:text-2xl">
+                    {coaching.phase2.headline}
+                  </h3>
+                  <div className="space-y-2 text-left">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Coach
+                    </p>
+                    <p className="text-sm leading-relaxed text-text-primary md:text-base">
+                      {coaching.phase2.coach}
+                    </p>
+                  </div>
+                  <textarea
+                    className="w-full min-h-[128px] rounded-lg border border-border-soft/70 bg-white px-3 py-3 text-sm leading-relaxed text-text-primary focus:outline-none focus:ring-2 focus:ring-theme-blue/30 md:min-h-[140px]"
+                    value={currentFields[whyField]}
+                    onChange={(e) =>
+                      updateAppeal(activeAppeal, whyField, e.target.value)
+                    }
+                    placeholder={coaching.phase2.placeholder}
+                  />
+                </div>
+              ) : null}
+
+              {/* Phase 3 — audience */}
+              {showPhase3 ? (
+                <div className="space-y-4 rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-8 md:py-8">
+                  <p className="text-sm font-medium text-theme-green">
+                    {coaching.phase3.bridge}
+                  </p>
+                  <h3 className="text-xl font-bold leading-snug text-text-primary md:text-2xl">
+                    {coaching.phase3.headline}
+                  </h3>
+                  <div className="space-y-2 text-left">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Coach
+                    </p>
+                    <p className="text-sm leading-relaxed text-text-primary md:text-base">
+                      {coaching.phase3.coach}
+                    </p>
+                  </div>
+                  <textarea
+                    className="w-full min-h-[128px] rounded-lg border border-border-soft/70 bg-white px-3 py-3 text-sm leading-relaxed text-text-primary focus:outline-none focus:ring-2 focus:ring-theme-blue/30 md:min-h-[140px]"
+                    value={currentFields[audienceField]}
+                    onChange={(e) =>
+                      updateAppeal(activeAppeal, audienceField, e.target.value)
+                    }
+                    placeholder={coaching.phase3.placeholder}
+                  />
+                </div>
+              ) : null}
+
+              {/* Phase 4 — purpose */}
+              {showPhase4 ? (
+                <div className="space-y-4 rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-8 md:py-8">
+                  <p className="text-sm font-medium text-theme-green">
+                    {coaching.phase4.bridge}
+                  </p>
+                  <h3 className="text-xl font-bold leading-snug text-text-primary md:text-2xl">
+                    {coaching.phase4.headline}
+                  </h3>
+                  <div className="space-y-2 text-left">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Coach
+                    </p>
+                    <p className="text-sm leading-relaxed text-text-primary md:text-base">
+                      {coaching.phase4.coach}
+                    </p>
+                  </div>
+                  <textarea
+                    className="w-full min-h-[128px] rounded-lg border border-border-soft/70 bg-white px-3 py-3 text-sm leading-relaxed text-text-primary focus:outline-none focus:ring-2 focus:ring-theme-blue/30 md:min-h-[140px]"
+                    value={currentFields[purposeField]}
+                    onChange={(e) =>
+                      updateAppeal(activeAppeal, purposeField, e.target.value)
+                    }
+                    placeholder={coaching.phase4.placeholder}
+                  />
+                </div>
+              ) : null}
+
+              <div className="space-y-3 pt-1">
+                {bothTextsComplete ? (
+                  <div className="space-y-3 rounded-xl border-2 border-theme-green/30 bg-theme-green/5 px-4 py-4 md:px-5">
+                    <p className="text-sm font-semibold text-theme-green">
+                      ✓ Speech complete
+                    </p>
+                    <p className="text-sm font-semibold text-theme-green">
+                      ✓ Letter complete
+                    </p>
+                    <p className="text-sm text-text-muted">
+                      {isLastAppeal
+                        ? "You’re ready to save and finish this evidence set."
+                        : `You’re ready to continue to ${nextAppealLabel}.`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={saveAndContinue}
+                      disabled={saving}
+                      className="rounded-lg bg-theme-green px-5 py-2.5 text-base font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {saveContinueLabel}
+                    </button>
+                  </div>
+                ) : waitingForLetterAfterSpeech ||
+                  waitingForSpeechAfterLetter ? (
+                  <p className="text-sm text-text-muted">
+                    {waitingForLetterAfterSpeech
+                      ? `Use Continue to Letter above when you are ready. ${unlockHint}`
+                      : `Use Continue to Speech above when you are ready. ${unlockHint}`}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-text-muted">{unlockHint}</p>
+                    <button
+                      type="button"
+                      disabled
+                      className="cursor-not-allowed rounded-lg bg-gray-300 px-5 py-2.5 text-base font-semibold text-gray-500"
+                    >
+                      {saveContinueLabel}
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => router.push("/modules/2")}
+                  className="text-sm font-semibold text-theme-blue underline"
+                >
+                  Back to Module 2
+                </button>
+              </div>
+            </section>
+
+            <section
+              id="module-2-tchart-need-help"
+              className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
+              aria-labelledby="module-2-tchart-need-help-heading"
+            >
+              <p
+                id="module-2-tchart-need-help-heading"
+                className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+              >
+                Need Help
+              </p>
+
+              <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                  Closed a source tab by accident?
+                </summary>
+                <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                  Use Open saved speech or Open saved letter in the teacher guide
+                  on the right. You do not need to leave this page.
+                </p>
+              </details>
+
+              <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                  Prefer the original archive pages?
+                </summary>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openInNewTab(sources.speechUrl || FALLBACK_SPEECH_URL)
+                    }
+                    className="rounded-lg border border-theme-blue/30 bg-theme-blue/10 px-3 py-1.5 text-sm font-semibold text-theme-blue"
+                  >
+                    Open original speech source
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openInNewTab(sources.letterUrl || FALLBACK_LETTER_URL)
+                    }
+                    className="rounded-lg border border-theme-blue/30 bg-theme-blue/10 px-3 py-1.5 text-sm font-semibold text-theme-blue"
+                  >
+                    Open original letter source
+                  </button>
+                </div>
+              </details>
+            </section>
           </div>
-        )}
-      </div>
-    </div>
+        </WorkspaceCenter>
+
+        <WorkspaceGuide className="opacity-90">
+          <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                From your teacher
+              </p>
+              <p className="text-sm leading-relaxed text-text-primary">
+                Keep both notebook pages open while you work. Look at the real
+                words, choose a short quote, and explain what you notice.
+              </p>
+            </div>
+
+            <div className="space-y-3 border-t border-border-soft/60 pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                Evidence notebook
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Reopen your saved texts anytime without leaving this page.
+              </p>
+              <p
+                className={`inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${sourceId.chip}`}
+              >
+                Currently analyzing: {activeTextLabel}
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => openInNewTab("/texts/speech")}
+                  className="rounded-lg border border-theme-blue/30 bg-theme-blue/10 px-4 py-2.5 text-sm font-semibold text-theme-blue hover:opacity-90"
+                >
+                  Open saved speech
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openInNewTab("/texts/letter")}
+                  className="rounded-lg border border-theme-orange/30 bg-theme-orange/10 px-4 py-2.5 text-sm font-semibold text-theme-orange hover:opacity-90"
+                >
+                  Open saved letter
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-border-soft/60 pt-4">
+              <ModuleTwoNotebook
+                sources={sources}
+                sourceTitles={{
+                  speechTitle: MODULE2_SOURCES.speech.title,
+                  letterTitle: MODULE2_SOURCES.letter.title,
+                }}
+                tcharts={{
+                  formData,
+                  appealLabels,
+                }}
+              />
+            </div>
+
+            <div className="space-y-2 border-t border-border-soft/60 pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                What comes next
+              </p>
+              <p className="text-sm leading-relaxed text-text-muted">
+                {isLastAppeal
+                  ? "After you save Logos for both texts, you’ll finish Module 2 and move toward grouping evidence."
+                  : `After ${activeLabel}, you’ll collect evidence for ${
+                      nextAppeal ? appealLabels[nextAppeal] : "the next appeal"
+                    }.`}
+              </p>
+            </div>
+          </aside>
+        </WorkspaceGuide>
+      </WorkspaceColumns>
+
+      {toast ? (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded bg-theme-dark px-3 py-2 text-sm text-white shadow">
+          {toast}
+        </div>
+      ) : null}
+    </ModulePageShell>
   );
 }

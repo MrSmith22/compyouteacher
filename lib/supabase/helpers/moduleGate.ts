@@ -26,7 +26,7 @@ export async function requireModuleAccess({
 }
 
 /**
- * Module 2 uses multiple subroutes (analysis, tcharts, form, source, letter, success).
+ * Module 2 uses multiple subroutes (tcharts, form, source, letter, success; /analysis redirects to tcharts).
  * Gate by module family: any path under /modules/N is allowed when current_module >= N.
  */
 export function isPathAllowedForModule(
