@@ -730,8 +730,8 @@ export default function ModuleTwoSourcePage() {
                   Save the letter
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  Your speech is already in your evidence notebook. This is the
-                  second text.
+                  Second page of your evidence notebook. The speech is already
+                  saved.
                 </p>
               </div>
               <div className="space-y-3 border-t border-border-soft/60 pt-4">
@@ -776,70 +776,77 @@ export default function ModuleTwoSourcePage() {
           </WorkspaceSidebar>
 
           <WorkspaceCenter className="min-w-0">
-            <div className="space-y-6 md:space-y-8">
-              <header className="space-y-3 py-1 text-left md:py-2">
+            <div className="space-y-5 md:space-y-6">
+              <header className="space-y-2 text-left">
                 <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                   Start here
                 </p>
                 <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
                   Add the letter to your evidence notebook.
                 </h1>
-                <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
-                  You already saved the speech. Save the letter next so your
-                  notebook has both texts you will use later.
+                <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
+                  Paste the full letter into the notebook below. This is the
+                  second text you will keep using across The Writing Processor.
                 </p>
               </header>
 
-              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15">
+              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
                   Your job right now
                 </p>
                 <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
-                  Open the letter, copy the full text, paste it here, and save.
+                  Open the letter, copy the full text, paste it into your
+                  notebook, and save.
                 </p>
-                <ol className="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
+                <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
                   <li>Open the official letter source under Need Help.</li>
                   <li>Copy the full letter (not just a short excerpt).</li>
-                  <li>Paste it in the workspace below and click Save.</li>
+                  <li>Paste it into the notebook page below and click Save.</li>
                 </ol>
-                <p className="mt-4 text-sm font-medium leading-relaxed text-text-primary">
-                  Saving both texts gives you the source pair for the rest of
-                  The Writing Processor.
-                </p>
               </div>
 
-              <div className="space-y-4 rounded-xl border-2 border-theme-blue/25 bg-white/80 px-4 py-5 shadow-soft sm:px-5">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
-                    Workspace
-                  </p>
-                  <p className="text-sm leading-relaxed text-text-muted">
-                    Paste the full letter here, then save it to your notebook.
-                  </p>
+              {/* Evidence notebook document — same desk surface as Stage 2 */}
+              <section
+                aria-labelledby="module-2-letter-notebook-heading"
+                className="min-w-0"
+              >
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                      Evidence notebook
+                    </p>
+                    <h2
+                      id="module-2-letter-notebook-heading"
+                      className="text-lg font-semibold text-text-primary"
+                    >
+                      Letter
+                    </h2>
+                  </div>
+                  {letterSavedOk ? (
+                    <span className="text-sm font-semibold text-theme-green">
+                      ✓ Saved to your evidence notebook
+                    </span>
+                  ) : (
+                    <span className="text-sm text-text-muted">
+                      Not saved yet
+                    </span>
+                  )}
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="module2-letter-full-text"
-                    className="block text-sm font-medium text-text-primary"
-                  >
-                    Letter text
-                  </label>
-                  <textarea
-                    id="module2-letter-full-text"
-                    value={letterFullText}
-                    onChange={(e) => {
-                      setLetterFullText(e.target.value);
-                      setLetterSavedOk(false);
-                      setLetterSaveError(null);
-                    }}
-                    placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
-                    rows={14}
-                    className="mt-2 min-h-[16rem] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-3 text-sm leading-6 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 sm:min-h-[20rem]"
-                  />
-                </div>
+                <textarea
+                  id="module2-letter-full-text"
+                  value={letterFullText}
+                  onChange={(e) => {
+                    setLetterFullText(e.target.value);
+                    setLetterSavedOk(false);
+                    setLetterSaveError(null);
+                  }}
+                  placeholder={LETTER_SOURCE.transcriptTextPlaceholder}
+                  rows={18}
+                  className="min-h-[min(480px,58vh)] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 md:px-6 md:py-5"
+                />
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                   <button
                     type="button"
                     onClick={saveLetter}
@@ -852,11 +859,6 @@ export default function ModuleTwoSourcePage() {
                   >
                     {savingLetter ? "Saving…" : "Save my letter copy"}
                   </button>
-                  {letterSavedOk ? (
-                    <span className="text-sm font-semibold text-theme-green">
-                      ✓ Saved to your evidence notebook
-                    </span>
-                  ) : null}
                   {letterSaveError ? (
                     <span className="text-sm text-theme-red">
                       {letterSaveError}
@@ -864,7 +866,7 @@ export default function ModuleTwoSourcePage() {
                   ) : null}
                 </div>
 
-                <div className="border-t border-border-soft/60 pt-4">
+                <div className="mt-4 border-t border-border-soft/60 pt-4">
                   <button
                     type="button"
                     onClick={() => setStage(4)}
@@ -888,11 +890,11 @@ export default function ModuleTwoSourcePage() {
                     </p>
                   )}
                 </div>
-              </div>
+              </section>
 
               <section
                 id="module-2-letter-need-help"
-                className="scroll-mt-24 space-y-4 rounded-xl border-2 border-theme-orange/25 bg-theme-orange/[0.04] px-4 py-5 md:px-5"
+                className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
                 aria-labelledby="module-2-letter-need-help-heading"
               >
                 <div className="space-y-1 text-left">
@@ -903,15 +905,12 @@ export default function ModuleTwoSourcePage() {
                     Need Help
                   </p>
                   <p className="text-sm leading-relaxed text-text-muted">
-                    Open the source and copy steps live here. Use them, then
-                    come back to paste and save above.
+                    Supporting tools only. The notebook above is where your work
+                    lives.
                   </p>
                 </div>
 
-                <div className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-3 space-y-3">
-                  <p className="text-xs font-medium text-text-muted">
-                    Official letter source
-                  </p>
+                <div className="space-y-3 rounded-lg bg-white/60 px-3 py-3">
                   <a
                     href={LETTER_URL}
                     target="_blank"
@@ -926,7 +925,7 @@ export default function ModuleTwoSourcePage() {
                   </p>
                 </div>
 
-                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5" open>
+                <details className="rounded-lg bg-white/60 px-3 py-2.5" open>
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
                     How to copy (quick steps)
                   </summary>
@@ -934,11 +933,11 @@ export default function ModuleTwoSourcePage() {
                     <li>Open the source in a new tab.</li>
                     <li>Select all (Command + A / Control + A).</li>
                     <li>Copy (Command + C / Control + C).</li>
-                    <li>Come back here and paste (Command + V / Control + V).</li>
+                    <li>Come back here and paste into your notebook.</li>
                   </ol>
                 </details>
 
-                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
                     A note about formatting
                   </summary>
@@ -948,7 +947,7 @@ export default function ModuleTwoSourcePage() {
                   </p>
                 </details>
 
-                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
                     Advanced: letter source URL
                   </summary>
@@ -957,12 +956,6 @@ export default function ModuleTwoSourcePage() {
                       This is usually already filled in. Only change it if your
                       teacher asks you to.
                     </p>
-                    <label
-                      htmlFor="module2-letter-source-url"
-                      className="block text-xs font-medium text-text-muted"
-                    >
-                      Letter source URL
-                    </label>
                     <input
                       id="module2-letter-source-url"
                       type="url"
@@ -974,14 +967,10 @@ export default function ModuleTwoSourcePage() {
                       }}
                       className="w-full rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-text-primary"
                     />
-                    <p className="text-xs text-text-muted">
-                      Source text accessed through the{" "}
-                      {LETTER_SOURCE.officialSiteName}.
-                    </p>
                   </div>
                 </details>
 
-                <details className="rounded-lg border border-border-soft/60 bg-white/70 px-4 py-2.5">
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
                     Self-check before you continue
                   </summary>
@@ -1005,8 +994,9 @@ export default function ModuleTwoSourcePage() {
                   From your teacher
                 </p>
                 <p className="text-sm leading-relaxed text-text-primary">
-                  The speech is already in your notebook. Add the letter the same
-                  way so you always have both texts when you look for evidence.
+                  This notebook page is yours. You will come back to this same
+                  letter whenever you need a quote or want to check the real
+                  words.
                 </p>
               </div>
 
@@ -1015,9 +1005,536 @@ export default function ModuleTwoSourcePage() {
                   What comes next
                 </p>
                 <p className="text-sm leading-relaxed text-text-muted">
-                  After you save, you will quickly check that both notebook
-                  copies look complete. Then you will keep using this same pair
-                  of texts throughout The Writing Processor.
+                  After you save the letter, you will quickly check that both
+                  notebook copies look complete. Together they become the source
+                  pair for your evidence notebook.
+                </p>
+              </div>
+            </aside>
+          </WorkspaceGuide>
+        </WorkspaceColumns>
+      ) : stage === 4 ? (
+        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+          <WorkspaceSidebar className="opacity-80 lg:col-span-1">
+            <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Module 2
+                </p>
+                <p className="text-sm font-semibold text-text-primary">
+                  Prepare and read the sources
+                </p>
+              </div>
+              <div className="space-y-1 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Where you are
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  Check your notebook
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Confirm both texts are saved before analysis.
+                </p>
+              </div>
+              <div className="space-y-3 border-t border-border-soft/60 pt-4">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                    Progress
+                  </p>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Step 5 of 7
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    {STAGE_LABELS[4]}
+                  </p>
+                </div>
+                <ol className="space-y-1.5">
+                  {STAGE_LABELS.map((label, index) => {
+                    const stepNum = index + 1;
+                    const current = stage + 1;
+                    const isCompleted = stepNum < current;
+                    const isCurrent = stepNum === current;
+                    return (
+                      <li
+                        key={label}
+                        className={`flex items-start gap-2 text-xs leading-snug ${
+                          isCurrent
+                            ? "font-semibold text-theme-blue"
+                            : isCompleted
+                              ? "text-theme-green"
+                              : "text-text-muted"
+                        }`}
+                      >
+                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
+                          {isCompleted ? "✓" : stepNum}
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </aside>
+          </WorkspaceSidebar>
+
+          <WorkspaceCenter className="min-w-0">
+            <div className="space-y-5 md:space-y-6">
+              <header className="space-y-2 text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
+                  Start here
+                </p>
+                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                  Your evidence notebook is ready.
+                </h1>
+              </header>
+
+              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+                  Your job right now
+                </p>
+                <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
+                  Take one last look to make sure both texts were saved
+                  correctly.
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-text-primary">
+                  If something looks wrong, go back and fix it now. Otherwise
+                  continue into analysis.
+                </p>
+              </div>
+
+              <section
+                aria-labelledby="module-2-check-notebook-heading"
+                className="min-w-0 space-y-4"
+              >
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                    Evidence notebook
+                  </p>
+                  <h2
+                    id="module-2-check-notebook-heading"
+                    className="text-lg font-semibold text-text-primary"
+                  >
+                    Your saved texts
+                  </h2>
+                </div>
+
+                <div className="space-y-3">
+                  {!hasPersistedSpeech(sources) ? (
+                    <div className="rounded-xl border-2 border-theme-red/30 bg-theme-red/5 px-5 py-5">
+                      <p className="text-base font-semibold text-text-primary">
+                        {SPEECH_SOURCE.title} — not saved yet
+                      </p>
+                      <p className="mt-2 text-sm text-text-muted">
+                        Go back and save your speech copy before continuing.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setStage(2)}
+                        className="mt-3 text-sm font-semibold text-theme-blue underline"
+                      >
+                        Return to save the speech
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-5 shadow-soft md:px-6 md:py-6">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-text-primary md:text-lg">
+                            ✓ {sources?.speech_source_title || SPEECH_SOURCE.title}
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-theme-green">
+                            saved
+                          </p>
+                          <p className="mt-2 text-xs text-text-muted">
+                            {persistedSpeechText.length} characters
+                            {!speechAllPass
+                              ? " · This may not be the full text—double-check if needed."
+                              : ""}
+                          </p>
+                        </div>
+                        <a
+                          href="/texts/speech"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-lg border border-theme-blue/30 bg-theme-blue/10 px-3 py-1.5 text-sm font-semibold text-theme-blue"
+                        >
+                          Open my saved speech
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {!hasPersistedLetter(sources) ? (
+                    <div className="rounded-xl border-2 border-theme-red/30 bg-theme-red/5 px-5 py-5">
+                      <p className="text-base font-semibold text-text-primary">
+                        {LETTER_SOURCE.title} — not saved yet
+                      </p>
+                      <p className="mt-2 text-sm text-text-muted">
+                        Go back and save your letter copy before continuing.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setStage(3)}
+                        className="mt-3 text-sm font-semibold text-theme-blue underline"
+                      >
+                        Return to save the letter
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-5 shadow-soft md:px-6 md:py-6">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-text-primary md:text-lg">
+                            ✓ {sources?.letter_source_title || LETTER_SOURCE.title}
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-theme-green">
+                            saved
+                          </p>
+                          <p className="mt-2 text-xs text-text-muted">
+                            {persistedLetterText.length} characters
+                            {!letterAllPass
+                              ? " · This may not be the full text—double-check if needed."
+                              : ""}
+                          </p>
+                        </div>
+                        <a
+                          href="/texts/letter"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-lg border border-theme-blue/30 bg-theme-blue/10 px-3 py-1.5 text-sm font-semibold text-theme-blue"
+                        >
+                          Open my saved letter
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStage(5)}
+                    disabled={!canContinueFromStage4}
+                    className={`rounded-lg px-5 py-2.5 text-base font-semibold ${
+                      canContinueFromStage4
+                        ? "bg-theme-blue text-white"
+                        : "cursor-not-allowed bg-gray-300 text-gray-500"
+                    }`}
+                  >
+                    Continue to Analysis
+                  </button>
+                  {!canContinueFromStage4 ? (
+                    <p className="mt-2 text-xs text-text-muted">
+                      Both source texts must be saved before you can continue.
+                    </p>
+                  ) : null}
+                </div>
+              </section>
+
+              <section
+                id="module-2-check-need-help"
+                className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
+                aria-labelledby="module-2-check-need-help-heading"
+              >
+                <div className="space-y-1 text-left">
+                  <p
+                    id="module-2-check-need-help-heading"
+                    className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+                  >
+                    Need Help
+                  </p>
+                </div>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5" open>
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    How do I know everything copied correctly?
+                  </summary>
+                  <div className="mt-2 space-y-2 text-sm leading-relaxed text-text-muted">
+                    <p>
+                      Open each saved text and skim the beginning and ending.
+                      You should see a full document, not a short excerpt.
+                    </p>
+                    <p>
+                      If a text looks too short or incomplete, go back to Save
+                      the speech or Save the letter, paste again, and save.
+                    </p>
+                  </div>
+                </details>
+              </section>
+            </div>
+          </WorkspaceCenter>
+
+          <WorkspaceGuide className="opacity-90">
+            <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+              <div className="space-y-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  From your teacher
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  A quick check now prevents confusion later. Your notebook only
+                  helps if both texts are really there.
+                </p>
+              </div>
+
+              <div className="space-y-2 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  What comes next
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  You&apos;ll begin finding examples of ethos, pathos, and logos
+                  inside these texts. Those examples become the building blocks
+                  of your essay.
+                </p>
+              </div>
+            </aside>
+          </WorkspaceGuide>
+        </WorkspaceColumns>
+      ) : stage === 5 ? (
+        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+          <WorkspaceSidebar className="opacity-80 lg:col-span-1">
+            <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Module 2
+                </p>
+                <p className="text-sm font-semibold text-text-primary">
+                  Prepare and read the sources
+                </p>
+              </div>
+              <div className="space-y-1 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  Where you are
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  Open your notebook
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Preparation is done. Analysis comes next.
+                </p>
+              </div>
+              <div className="space-y-3 border-t border-border-soft/60 pt-4">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                    Progress
+                  </p>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Step 6 of 7
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    {STAGE_LABELS[5]}
+                  </p>
+                </div>
+                <ol className="space-y-1.5">
+                  {STAGE_LABELS.map((label, index) => {
+                    const stepNum = index + 1;
+                    const current = stage + 1;
+                    const isCompleted = stepNum < current;
+                    const isCurrent = stepNum === current;
+                    return (
+                      <li
+                        key={label}
+                        className={`flex items-start gap-2 text-xs leading-snug ${
+                          isCurrent
+                            ? "font-semibold text-theme-blue"
+                            : isCompleted
+                              ? "text-theme-green"
+                              : "text-text-muted"
+                        }`}
+                      >
+                        <span className="mt-0.5 w-4 shrink-0 tabular-nums">
+                          {isCompleted ? "✓" : stepNum}
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </aside>
+          </WorkspaceSidebar>
+
+          <WorkspaceCenter className="min-w-0">
+            <div className="space-y-5 md:space-y-6">
+              <header className="space-y-2 text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
+                  Start here
+                </p>
+                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                  Open both pages of your evidence notebook.
+                </h1>
+                <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
+                  These texts stay open while you work so you can look for
+                  evidence instead of relying on memory.
+                </p>
+              </header>
+
+              <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15 md:px-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+                  Your job right now
+                </p>
+                <ol className="mt-3 list-decimal space-y-2 pl-5 text-base font-semibold leading-snug text-text-primary">
+                  <li>Open your saved speech.</li>
+                  <li>Open your saved letter.</li>
+                  <li>
+                    Keep both open while you begin finding examples of ethos,
+                    pathos, and logos.
+                  </li>
+                </ol>
+              </div>
+
+              <section
+                aria-labelledby="module-2-open-notebook-heading"
+                className="min-w-0 space-y-4"
+              >
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                    Workspace
+                  </p>
+                  <h2
+                    id="module-2-open-notebook-heading"
+                    className="text-lg font-semibold text-text-primary"
+                  >
+                    Open your notebook pages
+                  </h2>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-6 md:py-8">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                      Evidence notebook
+                    </p>
+                    <p className="mt-2 text-xl font-semibold text-text-primary">
+                      Speech
+                    </p>
+                    <p className="mt-1 text-sm text-text-muted">
+                      {SPEECH_SOURCE.title}
+                    </p>
+                    <a
+                      href="/texts/speech"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-theme-blue px-4 py-3 text-base font-semibold text-white hover:opacity-90"
+                    >
+                      Open saved speech
+                    </a>
+                  </div>
+
+                  <div className="rounded-xl border-2 border-theme-dark/15 bg-white px-5 py-6 shadow-soft md:px-6 md:py-8">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
+                      Evidence notebook
+                    </p>
+                    <p className="mt-2 text-xl font-semibold text-text-primary">
+                      Letter
+                    </p>
+                    <p className="mt-1 text-sm text-text-muted">
+                      {LETTER_SOURCE.title}
+                    </p>
+                    <a
+                      href="/texts/letter"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-theme-blue px-4 py-3 text-base font-semibold text-white hover:opacity-90"
+                    >
+                      Open saved letter
+                    </a>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border-soft/70 bg-surface-soft/50 px-4 py-4 md:px-5">
+                  <p className="text-sm font-semibold text-text-primary">
+                    Ready?
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                    Both notebook pages are open and ready beside your Writing
+                    Processor.
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setStage(6)}
+                    disabled={!canContinueFromStage5}
+                    className={`rounded-lg px-5 py-2.5 text-base font-semibold ${
+                      canContinueFromStage5
+                        ? "bg-theme-blue text-white"
+                        : "cursor-not-allowed bg-gray-300 text-gray-500"
+                    }`}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </section>
+
+              <section
+                id="module-2-open-need-help"
+                className="scroll-mt-24 space-y-3 rounded-xl border border-theme-orange/20 bg-theme-orange/[0.03] px-4 py-4 md:px-5"
+                aria-labelledby="module-2-open-need-help-heading"
+              >
+                <div className="space-y-1 text-left">
+                  <p
+                    id="module-2-open-need-help-heading"
+                    className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+                  >
+                    Need Help
+                  </p>
+                </div>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5" open>
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Why keep the notebook open?
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    Writers look at the real words while they work. Keeping both
+                    texts open makes it easier to find accurate quotes instead of
+                    guessing from memory.
+                  </p>
+                </details>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    What if I accidentally close one?
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    No problem. Come back to this page and open it again. Your
+                    saved notebook copy is still here.
+                  </p>
+                </details>
+
+                <details className="rounded-lg bg-white/60 px-3 py-2.5">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Can I reopen them later?
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                    Yes. You can reopen your saved speech and letter whenever you
+                    need them during analysis and later modules.
+                  </p>
+                </details>
+              </section>
+            </div>
+          </WorkspaceCenter>
+
+          <WorkspaceGuide className="opacity-90">
+            <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+              <div className="space-y-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  From your teacher
+                </p>
+                <p className="text-sm leading-relaxed text-text-primary">
+                  You have your evidence notebook open. Now you are ready to
+                  begin thinking like a writer.
+                </p>
+              </div>
+
+              <div className="space-y-2 border-t border-border-soft/60 pt-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                  What comes next
+                </p>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Next you&apos;ll begin looking for examples of ethos, pathos,
+                  and logos. Those observations become your evidence. Later
+                  you&apos;ll organize that evidence into groups and build your
+                  thesis in Module 3.
                 </p>
               </div>
             </aside>
@@ -1144,196 +1661,6 @@ export default function ModuleTwoSourcePage() {
                     ? "bg-theme-blue text-white"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
-              >
-                Continue
-              </button>
-            </div>
-          </Panel>
-        )}
-
-        {/* Stage 4: Check your saved texts */}
-        {stage === 4 && (
-          <Panel className="space-y-6">
-            <div className="text-left space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Today’s question
-              </p>
-              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
-                Do your saved texts look complete?
-              </h2>
-              <p className="text-sm text-theme-dark/75">
-                Take a quick look. If something seems off, go back and copy again.
-              </p>
-            </div>
-            <div className="grid gap-4">
-              {!hasPersistedSpeech(sources) ? (
-                <div className="rounded-lg border border-theme-red/40 bg-theme-red/5 p-4">
-                  <p className="text-sm text-theme-dark">
-                    Your speech copy is not saved yet. Go back and click
-                    &ldquo;Save my speech copy&rdquo; before continuing.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setStage(2)}
-                    className="mt-2 text-sm text-theme-blue font-medium underline"
-                  >
-                    Return to save the speech
-                  </button>
-                </div>
-              ) : (
-              <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
-                <p className="font-semibold text-theme-dark">
-                  {sources?.speech_source_title || SPEECH_SOURCE.title}
-                </p>
-                <p className="text-sm text-theme-dark/80">
-                  {sources?.speech_site_name || SPEECH_SOURCE.officialSiteName}
-                </p>
-                <a
-                  href={sources?.speech_source_url || SPEECH_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-theme-blue underline block truncate"
-                >
-                  {sources?.speech_source_url || SPEECH_URL}
-                </a>
-                <p className="text-xs text-theme-dark/60">
-                  {persistedSpeechText.length} characters (saved)
-                </p>
-                {speechAllPass ? (
-                  <p className="text-sm text-theme-dark/75 pt-1">
-                    This looks complete enough to continue.
-                  </p>
-                ) : (
-                  <p className="text-xs text-theme-dark/60 pt-1">
-                    This may not be the full text. Please double-check that you
-                    copied the complete document from the official source.
-                  </p>
-                )}
-              </div>
-              )}
-              {!hasPersistedLetter(sources) ? (
-                <div className="rounded-lg border border-theme-red/40 bg-theme-red/5 p-4">
-                  <p className="text-sm text-theme-dark">
-                    Your letter copy is not saved yet. Go back and click
-                    &ldquo;Save my letter copy&rdquo; before continuing.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setStage(3)}
-                    className="mt-2 text-sm text-theme-blue font-medium underline"
-                  >
-                    Return to save the letter
-                  </button>
-                </div>
-              ) : (
-              <div className="rounded-lg border border-border-soft bg-surface-soft p-4 space-y-1">
-                <p className="font-semibold text-theme-dark">
-                  {sources?.letter_source_title || LETTER_SOURCE.title}
-                </p>
-                <p className="text-sm text-theme-dark/80">
-                  {sources?.letter_site_name || LETTER_SOURCE.officialSiteName}
-                </p>
-                <a
-                  href={sources?.letter_source_url || LETTER_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-theme-blue underline block truncate"
-                >
-                  {sources?.letter_source_url || LETTER_URL}
-                </a>
-                <p className="text-xs text-theme-dark/60">
-                  {persistedLetterText.length} characters (saved)
-                </p>
-                {letterAllPass ? (
-                  <p className="text-sm text-theme-dark/75 pt-1">
-                    This looks complete enough to continue.
-                  </p>
-                ) : (
-                  <p className="text-xs text-theme-dark/60 pt-1">
-                    This may not be the full text. Please double-check that you
-                    copied the complete document from the official source.
-                  </p>
-                )}
-              </div>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setStage(3)}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStage(5)}
-                disabled={!canContinueFromStage4}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
-            </div>
-            {!canContinueFromStage4 ? (
-              <p className="text-xs text-theme-dark/60">
-                Both source texts must be saved before you can continue.
-              </p>
-            ) : null}
-          </Panel>
-        )}
-
-        {/* Stage 5: Use your texts while you work */}
-        {stage === 5 && (
-          <Panel className="space-y-4">
-            <div className="text-left space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/60">
-                Today’s question
-              </p>
-              <h2 className="text-2xl font-extrabold text-theme-dark leading-snug">
-                How should you use these texts while you work?
-              </h2>
-              <p className="text-sm text-theme-dark/75">
-                Keep your saved copies open while you read and collect evidence.
-              </p>
-            </div>
-            <WorkingSetSection
-              label="Your reading copies (working set)"
-              description="Open these in a new tab so you can look first, then write."
-            >
-            <div className="flex flex-col sm:flex-row gap-2">
-              <a
-                href="/texts/speech"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium text-center hover:opacity-90"
-              >
-                Open My Copy of the Speech
-              </a>
-              <a
-                href="/texts/letter"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium text-center hover:opacity-90"
-              >
-                Open My Copy of the Letter
-              </a>
-            </div>
-            </WorkingSetSection>
-            <ReferenceSection
-              label="A quick tip"
-              description="This makes later steps easier."
-            >
-              <p className="text-sm text-theme-dark/75">
-                If you keep the text open in another tab, it’s easier to copy
-                quotes and stay grounded in the document.
-              </p>
-            </ReferenceSection>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setStage(6)}
-                disabled={!canContinueFromStage5}
-                className="bg-theme-blue text-white px-4 py-2 rounded-lg font-medium disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Continue
               </button>
