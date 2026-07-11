@@ -111,8 +111,12 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-071 | Module 8 always shows Create when a Google Doc already exists | 8 | Medium | Copy / UX | Resolved |
 | WP-072 | Module 9 introduction lacks submission-prep coaching | 9 | High | Instructional / Copy | Resolved |
 | WP-073 | Module 6 drafting pages need explicit “Your job right now” writing steps | 6 | High | Instructional | Needs Verification |
+| WP-074 | Make “Your job right now” the primary instructional focus on Module 6 drafting pages | 6 | High | Instructional / UX | Needs Verification |
+| WP-075 | Replace ambiguous Module 6 writing terminology with student-friendly language | 6 | Medium | Copy / Voice | Needs Verification |
+| WP-076 | Build the Introduction page around the reader, not the writing | 6 | High | Instructional | Needs Verification |
+| WP-077 | Make supporting resources impossible to miss on Module 6 drafting pages | 6 | High | Instructional / UX | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-074.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-078.*
 
 ---
 
@@ -2185,4 +2189,119 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ---
 
-*Last updated: July 10, 2026 — WP-073 Needs Verification (Module 6 “Your job right now” drafting steps).*
+### WP-074 — Make “Your job right now” the primary instructional focus on Module 6 drafting pages
+
+- **Module:** 6
+- **Screen or area:** Introduction, body, and conclusion drafting pages
+- **Priority:** High
+- **Category:** Instructional / UX
+- **Status:** Needs Verification
+
+**Walkthrough observation:** WP-073 added strong step-by-step coaching, but students still hit multiple instructional blocks before the writing directions. The page felt like documentation instead of a teacher giving immediate guidance.
+
+**Why it matters educationally:** A first-time eighth grader should know “What am I supposed to write first?” within seconds, without reading several coaches first.
+
+**Why it matters technically or operationally:** Presentation hierarchy only. Persistence, drafting logic, and workflow unchanged. Instructional content is reordered and de-duplicated, not deleted for unique value.
+
+**Recommended smallest reasonable fix:** Place “Your job right now” immediately under the page question; put writing next; move thesis, outline, why/example/self-check below as Need help; remove duplicated coaching wording.
+
+**Verification steps:**
+1. Walk Introduction, one Body section, and Conclusion.
+2. Confirm a first-time eighth grader can identify Step 1 within two or three seconds of page load.
+3. Confirm supporting resources reinforce writing rather than compete with the primary action.
+
+**Related files:** `components/ModuleSix.js`; `components/module6/ModuleSixStepFrame.jsx`; `components/module6/module6StepPresentation.js`
+
+**Resolution notes:** (July 10, 2026) Module 6 hierarchy is now Question → Your job right now → writing box → Need help (thesis, outline notes, why/example/self-check). Duplicate thesis/outline coach paragraphs and overlapping right-rail writing recipes removed; unique artifacts retained. Modules 7–8 unchanged (no jobRightNow). Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+### WP-075 — Replace ambiguous Module 6 writing terminology with student-friendly language
+
+- **Module:** 6
+- **Screen or area:** Drafting page questions and related coaching copy
+- **Priority:** Medium
+- **Category:** Copy / Voice
+- **Status:** Needs Verification
+
+**Walkthrough observation:** The prompt “How will you open your essay from the outline you already built?” is ambiguous. Middle school students may think “open” means opening a file, Google Doc, or assignment rather than beginning the introduction.
+
+**Why it matters educationally:** Instructional language should be immediately clear to 13–14 year olds without interpreting writing jargon.
+
+**Why it matters technically or operationally:** Presentation-only copy. No workflow, persistence, navigation, or drafting-logic changes.
+
+**Recommended smallest reasonable fix:** Replace ambiguous phrases such as “open your essay” / “close your essay” with clear writing-task language (begin introduction, write conclusion, etc.).
+
+**Verification steps:**
+1. Open the Module 6 Introduction drafting page.
+2. Confirm a first-time eighth grader understands the prompt asks how to begin writing the introduction—not how to open a document.
+3. Spot-check Body and Conclusion questions for the same clarity.
+
+**Related files:** `components/module6/module6StepPresentation.js`
+
+**Resolution notes:** (July 10, 2026) Introduction question → “How will you begin your introduction…”. Conclusion question → “How will you write your conclusion…”. Softened related “open/close/claim/landing” wording in nearby coaching where it could confuse. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+### WP-076 — Build the Introduction page around the reader, not the writing
+
+- **Module:** 6
+- **Screen or area:** Draft Introduction page
+- **Priority:** High
+- **Category:** Instructional
+- **Status:** Needs Verification
+
+**Walkthrough observation:** The Introduction drafting page still began from writing mechanics (“begin your introduction”) instead of what the student wants the reader to understand first.
+
+**Why it matters educationally:** Students should think like writers by focusing first on the reader, then leading that reader toward the thesis they already planned.
+
+**Why it matters technically or operationally:** Presentation-only. No persistence, navigation, drafting logic, or saved-work changes.
+
+**Recommended smallest reasonable fix:** Reader-centered question; “Your job right now” framed around the reader; thesis card as destination; outline as support; conversational nearby copy.
+
+**Verification steps:**
+1. Open Module 6 Introduction.
+2. Confirm a first-time eighth grader understands: thinking about the reader; what the reader needs first; how to begin writing; thesis is where they lead the reader, not where they start.
+
+**Related files:** `components/module6/module6StepPresentation.js`; `components/ModuleSix.js`
+
+**Resolution notes:** (July 10, 2026) Introduction question → “What's the first thing you want your reader to know?” Job-right-now lead/steps are reader-first. Thesis card labeled as destination (“Where you're leading your reader”). Outline help framed as support. Nearby why/example/self-check/teacher copy rewritten in conversational eighth-grade voice. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+### WP-077 — Make supporting resources impossible to miss on Module 6 drafting pages
+
+- **Module:** 6
+- **Screen or area:** All Module 6 drafting pages (Introduction, Body, Conclusion)
+- **Priority:** High
+- **Category:** Instructional / UX
+- **Status:** Needs Verification
+
+**Walkthrough observation:** Strong reader-first coaching still assumed students knew where thesis, outline points, and examples lived. Body questions also pasted generated outline titles into the page question in an artificial way.
+
+**Why it matters educationally:** Students should never wonder where supporting information is. Coaching should point to resources at the moment of need, with clear visual matches.
+
+**Why it matters technically or operationally:** Presentation-only. No persistence, workflow, or drafting-logic changes.
+
+**Recommended smallest reasonable fix:** Explicit “under Need Help” find-it language; Need Help jump control; color-matched thesis/outline cards and coaching cues; natural teacher-style questions without generated text in the question.
+
+**Verification steps:**
+1. Open each Module 6 drafting page.
+2. Confirm a first-time eighth grader always knows where referenced information lives, what each resource is for, and how to move between writing and Need Help without confusion.
+3. Confirm body questions do not paste generated outline titles into the question itself.
+
+**Related files:** `components/module6/ModuleSixStepFrame.jsx`; `components/module6/module6StepPresentation.js`; `components/ModuleSix.js`
+
+**Resolution notes:** (July 10, 2026) Need Help is a labeled scroll target with a top jump button; job steps use blue/green resource cues matching thesis/outline cards; find-it copy points to Need Help; body/conclusion questions rewritten in natural teacher voice. Awaiting walkthrough verification.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 10, 2026 — WP-077 Needs Verification (Module 6 Need Help discoverability).*

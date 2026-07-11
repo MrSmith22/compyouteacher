@@ -342,6 +342,80 @@ export default function ModuleSix() {
     />
   );
 
+  const supportingResources = (
+    <div className="space-y-3 text-left">
+      {isFirstSection && !locked ? (
+        <InfoCallout title="You are not starting over.">
+          <p>
+            You already figured out what you want to say. Now you help your reader
+            understand it—one section at a time.
+          </p>
+        </InfoCallout>
+      ) : null}
+
+      <div
+        id="module-6-thesis-card"
+        className="rounded-xl border-2 border-theme-blue/40 bg-theme-blue/5 px-4 py-3 shadow-soft"
+      >
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-blue">
+          {presentation.thesisCardTitle || "Your thesis (already written)"}
+        </p>
+        <p className="mt-1 text-[11px] font-medium text-theme-blue/80">
+          Blue card · look here when coaching mentions your thesis
+        </p>
+        {thesisText ? (
+          <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary whitespace-pre-wrap">
+            {thesisText}
+          </p>
+        ) : (
+          <p className="mt-2 text-sm leading-relaxed text-text-muted">
+            Your thesis will appear here once it is saved from planning.
+          </p>
+        )}
+        {presentation.thesisCardHint ? (
+          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+            {presentation.thesisCardHint}
+          </p>
+        ) : null}
+      </div>
+
+      {activeOutlinePoints.length > 0 ||
+      conclusionPlanLines.length > 0 ||
+      presentation.outlineHelpNote ? (
+        <div
+          id="module-6-outline-card"
+          className="rounded-xl border-2 border-theme-green/40 bg-theme-green/5 px-4 py-3 shadow-soft"
+        >
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-green">
+            {presentation.outlineHelpTitle || "Outline notes for this section"}
+          </p>
+          <p className="mt-1 text-[11px] font-medium text-theme-green/80">
+            Green card · look here when coaching mentions your outline
+          </p>
+          {presentation.outlineHelpNote ? (
+            <p className="mt-2 text-sm leading-relaxed text-text-muted">
+              {presentation.outlineHelpNote}
+            </p>
+          ) : null}
+          {activeOutlinePoints.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
+              {activeOutlinePoints.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          ) : null}
+          {conclusionPlanLines.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
+              {conclusionPlanLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
     <ModulePageShell>
       <ModuleSixStepFrame
@@ -351,13 +425,14 @@ export default function ModuleSix() {
           successLooksLike={presentation.successLooksLike}
           coachingMessage={presentation.coachingMessage}
           nextStepText={presentation.nextStepText}
+          jobRightNow={presentation.jobRightNow}
+          supportingResources={supportingResources}
           sidebar={referenceShelf}
         >
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
             <p className="text-[11px] leading-relaxed text-text-muted">
               Module 6 · Draft · section {currentSectionIndex + 1} of{" "}
-              {sectionSteps.length}. Translate your outline into sentences—one
-              section at a time.
+              {sectionSteps.length}. One section at a time.
             </p>
             {!locked ? (
               <p className="text-[11px] leading-relaxed text-text-muted/80">
@@ -366,94 +441,16 @@ export default function ModuleSix() {
             ) : null}
           </div>
 
-          {isFirstSection && !locked ? (
-            <InfoCallout title="You are not starting over.">
-              <p>
-                You already finished the hard thinking. Your outline is your guide.
-                Now turn those notes into complete sentences—one section at a time.
-              </p>
-            </InfoCallout>
-          ) : null}
-
-          <div className="space-y-3 text-left">
-            <div className="rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-4 py-3 shadow-soft">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-blue">
-                Your thesis (already written)
-              </p>
-              {thesisText ? (
-                <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary whitespace-pre-wrap">
-                  {thesisText}
-                </p>
-              ) : (
-                <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                  Your thesis will appear here once it is saved from planning.
-                </p>
-              )}
-              {presentation.thesisCoach ? (
-                <p className="mt-2 text-xs leading-relaxed text-text-muted">
-                  {presentation.thesisCoach}
-                </p>
-              ) : null}
-            </div>
-
-            {presentation.outlineCoach || activeOutlinePoints.length > 0 || conclusionPlanLines.length > 0 ? (
-              <div className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
-                  Outline guide for this section
-                </p>
-                {presentation.outlineCoach ? (
-                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                    {presentation.outlineCoach}
-                  </p>
-                ) : null}
-                {activeOutlinePoints.length > 0 ? (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
-                    {activeOutlinePoints.map((point) => (
-                      <li key={point}>{point}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                {conclusionPlanLines.length > 0 ? (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
-                    {conclusionPlanLines.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
           <WorkingSetSection
             className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
             label={presentation.workingSetLabel}
-            description={presentation.workingSetDescription}
+            description={
+              presentation.workingSetDescription ||
+              "Write Step 1 first. Then continue through the steps in order."
+            }
           >
-            <div className="space-y-4 text-left">
+            <div className="space-y-3 text-left">
               <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
-
-              {presentation.jobRightNow?.steps?.length ? (
-                <div className="rounded-xl border-2 border-theme-orange/30 bg-theme-orange/5 px-4 py-4 shadow-soft">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-orange">
-                    Your job right now
-                  </p>
-                  {presentation.jobRightNow.lead ? (
-                    <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary">
-                      {presentation.jobRightNow.lead}
-                    </p>
-                  ) : null}
-                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-primary">
-                    {presentation.jobRightNow.steps.map((stepText) => (
-                      <li key={stepText}>{stepText}</li>
-                    ))}
-                  </ol>
-                  <p className="mt-3 text-xs leading-relaxed text-text-muted">
-                    Start with Step 1 in the box below. Then keep going through the
-                    steps in order.
-                  </p>
-                </div>
-              ) : null}
-
               <textarea
                 spellCheck
                 autoCorrect="on"
@@ -464,7 +461,11 @@ export default function ModuleSix() {
                 value={draft[draftIndex] || ""}
                 onChange={(e) => updateSection(draftIndex, e.target.value)}
                 disabled={locked}
-                placeholder="Start with Step 1 from Your job right now…"
+                placeholder={
+                  currentStep.type === "intro"
+                    ? "What's the first thing your reader needs to know?"
+                    : "Start with Step 1…"
+                }
               />
             </div>
           </WorkingSetSection>
