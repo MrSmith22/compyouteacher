@@ -24,71 +24,68 @@ export function bucketIndexForFlowStep(flowStep) {
   return -1;
 }
 
-export function completedBucketIndices(flowStep, buckets) {
-  const list = Array.isArray(buckets) ? buckets : [];
-  const done = [];
-
-  if (flowStep > STEP_B1_REASONING && (list[0]?.claim || "").trim()) {
-    done.push(0);
-  }
-  if (flowStep > STEP_B2_REASONING && (list[1]?.claim || "").trim()) {
-    done.push(1);
-  }
-  if (flowStep > STEP_B3_REASONING && (list[2]?.claim || "").trim()) {
-    done.push(2);
+export function completedBucketIndices(flowStep, buckets, plannedIndices = null) {
+  if (Array.isArray(plannedIndices)) {
+    return plannedIndices.filter((index) => index === 0 || index === 1 || index === 2);
   }
 
-  return done;
+  // Legacy fallback: do not treat flow position alone as planned.
+  // Prefer plannedParagraphIndices from module4ValidityHelpers.
+  void flowStep;
+  void buckets;
+  return [];
 }
 
 function paragraphStepPresentation(paragraphNumber, phase) {
   const n = paragraphNumber;
   const phases = {
     scaffold: {
-      question: `What is paragraph ${n} going to prove?`,
+      question: `What point will Paragraph ${n} prove?`,
       whyMatters: [
-        "Each body paragraph should prove one part of your thesis.",
-        "You are building one piece of your argument at a time—not the whole essay at once.",
+        "The point is what this paragraph will prove.",
+        "The job—how this paragraph fits the essay’s organization—comes next.",
       ],
       successLooksLike: [
-        `Paragraph ${n} has a clear idea you could explain to a classmate.`,
-        "The idea sounds like your thinking, not a fill-in-the-blank answer.",
+        `Paragraph ${n} has a clear point you could explain to a classmate.`,
+        "The point sounds like your thinking, not a fill-in-the-blank answer.",
       ],
-      workingSetLabel: `Paragraph ${n} — main idea`,
-      workingSetDescription: "On your desk: the idea you are shaping for this paragraph.",
+      workingSetLabel: `Paragraph ${n} — paragraph point`,
+      workingSetDescription:
+        "On your desk: the point this paragraph will prove.",
       coachingMessage:
-        "Pick a suggestion if it helps you start, then revise the wording until it sounds like you.",
-      nextStepText: `Next you will decide what job this paragraph does, then choose evidence and explanation.`,
+        "Choose a proof-plan note if it fits, then revise the wording until it sounds like you.",
+      nextStepText: `Next you will choose the organizational job for Paragraph ${n}.`,
     },
     role: {
-      question: `What job does paragraph ${n} do in your essay?`,
+      question: `How will Paragraph ${n} do its part in the essay?`,
       whyMatters: [
-        "Essays move in steps—not as a list of quotes.",
-        "Naming the job of this paragraph helps you line it up with your thesis.",
+        "The job is how this paragraph does one part of the essay’s compare-and-contrast work.",
+        "Your paragraph point stays visible so the job matches what you are proving.",
       ],
       successLooksLike: [
-        "You can say whether this paragraph shows a similarity, a difference, or a rhetorical move.",
+        "You can say whether this paragraph analyzes one work, compares both, or traces a move across both texts.",
       ],
-      workingSetLabel: `Paragraph ${n} — its job`,
-      workingSetDescription: "On your desk: the role this paragraph plays in your argument.",
+      workingSetLabel: `Paragraph ${n} — paragraph job`,
+      workingSetDescription:
+        "On your desk: the organizational job this paragraph does in your essay.",
       coachingMessage:
-        "Choose the option that matches what this paragraph is actually doing—not what sounds impressive.",
-      nextStepText: "Next you will choose the quotes that belong in this paragraph.",
+        "Confirm the recommendation from your proof plan, or choose a different job that fits your point.",
+      nextStepText: "Next you will choose the quotes that belong with this point and job.",
     },
     evidence: {
       question: `Which quotes belong in paragraph ${n}?`,
       whyMatters: [
-        "You are not collecting random quotes—you are choosing lines that belong to this paragraph's job.",
-        "Ask whether each quote really supports this paragraph idea.",
+        "You are choosing lines that support this paragraph’s point and job—not collecting random quotes.",
+        "Ask whether each quote really belongs with what this paragraph proves.",
       ],
       successLooksLike: [
         "At least one quote is checked for this paragraph.",
-        "Each quote you chose fits the paragraph idea you already wrote.",
+        "Each quote you chose fits the paragraph point you already wrote.",
       ],
       workingSetLabel: `Paragraph ${n} — evidence`,
       workingSetDescription: "On your desk: the quotes you are assigning to this paragraph.",
       coachingMessage:
-        "If a quote does not fit this paragraph idea, leave it unchecked. You can use it elsewhere.",
+        "If a quote does not fit this paragraph point and job, leave it unchecked. You can use it elsewhere.",
       nextStepText: "Next you will explain how your evidence supports your thesis.",
     },
     reasoning: {

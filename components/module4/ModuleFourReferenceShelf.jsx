@@ -1,5 +1,6 @@
 import Card from "@/components/ui/Card";
 import ArtifactChip from "@/components/ui/ArtifactChip";
+import { labelForParagraphJob } from "@/lib/module4/module4PointJobHelpers";
 
 function ShelfSection({ title, artifactType = null, children, emptyText = "Not yet." }) {
   return (
@@ -22,8 +23,15 @@ function ShelfSection({ title, artifactType = null, children, emptyText = "Not y
   );
 }
 
-function ParagraphBucketPreview({ index, bucket, isActive, isComplete }) {
+function ParagraphBucketPreview({
+  index,
+  bucket,
+  isActive,
+  isComplete,
+  evidenceCount = 0,
+}) {
   const claim = (bucket?.claim || "").trim();
+  const jobLabel = labelForParagraphJob(bucket?.paragraphRole);
   const label = `Paragraph ${index + 1}`;
 
   return (
@@ -39,11 +47,28 @@ function ParagraphBucketPreview({ index, bucket, isActive, isComplete }) {
     >
       <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted">
         {label}
-        {isActive ? " · on your desk" : isComplete ? " · planned" : ""}
+        {isActive ? " · on your desk" : isComplete ? " · Planned" : ""}
       </p>
-      <p className="mt-1 text-sm text-text-primary whitespace-pre-wrap">
+      <p className="mt-1 text-xs font-semibold text-text-muted">Point</p>
+      <p className="text-sm text-text-primary whitespace-pre-wrap break-words">
         {claim || "—"}
       </p>
+      {jobLabel ? (
+        <>
+          <p className="mt-2 text-xs font-semibold text-text-muted">Job</p>
+          <p className="text-sm text-text-primary break-words">{jobLabel}</p>
+        </>
+      ) : null}
+      {isComplete ? (
+        <>
+          <p className="mt-2 text-xs font-semibold text-text-muted">Evidence</p>
+          <p className="text-sm text-text-primary">
+            {evidenceCount === 1
+              ? "1 quotation"
+              : `${evidenceCount} quotations`}
+          </p>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -60,6 +85,7 @@ export default function ModuleFourReferenceShelf({
   buckets = [],
   activeBucketIndex = -1,
   completedBucketIndices = [],
+  evidenceCountsByIndex = {},
 }) {
   const bucketSlots = [0, 1, 2];
   const completedSet = new Set(completedBucketIndices);
@@ -158,6 +184,7 @@ export default function ModuleFourReferenceShelf({
                   bucket={bucket}
                   isActive={isActive}
                   isComplete={isComplete}
+                  evidenceCount={evidenceCountsByIndex[index] || 0}
                 />
               );
             })}

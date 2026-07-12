@@ -1,45 +1,36 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import ModuleFourSuccessClient from "@/components/module4/ModuleFourSuccessClient";
+import { loadModule4PageData } from "@/lib/module4/loadModule4PageData";
+import { buildModule4SuccessSummary } from "@/lib/module4/module4SuccessHelpers";
+import { createModule4EvidenceSlotResolver } from "@/lib/module4/module4SuccessEvidenceResolver";
 
-import { useEffect } from "react";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
+export default async function Module4SuccessPage() {
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email ?? null;
 
-export default function Module4Success() {
-  const { data: session } = useSession();
+  let pageData = null;
+  if (email) {
+    try {
+      pageData = await loadModule4PageData(email);
+    } catch (error) {
+      console.error("Module 4 success load failed:", error);
+      pageData = null;
+    }
+  }
 
-  useEffect(() => {
-    if (!session?.user?.email) return;
-    advanceCurrentModuleOnSuccess({
-      userEmail: session.user.email,
-      completedModuleNumber: 4,
-    }).catch(() => {});
-  }, [session?.user?.email]);
+  const getEvidenceSlots = createModule4EvidenceSlotResolver({
+    upstreamArtifacts: pageData?.upstreamArtifacts ?? null,
+    initialTchartEntries: pageData?.initialTchartEntries ?? [],
+    ideaArtifact: pageData?.upstreamArtifacts?.ideaArtifact ?? null,
+  });
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <h1 className="text-3xl font-extrabold text-theme-green">
-          Module 4 complete!
-        </h1>
+  const summary = buildModule4SuccessSummary({
+    thesisArtifact: pageData?.upstreamArtifacts?.thesisArtifact ?? null,
+    initialModule3: pageData?.initialModule3 ?? null,
+    studentBuckets: pageData?.initialStudentBuckets ?? null,
+    getEvidenceSlots,
+  });
 
-        <p className="text-lg text-theme-dark">
-          You turned your thesis and evidence into paragraph plans—each with a main idea,
-          supporting quotes, and reasoning that connects back to your argument.
-        </p>
-
-        <p className="text-sm text-theme-dark/80">
-          In Module 5, you will arrange those paragraph plans into a full outline and plan
-          your conclusion—the map you will draft from in Module 6.
-        </p>
-
-        <Link
-          href="/modules/5"
-          className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
-        >
-          Continue to Module 5 — organize your outline
-        </Link>
-      </div>
-    </div>
-  );
+  return <ModuleFourSuccessClient summary={summary} />;
 }

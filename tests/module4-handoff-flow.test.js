@@ -24,6 +24,7 @@ const {
   requiresPatternReviewStep,
   buildModule4HandoffPresentation,
   buildHandoffProofPlanItems,
+  getModule4PresentationChrome,
 } = require("../lib/module4/module4HandoffHelpers.js");
 
 const {
@@ -280,7 +281,7 @@ describe("module4 Checkpoint 2 — handoff + flow migration", () => {
     assert.equal(presentation.evidenceFoundation.quotationCount, 2);
     assert.equal(presentation.evidenceFoundation.bothWorks, true);
     assert.ok(
-      presentation.planVersusProse.toLowerCase().includes("not finished paragraph")
+      presentation.planVersusProse.toLowerCase().includes("not finished prose")
     );
     assert.ok(
       /introduction|explanation|thesis connection|reasoning/i.test(
@@ -301,6 +302,245 @@ describe("module4 Checkpoint 2 — handoff + flow migration", () => {
     assert.equal(
       Object.prototype.hasOwnProperty.call(presentation, "evidenceKeys"),
       false
+    );
+  });
+});
+
+describe("module4 Checkpoint 2 — guided handoff stages", () => {
+  const {
+    HANDOFF_INTERNAL_STAGES,
+    HANDOFF_STAGE_ARGUMENT,
+    HANDOFF_STAGE_MODEL,
+    HANDOFF_STAGE_READY,
+    buildHandoffFunctionDemos,
+    getHandoffTeacherGuidance,
+    getHandoffPrimaryActionLabel,
+    resolveHandoffInternalAdvance,
+    resolveHandoffInternalBack,
+  } = require("../lib/module4/module4HandoffHelpers.js");
+
+  function samplePresentation() {
+    return buildModule4HandoffPresentation({
+      thesis: "King argues delay is unjust.",
+      proofPlan: [
+        "Speech uses moral urgency",
+        "Letter uses lived injustice",
+        "Both reject waiting",
+      ],
+      selectedPattern: { text: "Moral urgency across both works" },
+      evidencePool: [
+        {
+          id: "tchart:speech:pathos",
+          type: "speech",
+          category: "pathos",
+          quote: "justice too long delayed",
+          observation: "delay harms people",
+          module3Connection: { note: "Both works press urgency" },
+        },
+        {
+          id: "tchart:letter:pathos",
+          type: "letter",
+          category: "pathos",
+          quote: "wait means never",
+          observation: "waiting denies justice",
+        },
+      ],
+    });
+  }
+
+  it("1. three internal stages exist", () => {
+    assert.equal(HANDOFF_INTERNAL_STAGES.length, 3);
+    assert.deepEqual(
+      HANDOFF_INTERNAL_STAGES.map((stage) => stage.id),
+      [HANDOFF_STAGE_ARGUMENT, HANDOFF_STAGE_MODEL, HANDOFF_STAGE_READY]
+    );
+  });
+
+  it("2. Stage 1 shows argument artifacts but not the full five-part lesson", () => {
+    const presentation = samplePresentation();
+    assert.ok(presentation.thesis);
+    assert.equal(presentation.proofPlanItems.length, 3);
+    assert.ok(presentation.patternText);
+    assert.ok(presentation.evidenceFoundation.summary);
+    assert.equal(
+      HANDOFF_INTERNAL_STAGES[0].question,
+      "What argument am I bringing into Module 4?"
+    );
+    // Stage 1 CTA does not advance durable flow
+    assert.equal(HANDOFF_INTERNAL_STAGES[0].advancesDurableFlow, false);
+    const advance = resolveHandoffInternalAdvance({
+      stage: HANDOFF_STAGE_ARGUMENT,
+    });
+    assert.equal(advance.stage, HANDOFF_STAGE_MODEL);
+    assert.equal(advance.advancesDurableFlow, false);
+  });
+
+  it("3–5. Stage 2 teaches one function at a time with real artifacts in order", () => {
+    const presentation = samplePresentation();
+    const demos = buildHandoffFunctionDemos(presentation);
+    assert.equal(demos.length, 5);
+    assert.deepEqual(
+      demos.map((demo) => demo.title),
+      [
+        "Main idea",
+        "Introduce evidence",
+        "Evidence",
+        "Explain evidence",
+        "Connect to the thesis",
+      ]
+    );
+
+    assert.equal(demos[0].demo.kind, "proof_plan");
+    assert.match(demos[0].demo.body, /Speech uses moral urgency/);
+    assert.equal(demos[1].demo.kind, "introduce");
+    assert.match(demos[1].demo.body, /Speech/i);
+    assert.equal(demos[2].demo.kind, "quotation");
+    assert.match(demos[2].demo.body, /justice too long delayed/);
+    assert.equal(demos[3].demo.kind, "explanation");
+    assert.ok(
+      demos[3].demo.body.includes("delay harms") ||
+        demos[3].demo.body.includes("Both works press")
+    );
+    assert.equal(demos[4].demo.kind, "thesis");
+    assert.match(demos[4].demo.body, /King argues delay/);
+
+    let state = {
+      stage: HANDOFF_STAGE_MODEL,
+      functionIndex: 0,
+      showCompleteModel: false,
+    };
+    for (let i = 0; i < 4; i += 1) {
+      state = resolveHandoffInternalAdvance(state);
+      assert.equal(state.stage, HANDOFF_STAGE_MODEL);
+      assert.equal(state.functionIndex, i + 1);
+      assert.equal(state.showCompleteModel, false);
+      assert.equal(state.advancesDurableFlow, false);
+    }
+    state = resolveHandoffInternalAdvance(state);
+    assert.equal(state.showCompleteModel, true);
+    assert.equal(state.advancesDurableFlow, false);
+  });
+
+  it("6. Stage 3 shows required/optional paragraph-plan expectations", () => {
+    const presentation = samplePresentation();
+    assert.ok(Array.isArray(presentation.stage3Expectations));
+    assert.ok(
+      presentation.stage3Expectations.some((line) =>
+        /at least two paragraph plans/i.test(line)
+      )
+    );
+    assert.ok(
+      presentation.stage3Expectations.some((line) => /third/i.test(line))
+    );
+    assert.ok(
+      presentation.stage3Expectations.some((line) => /Module 5/i.test(line))
+    );
+    assert.equal(
+      getHandoffPrimaryActionLabel({ stage: HANDOFF_STAGE_READY }),
+      "Start Paragraph 1"
+    );
+  });
+
+  it("7. teacher guidance changes by internal stage/function", () => {
+    const stage1 = getHandoffTeacherGuidance({ stage: HANDOFF_STAGE_ARGUMENT });
+    const fn0 = getHandoffTeacherGuidance({
+      stage: HANDOFF_STAGE_MODEL,
+      functionIndex: 0,
+    });
+    const fn2 = getHandoffTeacherGuidance({
+      stage: HANDOFF_STAGE_MODEL,
+      functionIndex: 2,
+    });
+    const complete = getHandoffTeacherGuidance({
+      stage: HANDOFF_STAGE_MODEL,
+      showCompleteModel: true,
+    });
+    const stage3 = getHandoffTeacherGuidance({ stage: HANDOFF_STAGE_READY });
+
+    assert.match(stage1.coaching, /carrying your argument forward/i);
+    assert.match(fn0.coaching, /main idea/i);
+    assert.match(fn2.coaching, /specific words/i);
+    assert.notEqual(fn0.coaching, fn2.coaching);
+    assert.match(complete.coaching, /five jobs|full sequence|finished paragraph/i);
+    assert.match(stage3.coaching, /Plan the thinking first/i);
+  });
+
+  it("8–9. internal progression does not mutate artifacts; only Start Paragraph 1 advances flow", () => {
+    const presentation = samplePresentation();
+    const before = JSON.stringify(presentation);
+    const mid = resolveHandoffInternalAdvance({
+      stage: HANDOFF_STAGE_ARGUMENT,
+    });
+    assert.equal(mid.advancesDurableFlow, false);
+    const toReady = resolveHandoffInternalAdvance({
+      stage: HANDOFF_STAGE_MODEL,
+      showCompleteModel: true,
+    });
+    assert.equal(toReady.stage, HANDOFF_STAGE_READY);
+    assert.equal(toReady.advancesDurableFlow, false);
+    const finish = resolveHandoffInternalAdvance({
+      stage: HANDOFF_STAGE_READY,
+    });
+    assert.equal(finish.advancesDurableFlow, true);
+    assert.equal(JSON.stringify(presentation), before);
+    assert.equal(
+      HANDOFF_INTERNAL_STAGES.filter((stage) => stage.advancesDurableFlow)
+        .length,
+      1
+    );
+  });
+
+  it("10–13. shelf/sources hidden on handoff; restored on Paragraph 1; Back returns to handoff", () => {
+    const handoff = getModule4PresentationChrome(STEP_HANDOFF);
+    assert.equal(handoff.useGuidedHandoffShell, true);
+    assert.equal(handoff.showFullReferenceShelf, false);
+    assert.equal(handoff.showSources, false);
+    assert.equal(handoff.showWhyMatters, false);
+    assert.equal(handoff.showNavFooter, false);
+
+    const paragraph = getModule4PresentationChrome(STEP_B1_SCAFFOLD);
+    assert.equal(paragraph.useGuidedHandoffShell, false);
+    assert.equal(paragraph.showFullReferenceShelf, true);
+    assert.equal(paragraph.showSources, true);
+    assert.equal(paragraph.showNavFooter, true);
+
+    assert.equal(
+      resolveModule4BackTarget({
+        flowStep: STEP_B1_SCAFFOLD,
+        hasValidSavedPattern: true,
+      }),
+      STEP_HANDOFF
+    );
+    assert.equal(
+      resolveHandoffInternalBack({
+        stage: HANDOFF_STAGE_MODEL,
+        functionIndex: 0,
+      }).stage,
+      HANDOFF_STAGE_ARGUMENT
+    );
+  });
+
+  it("14. flow migration remains unchanged", () => {
+    assert.equal(
+      migrateOpeningFlowStep({
+        flowStep: STEP_BIG_PICTURE,
+        hasValidSavedPattern: true,
+      }),
+      STEP_HANDOFF
+    );
+    assert.equal(
+      migrateOpeningFlowStep({
+        flowStep: STEP_PATTERN,
+        hasValidSavedPattern: false,
+      }),
+      STEP_PATTERN
+    );
+    assert.equal(
+      migrateOpeningFlowStep({
+        flowStep: STEP_B2_REASONING,
+        hasValidSavedPattern: true,
+      }),
+      STEP_B2_REASONING
     );
   });
 });

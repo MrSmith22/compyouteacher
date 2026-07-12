@@ -8,7 +8,6 @@ import {
   deriveValidModule3ConnectionsByRowKey,
   enrichEvidencePoolWithModule3Connections,
   getModule3ConnectionForEvidenceKey,
-  bucketHasQualifyingEvidence,
   evidenceIdsMatch,
   resolveSavedEvidenceSlots,
 } from "@/lib/module4/module4EvidenceContinuity";
@@ -24,14 +23,52 @@ import {
   resolveSelectedPattern,
 } from "@/lib/module4/module4InstructionalLogic";
 import { findSuccessClusterArtifact } from "@/lib/module3/moduleThreeSuccessHelpers";
+import {
+  PARAGRAPH_JOB_DEFINITION,
+  PARAGRAPH_POINT_DEFINITION,
+  buildPriorParagraphJobSummaries,
+  decodeCustomParagraphJob,
+  encodeCustomParagraphJob,
+  getPointJobPairingCoaching,
+  getRepeatedJobCoaching,
+  isCustomParagraphJob,
+  labelForParagraphJob,
+  paragraphJobChoicesForUi,
+  pointStepQuestion,
+  jobStepQuestion,
+  proofPlanSlotForSuggestionId,
+  recommendParagraphJob,
+  resolveProofPlanSlots,
+} from "@/lib/module4/module4PointJobHelpers";
+import {
+  canAdvanceModule4Step,
+  evaluateModule4Advance,
+  isParagraphMechanicallyPlanned,
+  plannedParagraphIndices,
+  validateParagraphEvidence,
+  validateParagraphJob,
+  validateParagraphPoint,
+  validateParagraphReasoning,
+} from "@/lib/module4/module4ValidityHelpers";
+import {
+  buildModule4ParagraphPlanArtifact,
+  reasoningReadyNextActionLabel,
+} from "@/lib/module4/module4ParagraphPlanArtifactHelpers";
+import {
+  getEvidenceReuseCue,
+  getJobEvidenceSourceAlignmentCue,
+  CP6_LAYOUT_CONTRACT,
+} from "@/lib/module4/module4EvidenceCoachingHelpers";
+import { normalizeEvidenceSnippets } from "@/lib/module4/module4SnippetNormalize";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { upsertParagraphPlanArtifact } from "@/lib/artifacts/writeArtifacts";
 import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleFourReferenceShelf from "@/components/module4/ModuleFourReferenceShelf";
+import ModuleFourParagraphPlanArtifact from "@/components/module4/ModuleFourParagraphPlanArtifact";
+import ModuleFourFinalReviewStep from "@/components/module4/ModuleFourFinalReviewStep";
 import {
   bucketIndexForFlowStep,
-  completedBucketIndices,
   getModule4StepPresentation,
 } from "@/components/module4/module4StepPresentation";
 import {
@@ -60,6 +97,7 @@ import {
 import ModuleFourHandoffStep from "@/components/module4/ModuleFourHandoffStep";
 import {
   buildModule4HandoffPresentation,
+  getModule4PresentationChrome,
   hasValidSavedModule3Pattern,
   migrateOpeningFlowStep,
   resolveModule4BackTarget,
@@ -293,6 +331,49 @@ const FIELD_INPUT_CLASS =
 /** Radio / checkbox row: clearly interactive, not guidance-colored. */
 const CHOICE_ROW_CLASS =
   "flex gap-3 items-start rounded-lg border-2 border-theme-dark/15 bg-white p-3 cursor-pointer text-left shadow-sm hover:border-theme-blue/35 transition-colors";
+
+function FieldValidityStatus({ result }) {
+  if (!result) return null;
+  const tone =
+    result.state === "ready"
+      ? "border-theme-green/35 bg-theme-green/5 text-theme-green"
+      : result.state === "incomplete" || result.state === "unresolved"
+        ? "border-theme-orange/35 bg-theme-orange/5 text-theme-orange"
+        : "border-border-soft bg-surface-soft/60 text-text-muted";
+  return (
+    <div
+      className={`mt-2 rounded-lg border px-3 py-2 text-xs leading-relaxed break-words ${tone}`}
+      role="status"
+    >
+      <p className="font-semibold">{result.message}</p>
+      {result.countHelper ? (
+        <p className="mt-1 text-[11px] opacity-90">{result.countHelper}</p>
+      ) : null}
+    </div>
+  );
+}
+
+const MODULE4_STEP_CONSTANTS = {
+  STEP_HANDOFF,
+  STEP_WELCOME,
+  STEP_BIG_PICTURE,
+  STEP_EXPLAIN_BUCKETS,
+  STEP_PATTERN,
+  STEP_B1_SCAFFOLD,
+  STEP_B1_ROLE,
+  STEP_B1_EVIDENCE,
+  STEP_B1_REASONING,
+  STEP_B2_SCAFFOLD,
+  STEP_B2_ROLE,
+  STEP_B2_EVIDENCE,
+  STEP_B2_REASONING,
+  STEP_THIRD_DECISION,
+  STEP_B3_SCAFFOLD,
+  STEP_B3_ROLE,
+  STEP_B3_EVIDENCE,
+  STEP_B3_REASONING,
+  STEP_REFLECTION,
+};
 
 const PATTERN_OPTIONS = [
   {
@@ -820,9 +901,7 @@ function bucketIndexForStep(step) {
 function enrichBucketsForSave(bucketsSlice, resolveSlots) {
   return bucketsSlice.map((b) => {
     const keys = Array.isArray(b?.evidenceKeys) ? [...b.evidenceKeys] : [];
-    const priorSnippets = Array.isArray(b?.evidenceSnippets)
-      ? b.evidenceSnippets
-      : [];
+    const priorSnippets = normalizeEvidenceSnippets(b?.evidenceSnippets);
     const slots =
       typeof resolveSlots === "function"
         ? resolveSlots(b)
@@ -1100,10 +1179,12 @@ export default function ModuleFour({
   const allBucketSuggestions = useMemo(
     () =>
       resolveBucketSuggestions({
-        proofPlan,
+        proofPlan: Array.isArray(thesisArtifact?.proofPlan)
+          ? thesisArtifact.proofPlan
+          : proofPlan,
         legacySuggestions: legacyBucketSuggestions,
       }),
-    [proofPlan, legacyBucketSuggestions]
+    [thesisArtifact, proofPlan, legacyBucketSuggestions]
   );
 
   const groupedQuotes = useMemo(
@@ -1153,9 +1234,34 @@ export default function ModuleFour({
 
   const activeBucketIndex = bucketIndexForFlowStep(flowStep);
   const finishedBucketIndices = useMemo(
-    () => completedBucketIndices(flowStep, buckets),
-    [flowStep, buckets]
+    () =>
+      plannedParagraphIndices({
+        buckets,
+        wantThirdBucket,
+        getEvidenceSlots: (bucket) => resolveBucketEvidenceSlots(bucket),
+      }),
+    [buckets, wantThirdBucket, resolveBucketEvidenceSlots]
   );
+
+  const shelfEvidenceCountsByIndex = useMemo(() => {
+    const counts = {};
+    for (let i = 0; i < buckets.length; i += 1) {
+      const artifact = buildModule4ParagraphPlanArtifact({
+        paragraphIndex: i,
+        bucket: buckets[i],
+        evidenceSlots: resolveBucketEvidenceSlots(buckets[i]),
+        thesis,
+        proofPlan,
+      });
+      counts[i] = artifact.evidence.count;
+    }
+    return counts;
+  }, [buckets, resolveBucketEvidenceSlots, thesis, proofPlan]);
+
+  const goToParagraphPartEdit = useCallback((part, step) => {
+    if (typeof step !== "number") return;
+    setFlowStep(step);
+  }, []);
 
   const stepPresentation = useMemo(() => {
     if (
@@ -1215,6 +1321,7 @@ export default function ModuleFour({
       buckets={buckets}
       activeBucketIndex={activeBucketIndex}
       completedBucketIndices={finishedBucketIndices}
+      evidenceCountsByIndex={shelfEvidenceCountsByIndex}
     />
   );
 
@@ -1305,9 +1412,7 @@ export default function ModuleFour({
       const next = prev.map((b) => ({
         ...b,
         evidenceKeys: [...(b.evidenceKeys || [])],
-        evidenceSnippets: Array.isArray(b.evidenceSnippets)
-          ? [...b.evidenceSnippets]
-          : [],
+        evidenceSnippets: normalizeEvidenceSnippets(b.evidenceSnippets),
       }));
       const b = next[bucketIndex];
       if (!b) return prev;
@@ -1352,54 +1457,24 @@ export default function ModuleFour({
     });
   };
 
-  const canGoNext = () => {
-    switch (flowStep) {
-      case STEP_HANDOFF:
-      case STEP_WELCOME:
-      case STEP_BIG_PICTURE:
-      case STEP_EXPLAIN_BUCKETS:
-        return true;
-      case STEP_PATTERN:
-        if (hasSavedPattern) return true;
-        if (!patternPair) return true;
-        return patternChoice.length > 0;
-      case STEP_B1_SCAFFOLD:
-      case STEP_B2_SCAFFOLD:
-      case STEP_B3_SCAFFOLD: {
-        const i = bucketIndexForStep(flowStep);
-        return (buckets[i]?.claim || "").trim().length > 0;
-      }
-      case STEP_B1_ROLE:
-      case STEP_B2_ROLE:
-      case STEP_B3_ROLE: {
-        const i = bucketIndexForStep(flowStep);
-        return (buckets[i]?.paragraphRole || "").trim().length > 0;
-      }
-      case STEP_B1_EVIDENCE:
-      case STEP_B2_EVIDENCE:
-      case STEP_B3_EVIDENCE: {
-        const i = bucketIndexForStep(flowStep);
-        return bucketHasQualifyingEvidence(
-          resolveBucketEvidenceSlots(buckets[i])
-        );
-      }
-      case STEP_B1_REASONING:
-      case STEP_B2_REASONING:
-      case STEP_B3_REASONING: {
-        const i = bucketIndexForStep(flowStep);
-        return (buckets[i]?.reasoning || "").trim().length > 0;
-      }
-      case STEP_THIRD_DECISION:
-        return false;
-      case STEP_REFLECTION:
-        return (reflection || "").trim().length >= 12;
-      default:
-        return false;
-    }
-  };
+  const evaluateAdvance = () =>
+    evaluateModule4Advance({
+      flowStep,
+      buckets,
+      reflection,
+      wantThirdBucket,
+      patternChoice,
+      hasSavedPattern,
+      hasPatternPair: Boolean(patternPair),
+      getEvidenceSlots: (bucket) => resolveBucketEvidenceSlots(bucket),
+      stepConstants: MODULE4_STEP_CONSTANTS,
+    });
+
+  const canGoNext = () => evaluateAdvance().ok;
 
   const goNext = async () => {
-    if (!canGoNext()) return;
+    const advance = evaluateAdvance();
+    if (!advance.ok) return;
     await flushSave();
     if (
       flowStep === STEP_HANDOFF ||
@@ -1437,7 +1512,8 @@ export default function ModuleFour({
   };
 
   const startParagraph1 = async () => {
-    if (!canGoNext()) return;
+    const advance = evaluateAdvance();
+    if (!advance.ok) return;
     await flushSave();
     setFlowStep(STEP_B1_SCAFFOLD);
   };
@@ -1453,13 +1529,26 @@ export default function ModuleFour({
       setFlowStep(STEP_B3_SCAFFOLD);
     } else {
       setWantThirdBucket(false);
-      setBuckets((prev) => prev.slice(0, 2));
+      // Preserve any Paragraph 3 draft; declined thirds are not required work.
       setFlowStep(STEP_REFLECTION);
     }
   };
 
   const completeModule = async () => {
-    if (!canGoNext()) return;
+    const advance = evaluateAdvance();
+    if (!advance.ok) return;
+    if (
+      !canAdvanceModule4Step({
+        flowStep: STEP_REFLECTION,
+        buckets,
+        reflection,
+        wantThirdBucket,
+        getEvidenceSlots: (bucket) => resolveBucketEvidenceSlots(bucket),
+        stepConstants: MODULE4_STEP_CONSTANTS,
+      })
+    ) {
+      return;
+    }
     const email = session?.user?.email;
     if (!email) return;
     await flushSave();
@@ -1504,44 +1593,72 @@ export default function ModuleFour({
                         const checked = (buckets[bucketIndex]?.evidenceKeys || []).some(
                           (saved) => evidenceIdsMatch(saved, key)
                         );
+                        const reuseCue = getEvidenceReuseCue({
+                          evidenceKey: key,
+                          currentParagraphIndex: bucketIndex,
+                          selectedHere: checked,
+                          buckets,
+                          getEvidenceSlots: (bucket) =>
+                            resolveBucketEvidenceSlots(bucket),
+                        });
                         const q = (row.quote || "").trim();
                         const o = (row.observation || "").trim();
                         const preview =
                           q.slice(0, 160) + (q.length > 160 ? "…" : "");
-                        const appeal = String(row.category || "").toLowerCase();
+                        const appealLabel = String(row.category || "").toLowerCase();
                         const module3Connection =
                           row.module3Connection ||
                           getModule3ConnectionForEvidenceKey(
                             module3ConnectionsByKey,
                             key
                           );
+                        const checkboxId = `m4-evidence-${bucketIndex}-${key}`;
+                        const accessibleName = [
+                          sourceLabels[src],
+                          appealLabel,
+                          preview || "quotation",
+                          reuseCue.show ? reuseCue.label : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ");
                         return (
                           <li key={key}>
                             <label
+                              htmlFor={checkboxId}
                               className={`${CHOICE_ROW_CLASS} gap-2 py-2 items-start`}
                             >
                               <input
+                                id={checkboxId}
                                 type="checkbox"
-                                className="mt-1 shrink-0"
+                                className="mt-1 shrink-0 h-4 w-4"
                                 checked={checked}
                                 onChange={() => toggleEvidenceKey(bucketIndex, key)}
+                                aria-label={accessibleName}
                               />
                               <span className="min-w-0 flex-1 space-y-1.5 text-xs text-theme-dark/90 leading-relaxed">
                                 <span className="flex flex-wrap gap-1.5">
                                   <span className="rounded border border-theme-dark/15 bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                                     {sourceLabels[src]}
                                   </span>
-                                  {appeal ? (
+                                  {appealLabel ? (
                                     <span className="rounded border border-theme-dark/15 bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold capitalize">
-                                      {appeal}
+                                      {appealLabel}
+                                    </span>
+                                  ) : null}
+                                  {reuseCue.show ? (
+                                    <span
+                                      className="rounded border border-theme-dark/20 bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold text-theme-dark/70"
+                                      role="status"
+                                    >
+                                      {reuseCue.label}
                                     </span>
                                   ) : null}
                                 </span>
-                                <span className="font-medium text-theme-dark block">
+                                <span className="font-medium text-theme-dark block break-words">
                                   {preview || "(No quote text)"}
                                 </span>
                                 {o ? (
-                                  <span className="text-theme-dark/75 block">
+                                  <span className="text-theme-dark/75 block break-words">
                                     Your Module 2 note: {o.slice(0, 200)}
                                     {o.length > 200 ? "…" : ""}
                                   </span>
@@ -1554,7 +1671,7 @@ export default function ModuleFour({
                                     <span className="mt-0.5 block font-semibold">
                                       {module3Connection.relationLabel}
                                     </span>
-                                    <span className="mt-0.5 block whitespace-pre-wrap">
+                                    <span className="mt-0.5 block whitespace-pre-wrap break-words">
                                       {module3Connection.note}
                                     </span>
                                   </span>
@@ -1577,7 +1694,7 @@ export default function ModuleFour({
 
   const panelClass = "space-y-4 text-left";
 
-  const roleOpts = paragraphRoleOptions(structureChoice);
+  // Checkpoint 3: organizational jobs come from paragraphJobChoicesForUi per bucket.
 
   let main = null;
 
@@ -1679,69 +1796,113 @@ export default function ModuleFour({
     const i = bucketIndexForStep(flowStep);
     const n = i + 1;
     const b = buckets[i] || emptyBucket();
-    const isFirstParagraphScaffold = flowStep === STEP_B1_SCAFFOLD;
-    const role = getScaffoldParagraphRole(structureChoice, i);
-    const copy = scaffoldStepTeacherCopy(
-      role,
-      n,
-      isFirstParagraphScaffold && role === "general"
+    const proofSlots = resolveProofPlanSlots(
+      Array.isArray(thesisArtifact?.proofPlan)
+        ? thesisArtifact.proofPlan
+        : proofPlan
     );
+    const selectedSlot = proofPlanSlotForSuggestionId(
+      Array.isArray(thesisArtifact?.proofPlan)
+        ? thesisArtifact.proofPlan
+        : proofPlan,
+      b.suggestionId
+    );
+    const recommendedSlot =
+      selectedSlot ||
+      proofSlots.find((slot) => slot.slotIndex === i) ||
+      null;
+    const priorSummaries = buildPriorParagraphJobSummaries(buckets, i);
 
     main = (
       <div className={panelClass}>
-        {isFirstParagraphScaffold ? (
-          <p className="text-sm font-medium text-theme-dark leading-relaxed">
-            Which part of your thesis are you starting to prove in this paragraph?
+        <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 ring-1 ring-theme-orange/15">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+            Your job right now
           </p>
-        ) : null}
+          <h2 className="mt-2 text-xl font-extrabold text-theme-blue">
+            {pointStepQuestion(n)}
+          </h2>
+          <p className="mt-2 text-sm text-theme-dark/90">
+            {PARAGRAPH_POINT_DEFINITION}
+          </p>
+        </div>
 
-        <h2 className="text-xl font-extrabold text-theme-blue">{copy.title}</h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: {copy.whatYouWillDo}
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          {isFirstParagraphScaffold ? (
-            <>
-              <p>
-                Each body paragraph should prove one part of your thesis. This paragraph
-                is your chance to develop one clear idea that supports your overall
-                argument.
-              </p>
-              {copy.focusLine ? (
-                <p className="mt-2">{copy.focusLine}</p>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <p>{GUIDANCE_THESIS_FOR_PARAGRAPH_IDEA}</p>
-              <p className="mt-2 font-medium text-theme-dark">{GUIDING_QUESTION}</p>
-              {copy.focusLine ? <p className="mt-2">{copy.focusLine}</p> : null}
-              <p className="mt-2">
-                Start from a suggestion tied to your thesis and organization, or write
-                your own. Whichever you pick, revise the wording so it sounds like{" "}
-                <em>your</em> thinking.
-              </p>
-            </>
-          )}
-        </StepGuidanceBox>
-        <StepGuidanceBox label="Think about this">
-          <p>{scaffoldThinkAboutLine(role, isFirstParagraphScaffold)}</p>
-        </StepGuidanceBox>
-        {role !== "general" ? (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-lg border border-theme-orange/25 bg-theme-orange/5 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-orange">
+              Point
+            </p>
+            <p className="mt-1 text-sm text-theme-dark">
+              What this paragraph proves
+            </p>
+          </div>
+          <div className="rounded-lg border border-border-soft bg-surface-soft/60 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+              Job
+            </p>
+            <p className="mt-1 text-sm text-theme-dark/85">
+              How it fits the essay’s organization
+            </p>
+            <p className="mt-2 text-xs font-semibold text-theme-blue">
+              You will choose the job next.
+            </p>
+          </div>
+        </div>
+
+        <StepReferenceNote title="Your thesis (read-only)">
+          {thesis || "Your thesis from Module 3 will appear here."}
+        </StepReferenceNote>
+
+        {recommendedSlot ? (
+          <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 px-3 py-3 space-y-1">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+              Proof-plan slot recommended for Paragraph {n}
+            </p>
+            <p className="text-xs font-semibold text-theme-orange">
+              {recommendedSlot.roleLabel}
+            </p>
+            <p className="text-sm whitespace-pre-wrap break-words text-theme-dark">
+              {recommendedSlot.text}
+            </p>
+          </div>
+        ) : (
           <StepGuidanceBox label="Tip">
             <p>
-              The suggestions below are narrowed to match your organization plan for
-              this paragraph. You can still choose “write my own” if none of them fit.
+              No saved proof-plan note is linked to this paragraph yet. Use your
+              thesis and pattern as reference, or write your own paragraph point.
             </p>
           </StepGuidanceBox>
+        )}
+
+        {priorSummaries.length > 0 ? (
+          <div className="rounded-lg border border-border-soft bg-white/80 px-3 py-3 space-y-1">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+              Earlier paragraphs
+            </p>
+            {priorSummaries.map((item) => (
+              <p key={item.paragraphNumber} className="text-xs text-theme-dark/85">
+                Paragraph {item.paragraphNumber}
+                {item.jobLabel ? ` — ${item.jobLabel}` : ""}
+                {item.point ? `: ${item.point}` : ""}
+              </p>
+            ))}
+          </div>
         ) : null}
+
         <StepActionHeading>
-          Your turn: select one suggestion (or “write my own”), then type or edit your
-          paragraph idea below.
+          Your turn: choose a saved proof-plan note or write a different point.
         </StepActionHeading>
         <div className="space-y-2">
           {scaffoldSuggestions.map((s) => (
-            <label key={s.id} className={CHOICE_ROW_CLASS}>
+            <label
+              key={s.id}
+              className={[
+                CHOICE_ROW_CLASS,
+                selectedSlot?.suggestionId === s.id || b.suggestionId === s.id
+                  ? "border-theme-blue/40 bg-theme-blue/5"
+                  : "",
+              ].join(" ")}
+            >
               <input
                 type="radio"
                 name={`suggestion-${i}`}
@@ -1752,8 +1913,13 @@ export default function ModuleFour({
                   updateBucketField(i, "claim", s.label);
                 }}
               />
-              <span className="text-sm text-theme-dark/90 leading-relaxed">
-                {s.label}
+              <span className="min-w-0 text-sm text-theme-dark/90 leading-relaxed">
+                {s.roleLabel ? (
+                  <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-theme-orange">
+                    {s.roleLabel}
+                  </span>
+                ) : null}
+                <span className="whitespace-pre-wrap break-words">{s.label}</span>
               </span>
             </label>
           ))}
@@ -1770,24 +1936,28 @@ export default function ModuleFour({
               }}
             />
             <span className="text-sm font-semibold text-theme-dark">
-              I’ll write my own paragraph idea
+              I’ll write a different paragraph point
             </span>
           </label>
         </div>
         <div>
           <label className="block text-sm font-bold text-theme-dark mb-1">
-            Your paragraph idea — type here
+            Your paragraph point — edit until it sounds like you
           </label>
           <textarea
             value={b.claim}
             onChange={(e) => updateBucketField(i, "claim", e.target.value)}
             className={`${FIELD_INPUT_CLASS} min-h-[100px]`}
-            placeholder="Use a suggestion above, or type your own idea in your own words…"
+            placeholder="Use a proof-plan note above, or type your own point…"
           />
+          <FieldValidityStatus result={validateParagraphPoint(b.claim)} />
         </div>
         {(b.claim || "").trim() ? (
           <StepMeaningBox label="What this means">
-            <p>{MEANING_BODY_PARAGRAPH}</p>
+            <p>
+              This is the point Paragraph {n} will prove. Next you will choose
+              its organizational job.
+            </p>
           </StepMeaningBox>
         ) : null}
       </div>
@@ -1800,44 +1970,221 @@ export default function ModuleFour({
     const i = bucketIndexForStep(flowStep);
     const n = i + 1;
     const b = buckets[i] || emptyBucket();
+    const rawProofPlan = Array.isArray(thesisArtifact?.proofPlan)
+      ? thesisArtifact.proofPlan
+      : proofPlan;
+    const recommendation = recommendParagraphJob({
+      proofPlan: rawProofPlan,
+      suggestionId: b.suggestionId,
+      paragraphIndex: i,
+    });
+    const jobUi = paragraphJobChoicesForUi({
+      proofPlan: rawProofPlan,
+      currentRole: b.paragraphRole,
+    });
+    const selectedSlot = proofPlanSlotForSuggestionId(
+      rawProofPlan,
+      b.suggestionId
+    );
+    const pairingCoach = getPointJobPairingCoaching({
+      claim: b.claim,
+      paragraphRole: b.paragraphRole,
+      suggestionId: b.suggestionId,
+      recommendedJobId: recommendation?.jobId || "",
+    });
+    const priorJobs = buildPriorParagraphJobSummaries(buckets, i);
+    const repeatedCoach = getRepeatedJobCoaching(
+      buckets.map((bucket, idx) =>
+        idx === i ? b : bucket
+      ),
+      i
+    );
+    const customText = decodeCustomParagraphJob(b.paragraphRole);
+    const choosingCustom = isCustomParagraphJob(b.paragraphRole);
+
     main = (
       <div className={panelClass}>
-        <h2 className="text-xl font-extrabold text-theme-blue">
-          Paragraph {n}: decide what this paragraph does
-        </h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: pick the option that describes this paragraph’s job
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          <p>
-            Essays are not a list of quotes—they are a <strong>sequence of moves</strong>.
-            Choosing the job of this paragraph helps you line it up with the
-            organization you picked in Module 3.
+        <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 ring-1 ring-theme-orange/15">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+            Your job right now
           </p>
-        </StepGuidanceBox>
-        <StepReferenceNote title="Paragraph idea you chose (read-only)">
-          {(b.claim || "").trim() || "(Add an idea on the previous step.)"}
-        </StepReferenceNote>
+          <h2 className="mt-2 text-xl font-extrabold text-theme-blue">
+            {jobStepQuestion(n)}
+          </h2>
+          <p className="mt-2 text-sm text-theme-dark/90">
+            {PARAGRAPH_JOB_DEFINITION}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+              Your paragraph point
+            </p>
+            <p className="mt-1 text-sm whitespace-pre-wrap break-words text-theme-dark">
+              {(b.claim || "").trim() || "(Add a point on the previous step.)"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border-soft bg-white/90 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+              Recommended from your proof plan
+            </p>
+            {recommendation ? (
+              <>
+                <p className="mt-1 text-xs font-semibold text-theme-orange break-words">
+                  {recommendation.slot?.roleLabel || "Proof-plan note"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-theme-green break-words">
+                  {recommendation.jobLabel}
+                </p>
+                {recommendation.slot?.text ? (
+                  <p className="mt-1 text-xs text-theme-dark/80 whitespace-pre-wrap break-words">
+                    {recommendation.slot.text}
+                  </p>
+                ) : null}
+                <p className="mt-2 text-[11px] font-semibold text-theme-blue">
+                  Recommended from your plan — choose or confirm it below.
+                </p>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-theme-dark/80">
+                No proof-plan recommendation is available. Choose the
+                organizational job that fits your paragraph point.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {priorJobs.length > 0 ? (
+          <div className="rounded-lg border border-border-soft bg-surface-soft/50 px-3 py-3 space-y-1">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+              Essay organization so far
+            </p>
+            {priorJobs.map((item) => (
+              <p key={item.paragraphNumber} className="text-sm text-theme-dark">
+                Paragraph {item.paragraphNumber} — {item.jobLabel}
+              </p>
+            ))}
+            <p className="text-sm font-semibold text-theme-blue">
+              Paragraph {n} — choosing now
+            </p>
+            {repeatedCoach ? (
+              <p className="pt-1 text-xs text-theme-orange">{repeatedCoach}</p>
+            ) : null}
+          </div>
+        ) : null}
+
         <StepActionHeading>
-          Your turn: select one role for this paragraph.
+          Your turn: choose how Paragraph {n} does its part in the essay.
         </StepActionHeading>
         <div className="space-y-2">
-          {roleOpts.map((opt) => (
-            <label key={opt.id} className={CHOICE_ROW_CLASS}>
-              <input
-                type="radio"
-                name={`role-${i}`}
-                className="mt-1 shrink-0"
-                checked={b.paragraphRole === opt.id}
-                onChange={() => updateBucketField(i, "paragraphRole", opt.id)}
-              />
-              <span className="text-sm text-theme-dark/90">{opt.label}</span>
-            </label>
-          ))}
+          {jobUi.choices.map((opt) => {
+            const isRecommended =
+              recommendation &&
+              !opt.isLegacy &&
+              opt.id === recommendation.jobId;
+            const checked =
+              opt.id === "custom"
+                ? choosingCustom
+                : b.paragraphRole === opt.id;
+            return (
+              <label
+                key={opt.id}
+                className={[
+                  CHOICE_ROW_CLASS,
+                  "w-full",
+                  isRecommended ? "border-theme-green/40 bg-theme-green/5" : "",
+                  checked ? "ring-1 ring-theme-blue/25" : "",
+                ].join(" ")}
+              >
+                <input
+                  type="radio"
+                  name={`role-${i}`}
+                  className="mt-1 shrink-0"
+                  checked={checked}
+                  onChange={() => {
+                    if (opt.id === "custom") {
+                      updateBucketField(
+                        i,
+                        "paragraphRole",
+                        encodeCustomParagraphJob(customText || "")
+                      );
+                      return;
+                    }
+                    updateBucketField(i, "paragraphRole", opt.id);
+                  }}
+                />
+                <span className="min-w-0 text-sm text-theme-dark/90">
+                  <span className="break-words">{opt.label}</span>
+                  {isRecommended ? (
+                    <span className="mt-1 block text-[11px] font-bold uppercase tracking-wide text-theme-green">
+                      Recommended from your plan
+                    </span>
+                  ) : null}
+                  {opt.isLegacy ? (
+                    <span className="mt-1 block text-[11px] font-semibold text-text-muted">
+                      Saved earlier — keep it, or choose a clearer job below
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+            );
+          })}
         </div>
-        <StepMeaningBox label="How this helps your essay">
-          <p>{MEANING_BODY_PARAGRAPH}</p>
-        </StepMeaningBox>
+
+        {choosingCustom ? (
+          <div>
+            <label className="block text-sm font-bold text-theme-dark mb-1">
+              Describe the organizational job
+            </label>
+            <input
+              type="text"
+              value={customText}
+              onChange={(e) =>
+                updateBucketField(
+                  i,
+                  "paragraphRole",
+                  encodeCustomParagraphJob(e.target.value)
+                )
+              }
+              className={FIELD_INPUT_CLASS}
+              placeholder="Example: Compare the openings of both works"
+            />
+            <p className="mt-1 text-[11px] text-text-muted">
+              Saved as <code>custom:…</code> in the existing paragraph job field.
+            </p>
+          </div>
+        ) : null}
+
+        {pairingCoach ? (
+          <div className="rounded-lg border border-theme-orange/30 bg-theme-orange/5 px-3 py-3 space-y-2">
+            <p className="text-sm font-semibold text-theme-orange">
+              Check this pairing
+            </p>
+            <p className="text-sm text-theme-dark">{pairingCoach.message}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <p className="text-xs">
+                <span className="font-bold">Point: </span>
+                {(b.claim || "").trim() || "—"}
+              </p>
+              <p className="text-xs">
+                <span className="font-bold">Job: </span>
+                {labelForParagraphJob(b.paragraphRole) || "—"}
+              </p>
+            </div>
+            <p className="text-xs text-text-muted">
+              You can go Back to revise the point, or choose a different job here.
+            </p>
+          </div>
+        ) : null}
+
+        <FieldValidityStatus result={validateParagraphJob(b.paragraphRole)} />
+
+        {selectedSlot ? (
+          <p className="text-xs text-text-muted">
+            Linked proof-plan note: {selectedSlot.roleLabel}
+          </p>
+        ) : null}
       </div>
     );
   } else if (
@@ -1847,33 +2194,85 @@ export default function ModuleFour({
   ) {
     const i = bucketIndexForStep(flowStep);
     const n = i + 1;
+    const b = buckets[i] || emptyBucket();
+    const rawProofPlan = Array.isArray(thesisArtifact?.proofPlan)
+      ? thesisArtifact.proofPlan
+      : proofPlan;
+    const selectedSlot = proofPlanSlotForSuggestionId(
+      rawProofPlan,
+      b.suggestionId
+    );
+    const evidenceSlotsForStep = resolveBucketEvidenceSlots(b);
+    const alignmentCue = getJobEvidenceSourceAlignmentCue({
+      paragraphRole: b.paragraphRole,
+      evidenceSlots: evidenceSlotsForStep,
+    });
     main = (
-      <div className={panelClass}>
+      <div
+        className={`${panelClass} max-w-full overflow-x-hidden`}
+        data-layout-mobile={
+          CP6_LAYOUT_CONTRACT.mobile.singleColumn ? "stack" : "multi"
+        }
+      >
         <h2 className="text-xl font-extrabold text-theme-blue">
           Paragraph {n}: choose evidence
         </h2>
         <p className="text-sm font-semibold text-theme-dark">
-          What you will do: check only the quotes that fit this paragraph idea
+          What you will do: check only the quotes that fit this paragraph point
+          and job
         </p>
         <StepGuidanceBox label="Why this matters">
           <p>
-            You are not collecting random quotes—you are choosing lines that{" "}
-            <strong>belong to this paragraph’s job</strong>.
+            You are choosing lines that belong with{" "}
+            <strong>this paragraph’s point and job</strong>—not collecting random
+            quotes.
           </p>
         </StepGuidanceBox>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+              Paragraph point
+            </p>
+            <p className="mt-1 text-sm whitespace-pre-wrap break-words">
+              {(b.claim || "").trim() || "Add your paragraph point on an earlier step."}
+            </p>
+          </div>
+          <div className="rounded-lg border border-theme-orange/25 bg-theme-orange/5 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-orange">
+              Paragraph job
+            </p>
+            <p className="mt-1 text-sm break-words">
+              {labelForParagraphJob(b.paragraphRole) ||
+                "Choose the organizational job on the previous step."}
+            </p>
+          </div>
+        </div>
+
+        {selectedSlot ? (
+          <div className="rounded-lg border border-border-soft bg-white/90 px-3 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+              Matching proof-plan note
+            </p>
+            <p className="mt-1 text-xs font-semibold text-theme-orange">
+              {selectedSlot.roleLabel}
+            </p>
+            <p className="mt-1 text-sm whitespace-pre-wrap break-words text-theme-dark">
+              {selectedSlot.text}
+            </p>
+          </div>
+        ) : null}
+
         <StepGuidanceBox label="Think about this">
           <p className="font-semibold text-theme-dark mb-1">
             Does this quote fit this paragraph plan?
           </p>
           <p>
-            For each quote you consider, ask whether it really supports{" "}
-            <em>this</em> paragraph idea—not just whether it is a “good” quote in
-            general. If it does not fit, leave it unchecked.
+            For each quote, ask whether it supports <em>this</em> paragraph point
+            and job. Module 2 notes and Module 3 connections stay with each
+            quotation below.
           </p>
         </StepGuidanceBox>
-        <StepReferenceNote title="Paragraph idea you are supporting (read-only)">
-          {(buckets[i]?.claim || "").trim() || "Add your paragraph idea on the previous step."}
-        </StepReferenceNote>
         <StepActionHeading>
           Your turn: use the checkboxes below to select evidence.
         </StepActionHeading>
@@ -1926,6 +2325,27 @@ export default function ModuleFour({
           );
         })()}
         {renderQuoteGroups(i)}
+        <FieldValidityStatus
+          result={validateParagraphEvidence(evidenceSlotsForStep)}
+        />
+        {alignmentCue ? (
+          <div
+            className="rounded-lg border border-theme-orange/30 bg-theme-orange/[0.06] px-3 py-3 text-left"
+            role="status"
+            aria-label={alignmentCue.title}
+          >
+            <p className="text-xs font-bold uppercase tracking-wide text-theme-orange">
+              {alignmentCue.title}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-theme-dark break-words">
+              {alignmentCue.message}
+            </p>
+            <p className="mt-2 text-[11px] text-theme-dark/65">
+              This is a coaching note only. You can keep going with your current
+              selections.
+            </p>
+          </div>
+        ) : null}
         <StepMeaningBox label="What this means">
           <p>{MEANING_BODY_PARAGRAPH}</p>
         </StepMeaningBox>
@@ -1939,6 +2359,15 @@ export default function ModuleFour({
     const i = bucketIndexForStep(flowStep);
     const n = i + 1;
     const b = buckets[i] || emptyBucket();
+    const evidenceSlots = resolveBucketEvidenceSlots(b);
+    const planArtifact = buildModule4ParagraphPlanArtifact({
+      paragraphIndex: i,
+      bucket: b,
+      evidenceSlots,
+      thesis,
+      proofPlan,
+    });
+    const planReady = isParagraphMechanicallyPlanned(b, evidenceSlots);
     main = (
       <div className={panelClass}>
         <h2 className="text-xl font-extrabold text-theme-blue">
@@ -1956,11 +2385,20 @@ export default function ModuleFour({
           </p>
         </StepGuidanceBox>
 
-        <ParagraphPlanPanel
-          paragraphNumber={n}
-          bucket={b}
-          evidenceSlots={resolveBucketEvidenceSlots(b)}
-        />
+        {planReady ? (
+          <ModuleFourParagraphPlanArtifact
+            artifact={planArtifact}
+            showReadyBanner
+            showEditActions
+            onEditPart={goToParagraphPartEdit}
+          />
+        ) : (
+          <ParagraphPlanPanel
+            paragraphNumber={n}
+            bucket={b}
+            evidenceSlots={evidenceSlots}
+          />
+        )}
 
         <StepActionHeading>
           Your turn: optional — tap a starter, then write in the box below.
@@ -1999,6 +2437,7 @@ export default function ModuleFour({
             className={`${FIELD_INPUT_CLASS} min-h-[140px]`}
             placeholder="Example: This shows that King is framing nonviolence as moral strength, not weakness, which helps skeptical readers take his strategy seriously."
           />
+          <FieldValidityStatus result={validateParagraphReasoning(b.reasoning)} />
         </div>
 
         <StepMeaningBox label="What this means">
@@ -2042,37 +2481,22 @@ export default function ModuleFour({
     );
   } else if (flowStep === STEP_REFLECTION) {
     main = (
-      <div className={panelClass}>
-        <h2 className="text-xl font-extrabold text-theme-blue">Reflect on your plan</h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: type a short reflection in the box
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          <p>
-            Look back at the paragraph moves you planned. How do they work together to
-            prove your thesis? What might you reorder or deepen when you outline in
-            Module 5?
-          </p>
-        </StepGuidanceBox>
-        <StepActionHeading>Your turn: write your reflection below.</StepActionHeading>
-        <div>
-          <label className="block text-sm font-bold text-theme-dark mb-1">
-            Your reflection — type here
-          </label>
-          <textarea
-            value={reflection}
-            onChange={(e) => setReflection(e.target.value)}
-            className={`${FIELD_INPUT_CLASS} min-h-[140px]`}
-            placeholder="A few clear sentences is enough."
-          />
-        </div>
-        <StepGuidanceBox label="Tip">
-          <p>A sentence or two is enough to show your thinking.</p>
-        </StepGuidanceBox>
-      </div>
+      <ModuleFourFinalReviewStep
+        buckets={buckets}
+        wantThirdBucket={wantThirdBucket}
+        getEvidenceSlots={(bucket) => resolveBucketEvidenceSlots(bucket)}
+        thesis={thesis}
+        proofPlan={proofPlan}
+        reflection={reflection}
+        onReflectionChange={setReflection}
+        onEditPart={goToParagraphPartEdit}
+        onFinish={() => completeModule()}
+        canFinish={canGoNext()}
+      />
     );
   }
 
+  const advanceStatus = evaluateAdvance();
   const showBack =
     flowStep > STEP_HANDOFF &&
     !(flowStep === STEP_PATTERN && !hasSavedPattern);
@@ -2080,87 +2504,136 @@ export default function ModuleFour({
     flowStep === STEP_HANDOFF ||
     flowStep === STEP_BIG_PICTURE ||
     flowStep === STEP_EXPLAIN_BUCKETS;
-  const atSoftIntro = atHandoff || flowStep === STEP_PATTERN;
   const atDecision = flowStep === STEP_THIRD_DECISION;
   const atReflection = flowStep === STEP_REFLECTION;
+  const chrome = getModule4PresentationChrome(flowStep);
   const showPrimaryAdvance =
     !atDecision &&
     !atReflection &&
     !atHandoff &&
     flowStep <= STEP_B3_REASONING;
 
-  const showSources =
-    flowStep >= STEP_WELCOME && flowStep <= STEP_REFLECTION;
+  const atReasoningStep =
+    flowStep === STEP_B1_REASONING ||
+    flowStep === STEP_B2_REASONING ||
+    flowStep === STEP_B3_REASONING;
+  const reasoningBucketIndex = atReasoningStep
+    ? bucketIndexForStep(flowStep)
+    : -1;
+  const reasoningPlanReady =
+    atReasoningStep &&
+    isParagraphMechanicallyPlanned(
+      buckets[reasoningBucketIndex] || emptyBucket(),
+      resolveBucketEvidenceSlots(buckets[reasoningBucketIndex] || emptyBucket())
+    );
+  const primaryAdvanceLabel =
+    flowStep === STEP_PATTERN
+      ? "Start Paragraph 1"
+      : reasoningPlanReady
+        ? reasoningReadyNextActionLabel({
+            paragraphIndex: reasoningBucketIndex,
+            wantThirdBucket,
+          })
+        : "Keep going";
 
   return (
     <div className="w-full pb-10">
+      {chrome.useGuidedHandoffShell ? (
+        main
+      ) : (
       <ModuleThreeStepFrame
-        question={stepPresentation.question}
-        whyMatters={stepPresentation.whyMatters}
-        successLooksLike={stepPresentation.successLooksLike}
-        coachingMessage={stepPresentation.coachingMessage}
-        nextStepText={stepPresentation.nextStepText}
-        sidebar={referenceShelf}
+        minimalChrome={chrome.useMinimalStepChrome}
+        question={chrome.showPageQuestion ? stepPresentation.question : ""}
+        whyMatters={chrome.showWhyMatters ? stepPresentation.whyMatters : []}
+        successLooksLike={
+          chrome.showReflectionDisclosure
+            ? stepPresentation.successLooksLike
+            : []
+        }
+        coachingMessage={
+          chrome.showTeacherGuide ? stepPresentation.coachingMessage : ""
+        }
+        nextStepText={
+          chrome.showTeacherGuide ? stepPresentation.nextStepText : ""
+        }
+        sidebar={chrome.showFullReferenceShelf ? referenceShelf : null}
       >
-        <div className="space-y-4 rounded-lg bg-surface-soft/50 px-4 py-3 text-left">
-          <p className="text-xs leading-relaxed text-text-muted">
-            Module 4 · step {flowStep + 1} of {LAST_STEP + 1}. Same workspace—one
-            paragraph at a time.
-          </p>
-        </div>
+        {chrome.showStepMetadata ? (
+          <div className="space-y-4 rounded-lg bg-surface-soft/50 px-4 py-3 text-left">
+            <p className="text-xs leading-relaxed text-text-muted">
+              Module 4 · step {flowStep + 1} of {LAST_STEP + 1}. Same
+              workspace—one paragraph at a time.
+            </p>
+          </div>
+        ) : null}
 
-        {showSources ? (
+        {chrome.showSources ? (
           <ModuleSourceAccess
             speechOriginalUrl={speechOriginalUrl}
             letterOriginalUrl={letterOriginalUrl}
           />
         ) : null}
 
-        <WorkingSetSection
-          label={stepPresentation.workingSetLabel}
-          description={stepPresentation.workingSetDescription}
-        >
-          {main}
-        </WorkingSetSection>
+        {chrome.showWorkingSetLabel ? (
+          <WorkingSetSection
+            label={stepPresentation.workingSetLabel}
+            description={stepPresentation.workingSetDescription}
+          >
+            {main}
+          </WorkingSetSection>
+        ) : (
+          main
+        )}
 
-        <div className="flex flex-wrap justify-between items-center gap-3 border-t border-border-soft/60 pt-4">
-          <div>
-            {showBack ? (
-              <button
-                type="button"
-                onClick={() => goBack()}
-                className="px-4 py-2 rounded-lg bg-surface-soft text-text-primary hover:bg-border-soft/60"
+        {chrome.showNavFooter ? (
+          <div className="space-y-3 border-t border-border-soft/60 pt-4">
+            {!advanceStatus.ok && advanceStatus.message ? (
+              <p
+                className="text-xs leading-relaxed text-theme-orange break-words"
+                role="status"
               >
-                Back
-              </button>
+                {advanceStatus.message}
+              </p>
             ) : null}
+            <div className="flex flex-wrap justify-between items-center gap-3">
+            <div>
+              {showBack ? (
+                <button
+                  type="button"
+                  onClick={() => goBack()}
+                  className="px-4 py-2 rounded-lg bg-surface-soft text-text-primary hover:bg-border-soft/60"
+                >
+                  Back
+                </button>
+              ) : null}
+            </div>
+            <div className="flex gap-2">
+              {showPrimaryAdvance ? (
+                <button
+                  type="button"
+                  onClick={() => goNext()}
+                  disabled={!canGoNext()}
+                  className="w-full sm:w-auto px-4 py-3 min-h-[44px] rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
+                >
+                  {primaryAdvanceLabel}
+                </button>
+              ) : null}
+              {atReflection ? (
+                <button
+                  type="button"
+                  onClick={() => completeModule()}
+                  disabled={!canGoNext()}
+                  className="w-full sm:w-auto px-4 py-3 min-h-[44px] rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
+                >
+                  Finish your paragraph plans and continue
+                </button>
+              ) : null}
+            </div>
+            </div>
           </div>
-          <div className="flex gap-2">
-            {showPrimaryAdvance ? (
-              <button
-                type="button"
-                onClick={() => goNext()}
-                disabled={!canGoNext()}
-                className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
-              >
-                {flowStep === STEP_PATTERN
-                  ? "Start Paragraph 1"
-                  : "Keep going"}
-              </button>
-            ) : null}
-            {atReflection ? (
-              <button
-                type="button"
-                onClick={() => completeModule()}
-                disabled={!canGoNext()}
-                className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
-              >
-                Finish your paragraph plans and continue
-              </button>
-            ) : null}
-          </div>
-        </div>
+        ) : null}
       </ModuleThreeStepFrame>
+      )}
     </div>
   );
 }
