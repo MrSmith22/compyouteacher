@@ -5,7 +5,16 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/logActivity";
 import {
+  deriveValidModule3ConnectionsByRowKey,
+  enrichEvidencePoolWithModule3Connections,
+  getModule3ConnectionForEvidenceKey,
+  bucketHasQualifyingEvidence,
+  evidenceIdsMatch,
+  resolveSavedEvidenceSlots,
+} from "@/lib/module4/module4EvidenceContinuity";
+import {
   buildModule4EvidencePool,
+  evidenceArtifactToRow,
   evidenceRowKey,
   patternReviewEvidenceRows,
   resolveBucketSuggestions,
@@ -14,6 +23,7 @@ import {
   resolveProofPlan,
   resolveSelectedPattern,
 } from "@/lib/module4/module4InstructionalLogic";
+import { findSuccessClusterArtifact } from "@/lib/module3/moduleThreeSuccessHelpers";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { upsertParagraphPlanArtifact } from "@/lib/artifacts/writeArtifacts";
 import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
@@ -41,11 +51,19 @@ import {
   STEP_B3_SCAFFOLD,
   STEP_BIG_PICTURE,
   STEP_EXPLAIN_BUCKETS,
+  STEP_HANDOFF,
   STEP_PATTERN,
   STEP_REFLECTION,
   STEP_THIRD_DECISION,
   STEP_WELCOME,
 } from "@/components/module4/module4FlowSteps";
+import ModuleFourHandoffStep from "@/components/module4/ModuleFourHandoffStep";
+import {
+  buildModule4HandoffPresentation,
+  hasValidSavedModule3Pattern,
+  migrateOpeningFlowStep,
+  resolveModule4BackTarget,
+} from "@/lib/module4/module4HandoffHelpers";
 import { mlkRhetoricalAnalysisAssignment } from "@/lib/assignments/mlkRhetoricalAnalysis";
 
 const EMPTY_UPSTREAM_ARTIFACTS = {
@@ -386,9 +404,16 @@ function sourceTypeLabel(type) {
 /**
  * Read-only summary of claim + selected Module 2 evidence for the reasoning step.
  */
-function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
+function ParagraphPlanPanel({
+  paragraphNumber,
+  bucket,
+  evidenceSlots = [],
+}) {
   const keys = Array.isArray(bucket?.evidenceKeys) ? bucket.evidenceKeys : [];
   const claim = (bucket?.claim || "").trim();
+  const visibleSlots = (Array.isArray(evidenceSlots) ? evidenceSlots : []).filter(
+    (slot) => !slot?.suppressDisplay
+  );
 
   return (
     <div
@@ -423,37 +448,48 @@ function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
           <p className="text-xs font-bold uppercase tracking-wide text-theme-dark/55">
             Selected evidence
           </p>
-          {keys.map((evKey) => {
-            const row = evidenceByKey[evKey];
-            if (!row) {
+          {visibleSlots.map((slot, index) => {
+            if (slot.status === "missing") {
               return (
                 <div
-                  key={evKey}
+                  key={`missing-${slot.savedKey}-${index}`}
                   className="rounded-lg border border-theme-orange/35 bg-theme-orange/5 p-3 text-sm text-theme-dark/80"
                 >
                   This evidence slot is no longer linked to your saved evidence notes.
                 </div>
               );
             }
-            const parsed = parseModule2Observation(row.observation);
-            const quote = (row.quote || "").trim();
-            const explanation =
+
+            const row = slot.row;
+            const parsed = parseModule2Observation(row?.observation);
+            const quote = (slot.quote || "").trim();
+            const module2Note =
               (parsed.main || "").trim() ||
-              (typeof row.observation === "string" ? row.observation.trim() : "");
-            const appeal = String(row.category || "").toLowerCase();
+              (slot.observation || "").trim();
+            const appeal = String(row?.category || "").toLowerCase();
+            const module3Connection = slot.module3Connection;
 
             return (
               <div
-                key={evKey}
+                key={`${slot.savedKey}-${index}`}
                 className="rounded-lg border border-theme-blue/25 bg-theme-light/90 p-3 space-y-2 text-sm text-left"
               >
+                {slot.compatibilityLabel ? (
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-theme-dark/55">
+                    {slot.compatibilityLabel}
+                  </p>
+                ) : null}
                 <div className="flex flex-wrap gap-2 text-xs font-semibold text-theme-dark">
-                  <span className="rounded border border-theme-dark/15 bg-white/90 px-2 py-1">
-                    Source: {sourceTypeLabel(row.type)}
-                  </span>
-                  <span className="rounded border border-theme-dark/15 bg-white/90 px-2 py-1 capitalize">
-                    Appeal: {appeal || "from your Module 2 notes"}
-                  </span>
+                  {row?.type ? (
+                    <span className="rounded border border-theme-dark/15 bg-white/90 px-2 py-1">
+                      Source: {sourceTypeLabel(row.type)}
+                    </span>
+                  ) : null}
+                  {appeal ? (
+                    <span className="rounded border border-theme-dark/15 bg-white/90 px-2 py-1 capitalize">
+                      Appeal: {appeal}
+                    </span>
+                  ) : null}
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-theme-dark/55 mb-0.5">
@@ -465,37 +501,46 @@ function ParagraphPlanPanel({ paragraphNumber, bucket, evidenceByKey }) {
                     <p className="text-theme-dark/65 text-xs">No quote text saved.</p>
                   )}
                 </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-theme-dark/55 mb-0.5">
-                    Your explanation (Module 2)
-                  </p>
-                  <p className="text-theme-dark/90 leading-relaxed">
-                    {explanation || "Your explanation from Module 2 will appear here."}
-                  </p>
-                </div>
-                <div className="rounded-md border border-theme-blue/20 bg-theme-blue/5 p-2.5 mt-1">
-                  <p className="text-xs font-bold uppercase tracking-wide text-theme-blue mb-1.5">
-                    Why this evidence matters
-                  </p>
-                  {parsed.audience ? (
-                    <p className="text-theme-dark/90 text-sm">
-                      <span className="font-semibold">Audience effect: </span>
-                      {parsed.audience}
+                {module2Note ? (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-theme-dark/55 mb-0.5">
+                      Your Module 2 note
                     </p>
-                  ) : null}
-                  {parsed.purpose ? (
-                    <p className="text-theme-dark/90 text-sm mt-1">
-                      <span className="font-semibold">Purpose connection: </span>
-                      {parsed.purpose}
+                    <p className="text-theme-dark/90 leading-relaxed">{module2Note}</p>
+                  </div>
+                ) : null}
+                {module3Connection ? (
+                  <div className="rounded-md border border-theme-orange/25 bg-theme-orange/5 p-2.5">
+                    <p className="text-xs font-bold uppercase tracking-wide text-theme-orange mb-1.5">
+                      {module3Connection.heading}
                     </p>
-                  ) : null}
-                  {!parsed.audience && !parsed.purpose ? (
-                    <p className="text-xs text-theme-dark/70 leading-relaxed">
-                      No separate audience or purpose lines were saved for this note in
-                      Module 2. Use your explanation above as your grounding.
+                    <p className="text-xs font-semibold text-theme-dark">
+                      {module3Connection.relationLabel}
                     </p>
-                  ) : null}
-                </div>
+                    <p className="mt-1 text-sm leading-relaxed text-theme-dark/90 whitespace-pre-wrap">
+                      {module3Connection.note}
+                    </p>
+                  </div>
+                ) : null}
+                {parsed.audience || parsed.purpose ? (
+                  <div className="rounded-md border border-theme-blue/20 bg-theme-blue/5 p-2.5 mt-1">
+                    <p className="text-xs font-bold uppercase tracking-wide text-theme-blue mb-1.5">
+                      Rhetorical situation (Module 2)
+                    </p>
+                    {parsed.audience ? (
+                      <p className="text-theme-dark/90 text-sm">
+                        <span className="font-semibold">Audience effect: </span>
+                        {parsed.audience}
+                      </p>
+                    ) : null}
+                    {parsed.purpose ? (
+                      <p className="text-theme-dark/90 text-sm mt-1">
+                        <span className="font-semibold">Purpose connection: </span>
+                        {parsed.purpose}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             );
           })}
@@ -772,22 +817,41 @@ function bucketIndexForStep(step) {
   return bucketIndexForFlowStep(step);
 }
 
-function enrichBucketsForSave(bucketsSlice, keyToRow) {
-  return bucketsSlice.map((b) => ({
-    claim: b.claim,
-    reasoning: b.reasoning,
-    paragraphRole: b.paragraphRole || "",
-    suggestionId: b.suggestionId || "",
-    evidenceKeys: [...(b.evidenceKeys || [])],
-    evidenceSnippets: (b.evidenceKeys || []).map((k) => {
-      const row = keyToRow[k];
-      if (!row) return { quote: "", observation: "" };
-      return {
-        quote: row.quote || "",
-        observation: row.observation || "",
-      };
-    }),
-  }));
+function enrichBucketsForSave(bucketsSlice, resolveSlots) {
+  return bucketsSlice.map((b) => {
+    const keys = Array.isArray(b?.evidenceKeys) ? [...b.evidenceKeys] : [];
+    const priorSnippets = Array.isArray(b?.evidenceSnippets)
+      ? b.evidenceSnippets
+      : [];
+    const slots =
+      typeof resolveSlots === "function"
+        ? resolveSlots(b)
+        : [];
+    return {
+      claim: b.claim,
+      reasoning: b.reasoning,
+      paragraphRole: b.paragraphRole || "",
+      suggestionId: b.suggestionId || "",
+      evidenceKeys: keys,
+      evidenceSnippets: keys.map((k, index) => {
+        const slot = slots[index];
+        if (slot && (slot.quote || slot.observation)) {
+          return {
+            quote: slot.quote || "",
+            observation: slot.observation || "",
+          };
+        }
+        const prior = priorSnippets[index];
+        if (prior && (prior.quote || prior.observation)) {
+          return {
+            quote: prior.quote || "",
+            observation: prior.observation || "",
+          };
+        }
+        return { quote: "", observation: "" };
+      }),
+    };
+  });
 }
 
 function parseInitialFromServer(row) {
@@ -821,7 +885,9 @@ function parseInitialFromServer(row) {
   }
 
   // Migrate saved progress from the pre–flow-v2 step map (14 steps, indices 0–13).
-  if (flow.v !== FLOW_VERSION) {
+  // FLOW_VERSION 3 keeps paragraph step numbers; opening steps migrate in the component
+  // via migrateOpeningFlowStep once pattern availability is known.
+  if (flow.v !== FLOW_VERSION && flow.v !== 2 && flow.v !== 3) {
     const v1ToV2 = {
       0: STEP_WELCOME,
       1: STEP_BIG_PICTURE,
@@ -872,10 +938,19 @@ export default function ModuleFour({
   const hasLoggedStartRef = useRef(false);
   const saveTimerRef = useRef(null);
 
-  const parsed = useMemo(
-    () => parseInitialFromServer(initialStudentBuckets),
-    [initialStudentBuckets]
-  );
+  const parsed = useMemo(() => {
+    const base = parseInitialFromServer(initialStudentBuckets);
+    const selected = resolveSelectedPattern(
+      initialUpstreamArtifacts?.patternArtifacts
+    );
+    return {
+      ...base,
+      flowStep: migrateOpeningFlowStep({
+        flowStep: base.flowStep,
+        hasValidSavedPattern: hasValidSavedModule3Pattern(selected),
+      }),
+    };
+  }, [initialStudentBuckets, initialUpstreamArtifacts]);
 
   const [flowStep, setFlowStep] = useState(parsed.flowStep);
   const [wantThirdBucket, setWantThirdBucket] = useState(parsed.wantThirdBucket);
@@ -902,28 +977,110 @@ export default function ModuleFour({
     [initialUpstreamArtifacts]
   );
 
-  const patternReviewMode = Boolean(
-    typeof selectedPattern?.text === "string" && selectedPattern.text.trim()
-  );
+  const hasSavedPattern = hasValidSavedModule3Pattern(selectedPattern);
 
-  const evidencePool = useMemo(
+  // Checkpoint 2: collapse old opening screens onto handoff / pattern fallback.
+  useEffect(() => {
+    setFlowStep((current) => {
+      const next = migrateOpeningFlowStep({
+        flowStep: current,
+        hasValidSavedPattern: hasSavedPattern,
+      });
+      return next === current ? current : next;
+    });
+  }, [hasSavedPattern]);
+
+  const evidencePool = useMemo(() => {
+    const basePool = buildModule4EvidencePool({
+      evidenceArtifacts: initialUpstreamArtifacts?.evidenceArtifacts,
+      evidenceClusterArtifacts: initialUpstreamArtifacts?.evidenceClusterArtifacts,
+      selectedClusterId: initialUpstreamArtifacts?.selectedClusterId,
+      legacyTchartEntries: initialTchartEntries,
+    });
+
+    const cluster = findSuccessClusterArtifact(
+      initialUpstreamArtifacts?.evidenceClusterArtifacts,
+      initialUpstreamArtifacts?.selectedClusterId
+    );
+    const clusterEvidenceIds = Array.isArray(cluster?.evidenceIds)
+      ? cluster.evidenceIds
+      : [];
+
+    const connectionsByRowKey = deriveValidModule3ConnectionsByRowKey({
+      evidenceMap: ideaArtifact?.evidenceMap,
+      clusterEvidenceIds,
+      evidencePool: basePool,
+    });
+
+    return enrichEvidencePoolWithModule3Connections(
+      basePool,
+      connectionsByRowKey
+    );
+  }, [initialUpstreamArtifacts, initialTchartEntries, ideaArtifact]);
+
+  const handoffPresentation = useMemo(
     () =>
-      buildModule4EvidencePool({
-        evidenceArtifacts: initialUpstreamArtifacts?.evidenceArtifacts,
-        evidenceClusterArtifacts: initialUpstreamArtifacts?.evidenceClusterArtifacts,
-        selectedClusterId: initialUpstreamArtifacts?.selectedClusterId,
-        legacyTchartEntries: initialTchartEntries,
+      buildModule4HandoffPresentation({
+        thesis,
+        proofPlan,
+        selectedPattern,
+        evidencePool,
       }),
-    [initialUpstreamArtifacts, initialTchartEntries]
+    [thesis, proofPlan, selectedPattern, evidencePool]
   );
 
-  const evidenceByKey = useMemo(() => {
-    const m = {};
-    for (const row of evidencePool) {
-      m[evidenceRowKey(row)] = row;
+  const module3ConnectionsByKey = useMemo(() => {
+    const cluster = findSuccessClusterArtifact(
+      initialUpstreamArtifacts?.evidenceClusterArtifacts,
+      initialUpstreamArtifacts?.selectedClusterId
+    );
+    return deriveValidModule3ConnectionsByRowKey({
+      evidenceMap: ideaArtifact?.evidenceMap,
+      clusterEvidenceIds: Array.isArray(cluster?.evidenceIds)
+        ? cluster.evidenceIds
+        : [],
+      evidencePool,
+    });
+  }, [initialUpstreamArtifacts, ideaArtifact, evidencePool]);
+
+  /** Full artifact + legacy corpus for resolving saved paragraph keys (shelf stays bounded). */
+  const evidenceLookupRows = useMemo(() => {
+    const artifactRows = (
+      Array.isArray(initialUpstreamArtifacts?.evidenceArtifacts)
+        ? initialUpstreamArtifacts.evidenceArtifacts
+        : []
+    )
+      .map(evidenceArtifactToRow)
+      .filter(Boolean);
+    const legacyRows = (Array.isArray(initialTchartEntries)
+      ? initialTchartEntries
+      : []
+    ).map((row) => ({
+      ...row,
+      evidenceKey: evidenceRowKey(row),
+    }));
+    const seen = new Set();
+    const out = [];
+    for (const row of [...artifactRows, ...legacyRows]) {
+      const key = evidenceRowKey(row);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(row);
     }
-    return m;
-  }, [evidencePool]);
+    return out;
+  }, [initialUpstreamArtifacts, initialTchartEntries]);
+
+  const resolveBucketEvidenceSlots = useCallback(
+    (bucket) =>
+      resolveSavedEvidenceSlots({
+        evidenceKeys: bucket?.evidenceKeys,
+        evidenceSnippets: bucket?.evidenceSnippets,
+        clusterPool: evidencePool,
+        lookupRows: evidenceLookupRows,
+        connectionsByRowKey: module3ConnectionsByKey,
+      }),
+    [evidencePool, evidenceLookupRows, module3ConnectionsByKey]
+  );
 
   const patternReviewRows = useMemo(
     () => patternReviewEvidenceRows(selectedPattern, evidencePool),
@@ -1001,25 +1158,49 @@ export default function ModuleFour({
   );
 
   const stepPresentation = useMemo(() => {
+    if (
+      flowStep === STEP_HANDOFF ||
+      flowStep === STEP_BIG_PICTURE ||
+      flowStep === STEP_EXPLAIN_BUCKETS
+    ) {
+      return {
+        question: handoffPresentation.question,
+        whyMatters: [
+          "Module 4 turns your Module 3 argument into paragraph plans—one paragraph at a time.",
+          "You are organizing thinking you already started, not rewriting your thesis or drafting the essay yet.",
+        ],
+        successLooksLike: [
+          "You can see your thesis, proof plan, and pattern together.",
+          "You understand the five jobs inside a paragraph plan before you start Paragraph 1.",
+        ],
+        workingSetLabel: "Module 3 → Module 4 handoff",
+        workingSetDescription:
+          "On your desk: your argument coming with you, plus how paragraph plans work.",
+        coachingMessage:
+          "Skim the chain, study the five-part model, then start Paragraph 1 when you are ready.",
+        nextStepText: "Next you will write the main idea for Paragraph 1.",
+      };
+    }
+
     const base = getModule4StepPresentation(flowStep);
-    if (flowStep === STEP_PATTERN && patternReviewMode) {
+    if (flowStep === STEP_PATTERN && !hasSavedPattern) {
       return {
         ...base,
-        question: "What pattern did you already notice in Module 3?",
+        question: "What pattern connects your evidence?",
         whyMatters: [
-          "You already named a pattern in Module 3—something that shows up in more than one place.",
-          "Reconnect to that thinking before you plan paragraphs so each paragraph plan grows from work you have already done.",
+          "A pattern helps you group evidence before you plan paragraphs.",
+          "Module 4 needs one clear pattern from your Module 3 work—or a focused choice here—so paragraph plans stay connected.",
         ],
-        workingSetLabel: "Your pattern",
+        workingSetLabel: "Pattern recovery",
         workingSetDescription:
-          "On your desk: the connection you named earlier—not a new discovery exercise.",
+          "On your desk: choose or identify a pattern so Paragraph 1 has a foundation.",
         coachingMessage:
-          "You do not need to start over. Read your pattern, then keep going when it feels familiar again.",
+          "Look for something that shows up in more than one place across your evidence.",
         nextStepText: "Next you will plan your first body paragraph idea.",
       };
     }
     return base;
-  }, [flowStep, patternReviewMode]);
+  }, [flowStep, hasSavedPattern, handoffPresentation.question]);
 
   const referenceShelf = (
     <ModuleFourReferenceShelf
@@ -1071,7 +1252,7 @@ export default function ModuleFour({
     const slice = persistSlice();
     const result = await upsertParagraphPlanArtifact({
       userEmail: email,
-      buckets: enrichBucketsForSave(slice, evidenceByKey),
+      buckets: enrichBucketsForSave(slice, resolveBucketEvidenceSlots),
       reflection,
       flow_state: {
         v: FLOW_VERSION,
@@ -1091,7 +1272,7 @@ export default function ModuleFour({
     patternChoice,
     persistSlice,
     reflection,
-    evidenceByKey,
+    resolveBucketEvidenceSlots,
   ]);
 
   useEffect(() => {
@@ -1121,13 +1302,31 @@ export default function ModuleFour({
 
   const toggleEvidenceKey = (bucketIndex, key) => {
     setBuckets((prev) => {
-      const next = prev.map((b) => ({ ...b, evidenceKeys: [...b.evidenceKeys] }));
+      const next = prev.map((b) => ({
+        ...b,
+        evidenceKeys: [...(b.evidenceKeys || [])],
+        evidenceSnippets: Array.isArray(b.evidenceSnippets)
+          ? [...b.evidenceSnippets]
+          : [],
+      }));
       const b = next[bucketIndex];
       if (!b) return prev;
-      const set = new Set(b.evidenceKeys);
-      if (set.has(key)) set.delete(key);
-      else set.add(key);
-      b.evidenceKeys = Array.from(set);
+
+      const existing = b.evidenceKeys;
+      const matchedIndexes = existing
+        .map((saved, index) => (evidenceIdsMatch(saved, key) ? index : -1))
+        .filter((index) => index >= 0);
+
+      if (matchedIndexes.length > 0) {
+        b.evidenceKeys = existing.filter(
+          (_saved, index) => !matchedIndexes.includes(index)
+        );
+        b.evidenceSnippets = (b.evidenceSnippets || []).filter(
+          (_snippet, index) => !matchedIndexes.includes(index)
+        );
+      } else {
+        b.evidenceKeys = [...existing, key];
+      }
       return next;
     });
   };
@@ -1155,12 +1354,13 @@ export default function ModuleFour({
 
   const canGoNext = () => {
     switch (flowStep) {
+      case STEP_HANDOFF:
       case STEP_WELCOME:
       case STEP_BIG_PICTURE:
       case STEP_EXPLAIN_BUCKETS:
         return true;
       case STEP_PATTERN:
-        if (patternReviewMode) return true;
+        if (hasSavedPattern) return true;
         if (!patternPair) return true;
         return patternChoice.length > 0;
       case STEP_B1_SCAFFOLD:
@@ -1179,7 +1379,9 @@ export default function ModuleFour({
       case STEP_B2_EVIDENCE:
       case STEP_B3_EVIDENCE: {
         const i = bucketIndexForStep(flowStep);
-        return (buckets[i]?.evidenceKeys || []).length > 0;
+        return bucketHasQualifyingEvidence(
+          resolveBucketEvidenceSlots(buckets[i])
+        );
       }
       case STEP_B1_REASONING:
       case STEP_B2_REASONING:
@@ -1199,6 +1401,19 @@ export default function ModuleFour({
   const goNext = async () => {
     if (!canGoNext()) return;
     await flushSave();
+    if (
+      flowStep === STEP_HANDOFF ||
+      flowStep === STEP_WELCOME ||
+      flowStep === STEP_BIG_PICTURE ||
+      flowStep === STEP_EXPLAIN_BUCKETS
+    ) {
+      setFlowStep(STEP_B1_SCAFFOLD);
+      return;
+    }
+    if (flowStep === STEP_PATTERN) {
+      setFlowStep(STEP_B1_SCAFFOLD);
+      return;
+    }
     if (flowStep === STEP_B2_REASONING) {
       setFlowStep(STEP_THIRD_DECISION);
       return;
@@ -1212,21 +1427,19 @@ export default function ModuleFour({
 
   const goBack = async () => {
     await flushSave();
-    if (flowStep === STEP_WELCOME) return;
-    if (flowStep === STEP_REFLECTION) {
-      if (wantThirdBucket === true) setFlowStep(STEP_B3_REASONING);
-      else setFlowStep(STEP_THIRD_DECISION);
-      return;
-    }
-    if (flowStep === STEP_THIRD_DECISION) {
-      setFlowStep(STEP_B2_REASONING);
-      return;
-    }
-    if (flowStep === STEP_B3_SCAFFOLD) {
-      setFlowStep(STEP_THIRD_DECISION);
-      return;
-    }
-    setFlowStep((s) => s - 1);
+    const target = resolveModule4BackTarget({
+      flowStep,
+      hasValidSavedPattern: hasSavedPattern,
+      wantThirdBucket,
+    });
+    if (target == null) return;
+    setFlowStep(target);
+  };
+
+  const startParagraph1 = async () => {
+    if (!canGoNext()) return;
+    await flushSave();
+    setFlowStep(STEP_B1_SCAFFOLD);
   };
 
   const chooseThirdBucket = async (yes) => {
@@ -1288,13 +1501,20 @@ export default function ModuleFour({
                     <ul className="space-y-2">
                       {list.map((row) => {
                         const key = evidenceRowKey(row);
-                        const checked = (buckets[bucketIndex]?.evidenceKeys || []).includes(
-                          key
+                        const checked = (buckets[bucketIndex]?.evidenceKeys || []).some(
+                          (saved) => evidenceIdsMatch(saved, key)
                         );
                         const q = (row.quote || "").trim();
                         const o = (row.observation || "").trim();
                         const preview =
                           q.slice(0, 160) + (q.length > 160 ? "…" : "");
+                        const appeal = String(row.category || "").toLowerCase();
+                        const module3Connection =
+                          row.module3Connection ||
+                          getModule3ConnectionForEvidenceKey(
+                            module3ConnectionsByKey,
+                            key
+                          );
                         return (
                           <li key={key}>
                             <label
@@ -1306,14 +1526,37 @@ export default function ModuleFour({
                                 checked={checked}
                                 onChange={() => toggleEvidenceKey(bucketIndex, key)}
                               />
-                              <span className="text-xs text-theme-dark/90 leading-relaxed">
+                              <span className="min-w-0 flex-1 space-y-1.5 text-xs text-theme-dark/90 leading-relaxed">
+                                <span className="flex flex-wrap gap-1.5">
+                                  <span className="rounded border border-theme-dark/15 bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                                    {sourceLabels[src]}
+                                  </span>
+                                  {appeal ? (
+                                    <span className="rounded border border-theme-dark/15 bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold capitalize">
+                                      {appeal}
+                                    </span>
+                                  ) : null}
+                                </span>
                                 <span className="font-medium text-theme-dark block">
                                   {preview || "(No quote text)"}
                                 </span>
                                 {o ? (
-                                  <span className="text-theme-dark/75 block mt-1">
-                                    Your note: {o.slice(0, 200)}
+                                  <span className="text-theme-dark/75 block">
+                                    Your Module 2 note: {o.slice(0, 200)}
                                     {o.length > 200 ? "…" : ""}
+                                  </span>
+                                ) : null}
+                                {module3Connection ? (
+                                  <span className="mt-1 block rounded-md border border-theme-orange/25 bg-theme-orange/5 px-2 py-1.5 text-theme-dark/90">
+                                    <span className="block text-[10px] font-bold uppercase tracking-wide text-theme-orange">
+                                      {module3Connection.heading}
+                                    </span>
+                                    <span className="mt-0.5 block font-semibold">
+                                      {module3Connection.relationLabel}
+                                    </span>
+                                    <span className="mt-0.5 block whitespace-pre-wrap">
+                                      {module3Connection.note}
+                                    </span>
                                   </span>
                                 ) : null}
                               </span>
@@ -1338,294 +1581,92 @@ export default function ModuleFour({
 
   let main = null;
 
-  if (flowStep === STEP_WELCOME) {
+  if (
+    flowStep === STEP_HANDOFF ||
+    flowStep === STEP_WELCOME ||
+    flowStep === STEP_BIG_PICTURE ||
+    flowStep === STEP_EXPLAIN_BUCKETS
+  ) {
     main = (
-      <div className={panelClass}>
-        <h2 className="text-2xl font-extrabold text-theme-blue">
-          Welcome to Module 4
-        </h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: move from analysis to body-paragraph plans
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          <p>
-            You already did close reading in Module 2 and built a thesis in Module 3.
-            This module shows how to turn that work into clear paragraph ideas—one small
-            step at a time.
-          </p>
-          <p className="mt-2">
-            A teacher would call this moving from <strong>evidence and notes</strong> to{" "}
-            <strong>paragraph plans</strong> that support your argument.
-          </p>
-        </StepGuidanceBox>
-        <StepMeaningBox label="How this helps your essay">
-          <p>
-            Each step builds a bridge toward full body paragraphs you will outline and
-            draft later. You are not writing the whole essay here—just making the next
-            layer clear.
-          </p>
-        </StepMeaningBox>
-        <StepActionHeading>
-          Your turn: press Continue when you are ready to review your big picture.
-        </StepActionHeading>
-      </div>
-    );
-  } else if (flowStep === STEP_BIG_PICTURE) {
-    main = (
-      <div className={panelClass}>
-        <h2 className="text-xl font-extrabold text-theme-blue">
-          Review your big picture from Module 3
-        </h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: read your saved choices—nothing to type on this screen
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          <p>
-            Before you plan paragraphs, reconnect to the thesis and proof directions you
-            already built in Module 3. That keeps every paragraph idea tied to your argument.
-          </p>
-        </StepGuidanceBox>
-
-        <StepMeaningBox label="What this means">
-          <p className="font-medium text-theme-dark">{THESIS_BRIDGE_COPY}</p>
-        </StepMeaningBox>
-
-        <StepGuidanceBox label="Think about this">
-          <p className="text-base font-semibold text-theme-dark">{GUIDING_QUESTION}</p>
-          <p className="mt-2 text-sm">
-            Ask yourself this whenever you pick an idea, a quote, or a sentence—you are
-            checking that the paragraph still serves your thesis.
-          </p>
-        </StepGuidanceBox>
-
-        {hasLegacyAudiencePurpose ? (
-          <StepReferenceNote title="From Module 3 — for reference">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg border border-theme-blue/25 bg-white p-3">
-                <p className="font-semibold text-theme-dark mb-2">
-                  Speech — <em>I Have a Dream</em>
-                </p>
-                <p>
-                  <span className="font-semibold">Audience: </span>
-                  {speechAudience || "See your Module 2 evidence notes for a reminder."}
-                </p>
-                <p className="mt-1">
-                  <span className="font-semibold">Purpose: </span>
-                  {speechPurpose || "See your Module 2 evidence notes for a reminder."}
-                </p>
-              </div>
-              <div className="rounded-lg border border-theme-orange/30 bg-white p-3">
-                <p className="font-semibold text-theme-dark mb-2">
-                  Letter — <em>Letter from Birmingham Jail</em>
-                </p>
-                <p>
-                  <span className="font-semibold">Audience: </span>
-                  {letterAudience || "See your Module 2 evidence notes for a reminder."}
-                </p>
-                <p className="mt-1">
-                  <span className="font-semibold">Purpose: </span>
-                  {letterPurpose || "See your Module 2 evidence notes for a reminder."}
-                </p>
-              </div>
-            </div>
-          </StepReferenceNote>
-        ) : (
-          <StepGuidanceBox label="From your earlier work">
-            <p>
-              Your thesis and proof plan from Module 3 are on the shelf. You connected quotes
-              to audience and purpose in Module 2—glance at those notes when you need a
-              reminder while you plan each paragraph.
-            </p>
-          </StepGuidanceBox>
-        )}
-
-        {structureLabel ? (
-          <StepReferenceNote title="Organization choice (from Module 3)">
-            <p className="text-theme-dark/90">{structureLabel}</p>
-          </StepReferenceNote>
-        ) : (
-          <StepGuidanceBox label="Tip">
-            <p>
-              If you have not chosen an organization pattern in Module 3 yet, you can
-              still continue—we will offer flexible paragraph ideas.
-            </p>
-          </StepGuidanceBox>
-        )}
-
-        <StepGuidanceBox label="Tip">
-          <p>
-            Your thesis, proof directions, and earlier thinking are on the shelf to your
-            left. Keep them in mind as you plan each paragraph—you may group more than one
-            idea into a paragraph, or build one clear idea per paragraph.
-          </p>
-        </StepGuidanceBox>
-        <StepActionHeading>
-          Your turn: press Continue when you have read your big picture.
-        </StepActionHeading>
-      </div>
-    );
-  } else if (flowStep === STEP_EXPLAIN_BUCKETS) {
-    main = (
-      <div className={panelClass}>
-        <h2 className="text-xl font-extrabold text-theme-blue">
-          What is a paragraph plan?
-        </h2>
-        <p className="text-sm font-semibold text-theme-dark">
-          What you will do: read the explanation—no typing yet
-        </p>
-        <StepGuidanceBox label="Why this matters">
-          <p>
-            A <strong>paragraph plan</strong> is the main idea, quotes, and explanation for
-            one body paragraph. Later, each plan becomes full prose in your draft.
-          </p>
-          <p className="mt-2">
-            You will complete <strong>two</strong> paragraph plans for sure. If your thesis
-            needs another layer, you may add a third.
-          </p>
-        </StepGuidanceBox>
-        <StepMeaningBox label="What this means">
-          <p>{MEANING_BODY_PARAGRAPH}</p>
-        </StepMeaningBox>
-        <StepActionHeading>
-          Your turn: press Continue when you are ready to{" "}
-          {patternReviewMode
-            ? "review your pattern from Module 3."
-            : "practice spotting a pattern."}
-        </StepActionHeading>
-      </div>
+      <ModuleFourHandoffStep
+        presentation={handoffPresentation}
+        onStartParagraph1={startParagraph1}
+      />
     );
   } else if (flowStep === STEP_PATTERN) {
     main = (
       <div className={panelClass}>
-        {patternReviewMode ? (
+        <h2 className="text-xl font-extrabold text-theme-blue">
+          Recover a pattern for Module 4
+        </h2>
+        <p className="text-sm font-semibold text-theme-dark">
+          What you will do: identify one pattern that connects your evidence before
+          Paragraph 1
+        </p>
+        <StepGuidanceBox label="Why this matters">
+          <p>
+            Module 4 builds paragraph plans from a clear pattern. No saved Module 3
+            pattern was found, so this short recovery step gives Paragraph 1 a
+            foundation. Students who already saved a pattern skip this screen.
+          </p>
+        </StepGuidanceBox>
+
+        {patternPair ? (
           <>
-            <h2 className="text-xl font-extrabold text-theme-blue">
-              Review your pattern from Module 3
-            </h2>
-            <p className="text-sm font-semibold text-theme-dark">
-              What you will do: read the pattern you already named—no need to start over
-            </p>
-            <StepGuidanceBox label="Why this matters">
-              <p>
-                You already noticed a <strong>pattern</strong> in Module 3—something that
-                shows up in more than one place. Reconnect to that thinking before you
-                plan paragraphs so each paragraph plan grows from work you have already done.
+            <StepReferenceNote title="Compare — your Module 2 notes">
+              <p className="text-sm font-semibold text-theme-dark mb-2">
+                {patternPair.appeal} in the speech and {patternPair.appeal} in the
+                letter
               </p>
-            </StepGuidanceBox>
-            <StepReferenceNote title="Your Module 3 pattern">
-              <p className="text-theme-dark/90 whitespace-pre-wrap">
-                {selectedPattern.text}
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <CompactAnalysisCard
+                  title={`Speech · ${patternPair.appeal}`}
+                  row={patternPair.speechRow}
+                />
+                <CompactAnalysisCard
+                  title={`Letter · ${patternPair.appeal}`}
+                  row={patternPair.letterRow}
+                />
+              </div>
             </StepReferenceNote>
-            {patternReviewRows.length > 0 ? (
-              <StepReferenceNote title="Evidence connected to this pattern">
-                <ul className="space-y-2 text-sm text-theme-dark/90">
-                  {patternReviewRows.map((row) => {
-                    const key = evidenceRowKey(row);
-                    const quote = (row.quote || "").trim();
-                    const obs = (row.observation || "").trim();
-                    return (
-                      <li
-                        key={key}
-                        className="rounded-lg border border-theme-blue/20 bg-white p-2"
-                      >
-                        {quote ? (
-                          <p className="italic">&ldquo;{quote}&rdquo;</p>
-                        ) : null}
-                        {obs ? <p className="mt-1">{obs}</p> : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </StepReferenceNote>
-            ) : null}
             <StepActionHeading>
-              Your turn: press Continue when you have reconnected to your pattern.
+              Your turn: choose the option that best fits both excerpts.
             </StepActionHeading>
+            <p className="text-sm font-medium text-theme-dark">
+              What idea is King developing in BOTH of these moments?
+            </p>
+            <div className="space-y-2">
+              {PATTERN_OPTIONS.map((opt) => (
+                <label key={opt.id} className={CHOICE_ROW_CLASS}>
+                  <input
+                    type="radio"
+                    name="patternChoice"
+                    className="mt-1 shrink-0"
+                    checked={patternChoice === opt.id}
+                    onChange={() => setPatternChoice(opt.id)}
+                  />
+                  <span className="text-sm text-theme-dark/90">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {patternChoice ? (
+              <StepMeaningBox label="What this means">
+                <p>{patternStepFeedbackForChoice(patternChoice)}</p>
+              </StepMeaningBox>
+            ) : null}
           </>
         ) : (
           <>
-            <h2 className="text-xl font-extrabold text-theme-blue">
-              Spot a pattern across two texts
-            </h2>
-            <p className="text-sm font-semibold text-theme-dark">
-              What you will do: compare two excerpts, then choose one response
-            </p>
-            <StepGuidanceBox label="Why this matters">
+            <StepGuidanceBox label="Tip">
               <p>
-                A <strong>pattern</strong> is something you notice that{" "}
-                <em>shows up in more than one place</em>. Here you compare the{" "}
-                <strong>same appeal</strong> (for example, ethos) in the speech and in the
-                letter, then name the idea King is developing in both moments.
+                We could not find a matching pair of speech and letter notes for the
+                same appeal yet. You can still continue—Paragraph 1 will use the
+                evidence on your shelf.
               </p>
             </StepGuidanceBox>
-
-            {patternPair ? (
-              <>
-                <StepReferenceNote title="Compare — your Module 2 notes">
-                  <p className="text-sm font-semibold text-theme-dark mb-2">
-                    {patternPair.appeal} in the speech and {patternPair.appeal} in the
-                    letter
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <CompactAnalysisCard
-                      title={`Speech · ${patternPair.appeal}`}
-                      row={patternPair.speechRow}
-                    />
-                    <CompactAnalysisCard
-                      title={`Letter · ${patternPair.appeal}`}
-                      row={patternPair.letterRow}
-                    />
-                  </div>
-                </StepReferenceNote>
-                <StepActionHeading>
-                  Your turn: choose the option that best fits both excerpts.
-                </StepActionHeading>
-                <p className="text-sm font-medium text-theme-dark">
-                  What idea is King developing in BOTH of these moments?
-                </p>
-                <div className="space-y-2">
-                  {PATTERN_OPTIONS.map((opt) => (
-                    <label key={opt.id} className={CHOICE_ROW_CLASS}>
-                      <input
-                        type="radio"
-                        name="patternChoice"
-                        className="mt-1 shrink-0"
-                        checked={patternChoice === opt.id}
-                        onChange={() => setPatternChoice(opt.id)}
-                      />
-                      <span className="text-sm text-theme-dark/90">{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-                {patternChoice ? (
-                  <StepMeaningBox label="What this means">
-                    <p>{patternStepFeedbackForChoice(patternChoice)}</p>
-                  </StepMeaningBox>
-                ) : null}
-                <StepGuidanceBox label="Tip">
-                  <p>
-                    There is not always one “right” answer. The goal is to practice naming
-                    what repeats—so your later paragraphs are built on real connections, not
-                    random details.
-                  </p>
-                </StepGuidanceBox>
-              </>
-            ) : (
-              <>
-                <StepGuidanceBox label="Tip">
-                  <p>
-                    We could not find a matching pair of speech and letter notes for the
-                    same appeal yet. Add or balance your Module 2 charts if you can, then
-                    come back—or continue for now; you will still get scaffolded paragraph
-                    ideas ahead.
-                  </p>
-                </StepGuidanceBox>
-                <StepActionHeading>
-                  Your turn: press Continue when you are ready for paragraph ideas.
-                </StepActionHeading>
-              </>
-            )}
+            <StepActionHeading>
+              Your turn: press Start Paragraph 1 when you are ready.
+            </StepActionHeading>
           </>
         )}
       </div>
@@ -1836,6 +1877,54 @@ export default function ModuleFour({
         <StepActionHeading>
           Your turn: use the checkboxes below to select evidence.
         </StepActionHeading>
+        {(() => {
+          const outsideSaved = resolveBucketEvidenceSlots(buckets[i]).filter(
+            (slot) => {
+              if (slot.status !== "preserved" || slot.suppressDisplay) return false;
+              return !evidencePool.some((row) =>
+                evidenceIdsMatch(evidenceRowKey(row), slot.savedKey)
+              );
+            }
+          );
+          if (outsideSaved.length === 0) return null;
+          return (
+            <div className="mb-4 rounded-lg border border-theme-dark/20 bg-theme-light/90 p-3 space-y-2 text-left">
+              <p className="text-xs font-bold uppercase tracking-wide text-theme-dark/60">
+                Saved earlier (not in current working evidence)
+              </p>
+              <p className="text-xs text-theme-dark/75">
+                These quotes stayed in this paragraph plan from earlier work. Remove
+                them here, or replace them with quotations from the shelf below.
+              </p>
+              <ul className="space-y-2">
+                {outsideSaved.map((slot) => (
+                  <li
+                    key={slot.savedKey}
+                    className="flex items-start justify-between gap-3 rounded-md border border-theme-dark/15 bg-white/90 px-3 py-2 text-xs"
+                  >
+                    <span className="min-w-0 space-y-1">
+                      <span className="block font-semibold text-theme-dark">
+                        {slot.compatibilityLabel}
+                      </span>
+                      {slot.quote ? (
+                        <span className="block italic text-theme-dark/85">
+                          &ldquo;{slot.quote}&rdquo;
+                        </span>
+                      ) : null}
+                    </span>
+                    <button
+                      type="button"
+                      className="shrink-0 rounded border border-theme-orange/40 px-2 py-1 font-semibold text-theme-dark hover:bg-theme-orange/10"
+                      onClick={() => toggleEvidenceKey(i, slot.savedKey)}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })()}
         {renderQuoteGroups(i)}
         <StepMeaningBox label="What this means">
           <p>{MEANING_BODY_PARAGRAPH}</p>
@@ -1870,7 +1959,7 @@ export default function ModuleFour({
         <ParagraphPlanPanel
           paragraphNumber={n}
           bucket={b}
-          evidenceByKey={evidenceByKey}
+          evidenceSlots={resolveBucketEvidenceSlots(b)}
         />
 
         <StepActionHeading>
@@ -1984,12 +2073,21 @@ export default function ModuleFour({
     );
   }
 
-  const showBack = flowStep > STEP_WELCOME;
-  const atSoftIntro = flowStep <= STEP_PATTERN;
+  const showBack =
+    flowStep > STEP_HANDOFF &&
+    !(flowStep === STEP_PATTERN && !hasSavedPattern);
+  const atHandoff =
+    flowStep === STEP_HANDOFF ||
+    flowStep === STEP_BIG_PICTURE ||
+    flowStep === STEP_EXPLAIN_BUCKETS;
+  const atSoftIntro = atHandoff || flowStep === STEP_PATTERN;
   const atDecision = flowStep === STEP_THIRD_DECISION;
   const atReflection = flowStep === STEP_REFLECTION;
   const showPrimaryAdvance =
-    !atDecision && !atReflection && flowStep <= STEP_B3_REASONING;
+    !atDecision &&
+    !atReflection &&
+    !atHandoff &&
+    flowStep <= STEP_B3_REASONING;
 
   const showSources =
     flowStep >= STEP_WELCOME && flowStep <= STEP_REFLECTION;
@@ -2045,7 +2143,9 @@ export default function ModuleFour({
                 disabled={!canGoNext()}
                 className="px-4 py-2 rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50"
               >
-                Keep going
+                {flowStep === STEP_PATTERN
+                  ? "Start Paragraph 1"
+                  : "Keep going"}
               </button>
             ) : null}
             {atReflection ? (

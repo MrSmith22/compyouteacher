@@ -1,9 +1,19 @@
-export const FLOW_VERSION = 2;
+export const FLOW_VERSION = 3;
 
+/** Consolidated Module 3 → Module 4 handoff (Checkpoint 2). */
+export const STEP_HANDOFF = 0;
+
+/**
+ * Legacy aliases for opening steps collapsed into STEP_HANDOFF.
+ * Kept so older saved step numbers and imports keep resolving.
+ */
 export const STEP_WELCOME = 0;
 export const STEP_BIG_PICTURE = 1;
 export const STEP_EXPLAIN_BUCKETS = 2;
+
+/** Missing-pattern recovery only when no valid Module 3 pattern is saved. */
 export const STEP_PATTERN = 3;
+
 export const STEP_B1_SCAFFOLD = 4;
 export const STEP_B1_ROLE = 5;
 export const STEP_B1_EVIDENCE = 6;

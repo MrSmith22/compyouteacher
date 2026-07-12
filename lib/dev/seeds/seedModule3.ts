@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { setCurrentModule } from "@/lib/dev/devPanelServer";
 import { seedModule2 } from "@/lib/dev/seeds/seedModule2";
 import {
+  SEED_CONNECT_NOTES,
   SEED_PROOF_PLAN,
   SEED_THESIS,
   nowIso,
@@ -9,6 +10,7 @@ import {
 
 /**
  * Seed Module 3 analysis artifacts so Module 4 can open with a thesis.
+ * Includes durable CONNECT notes so Module 3 and Module 4 share the same evidenceMap.
  */
 export async function seedModule3(userEmail: string) {
   const prior = await seedModule2(userEmail);
@@ -34,6 +36,19 @@ export async function seedModule3(userEmail: string) {
     },
   ];
 
+  const evidenceMap = Object.fromEntries(
+    evidenceIds.map((id) => [
+      id,
+      {
+        selected: true,
+        relation: id.endsWith(":pathos") ? "complicates" : "supports",
+        note:
+          SEED_CONNECT_NOTES[id as keyof typeof SEED_CONNECT_NOTES] ||
+          "This quotation helps explain how King adapts his rhetorical approach for each audience.",
+      },
+    ])
+  );
+
   const flowState = {
     v: 1,
     step: 8,
@@ -54,9 +69,7 @@ export async function seedModule3(userEmail: string) {
       whyMatters: "It shows that the same argument can be framed differently for different listeners.",
       clusterId: "seed-cluster-1",
       patternId: "seed-pattern-1",
-      evidenceMap: Object.fromEntries(
-        evidenceIds.map((id) => [id, { selected: true, relation: "supports", note: "" }])
-      ),
+      evidenceMap,
     },
     module3Claim: {
       workingClaim:

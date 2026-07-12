@@ -11,8 +11,15 @@ function snippetFor(category: string, type: string) {
   };
 }
 
+/** Cluster-aligned Module 3 working IDs (alias to evidence:tchart rows). */
+function clusterEvidenceKey(type: string, category: string) {
+  return `tchart:${type}:${category}`;
+}
+
 /**
  * Seed Module 4 paragraph plans so Module 5 can import outline cards.
+ * Evidence keys must belong to the seeded Module 3 cluster — never logos-only
+ * keys that immediately break after cluster bounding.
  */
 export async function seedModule4(userEmail: string) {
   const prior = await seedModule3(userEmail);
@@ -26,7 +33,10 @@ export async function seedModule4(userEmail: string) {
       claim: SEED_PROOF_PLAN[0],
       reasoning:
         "King earns trust with Lincoln echoes in the speech and respectful address in the letter.",
-      evidenceKeys: ["ethos|speech", "ethos|letter"],
+      evidenceKeys: [
+        clusterEvidenceKey("speech", "ethos"),
+        clusterEvidenceKey("letter", "ethos"),
+      ],
       evidenceSnippets: [snippetFor("ethos", "speech"), snippetFor("ethos", "letter")],
       paragraphRole: "ethos",
       suggestionId: "seed-b1",
@@ -35,19 +45,16 @@ export async function seedModule4(userEmail: string) {
       claim: SEED_PROOF_PLAN[1],
       reasoning:
         "Emotional images of children and the pain of waiting push each audience to care.",
-      evidenceKeys: ["pathos|speech", "pathos|letter"],
-      evidenceSnippets: [snippetFor("pathos", "speech"), snippetFor("pathos", "letter")],
+      evidenceKeys: [
+        clusterEvidenceKey("speech", "pathos"),
+        clusterEvidenceKey("letter", "pathos"),
+      ],
+      evidenceSnippets: [
+        snippetFor("pathos", "speech"),
+        snippetFor("pathos", "letter"),
+      ],
       paragraphRole: "pathos",
       suggestionId: "seed-b2",
-    },
-    {
-      claim: SEED_PROOF_PLAN[2],
-      reasoning:
-        "King uses the nation's creed and a clear justice argument to prove action is necessary.",
-      evidenceKeys: ["logos|speech", "logos|letter"],
-      evidenceSnippets: [snippetFor("logos", "speech"), snippetFor("logos", "letter")],
-      paragraphRole: "logos",
-      suggestionId: "seed-b3",
     },
   ];
 
@@ -57,11 +64,11 @@ export async function seedModule4(userEmail: string) {
       module: 4,
       buckets,
       reflection:
-        "These three paragraph plans prove the thesis by covering ethos, pathos, and logos across both texts.",
+        "These paragraph plans prove the thesis with ethos and pathos evidence from the Module 3 working set. A third paragraph can be planned later if needed.",
       flow_state: {
         v: 2,
         step: 17,
-        wantThirdBucket: true,
+        wantThirdBucket: false,
         patternChoice: "seed-pattern-1",
       },
       updated_at: now,

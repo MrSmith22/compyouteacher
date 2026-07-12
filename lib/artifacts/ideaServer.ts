@@ -1,7 +1,7 @@
 import {
   evidenceMapHasContent,
   getModule3IdeaAdmin,
-  normalizeEvidenceMap,
+  resolveNextEvidenceMap,
   upsertModule3IdeaAdmin,
   type Module3EvidenceMap,
   type Module3IdeaRow,
@@ -25,16 +25,20 @@ function isEmptyIdea(idea: Module3IdeaRow) {
   );
 }
 
-function buildIdeaRow(input: IdeaWriteInput, existing: Module3IdeaRow | null): Module3IdeaRow {
+/** Exported for persistence regression tests. */
+export function buildIdeaRow(
+  input: IdeaWriteInput,
+  existing: Module3IdeaRow | null
+): Module3IdeaRow {
   const timestamps = mergeTimestamps(existing?.createdAt);
   const statement =
     input.statement !== undefined ? input.statement.trim() : (existing?.statement ?? "");
   const whyMatters =
     input.whyMatters !== undefined ? input.whyMatters.trim() : (existing?.whyMatters ?? "");
-  const evidenceMap =
-    input.evidenceMap !== undefined
-      ? normalizeEvidenceMap(input.evidenceMap)
-      : normalizeEvidenceMap(existing?.evidenceMap);
+  const evidenceMap = resolveNextEvidenceMap(
+    existing?.evidenceMap,
+    input.evidenceMap === undefined ? undefined : input.evidenceMap
+  );
 
   return {
     statement,

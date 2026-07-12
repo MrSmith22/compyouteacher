@@ -1,45 +1,68 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import ModuleThreeSuccessClient from "@/components/module3/ModuleThreeSuccessClient";
+import {
+  getClaimArtifact,
+  getIdeaArtifact,
+  getThesisArtifact,
+  listEvidenceClusterArtifacts,
+  listEvidenceArtifacts,
+  listPatternArtifacts,
+} from "@/lib/artifacts/readArtifacts";
+import { buildModuleThreeSuccessSummary } from "@/lib/module3/moduleThreeSuccessHelpers";
 
-import { useEffect } from "react";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
+function emptySuccessArtifacts() {
+  return {
+    thesisArtifact: null,
+    claimArtifact: null,
+    ideaArtifact: null,
+    evidenceClusterArtifacts: [],
+    evidenceArtifacts: [],
+    patternArtifacts: [],
+  };
+}
 
-export default function Module3Success() {
-  const { data: session } = useSession();
+async function loadSuccessArtifacts(email) {
+  if (!email) {
+    return emptySuccessArtifacts();
+  }
 
-  useEffect(() => {
-    if (!session?.user?.email) return;
-    advanceCurrentModuleOnSuccess({
-      userEmail: session.user.email,
-      completedModuleNumber: 3,
-    }).catch(() => {});
-  }, [session?.user?.email]);
+  try {
+    const [
+      thesisArtifact,
+      claimArtifact,
+      ideaArtifact,
+      evidenceClusterArtifacts,
+      evidenceArtifacts,
+      patternArtifacts,
+    ] = await Promise.all([
+      getThesisArtifact(email),
+      getClaimArtifact(email),
+      getIdeaArtifact(email),
+      listEvidenceClusterArtifacts(email),
+      listEvidenceArtifacts(email),
+      listPatternArtifacts(email),
+    ]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <h1 className="text-3xl font-extrabold text-theme-green">
-          Module 3 complete!
-        </h1>
+    return {
+      thesisArtifact,
+      claimArtifact,
+      ideaArtifact,
+      evidenceClusterArtifacts,
+      evidenceArtifacts,
+      patternArtifacts,
+    };
+  } catch (error) {
+    console.error("Module 3 success artifact load failed:", error);
+    return emptySuccessArtifacts();
+  }
+}
 
-        <p className="text-lg text-theme-dark">
-          You grouped your evidence, developed a claim, and turned it into a thesis with proof
-          directions. That argument is ready to become paragraph plans—not a fresh start.
-        </p>
+export default async function Module3SuccessPage() {
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email ?? null;
+  const artifacts = await loadSuccessArtifacts(email);
+  const summary = buildModuleThreeSuccessSummary(artifacts);
 
-        <p className="text-sm text-theme-dark/80">
-          In Module 4, you will plan each body paragraph one at a time: main idea, evidence,
-          and reasoning tied to the thesis you already built.
-        </p>
-
-        <Link
-          href="/modules/4"
-          className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
-        >
-          Continue to Module 4 — plan your paragraphs
-        </Link>
-      </div>
-    </div>
-  );
+  return <ModuleThreeSuccessClient summary={summary} />;
 }

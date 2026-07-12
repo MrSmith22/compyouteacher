@@ -11,12 +11,10 @@ import {
   STEP_B3_REASONING,
   STEP_B3_ROLE,
   STEP_B3_SCAFFOLD,
-  STEP_BIG_PICTURE,
-  STEP_EXPLAIN_BUCKETS,
+  STEP_HANDOFF,
   STEP_PATTERN,
   STEP_REFLECTION,
   STEP_THIRD_DECISION,
-  STEP_WELCOME,
 } from "@/components/module4/module4FlowSteps";
 
 export function bucketIndexForFlowStep(flowStep) {
@@ -118,65 +116,37 @@ function paragraphStepPresentation(paragraphNumber, phase) {
 }
 
 const STEP_PRESENTATION = {
-  [STEP_WELCOME]: {
-    question: "How do I turn my thesis into paragraph plans?",
+  [STEP_HANDOFF]: {
+    question: "How will my Module 3 argument become paragraph plans?",
     whyMatters: [
-      "You already did close reading and built a thesis in Module 3.",
-      "This module shows how to turn that work into clear paragraph ideas—one small step at a time.",
+      "Module 4 turns your Module 3 argument into paragraph plans—one paragraph at a time.",
+      "You are organizing thinking you already started, not rewriting your thesis or drafting the essay yet.",
     ],
     successLooksLike: [
-      "You understand that each paragraph plan becomes a body paragraph later.",
+      "You can see your thesis, proof plan, and pattern together.",
+      "You understand the five jobs inside a paragraph plan before you start Paragraph 1.",
     ],
-    workingSetLabel: "Getting started",
-    workingSetDescription: "On your desk: what this module will help you build.",
+    workingSetLabel: "Module 3 → Module 4 handoff",
+    workingSetDescription:
+      "On your desk: your argument coming with you, plus how paragraph plans work.",
     coachingMessage:
-      "You are not writing the whole essay here—just making the next layer of your argument clear.",
-    nextStepText: "First, reconnect to the thesis and proof directions you built in Module 3.",
-  },
-  [STEP_BIG_PICTURE]: {
-    question: "What am I trying to prove in this essay?",
-    whyMatters: [
-      "Before you plan paragraphs, reconnect to the argument you already built.",
-      "Every paragraph idea should help prove your thesis—not wander off on its own.",
-    ],
-    successLooksLike: [
-      "You can name your thesis in your own words.",
-      "You see how your proof directions connect to that thesis.",
-    ],
-    workingSetLabel: "Your argument so far",
-    workingSetDescription: "On your desk: reconnecting to your thesis before you plan paragraphs.",
-    coachingMessage:
-      "Keep asking: does this idea help prove my thesis? That question stays with you through every paragraph.",
-    nextStepText: "Next you will learn what a paragraph plan includes.",
-  },
-  [STEP_EXPLAIN_BUCKETS]: {
-    question: "What is a paragraph plan?",
-    whyMatters: [
-      "A paragraph plan holds the main idea, the quotes, and the explanation for one body paragraph.",
-      "You will build at least two paragraph plans. A third is optional if your thesis needs another layer.",
-    ],
-    successLooksLike: [
-      "You can explain what goes inside one paragraph plan.",
-    ],
-    workingSetLabel: "Paragraph plans",
-    workingSetDescription: "On your desk: learning what you are building in this module.",
-    coachingMessage:
-      "Each paragraph plan becomes a body paragraph later. You are planning the thinking first.",
-    nextStepText: "Next you will reconnect to a pattern—or notice one—that can anchor your paragraphs.",
+      "Skim the chain, study the five-part model, then start Paragraph 1 when you are ready.",
+    nextStepText: "Next you will write the main idea for Paragraph 1.",
   },
   [STEP_PATTERN]: {
     question: "What pattern connects your evidence?",
     whyMatters: [
-      "A pattern is something you notice that shows up in more than one place.",
-      "Strong paragraphs grow from real connections—not random details.",
+      "Module 4 needs one clear pattern so paragraph plans stay connected.",
+      "No saved Module 3 pattern was found, so this short recovery step gives Paragraph 1 a foundation.",
     ],
     successLooksLike: [
       "You can name an idea that repeats or connects across your texts.",
     ],
-    workingSetLabel: "Pattern",
-    workingSetDescription: "On your desk: the connection you will build paragraphs from.",
+    workingSetLabel: "Pattern recovery",
+    workingSetDescription:
+      "On your desk: choose or identify a pattern so Paragraph 1 has a foundation.",
     coachingMessage:
-      "There is not always one right label. The goal is to name what repeats so your paragraphs have a center.",
+      "Look for something that shows up in more than one place across your evidence.",
     nextStepText: "Next you will plan your first body paragraph idea.",
   },
   [STEP_THIRD_DECISION]: {

@@ -92,6 +92,76 @@ function assert(condition: boolean, message: string) {
     "Artifact evidence key preserved"
   );
 
+  const aliasBounded = buildModule4EvidencePool({
+    evidenceArtifacts: artifacts,
+    evidenceClusterArtifacts: [
+      {
+        id: "evidence_cluster:user:cluster-1",
+        evidenceIds: ["guided:a"],
+      },
+    ],
+    selectedClusterId: "cluster-1",
+    legacyTchartEntries: [],
+  });
+  assert(
+    aliasBounded.length === 1 &&
+      evidenceRowKey(aliasBounded[0]) === "evidence:observation:a",
+    "Alias-aware cluster IDs bound the pool without widening to full corpus"
+  );
+
+  const tchartArtifacts = [
+    {
+      id: "evidence:tchart:dev-student@localhost:speech:ethos",
+      backingTable: "tchart_entries",
+      sourceType: "speech",
+      category: "ethos",
+      quote: "Five score years ago",
+      studentObservation: "Note",
+    },
+    {
+      id: "evidence:tchart:dev-student@localhost:letter:pathos",
+      backingTable: "tchart_entries",
+      sourceType: "letter",
+      category: "pathos",
+      quote: "Wait meant Never",
+      studentObservation: "Note",
+    },
+    {
+      id: "evidence:tchart:dev-student@localhost:speech:logos",
+      backingTable: "tchart_entries",
+      sourceType: "speech",
+      category: "logos",
+      quote: "Unrelated",
+      studentObservation: "Note",
+    },
+  ];
+  const tchartBounded = buildModule4EvidencePool({
+    evidenceArtifacts: tchartArtifacts,
+    evidenceClusterArtifacts: [
+      {
+        id: "evidence_cluster:dev-student@localhost:seed-cluster-1",
+        evidenceIds: ["tchart:speech:ethos", "tchart:letter:pathos"],
+      },
+    ],
+    selectedClusterId: "seed-cluster-1",
+    legacyTchartEntries: [
+      {
+        id: 99,
+        type: "speech",
+        category: "pathos",
+        quote: "Should not widen",
+        observation: "x",
+      },
+    ],
+  });
+  assert(tchartBounded.length === 2, "Live tchart: IDs bound evidence:tchart rows");
+  assert(
+    tchartBounded.every((row) =>
+      ["ethos", "pathos"].includes(String(row.category))
+    ),
+    "Only cluster appeals remain after tchart alias bound"
+  );
+
   const widened = buildModule4EvidencePool({
     evidenceArtifacts: artifacts,
     evidenceClusterArtifacts: clusters,

@@ -12,6 +12,18 @@ export const SEED_PROOF_PLAN = [
   "King uses logic and moral reasoning to answer the clergymen.",
 ];
 
+/** Valid Module 3 CONNECT notes (≥ CONNECT_NOTE_MINIMUM) for seed continuity into Module 4. */
+export const SEED_CONNECT_NOTES = {
+  "tchart:speech:ethos":
+    "This speech opening links King to Lincoln and shared American ideals so the public trusts his call for justice.",
+  "tchart:letter:ethos":
+    "Addressing the clergymen as peers shows King earning trust with a careful, respectful religious voice.",
+  "tchart:speech:pathos":
+    "The dream for children makes fairness feel urgent and hopeful for a public audience.",
+  "tchart:letter:pathos":
+    "Saying Wait has almost always meant Never shows how delay itself becomes part of the injustice for his readers.",
+} as const;
+
 export const SEED_SPEECH_TEXT = `
 Five score years ago, a great American signed the Emancipation Proclamation. This momentous decree came as a great beacon light of hope to millions of Negro slaves who had been seared in the flames of withering injustice. But one hundred years later, the Negro still is not free.
 
