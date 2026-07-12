@@ -202,6 +202,11 @@ export async function listPatternArtifacts(
     text: pattern.text,
     evidenceIds: Array.isArray(pattern.evidenceIds) ? pattern.evidenceIds : [],
     isSelected: selectedPatternId === pattern.id,
+    // Pass through CP-D additive fields so Module 4 can coach read-only.
+    ...(pattern.matrixProvenance
+      ? { matrixProvenance: pattern.matrixProvenance }
+      : {}),
+    ...(pattern.matrixReview ? { matrixReview: pattern.matrixReview } : {}),
   }));
 }
 

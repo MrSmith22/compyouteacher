@@ -6,13 +6,43 @@ import {
   upsertModule3FlowStatePatchAdmin,
 } from "@/lib/supabase/helpers/module3FlowState";
 
+export type Module3MatrixProvenance = {
+  schemaVersion?: number;
+  signature?: string;
+  selectedPatternOptionId?: string | null;
+  selectedPatternKind?: string | null;
+  selectedPatternLabel?: string | null;
+  evidenceIds?: string[];
+  appeals?: string[];
+  ratings?: Record<string, unknown>;
+  audiencePurposeReasoning?: string;
+  importedAt?: string | null;
+};
+
+export type Module3MatrixReview = {
+  needsReview?: boolean;
+  reasonCodes?: string[];
+  reviewedSignature?: string | null;
+  reviewedAt?: string | null;
+};
+
 export type Module3PatternRow = {
   id: string;
   text: string;
   evidenceIds: string[];
   createdAt?: string | null;
   updatedAt?: string | null;
+  /** Additive CP-D matrix provenance — legacy rows omit this. */
+  matrixProvenance?: Module3MatrixProvenance | null;
+  matrixReview?: Module3MatrixReview | null;
 };
+
+function asOptionalObject(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
 
 function asPattern(value: unknown): Module3PatternRow | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -27,6 +57,8 @@ function asPattern(value: unknown): Module3PatternRow | null {
   if (!id) return null;
 
   const refs = readRowRefIds(record);
+  const matrixProvenance = asOptionalObject(record.matrixProvenance);
+  const matrixReview = asOptionalObject(record.matrixReview);
 
   return {
     id,
@@ -34,6 +66,8 @@ function asPattern(value: unknown): Module3PatternRow | null {
     evidenceIds,
     createdAt: refs.createdAt,
     updatedAt: refs.updatedAt,
+    ...(matrixProvenance ? { matrixProvenance: matrixProvenance as Module3MatrixProvenance } : {}),
+    ...(matrixReview ? { matrixReview: matrixReview as Module3MatrixReview } : {}),
   };
 }
 

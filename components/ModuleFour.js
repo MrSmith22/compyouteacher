@@ -37,7 +37,6 @@ import {
   pointStepQuestion,
   jobStepQuestion,
   proofPlanSlotForSuggestionId,
-  recommendParagraphJob,
   resolveProofPlanSlots,
 } from "@/lib/module4/module4PointJobHelpers";
 import {
@@ -59,9 +58,33 @@ import {
   getJobEvidenceSourceAlignmentCue,
   CP6_LAYOUT_CONTRACT,
 } from "@/lib/module4/module4EvidenceCoachingHelpers";
+import {
+  CPE_LAYOUT_CONTRACT,
+  buildModule4ProvenanceModel,
+  getEvidenceProvenancePriorityCue,
+  getPointStepProvenanceBlurb,
+  getReasoningProvenanceReminder,
+  getUpstreamProvenanceChangeNotice,
+  module4BucketsHavePlanContent,
+  resolveModule4JobRecommendations,
+} from "@/lib/module4/module4ProvenanceHelpers";
+import {
+  MODULE4_ACK_SAVE_ERROR,
+  MODULE4_NAV_SAVE_ERROR,
+  MODULE4_SAVE_REASONS,
+  createModule4DirtySaveCoordinator,
+  resolveModule4UpstreamSignatureForPersist,
+  shouldScheduleModule4Autosave,
+} from "@/lib/module4/module4SaveCoordinator";
+import {
+  isValidModule4FlowStep,
+  resolveModule4GoNextTarget,
+  resolveModule4Paragraph3DecisionTarget,
+} from "@/lib/module4/module4NavigationSave";
 import { normalizeEvidenceSnippets } from "@/lib/module4/module4SnippetNormalize";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { upsertParagraphPlanArtifact } from "@/lib/artifacts/writeArtifacts";
+import Link from "next/link";
 import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleFourReferenceShelf from "@/components/module4/ModuleFourReferenceShelf";
@@ -943,6 +966,7 @@ function parseInitialFromServer(row) {
       buckets: [emptyBucket(), emptyBucket()],
       reflection: "",
       patternChoice: defaultPattern,
+      module4UpstreamSignature: "",
     };
   }
 
@@ -994,6 +1018,10 @@ function parseInitialFromServer(row) {
 
   const patternChoice =
     typeof flow.patternChoice === "string" ? flow.patternChoice : defaultPattern;
+  const module4UpstreamSignature =
+    typeof flow.module4UpstreamSignature === "string"
+      ? flow.module4UpstreamSignature
+      : "";
 
   return {
     flowStep,
@@ -1001,6 +1029,7 @@ function parseInitialFromServer(row) {
     buckets: rawList,
     reflection: String(row.reflection ?? ""),
     patternChoice,
+    module4UpstreamSignature,
   };
 }
 
@@ -1036,6 +1065,23 @@ export default function ModuleFour({
   const [buckets, setBuckets] = useState(parsed.buckets);
   const [reflection, setReflection] = useState(parsed.reflection);
   const [patternChoice, setPatternChoice] = useState(parsed.patternChoice);
+  const [module4UpstreamSignature, setModule4UpstreamSignature] = useState(
+    parsed.module4UpstreamSignature || ""
+  );
+  const [studentDirty, setStudentDirty] = useState(false);
+  const [ackError, setAckError] = useState("");
+  const [ackBusy, setAckBusy] = useState(false);
+  const [navError, setNavError] = useState("");
+  const [navBusy, setNavBusy] = useState(false);
+  const saveCoordinatorRef = useRef(null);
+  const persistEpochRef = useRef(0);
+  const navInFlightRef = useRef(false);
+  const pendingNavRef = useRef(null);
+  if (!saveCoordinatorRef.current) {
+    saveCoordinatorRef.current = createModule4DirtySaveCoordinator({
+      initialSignature: parsed.module4UpstreamSignature || "",
+    });
+  }
 
   const thesisArtifact = initialUpstreamArtifacts?.thesisArtifact ?? null;
   const claimArtifact = initialUpstreamArtifacts?.claimArtifact ?? null;
@@ -1096,6 +1142,35 @@ export default function ModuleFour({
       connectionsByRowKey
     );
   }, [initialUpstreamArtifacts, initialTchartEntries, ideaArtifact]);
+
+  const provenanceModel = useMemo(
+    () =>
+      buildModule4ProvenanceModel({
+        selectedPattern,
+        evidencePool,
+      }),
+    [selectedPattern, evidencePool]
+  );
+
+  const hasPlanContent = useMemo(
+    () => module4BucketsHavePlanContent(buckets),
+    [buckets]
+  );
+
+  const upstreamNotice = useMemo(
+    () =>
+      getUpstreamProvenanceChangeNotice({
+        provenanceModel,
+        seenSignature: module4UpstreamSignature,
+        hasPlannedContent: hasPlanContent,
+      }),
+    [provenanceModel, module4UpstreamSignature, hasPlanContent]
+  );
+
+  const markStudentMutation = useCallback(() => {
+    saveCoordinatorRef.current?.markStudentMutation();
+    setStudentDirty(true);
+  }, []);
 
   const handoffPresentation = useMemo(
     () =>
@@ -1258,11 +1333,6 @@ export default function ModuleFour({
     return counts;
   }, [buckets, resolveBucketEvidenceSlots, thesis, proofPlan]);
 
-  const goToParagraphPartEdit = useCallback((part, step) => {
-    if (typeof step !== "number") return;
-    setFlowStep(step);
-  }, []);
-
   const stepPresentation = useMemo(() => {
     if (
       flowStep === STEP_HANDOFF ||
@@ -1347,50 +1417,157 @@ export default function ModuleFour({
   const hasLegacyAudiencePurpose =
     Boolean(speechAudience || speechPurpose || letterAudience || letterPurpose);
 
-  const persistSlice = useCallback(() => {
-    if (wantThirdBucket === true) return buckets.slice(0, 3);
-    return buckets.slice(0, 2);
-  }, [buckets, wantThirdBucket]);
+  const saveToApi = useCallback(
+    async (persistReason = MODULE4_SAVE_REASONS.AUTOSAVE, overrides = {}) => {
+      const email = session?.user?.email;
+      if (!email) {
+        return { ok: false, error: "Not signed in" };
+      }
 
-  const saveToApi = useCallback(async () => {
-    const email = session?.user?.email;
-    if (!email) return;
+      const coordinator = saveCoordinatorRef.current;
+      const signature = resolveModule4UpstreamSignatureForPersist({
+        provenanceModel,
+        savedSignature: module4UpstreamSignature,
+        persistReason,
+      });
 
-    const slice = persistSlice();
-    const result = await upsertParagraphPlanArtifact({
-      userEmail: email,
-      buckets: enrichBucketsForSave(slice, resolveBucketEvidenceSlots),
+      const bucketsSource =
+        overrides.buckets !== undefined ? overrides.buckets : buckets;
+      const wantThird =
+        overrides.wantThirdBucket !== undefined
+          ? overrides.wantThirdBucket
+          : wantThirdBucket;
+      const reflectionValue =
+        overrides.reflection !== undefined ? overrides.reflection : reflection;
+      const patternChoiceValue =
+        overrides.patternChoice !== undefined
+          ? overrides.patternChoice
+          : patternChoice;
+      const flowStepValue =
+        overrides.flowStep !== undefined ? overrides.flowStep : flowStep;
+
+      const slice =
+        wantThird === true ? bucketsSource.slice(0, 3) : bucketsSource.slice(0, 2);
+      const bucketsForSave = enrichBucketsForSave(
+        slice,
+        resolveBucketEvidenceSlots
+      );
+
+      const result = await (coordinator
+        ? coordinator.persist({
+            provenanceModel,
+            persistReason,
+            buildPayload: (sig) => ({
+              userEmail: email,
+              buckets: bucketsForSave,
+              reflection: reflectionValue,
+              flow_state: {
+                v: FLOW_VERSION,
+                step: flowStepValue,
+                wantThirdBucket: wantThird,
+                patternChoice: patternChoiceValue,
+                module4UpstreamSignature: sig,
+              },
+            }),
+            writeFn: async (payload) => {
+              const writeResult = await upsertParagraphPlanArtifact(payload);
+              if (!writeResult.ok) {
+                return {
+                  ok: false,
+                  error: writeResult.error || MODULE4_ACK_SAVE_ERROR,
+                };
+              }
+              return { ok: true };
+            },
+          })
+        : (async () => {
+            const writeResult = await upsertParagraphPlanArtifact({
+              userEmail: email,
+              buckets: bucketsForSave,
+              reflection: reflectionValue,
+              flow_state: {
+                v: FLOW_VERSION,
+                step: flowStepValue,
+                wantThirdBucket: wantThird,
+                patternChoice: patternChoiceValue,
+                module4UpstreamSignature: signature,
+              },
+            });
+            return writeResult.ok
+              ? { ok: true, signature }
+              : {
+                  ok: false,
+                  error: writeResult.error || MODULE4_ACK_SAVE_ERROR,
+                  signature: module4UpstreamSignature,
+                };
+          })());
+
+      if (result.ok) {
+        const nextSig =
+          typeof result.signature === "string"
+            ? result.signature
+            : signature;
+        if (nextSig !== module4UpstreamSignature) {
+          setModule4UpstreamSignature(nextSig);
+        }
+        setStudentDirty(false);
+        if (persistReason === MODULE4_SAVE_REASONS.ACKNOWLEDGE) {
+          setAckError("");
+        }
+        return { ok: true, signature: nextSig };
+      }
+
+      if (persistReason === MODULE4_SAVE_REASONS.ACKNOWLEDGE) {
+        setAckError(result.error || MODULE4_ACK_SAVE_ERROR);
+      } else {
+        console.warn("Module 4 save failed:", result.error);
+      }
+      return {
+        ok: false,
+        error: result.error || MODULE4_ACK_SAVE_ERROR,
+        signature: module4UpstreamSignature,
+      };
+    },
+    [
+      session?.user?.email,
+      flowStep,
+      wantThirdBucket,
+      patternChoice,
+      module4UpstreamSignature,
+      provenanceModel,
+      buckets,
       reflection,
-      flow_state: {
-        v: FLOW_VERSION,
-        step: flowStep,
-        wantThirdBucket,
-        patternChoice,
-      },
-    });
-
-    if (!result.ok) {
-      console.warn("Module 4 save failed:", result.error);
-    }
-  }, [
-    session?.user?.email,
-    flowStep,
-    wantThirdBucket,
-    patternChoice,
-    persistSlice,
-    reflection,
-    resolveBucketEvidenceSlots,
-  ]);
+      resolveBucketEvidenceSlots,
+    ]
+  );
 
   useEffect(() => {
+    if (
+      !shouldScheduleModule4Autosave({ studentDirty }) ||
+      !saveCoordinatorRef.current?.shouldScheduleAutosave() ||
+      navInFlightRef.current
+    ) {
+      return undefined;
+    }
+    const scheduledEpoch = persistEpochRef.current;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      saveToApi();
+      if (scheduledEpoch !== persistEpochRef.current) return;
+      if (navInFlightRef.current) return;
+      if (!saveCoordinatorRef.current?.shouldScheduleAutosave()) return;
+      saveToApi(MODULE4_SAVE_REASONS.AUTOSAVE);
     }, 700);
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [saveToApi, buckets, reflection, flowStep, wantThirdBucket, patternChoice]);
+  }, [
+    saveToApi,
+    studentDirty,
+    buckets,
+    reflection,
+    wantThirdBucket,
+    patternChoice,
+  ]);
 
   useEffect(() => {
     const email = session?.user?.email;
@@ -1399,15 +1576,77 @@ export default function ModuleFour({
     logActivity(email, "module_started", { module: 4, screen: "module4_buckets" });
   }, [session?.user?.email]);
 
-  const flushSave = useCallback(async () => {
+  const cancelPendingAutosave = useCallback(() => {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
       saveTimerRef.current = null;
     }
-    await saveToApi();
-  }, [saveToApi]);
+    persistEpochRef.current += 1;
+  }, []);
+
+  const persistAndNavigateTo = useCallback(
+    async (targetStep, overrides = {}) => {
+      if (!isValidModule4FlowStep(targetStep)) {
+        return { ok: false, error: "Invalid navigation target" };
+      }
+      if (navInFlightRef.current) {
+        return { ok: false, blocked: true, error: "Navigation in progress" };
+      }
+
+      pendingNavRef.current = { targetStep, overrides };
+      navInFlightRef.current = true;
+      setNavBusy(true);
+      setNavError("");
+      cancelPendingAutosave();
+
+      const result = await saveToApi(MODULE4_SAVE_REASONS.NAVIGATION, {
+        ...overrides,
+        flowStep: targetStep,
+      });
+
+      navInFlightRef.current = false;
+      setNavBusy(false);
+
+      if (result.ok) {
+        persistEpochRef.current += 1;
+        pendingNavRef.current = null;
+        setNavError("");
+        setFlowStep(targetStep);
+        setStudentDirty(false);
+        return result;
+      }
+
+      setNavError(result.error || MODULE4_NAV_SAVE_ERROR);
+      return result;
+    },
+    [cancelPendingAutosave, saveToApi]
+  );
+
+  const retryPendingNavigation = useCallback(async () => {
+    const pending = pendingNavRef.current;
+    if (!pending) return { ok: false, error: "Nothing to retry" };
+    return persistAndNavigateTo(pending.targetStep, pending.overrides);
+  }, [persistAndNavigateTo]);
+
+  const goToParagraphPartEdit = useCallback(
+    async (part, step) => {
+      if (typeof step !== "number" || !isValidModule4FlowStep(step)) return;
+      await persistAndNavigateTo(step);
+    },
+    [persistAndNavigateTo]
+  );
+
+  const acknowledgeUpstreamChange = useCallback(async () => {
+    setAckBusy(true);
+    setAckError("");
+    cancelPendingAutosave();
+    const result = await saveToApi(MODULE4_SAVE_REASONS.ACKNOWLEDGE);
+    setAckBusy(false);
+    return result;
+  }, [cancelPendingAutosave, saveToApi]);
 
   const toggleEvidenceKey = (bucketIndex, key) => {
+    markStudentMutation();
     setBuckets((prev) => {
       const next = prev.map((b) => ({
         ...b,
@@ -1437,6 +1676,7 @@ export default function ModuleFour({
   };
 
   const updateBucketField = (bucketIndex, field, value) => {
+    markStudentMutation();
     setBuckets((prev) => {
       const next = [...prev];
       if (!next[bucketIndex]) return prev;
@@ -1446,6 +1686,7 @@ export default function ModuleFour({
   };
 
   const applyReasoningStarter = (bucketIndex, prefix) => {
+    markStudentMutation();
     setBuckets((prev) => {
       const next = [...prev];
       const b = next[bucketIndex];
@@ -1473,68 +1714,52 @@ export default function ModuleFour({
   const canGoNext = () => evaluateAdvance().ok;
 
   const goNext = async () => {
+    if (navBusy || navInFlightRef.current) return;
     const advance = evaluateAdvance();
     if (!advance.ok) return;
-    await flushSave();
-    if (
-      flowStep === STEP_HANDOFF ||
-      flowStep === STEP_WELCOME ||
-      flowStep === STEP_BIG_PICTURE ||
-      flowStep === STEP_EXPLAIN_BUCKETS
-    ) {
-      setFlowStep(STEP_B1_SCAFFOLD);
-      return;
-    }
-    if (flowStep === STEP_PATTERN) {
-      setFlowStep(STEP_B1_SCAFFOLD);
-      return;
-    }
-    if (flowStep === STEP_B2_REASONING) {
-      setFlowStep(STEP_THIRD_DECISION);
-      return;
-    }
-    if (flowStep === STEP_B3_REASONING) {
-      setFlowStep(STEP_REFLECTION);
-      return;
-    }
-    setFlowStep((s) => s + 1);
+    const target = resolveModule4GoNextTarget(flowStep);
+    if (target == null) return;
+    await persistAndNavigateTo(target);
   };
 
   const goBack = async () => {
-    await flushSave();
+    if (navBusy || navInFlightRef.current) return;
     const target = resolveModule4BackTarget({
       flowStep,
       hasValidSavedPattern: hasSavedPattern,
       wantThirdBucket,
     });
     if (target == null) return;
-    setFlowStep(target);
+    await persistAndNavigateTo(target);
   };
 
   const startParagraph1 = async () => {
+    if (navBusy || navInFlightRef.current) return;
     const advance = evaluateAdvance();
     if (!advance.ok) return;
-    await flushSave();
-    setFlowStep(STEP_B1_SCAFFOLD);
+    await persistAndNavigateTo(STEP_B1_SCAFFOLD);
   };
 
   const chooseThirdBucket = async (yes) => {
-    await flushSave();
-    if (yes) {
-      setWantThirdBucket(true);
-      setBuckets((prev) => {
-        if (prev.length >= 3) return prev;
-        return [...prev, emptyBucket()];
-      });
-      setFlowStep(STEP_B3_SCAFFOLD);
-    } else {
-      setWantThirdBucket(false);
-      // Preserve any Paragraph 3 draft; declined thirds are not required work.
-      setFlowStep(STEP_REFLECTION);
+    if (navBusy || navInFlightRef.current) return;
+    const nextWant = Boolean(yes);
+    const nextBuckets =
+      nextWant && buckets.length < 3 ? [...buckets, emptyBucket()] : buckets;
+    const target = resolveModule4Paragraph3DecisionTarget(nextWant);
+    const result = await persistAndNavigateTo(target, {
+      wantThirdBucket: nextWant,
+      buckets: nextBuckets,
+    });
+    if (result.ok) {
+      setWantThirdBucket(nextWant);
+      if (nextWant && buckets.length < 3) {
+        setBuckets(nextBuckets);
+      }
     }
   };
 
   const completeModule = async () => {
+    if (navBusy || navInFlightRef.current) return;
     const advance = evaluateAdvance();
     if (!advance.ok) return;
     if (
@@ -1551,7 +1776,8 @@ export default function ModuleFour({
     }
     const email = session?.user?.email;
     if (!email) return;
-    await flushSave();
+    const result = await persistAndNavigateTo(STEP_REFLECTION, { reflection });
+    if (!result.ok) return;
     const slice =
       wantThirdBucket === true ? buckets.slice(0, 3) : buckets.slice(0, 2);
     await logActivity(email, "module_completed", {
@@ -1601,6 +1827,11 @@ export default function ModuleFour({
                           getEvidenceSlots: (bucket) =>
                             resolveBucketEvidenceSlots(bucket),
                         });
+                        const priorityCue = getEvidenceProvenancePriorityCue({
+                          evidenceKey: key,
+                          provenanceModel,
+                          evidenceRow: row,
+                        });
                         const q = (row.quote || "").trim();
                         const o = (row.observation || "").trim();
                         const preview =
@@ -1617,6 +1848,8 @@ export default function ModuleFour({
                           sourceLabels[src],
                           appealLabel,
                           preview || "quotation",
+                          priorityCue.show ? priorityCue.label : "",
+                          priorityCue.detail || "",
                           reuseCue.show ? reuseCue.label : "",
                         ]
                           .filter(Boolean)
@@ -1645,6 +1878,14 @@ export default function ModuleFour({
                                       {appealLabel}
                                     </span>
                                   ) : null}
+                                  {priorityCue.show ? (
+                                    <span
+                                      className="rounded border border-theme-blue/25 bg-theme-blue/5 px-1.5 py-0.5 text-[10px] font-semibold text-theme-blue"
+                                      role="status"
+                                    >
+                                      {priorityCue.label}
+                                    </span>
+                                  ) : null}
                                   {reuseCue.show ? (
                                     <span
                                       className="rounded border border-theme-dark/20 bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold text-theme-dark/70"
@@ -1654,6 +1895,11 @@ export default function ModuleFour({
                                     </span>
                                   ) : null}
                                 </span>
+                                {priorityCue.detail ? (
+                                  <span className="block text-[10px] text-theme-blue/90 break-words">
+                                    {priorityCue.detail}
+                                  </span>
+                                ) : null}
                                 <span className="font-medium text-theme-dark block break-words">
                                   {preview || "(No quote text)"}
                                 </span>
@@ -1693,6 +1939,67 @@ export default function ModuleFour({
   };
 
   const panelClass = "space-y-4 text-left";
+
+  const provenanceNoticeEl = upstreamNotice ? (
+    <div
+      className="overflow-x-hidden rounded-lg border border-theme-orange/35 bg-theme-orange/[0.07] px-3 py-3"
+      role="status"
+      data-testid="module4-upstream-provenance-notice"
+      data-cpe-layout={CPE_LAYOUT_CONTRACT.viewports.join("-")}
+    >
+      <p className="text-xs font-bold uppercase tracking-wide text-theme-orange">
+        {upstreamNotice.title}
+      </p>
+      <p className="mt-1 text-sm text-theme-dark break-words">
+        {upstreamNotice.message}
+      </p>
+      {upstreamNotice.href ? (
+        <Link
+          href={upstreamNotice.href}
+          className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-theme-orange/40 bg-white px-3 text-sm font-semibold text-theme-blue sm:w-auto"
+        >
+          {upstreamNotice.hrefLabel || "Open Module 3"}
+        </Link>
+      ) : null}
+      {upstreamNotice.kind === "direction_changed" ? (
+        <div className="mt-2 space-y-2">
+          <button
+            type="button"
+            className="min-h-[44px] w-full rounded-md border border-border-soft bg-white px-3 text-sm font-semibold text-theme-dark sm:w-auto"
+            disabled={ackBusy}
+            aria-busy={ackBusy ? "true" : "false"}
+            data-testid="module4-acknowledge-upstream"
+            onClick={() => {
+              void acknowledgeUpstreamChange();
+            }}
+          >
+            {ackBusy
+              ? "Saving…"
+              : "Got it — keep my plans and update guidance"}
+          </button>
+          {ackError ? (
+            <div
+              className="rounded-md border border-theme-orange/40 bg-white px-3 py-2"
+              role="alert"
+              data-testid="module4-acknowledge-upstream-error"
+            >
+              <p className="text-sm text-theme-dark break-words">{ackError}</p>
+              <button
+                type="button"
+                className="mt-2 min-h-[44px] w-full rounded-md border border-theme-orange/40 px-3 text-sm font-semibold text-theme-blue sm:w-auto"
+                disabled={ackBusy}
+                onClick={() => {
+                  void acknowledgeUpstreamChange();
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  ) : null;
 
   // Checkpoint 3: organizational jobs come from paragraphJobChoicesForUi per bucket.
 
@@ -1760,7 +2067,10 @@ export default function ModuleFour({
                     name="patternChoice"
                     className="mt-1 shrink-0"
                     checked={patternChoice === opt.id}
-                    onChange={() => setPatternChoice(opt.id)}
+                    onChange={() => {
+                      markStudentMutation();
+                      setPatternChoice(opt.id);
+                    }}
                   />
                   <span className="text-sm text-theme-dark/90">{opt.label}</span>
                 </label>
@@ -1852,6 +2162,34 @@ export default function ModuleFour({
         <StepReferenceNote title="Your thesis (read-only)">
           {thesis || "Your thesis from Module 3 will appear here."}
         </StepReferenceNote>
+
+        {provenanceNoticeEl}
+
+        {(() => {
+          const blurb = getPointStepProvenanceBlurb(provenanceModel);
+          if (!blurb?.text) return null;
+          return (
+            <div className="rounded-lg border border-theme-blue/20 bg-theme-blue/[0.04] px-3 py-3 space-y-1 overflow-x-hidden">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+                From your Module 3 direction
+              </p>
+              {blurb.label ? (
+                <p className="text-sm font-semibold text-theme-dark break-words">
+                  {blurb.label}
+                </p>
+              ) : null}
+              <p className="text-sm text-theme-dark/90 break-words">{blurb.text}</p>
+              {blurb.href ? (
+                <Link
+                  href={blurb.href}
+                  className="inline-flex min-h-[44px] items-center text-sm font-semibold text-theme-blue"
+                >
+                  Confirm in Module 3
+                </Link>
+              ) : null}
+            </div>
+          );
+        })()}
 
         {recommendedSlot ? (
           <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 px-3 py-3 space-y-1">
@@ -1973,11 +2311,18 @@ export default function ModuleFour({
     const rawProofPlan = Array.isArray(thesisArtifact?.proofPlan)
       ? thesisArtifact.proofPlan
       : proofPlan;
-    const recommendation = recommendParagraphJob({
+    const recommendationBundle = resolveModule4JobRecommendations({
+      provenanceModel,
       proofPlan: rawProofPlan,
       suggestionId: b.suggestionId,
       paragraphIndex: i,
+      plannedJobs: buckets
+        .slice(0, i)
+        .map((bucket) => bucket?.paragraphRole || ""),
+      planningParagraph3: wantThirdBucket === true,
+      currentRole: b.paragraphRole,
     });
+    const recommendation = recommendationBundle.primary;
     const jobUi = paragraphJobChoicesForUi({
       proofPlan: rawProofPlan,
       currentRole: b.paragraphRole,
@@ -2016,6 +2361,8 @@ export default function ModuleFour({
           </p>
         </div>
 
+        {provenanceNoticeEl}
+
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 px-3 py-3">
             <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
@@ -2027,15 +2374,17 @@ export default function ModuleFour({
           </div>
           <div className="rounded-lg border border-border-soft bg-white/90 px-3 py-3">
             <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-              Recommended from your proof plan
+              {recommendationBundle.source === "matrix_provenance"
+                ? "Recommended from your selected pattern"
+                : "Recommended from your proof plan"}
             </p>
             {recommendation ? (
               <>
-                <p className="mt-1 text-xs font-semibold text-theme-orange break-words">
-                  {recommendation.slot?.roleLabel || "Proof-plan note"}
-                </p>
                 <p className="mt-1 text-sm font-semibold text-theme-green break-words">
                   {recommendation.jobLabel}
+                </p>
+                <p className="mt-1 text-xs text-theme-dark/85 break-words">
+                  {recommendation.reason}
                 </p>
                 {recommendation.slot?.text ? (
                   <p className="mt-1 text-xs text-theme-dark/80 whitespace-pre-wrap break-words">
@@ -2043,12 +2392,13 @@ export default function ModuleFour({
                   </p>
                 ) : null}
                 <p className="mt-2 text-[11px] font-semibold text-theme-blue">
-                  Recommended from your plan — choose or confirm it below.
+                  Guidance only — choose or confirm a job below. A recommendation
+                  is not a selection.
                 </p>
               </>
             ) : (
               <p className="mt-1 text-sm text-theme-dark/80">
-                No proof-plan recommendation is available. Choose the
+                No automatic recommendation is available. Choose the
                 organizational job that fits your paragraph point.
               </p>
             )}
@@ -2079,10 +2429,19 @@ export default function ModuleFour({
         </StepActionHeading>
         <div className="space-y-2">
           {jobUi.choices.map((opt) => {
+            const matrixRec = (recommendationBundle.recommendations || []).find(
+              (r) => r.jobId === opt.id
+            );
             const isRecommended =
-              recommendation &&
               !opt.isLegacy &&
-              opt.id === recommendation.jobId;
+              (matrixRec ||
+                (recommendation &&
+                  recommendationBundle.source !== "matrix_provenance" &&
+                  opt.id === recommendation.jobId));
+            const isPrimary =
+              Boolean(matrixRec?.isPrimary) ||
+              (recommendationBundle.source !== "matrix_provenance" &&
+                recommendation?.jobId === opt.id);
             const checked =
               opt.id === "custom"
                 ? choosingCustom
@@ -2118,7 +2477,14 @@ export default function ModuleFour({
                   <span className="break-words">{opt.label}</span>
                   {isRecommended ? (
                     <span className="mt-1 block text-[11px] font-bold uppercase tracking-wide text-theme-green">
-                      Recommended from your plan
+                      {isPrimary
+                        ? "Primary recommendation — guidance only"
+                        : "Also recommended — guidance only"}
+                    </span>
+                  ) : null}
+                  {matrixRec?.reason ? (
+                    <span className="mt-1 block text-[11px] text-theme-dark/80 break-words">
+                      {matrixRec.reason}
                     </span>
                   ) : null}
                   {opt.isLegacy ? (
@@ -2151,7 +2517,7 @@ export default function ModuleFour({
               placeholder="Example: Compare the openings of both works"
             />
             <p className="mt-1 text-[11px] text-text-muted">
-              Saved as <code>custom:…</code> in the existing paragraph job field.
+              Write a short description of this paragraph’s job.
             </p>
           </div>
         ) : null}
@@ -2213,10 +2579,12 @@ export default function ModuleFour({
         data-layout-mobile={
           CP6_LAYOUT_CONTRACT.mobile.singleColumn ? "stack" : "multi"
         }
+        data-cpe-chips-wrap={CPE_LAYOUT_CONTRACT.mobile.chipsWrap ? "true" : "false"}
       >
         <h2 className="text-xl font-extrabold text-theme-blue">
           Paragraph {n}: choose evidence
         </h2>
+        {provenanceNoticeEl}
         <p className="text-sm font-semibold text-theme-dark">
           What you will do: check only the quotes that fit this paragraph point
           and job
@@ -2368,15 +2736,27 @@ export default function ModuleFour({
       proofPlan,
     });
     const planReady = isParagraphMechanicallyPlanned(b, evidenceSlots);
+    const reasoningReminder = getReasoningProvenanceReminder(provenanceModel);
     main = (
       <div className={panelClass}>
         <h2 className="text-xl font-extrabold text-theme-blue">
           Paragraph {n}: build your explanation
         </h2>
+        {provenanceNoticeEl}
         <p className="text-sm font-semibold text-theme-dark">
           What you will do: review your plan below, use optional starters, then type your
           reasoning
         </p>
+        {reasoningReminder ? (
+          <div className="rounded-lg border border-theme-blue/20 bg-theme-blue/[0.04] px-3 py-2">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+              Audience and purpose reminder
+            </p>
+            <p className="mt-1 text-sm text-theme-dark/90 break-words">
+              {reasoningReminder}
+            </p>
+          </div>
+        ) : null}
         <StepGuidanceBox label="Why this matters">
           <p>
             Reasoning is where analysis becomes writing. The starters are optional
@@ -2465,14 +2845,18 @@ export default function ModuleFour({
           <button
             type="button"
             onClick={() => chooseThirdBucket(true)}
-            className="px-4 py-2 rounded-lg bg-theme-green text-white font-medium hover:opacity-90"
+            disabled={navBusy}
+            aria-busy={navBusy ? "true" : "false"}
+            className="px-4 py-2 min-h-[44px] rounded-lg bg-theme-green text-white font-medium hover:opacity-90 disabled:opacity-50"
           >
             Yes — add paragraph 3
           </button>
           <button
             type="button"
             onClick={() => chooseThirdBucket(false)}
-            className="px-4 py-2 rounded-lg border border-theme-dark/20 bg-white text-theme-dark font-medium hover:bg-theme-light"
+            disabled={navBusy}
+            aria-busy={navBusy ? "true" : "false"}
+            className="px-4 py-2 min-h-[44px] rounded-lg border border-theme-dark/20 bg-white text-theme-dark font-medium hover:bg-theme-light disabled:opacity-50"
           >
             No — finish with two
           </button>
@@ -2488,7 +2872,10 @@ export default function ModuleFour({
         thesis={thesis}
         proofPlan={proofPlan}
         reflection={reflection}
-        onReflectionChange={setReflection}
+        onReflectionChange={(value) => {
+          markStudentMutation();
+          setReflection(value);
+        }}
         onEditPart={goToParagraphPartEdit}
         onFinish={() => completeModule()}
         canFinish={canGoNext()}
@@ -2595,13 +2982,34 @@ export default function ModuleFour({
                 {advanceStatus.message}
               </p>
             ) : null}
+            {navError ? (
+              <div
+                className="rounded-md border border-theme-orange/40 bg-white px-3 py-2"
+                role="alert"
+                data-testid="module4-navigation-save-error"
+              >
+                <p className="text-sm text-theme-dark break-words">{navError}</p>
+                <button
+                  type="button"
+                  className="mt-2 min-h-[44px] w-full rounded-md border border-theme-orange/40 px-3 text-sm font-semibold text-theme-blue sm:w-auto"
+                  disabled={navBusy}
+                  onClick={() => {
+                    void retryPendingNavigation();
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            ) : null}
             <div className="flex flex-wrap justify-between items-center gap-3">
             <div>
               {showBack ? (
                 <button
                   type="button"
                   onClick={() => goBack()}
-                  className="px-4 py-2 rounded-lg bg-surface-soft text-text-primary hover:bg-border-soft/60"
+                  disabled={navBusy}
+                  aria-busy={navBusy ? "true" : "false"}
+                  className="px-4 py-2 min-h-[44px] rounded-lg bg-surface-soft text-text-primary hover:bg-border-soft/60 disabled:opacity-50"
                 >
                   Back
                 </button>
@@ -2612,7 +3020,8 @@ export default function ModuleFour({
                 <button
                   type="button"
                   onClick={() => goNext()}
-                  disabled={!canGoNext()}
+                  disabled={!canGoNext() || navBusy}
+                  aria-busy={navBusy ? "true" : "false"}
                   className="w-full sm:w-auto px-4 py-3 min-h-[44px] rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
                 >
                   {primaryAdvanceLabel}
@@ -2622,7 +3031,8 @@ export default function ModuleFour({
                 <button
                   type="button"
                   onClick={() => completeModule()}
-                  disabled={!canGoNext()}
+                  disabled={!canGoNext() || navBusy}
+                  aria-busy={navBusy ? "true" : "false"}
                   className="w-full sm:w-auto px-4 py-3 min-h-[44px] rounded-lg bg-theme-blue text-white font-medium disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-theme-blue/30"
                 >
                   Finish your paragraph plans and continue

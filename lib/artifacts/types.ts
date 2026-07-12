@@ -84,6 +84,14 @@ export interface PatternArtifact extends ArtifactBase<"pattern"> {
   text: string;
   evidenceIds: string[];
   isSelected: boolean;
+  /** Additive CP-D matrix provenance — legacy patterns omit this. */
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: {
+    needsReview?: boolean;
+    reasonCodes?: string[];
+    reviewedSignature?: string | null;
+    reviewedAt?: string | null;
+  } | null;
 }
 
 export interface IdeaArtifact extends ArtifactBase<"idea"> {
