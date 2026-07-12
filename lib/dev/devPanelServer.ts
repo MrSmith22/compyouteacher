@@ -44,7 +44,12 @@ type DeleteSpec = {
 };
 
 const MODULE_RESET_MAP: Record<number, DeleteSpec[]> = {
-  1: [{ table: "module1_quiz_results" }],
+  // Restart Module 1 must clear both quiz results AND prompt breakdown,
+  // otherwise paraphrase shelf / Step 1 skip survive a supposed restart.
+  1: [
+    { table: "module1_quiz_results" },
+    { table: "module1_prompt_breakdown" },
+  ],
   2: [{ table: "module2_sources" }, { table: "tchart_entries" }],
   3: [
     { table: "student_buckets", filters: { module: 3 } },
@@ -317,7 +322,88 @@ export async function resetCurrentModule(userEmail: string, moduleNumber?: numbe
   for (const spec of specs) {
     results.push(await deleteBySpec(userEmail, spec));
   }
-  return { ok: true as const, module, results };
+  // After Module 1 content wipe, progression must not still claim later modules
+  // while Step 1 is empty — pin resume to Module 1 prompt entry.
+  if (module === 1) {
+    await setCurrentModule(userEmail, 1);
+  }
+  return {
+    ok: true as const,
+    module,
+    results,
+    actionLabel: module === 1 ? "Restart Module 1" : `Reset Module ${module}`,
+    resumePath: module === 1 ? "/modules/1/prompt" : undefined,
+  };
+}
+
+/**
+ * Explicit: Restart Module 1 (prompt + quiz + progression pin).
+ * Does not delete Module 2+ tables; caller should warn when downstream exists.
+ */
+export async function restartModule1(userEmail: string) {
+  const results = [];
+  for (const spec of MODULE_RESET_MAP[1]) {
+    results.push(await deleteBySpec(userEmail, spec));
+  }
+  const progression = await setCurrentModule(userEmail, 1);
+  return {
+    ok: progression.ok,
+    actionLabel: "Restart Module 1",
+    results,
+    module: 1,
+    resumePath: "/modules/1/prompt",
+    error: progression.ok ? null : progression.error,
+  };
+}
+
+/**
+ * Explicit: Restart the entire assignment — same wipe set as reset-student
+ * plus module1_prompt_breakdown (historically omitted).
+ */
+export async function restartEntireAssignment(userEmail: string) {
+  const supabase = getSupabaseAdmin();
+  const tablesToClear: Array<{ key: string; table: string }> = [
+    { key: "student_readaloud", table: "student_readaloud" },
+    { key: "student_drafts", table: "student_drafts" },
+    { key: "student_outlines", table: "student_outlines" },
+    { key: "bucket_groups", table: "bucket_groups" },
+    { key: "student_buckets", table: "student_buckets" },
+    { key: "tchart_entries", table: "tchart_entries" },
+    { key: "student_exports", table: "student_exports" },
+    { key: "exported_docs", table: "exported_docs" },
+    { key: "module3_responses", table: "module3_responses" },
+    { key: "module2_sources", table: "module2_sources" },
+    { key: "module1_quiz_results", table: "module1_quiz_results" },
+    { key: "module1_prompt_breakdown", table: "module1_prompt_breakdown" },
+    { key: "module9_quiz", table: "module9_quiz" },
+    { key: "module9_checklist", table: "module9_checklist" },
+    { key: "student_activity_log", table: "student_activity_log" },
+    { key: "module_scores", table: "module_scores" },
+    { key: "student_assignments", table: "student_assignments" },
+  ];
+
+  const deleted: Record<string, number> = {};
+  let anyError = false;
+  for (const { key, table } of tablesToClear) {
+    const { error, count } = await supabase
+      .from(table)
+      .delete({ count: "exact" })
+      .eq("user_email", userEmail);
+    if (error) {
+      anyError = true;
+      deleted[key] = 0;
+    } else {
+      deleted[key] = typeof count === "number" ? count : 0;
+    }
+  }
+
+  return {
+    ok: !anyError,
+    actionLabel: "Restart the entire assignment",
+    deleted,
+    resumePath: "/modules/1/prompt",
+    entry: { module: 1, step: 1, question: 1 },
+  };
 }
 
 export async function setModule9Shortcut(

@@ -8,6 +8,8 @@ import {
   getDevPanelStatus,
   prepareGoogleDocExport,
   resetCurrentModule,
+  restartEntireAssignment,
+  restartModule1,
   setCurrentModule,
   setModule9Shortcut,
 } from "@/lib/dev/devPanelServer";
@@ -87,6 +89,14 @@ export async function POST(req: Request) {
         const moduleNumber =
           body.module != null ? Number(body.module) : undefined;
         const result = await resetCurrentModule(email, moduleNumber);
+        return NextResponse.json(result);
+      }
+      case "restartModule1": {
+        const result = await restartModule1(email);
+        return NextResponse.json(result);
+      }
+      case "restartEntireAssignment": {
+        const result = await restartEntireAssignment(email);
         return NextResponse.json(result);
       }
       case "module9Shortcut": {

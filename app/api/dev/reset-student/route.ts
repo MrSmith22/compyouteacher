@@ -70,6 +70,8 @@ export async function POST(req: Request) {
       { key: "module3_responses", table: "module3_responses" },
       { key: "module2_sources", table: "module2_sources" },
       { key: "module1_quiz_results", table: "module1_quiz_results" },
+      // Prompt paraphrase must clear on full restart or Step 2 shelf / Step 1 skip survive.
+      { key: "module1_prompt_breakdown", table: "module1_prompt_breakdown" },
       { key: "module9_quiz", table: "module9_quiz" },
       { key: "module9_checklist", table: "module9_checklist" },
 

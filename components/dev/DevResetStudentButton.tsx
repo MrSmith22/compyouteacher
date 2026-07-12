@@ -24,7 +24,7 @@ type ResetApiResult =
   | { ok: false; email?: string; deleted: DeletedCounts; reason?: string };
 
 const SCARY_MESSAGE =
-  "This will PERMANENTLY delete all assignment data, T-charts, outlines, read-aloud, activity logs, and storage files for this student. This cannot be undone. Type OK to proceed.";
+  "Restart the entire assignment: this will PERMANENTLY delete all assignment data, including Module 1 prompt breakdown and quiz results, T-charts, outlines, drafts, activity logs, and progression. You will return to Module 1 Step 1, Question 1 with empty work. Type OK to proceed.";
 
 const TABLE_LABELS: Record<keyof DeletedCounts, string> = {
   student_activity_log: "Activity log",
@@ -93,7 +93,7 @@ export default function DevResetStudentButton() {
         disabled={working || !email}
         className="w-fit rounded border border-red-600 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
       >
-        {working ? "Resetting…" : "Dev: Reset this student"}
+        {working ? "Resetting…" : "Dev: Restart the entire assignment"}
       </button>
       {result !== null && "error" in result && (
         <p className="text-sm text-red-600">{result.error}</p>

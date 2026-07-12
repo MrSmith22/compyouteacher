@@ -13,7 +13,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { clearStudentCache } from "@/lib/storage/studentCache";
+import {
+  getRestartWarning,
+  hasDownstreamAssignmentWork,
+  RESTART_ACTIONS,
+  RESTART_ACTION_LABELS,
+  resolveBrowserCacheClearMode,
+} from "@/lib/module1/restartHelpers";
+import {
+  clearModule1FlowCache,
+  clearStudentCache,
+} from "@/lib/storage/studentCache";
 import { openSavedSourceTexts } from "@/lib/sources/openSavedSourceTexts";
 import { upsertModule9Checklist } from "@/lib/supabase/helpers/module9Checklist";
 import {
@@ -21,6 +31,18 @@ import {
   readRhetoricalSituationDevBypassFlag,
   writeRhetoricalSituationDevBypassFlag,
 } from "@/lib/module2/rhetoricalSituationGate";
+
+function clearBrowserCacheForDevAction(action, email) {
+  if (!email) return;
+  const mode = resolveBrowserCacheClearMode(action);
+  if (mode === "module1_flow_only") {
+    clearModule1FlowCache(email);
+    return;
+  }
+  if (mode === "all_user_scoped") {
+    clearStudentCache(email);
+  }
+}
 
 function logDev(...args) {
   console.log("[Dev Panel]", ...args);
@@ -109,7 +131,49 @@ export default function DeveloperTestingPanel() {
       await panelAction("setModule", { module: moduleNumber });
       const path = moduleNumber >= 10 ? "/dashboard" : `/modules/${moduleNumber}`;
       router.push(path);
+      return `Jump to module (progression only) → M${moduleNumber}`;
     });
+  }
+
+  async function restartModule1WithWarning() {
+    const downstream = hasDownstreamAssignmentWork({
+      currentModule: status?.currentModule,
+      hasTcharts: Boolean(status?.observationsCount),
+      hasLaterArtifacts: Boolean(
+        status?.outlineExists || status?.draft6Present || status?.draft7Present
+      ),
+    });
+    const warning = getRestartWarning(RESTART_ACTIONS.RESTART_MODULE_1, {
+      hasDownstream: downstream,
+    });
+    const ok = window.confirm(`${warning.title}\n\n${warning.message}`);
+    if (!ok) return;
+    await run(RESTART_ACTION_LABELS[RESTART_ACTIONS.RESTART_MODULE_1], async () => {
+      await panelAction("restartModule1");
+      clearBrowserCacheForDevAction(RESTART_ACTIONS.RESTART_MODULE_1, email);
+      router.push("/modules/1/prompt");
+      return "Restart Module 1 complete — Step 1 Question 1";
+    });
+  }
+
+  async function restartEntireAssignmentWithWarning() {
+    const warning = getRestartWarning(RESTART_ACTIONS.RESTART_ENTIRE_ASSIGNMENT);
+    const ok = window.confirm(`${warning.title}\n\n${warning.message}`);
+    if (!ok) return;
+    const typed = window.prompt("Type OK to confirm full assignment restart:");
+    if (typed !== "OK") return;
+    await run(
+      RESTART_ACTION_LABELS[RESTART_ACTIONS.RESTART_ENTIRE_ASSIGNMENT],
+      async () => {
+        await panelAction("restartEntireAssignment");
+        clearBrowserCacheForDevAction(
+          RESTART_ACTIONS.RESTART_ENTIRE_ASSIGNMENT,
+          email
+        );
+        router.push("/modules/1/prompt");
+        return "Restart the entire assignment complete — Module 1 Step 1 Q1";
+      }
+    );
   }
 
   async function createOrRebuildGoogleDoc() {
@@ -305,7 +369,10 @@ export default function DeveloperTestingPanel() {
           </section>
 
           <section>
-            <p className={sectionTitle}>Jump to module</p>
+            <p className={sectionTitle}>Jump to module (progression only)</p>
+            <p className="mb-1 text-[10px] leading-snug text-slate-600">
+              Changes dashboard resume only. Does not delete saved artifacts.
+            </p>
             <div className="flex flex-wrap gap-1">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                 <button
@@ -315,9 +382,31 @@ export default function DeveloperTestingPanel() {
                   disabled={busy}
                   onClick={() => jumpToModule(n)}
                 >
-                  {n === 1 ? "Reset to M1" : `M${n}`}
+                  {`M${n}`}
                 </button>
               ))}
+            </div>
+          </section>
+
+          <section>
+            <p className={sectionTitle}>Explicit restarts</p>
+            <div className="flex flex-wrap gap-1">
+              <button
+                type="button"
+                className={btnDanger}
+                disabled={busy}
+                onClick={restartModule1WithWarning}
+              >
+                Restart Module 1
+              </button>
+              <button
+                type="button"
+                className={btnDanger}
+                disabled={busy}
+                onClick={restartEntireAssignmentWithWarning}
+              >
+                Restart the entire assignment
+              </button>
             </div>
           </section>
 
@@ -414,12 +503,25 @@ export default function DeveloperTestingPanel() {
                 disabled={busy}
                 onClick={() =>
                   run("Module reset complete", async () => {
-                    await panelAction("resetCurrentModule");
-                    window.location.reload();
+                    const result = await panelAction("resetCurrentModule");
+                    if (email && result?.module === 1) {
+                      clearBrowserCacheForDevAction(
+                        "reset_current_module_m1",
+                        email
+                      );
+                    }
+                    if (result?.resumePath) {
+                      router.push(result.resumePath);
+                    } else {
+                      window.location.reload();
+                    }
+                    return result?.actionLabel || "Module reset complete";
                   })
                 }
               >
-                Reset Current Module
+                {status?.currentModule === 1
+                  ? "Restart Module 1"
+                  : "Reset Current Module"}
               </button>
             </div>
           </section>
@@ -563,33 +665,33 @@ export default function DeveloperTestingPanel() {
               className={btnDanger}
               disabled={busy || !email}
               onClick={() =>
-                run("Student reset complete", async () => {
+                run("Restart the entire assignment", async () => {
+                  const warning = getRestartWarning(
+                    RESTART_ACTIONS.RESTART_ENTIRE_ASSIGNMENT
+                  );
                   const confirmed = window.confirm(
-                    "Reset ALL assignment data for this student and start from scratch? Auth stays intact. Type OK in the next prompt."
+                    `${warning.title}\n\n${warning.message}`
                   );
                   if (!confirmed) return;
-                  const typed = window.prompt("Type OK to confirm full student reset:");
+                  const typed = window.prompt("Type OK to confirm full assignment restart:");
                   if (typed !== "OK") throw new Error("Reset cancelled");
 
-                  const res = await fetch("/api/dev/reset-student", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "x-dev-reset-secret":
-                        process.env.NEXT_PUBLIC_DEV_RESET_SECRET ?? "",
-                    },
-                    body: JSON.stringify({ email }),
-                  });
-                  const data = await res.json().catch(() => ({}));
-                  if (!data.ok) {
-                    throw new Error(data.reason || "Reset student failed");
+                  const result = await panelAction("restartEntireAssignment");
+                  if (!result.ok) {
+                    throw new Error(result.reason || "Restart failed");
                   }
-                  if (email) clearStudentCache(email);
-                  window.location.href = "/dashboard";
+                  if (email) {
+                    clearBrowserCacheForDevAction(
+                      RESTART_ACTIONS.RESTART_ENTIRE_ASSIGNMENT,
+                      email
+                    );
+                  }
+                  window.location.href = "/modules/1/prompt";
+                  return "Restart the entire assignment complete";
                 })
               }
             >
-              Reset Student
+              Restart the entire assignment
             </button>
           </section>
         </div>
