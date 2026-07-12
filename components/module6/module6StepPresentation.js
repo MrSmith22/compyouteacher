@@ -18,13 +18,22 @@ export function buildDraftSectionSteps(outline) {
   ];
 
   body.forEach((card, index) => {
+    const job = String(card?.job || "").trim();
     steps.push({
       id: `section-${index + 1}`,
       draftIndex: index + 1,
       type: SECTION_TYPES.BODY,
       roman: index + 1,
-      title: String(card?.bucket || "").trim() || `Body paragraph ${index + 1}`,
+      title: String(card?.bucket || card?.point || "").trim() || `Body paragraph ${index + 1}`,
       bodyIndex: index,
+      // Additive CP-F context for later CP-G — legacy outlines omit job safely.
+      job: job || null,
+      sourceParagraphIndex:
+        typeof card?.sourceParagraphIndex === "number"
+          ? card.sourceParagraphIndex
+          : typeof card?.paragraphIndex === "number"
+            ? card.paragraphIndex
+            : null,
     });
   });
 

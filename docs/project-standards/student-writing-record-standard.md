@@ -59,5 +59,17 @@ matrix direction Module 4 coaching last confirmed against. Rules:
 - **`needs_review`.** Keep Module 3 confirmation guidance; never persist that
   signature as confirmed.
 
+## Module 5 outline import / upstream change (CP-F)
+
+Additive outline body fields carry Module 4 paragraph identity (`sourceParagraphIndex`,
+`job`, `point`, `evidence`, `reasoning`, `sourceSignature`) while keeping legacy
+`bucket` / `points` for Module 6.
+
+- **First import:** create each required mechanically planned paragraph once.
+- **Reload:** resume the saved Module 5 outline; never duplicate cards.
+- **Upstream Module 4 change:** preserve Module 5 edits/order/conclusion; show
+  which source paragraphs changed; apply updates only on explicit student action.
+- **No write-on-read** when comparing upstream signatures.
+
 Do not redesign Modules 2–9 in this pass; apply this standard at each later
 checkpoint when that module’s persistence is touched.

@@ -7,6 +7,10 @@ import {
   getStudentOutline,
   upsertStudentOutline,
 } from "@/lib/supabase/helpers/studentOutlines";
+import {
+  buildOutlineUpsertRow,
+  resolveFinalizedWriteValue,
+} from "@/lib/module5/outlinePersistenceHelpers";
 
 // GET /api/outlines?module=5
 export async function GET(req) {
@@ -44,7 +48,7 @@ export async function GET(req) {
       );
     }
 
-    // data may be null if no outline exists yet
+    // data may be null if no outline exists yet; finalized may be null/absent on legacy rows
     return NextResponse.json({ ok: true, data: data ?? null }, { status: 200 });
   } catch (err) {
     return NextResponse.json(
@@ -54,7 +58,7 @@ export async function GET(req) {
   }
 }
 
-// POST /api/outlines  body: { module: 5, outline: {...}, finalized?: true }
+// POST /api/outlines  body: { module: 5, outline: {...}, finalized?: boolean }
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -80,11 +84,17 @@ export async function POST(req) {
       );
     }
 
-    const { error } = await upsertStudentOutline({
+    const finalizedResolution = resolveFinalizedWriteValue(body?.finalized);
+    const upsertArgs = {
       userEmail: email,
       module: moduleNumber,
       outline,
-    });
+    };
+    if (finalizedResolution.include) {
+      upsertArgs.finalized = finalizedResolution.value;
+    }
+
+    const { error } = await upsertStudentOutline(upsertArgs);
 
     if (error) {
       return NextResponse.json(
@@ -93,8 +103,26 @@ export async function POST(req) {
       );
     }
 
-    // IMPORTANT: ModuleFive expects json.ok in a few places
-    return NextResponse.json({ ok: true }, { status: 200 });
+    const wrote = buildOutlineUpsertRow({
+      userEmail: email,
+      module: moduleNumber,
+      outline,
+      finalized: finalizedResolution.include
+        ? finalizedResolution.value
+        : undefined,
+    });
+
+    return NextResponse.json(
+      {
+        ok: true,
+        finalizedWritten: finalizedResolution.include
+          ? finalizedResolution.value
+          : null,
+        finalizedPreserved: !finalizedResolution.include,
+        rowKeys: Object.keys(wrote),
+      },
+      { status: 200 }
+    );
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err?.message || "Server error" },

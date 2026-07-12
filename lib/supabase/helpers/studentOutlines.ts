@@ -1,4 +1,8 @@
 import { supabase } from "@/lib/supabaseClient";
+import {
+  buildOutlineUpsertRow,
+  resolveFinalizedWriteValue,
+} from "@/lib/module5/outlinePersistenceHelpers";
 
 export async function getStudentOutline({
   userEmail,
@@ -19,15 +23,27 @@ export async function upsertStudentOutline({
   userEmail,
   module: moduleNumber,
   outline,
+  finalized,
 }: {
   userEmail: string;
   module: number;
   outline: unknown;
+  finalized?: unknown;
 }) {
-  return supabase.from("student_outlines").upsert({
-    user_email: userEmail,
+  const row = buildOutlineUpsertRow({
+    userEmail,
     module: moduleNumber,
     outline,
-    updated_at: new Date().toISOString(),
+    finalized,
+  });
+
+  // Belt-and-suspenders: never pass non-boolean finalized into Supabase.
+  const resolved = resolveFinalizedWriteValue(finalized);
+  if (!resolved.include && "finalized" in row) {
+    delete (row as { finalized?: boolean }).finalized;
+  }
+
+  return supabase.from("student_outlines").upsert(row, {
+    onConflict: "user_email,module",
   });
 }
