@@ -70,7 +70,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-030 | Module 8 lacks recovery actions for export problems | 8 | High | UX / Trust | Resolved |
 | WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Resolved |
 | WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Resolved |
-| WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Open |
+| WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Resolved |
 | WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Open |
 | WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Open |
 | WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Open |
@@ -1025,7 +1025,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Google Doc introduction screen
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** The module assumes students understand what the Google Doc represents. It is not explained that this document becomes the paper submitted to the teacher.
 
@@ -1039,11 +1039,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open Module 8 Google Doc intro.
 2. Confirm submission-document framing is explicit.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleEight.js` (always-visible Prepare panel); `components/module8/module8StepPresentation.js` (Create/Update working-set copy); `tests/module8-wp033-submission-doc-framing.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Evidence-based audit: no new instructional prose required. The always-visible Prepare panel already states writing is complete / ideas are finished, the Google Doc is the paper the teacher will read and the student will format and turn in—above Create/Update actions and outside collapsed “Why this matters.” Create working-set copy also frames the Doc as the paper to format before turning in. Added regression coverage + `data-testid="module8-submission-doc-framing"`. Browser check at **390×844** and **1440×900** (Update intro; disclosures closed). Full suite 930/930.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after browser acceptance; this commit)
 
 ---
 

@@ -652,7 +652,10 @@ export default function ModuleEight() {
         sidebar={referenceShelf}
       >
         <div className="space-y-3">
-          <div className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3 text-left">
+          <div
+            className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3 text-left"
+            data-testid="module8-submission-doc-framing"
+          >
             <p className="text-sm font-semibold text-text-primary">
               Prepare Your Essay for Submission
             </p>
