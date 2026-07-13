@@ -37,6 +37,16 @@ export async function seedModule6(userEmail: string) {
     sections,
     full_text: fullText,
     locked: true,
+    draft_meta: {
+      schemaVersion: 1,
+      currentSectionIndex: sections.length,
+      currentStageId: "stage-review",
+      sourceOutlineSignature: "",
+      completedSectionIds: [],
+      outlineReviewRequired: false,
+      outlineReviewAcknowledged: false,
+    },
+    draft_revision: 1,
     updated_at: now,
   });
   if (m6Error) {

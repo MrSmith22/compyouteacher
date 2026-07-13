@@ -276,19 +276,32 @@ export async function upsertParagraphPlanArtifact(input: ParagraphPlanWriteInput
 }
 
 export async function upsertModule6DraftArtifact(input: Module6DraftWriteInput) {
+  const payload: Record<string, unknown> = {
+    sections: input.sections,
+    action: input.action || "autosave",
+    expected_revision: input.expected_revision,
+  };
+  if (input.draft_meta != null) {
+    payload.draft_meta = input.draft_meta;
+  }
+  if (input.action === "finalize") {
+    payload.action = "finalize";
+  }
+
   const res = await fetch(MODULE6_DRAFT_API_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sections: input.sections,
-      full_text: input.full_text,
-      locked: input.locked,
-    }),
+    body: JSON.stringify(payload),
   });
 
   try {
-    await parseApiResponse(res);
-    return { ok: true as const };
+    const json = await parseApiResponse(res);
+    return {
+      ok: true as const,
+      revision: typeof json.revision === "number" ? json.revision : undefined,
+      status: json.status,
+      locked: json.locked === true,
+    };
   } catch (error) {
     return { ok: false as const, error: { message: errorMessage(error) } };
   }

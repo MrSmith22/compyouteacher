@@ -128,7 +128,7 @@ export async function getDevPanelStatus(userEmail: string) {
       .maybeSingle(),
     supabase
       .from("student_drafts")
-      .select("full_text, locked, updated_at")
+      .select("full_text, locked, updated_at, draft_meta, sections")
       .eq("user_email", userEmail)
       .eq("module", 6)
       .maybeSingle(),
@@ -209,6 +209,13 @@ export async function getDevPanelStatus(userEmail: string) {
     pdfFileName: pdfRes.data?.file_name ?? null,
     draft6Present: !!draft6Res.data?.full_text,
     draft6Locked: draft6Res.data?.locked === true,
+    draft6CurrentSection:
+      (draft6Res.data as { draft_meta?: { currentStageId?: string } } | null)
+        ?.draft_meta?.currentStageId || null,
+    draft6OutlineReviewRequired: Boolean(
+      (draft6Res.data as { draft_meta?: { outlineReviewRequired?: boolean } } | null)
+        ?.draft_meta?.outlineReviewRequired
+    ),
     draft7Present: !!(draft7Res.data?.final_text || draft7Res.data?.full_text),
     draft7FinalReady: draft7Res.data?.final_ready === true,
     outlineExists,

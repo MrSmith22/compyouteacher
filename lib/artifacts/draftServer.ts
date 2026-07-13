@@ -3,8 +3,12 @@ import type { Module7DraftRow } from "@/lib/supabase/helpers/module7Draft";
 import type { Module8DraftRow } from "@/lib/supabase/helpers/module8Draft";
 import {
   getModule6DraftAdmin,
-  upsertModule6DraftAdmin,
+  writeModule6DraftAtomicAdmin,
 } from "@/lib/supabase/helpers/module6Draft";
+import {
+  httpStatusForAtomicResult,
+  type Module6AtomicWriteResult,
+} from "@/lib/supabase/helpers/module6AtomicDraft";
 import {
   getModule7DraftAdmin,
   upsertModule7DraftAdmin,
@@ -17,8 +21,20 @@ import {
 export type Module6DraftWriteInput = {
   userEmail: string;
   sections: string[];
-  full_text: string;
-  locked: boolean;
+  draft_meta?: Record<string, unknown> | null;
+  action?: string;
+  expected_revision: number;
+};
+
+export type Module6AtomicWriteResponse = {
+  ok: boolean;
+  result?: Module6AtomicWriteResult | null;
+  error?: string;
+  code?: string;
+  httpStatus?: number;
+  status?: string;
+  locked?: boolean;
+  revision?: number;
 };
 
 export type Module7DraftWriteInput = {
@@ -51,19 +67,60 @@ export async function getModule6DraftForUser(userEmail: string) {
   return { ok: true as const, data: res.data };
 }
 
-export async function upsertModule6DraftForUser(input: Module6DraftWriteInput) {
-  const writeRes = await upsertModule6DraftAdmin({
+export async function writeModule6DraftAtomicForUser(
+  input: Module6DraftWriteInput
+): Promise<Module6AtomicWriteResponse> {
+  const writeRes = await writeModule6DraftAtomicAdmin({
     userEmail: input.userEmail,
+    action: input.action || "autosave",
     sections: input.sections,
-    full_text: input.full_text,
-    locked: input.locked,
+    draftMeta: input.draft_meta ?? null,
+    expectedRevision: input.expected_revision,
   });
 
   if (writeRes.error) {
-    return { ok: false as const, error: writeRes.error };
+    const code = writeRes.error.code || "DRAFT_WRITE_FAILED";
+    return {
+      ok: false,
+      error: writeRes.error.message || "Draft write failed",
+      code,
+      httpStatus: code === "DRAFT_ATOMIC_RPC_REQUIRED" ? 503 : 500,
+    };
   }
 
-  return { ok: true as const };
+  const result = writeRes.data;
+  if (!result) {
+    return {
+      ok: false,
+      error: "Empty atomic write response",
+      httpStatus: 500,
+    };
+  }
+
+  if (result.ok === false) {
+    return {
+      ok: false,
+      result,
+      error: result.error,
+      status: result.status,
+      locked: result.locked,
+      revision: result.revision,
+      httpStatus: httpStatusForAtomicResult(result),
+    };
+  }
+
+  return {
+    ok: true,
+    result,
+    status: result.status,
+    locked: result.locked,
+    revision: result.revision,
+  };
+}
+
+/** @deprecated Use writeModule6DraftAtomicForUser — non-atomic upsert removed. */
+export async function upsertModule6DraftForUser(input: Module6DraftWriteInput) {
+  return writeModule6DraftAtomicForUser(input);
 }
 
 export async function getModule7DraftForUser(userEmail: string) {

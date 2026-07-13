@@ -145,22 +145,71 @@ export default function ModuleSixReferenceShelf({
 
         <ShelfSection title="Outline" artifactType="outline" emptyText="Your outline will appear here.">
           <div className="space-y-2">
-            <OutlineSectionPreview
-              label={`${romanNumeral(0)}. Introduction`}
-              isActive={activeStep?.type === "intro"}
-            />
-            {body.map((card, index) => (
+            {activeStep?.type === "intro" ? (
               <OutlineSectionPreview
-                key={`outline-${index}`}
-                label={`${romanNumeral(index + 1)}. ${card.bucket || "Body paragraph"}`}
-                points={Array.isArray(card.points) ? card.points : []}
-                isActive={index === activeBodyIndex}
+                label={`${romanNumeral(0)}. Introduction`}
+                isActive
               />
-            ))}
-            <OutlineSectionPreview
-              label={`${romanNumeral(body.length + 1)}. Conclusion`}
-              isActive={activeStep?.type === "conclusion"}
-            />
+            ) : null}
+            {activeBodyIndex >= 0 ? (
+              <OutlineSectionPreview
+                label={`${romanNumeral(activeBodyIndex + 1)}. ${
+                  body[activeBodyIndex]?.job ||
+                  body[activeBodyIndex]?.bucket ||
+                  body[activeBodyIndex]?.point ||
+                  "Body paragraph"
+                }`}
+                points={
+                  Array.isArray(body[activeBodyIndex]?.points)
+                    ? body[activeBodyIndex].points
+                    : []
+                }
+                isActive
+              />
+            ) : null}
+            {activeStep?.type === "conclusion" ? (
+              <OutlineSectionPreview
+                label={`${romanNumeral(body.length + 1)}. Conclusion`}
+                isActive
+              />
+            ) : null}
+            {activeStep?.type === "review" ? (
+              <p className="text-xs text-text-muted">
+                Whole-draft review — open other sections below if you need a reminder.
+              </p>
+            ) : null}
+
+            <details className="rounded-lg border border-border-soft/50 bg-surface-soft/30 px-3 py-2">
+              <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                Other outline sections
+              </summary>
+              <div className="mt-2 space-y-2">
+                {activeStep?.type !== "intro" ? (
+                  <OutlineSectionPreview
+                    label={`${romanNumeral(0)}. Introduction`}
+                    isActive={false}
+                  />
+                ) : null}
+                {body.map((card, index) =>
+                  index === activeBodyIndex ? null : (
+                    <OutlineSectionPreview
+                      key={`outline-${index}`}
+                      label={`${romanNumeral(index + 1)}. ${
+                        card.job || card.bucket || card.point || "Body paragraph"
+                      }`}
+                      points={Array.isArray(card.points) ? card.points : []}
+                      isActive={false}
+                    />
+                  )
+                )}
+                {activeStep?.type !== "conclusion" ? (
+                  <OutlineSectionPreview
+                    label={`${romanNumeral(body.length + 1)}. Conclusion`}
+                    isActive={false}
+                  />
+                ) : null}
+              </div>
+            </details>
           </div>
         </ShelfSection>
 

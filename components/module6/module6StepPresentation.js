@@ -184,17 +184,28 @@ export function getModule6StepPresentation(step, outline) {
   if (step.type === SECTION_TYPES.BODY) {
     const card = body[step.bodyIndex] || {};
     const title =
-      String(card.bucket || "").trim() || `Body paragraph ${step.bodyIndex + 1}`;
+      String(card.bucket || card.point || "").trim() ||
+      `Body paragraph ${step.bodyIndex + 1}`;
     const isLastBody = step.bodyIndex === body.length - 1;
     const pointCount = Array.isArray(card.points) ? card.points.length : 0;
     const paragraphNumber =
       typeof step.bodyIndex === "number" && step.bodyIndex >= 0
         ? step.bodyIndex + 1
         : 1;
+    const point =
+      String(card.point || card.bucket || "").trim() ||
+      `the point you planned for body paragraph ${paragraphNumber}`;
+    const job =
+      String(card.job || step.job || "").trim() ||
+      "develop one part of your thesis";
+    const jobSentence = /^this paragraph/i.test(job)
+      ? job
+      : `This paragraph ${job.charAt(0).toLowerCase()}${job.slice(1).replace(/\.$/, "")}.`;
 
     return {
-      question: "What does your reader need to understand in this body paragraph?",
+      question: `How will you explain this point: ${point}?`,
       whyMatters: [
+        jobSentence,
         "This paragraph proves one part of your thesis—the idea you planned for this section.",
         "You are still translating notes into sentences, not inventing a new argument.",
         pointCount > 0
@@ -214,7 +225,7 @@ export function getModule6StepPresentation(step, outline) {
         "A reader can see how this paragraph connects to my thesis.",
       ],
       coachingMessage:
-        "Follow Your job right now. If you need evidence ideas, open Need Help for your thesis (blue) and outline points (green).",
+        "Follow Your job right now. Stay inside this outline card—do not pull in evidence from other paragraphs.",
       nextStepText: isLastBody
         ? "Next you will write your conclusion."
         : "Next you will draft your next body paragraph.",
@@ -228,14 +239,17 @@ export function getModule6StepPresentation(step, outline) {
         "Explain why the detail matters for your thesis.",
       ],
       jobRightNow: {
-        lead: `Write Body Paragraph ${paragraphNumber} now.`,
+        lead: jobSentence,
         steps: [
-          "State the main idea of this paragraph in your own words.",
           {
-            text: "Use your evidence or example from the outline points for this section.",
+            text: `State this paragraph’s point in your own words: ${point}`,
             find: "outline",
           },
-          "Explain why that evidence supports your main idea.",
+          {
+            text: "Use only the evidence planned for this section.",
+            find: "outline",
+          },
+          "Explain why that evidence supports your point.",
           {
             text: "Connect back to your overall argument—your thesis.",
             find: "thesis",
@@ -244,7 +258,8 @@ export function getModule6StepPresentation(step, outline) {
         findHint:
           "See your outline points under Need Help below (green card). Your thesis is there too (blue card).",
       },
-      // Keep the student's planned section title on the writing box only—not in the page question.
+      organizationalJob: jobSentence,
+      paragraphPoint: point,
       workingSetLabel: title,
       workingSetDescription:
         "On your desk: this body section only. Check Need Help if you forget your plan.",

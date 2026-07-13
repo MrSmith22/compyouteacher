@@ -71,5 +71,41 @@ Additive outline body fields carry Module 4 paragraph identity (`sourceParagraph
   which source paragraphs changed; apply updates only on explicit student action.
 - **No write-on-read** when comparing upstream signatures.
 
+## Module 6 draft sections / drafting position (CP-G)
+
+Module 6 stores prose on `student_drafts` (`module = 6`):
+
+- **`sections`:** ordered string array — Introduction, body paragraphs in Module 5
+  order, Conclusion. Never invents a third body. Never stores metadata or job
+  labels as prose.
+- **`full_text`:** server-derived as `sections.join("\\n\\n")`. Clients must not
+  be trusted as the authority for `full_text`.
+- **`locked`:** only explicit Finish may set `true`. Autosave and navigation omit
+  the lock field so a finalized draft cannot be unlocked by ordinary writes.
+- **`draft_meta` (jsonb, additive):** drafting UI metadata only —
+  `schemaVersion`, `currentSectionIndex` / `currentStageId`,
+  `sourceOutlineSignature`, `completedSectionIds`, outline-review flags.
+  Never put student prose in `draft_meta`.
+- **`draft_revision` (bigint, additive):** monotonic CAS revision incremented
+  on every accepted atomic write via `write_module6_draft_atomic`.
+
+### Outline → draft mapping
+
+Intro + each finalized Module 5 body card (preserving order, point, job,
+evidence, reasoning, `sourceParagraphIndex`) + conclusion. UI may add a
+non-prose Review stage before Finish.
+
+### Upstream Module 5 change
+
+If the drafting-relevant outline signature changes after drafting begins:
+preserve every draft section; do not silently add/remove/reorder/rewrite prose;
+show a review notice with a link to Module 5; require an explicit student
+decision before treating the new signature as baseline.
+
+### Module 7
+
+Module 7 continues to consume Module 6 `sections[]` / `full_text` only. Additive
+`draft_meta` and job fields on outline cards must not appear as prose.
+
 Do not redesign Modules 2–9 in this pass; apply this standard at each later
 checkpoint when that module’s persistence is touched.
