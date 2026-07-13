@@ -9,32 +9,76 @@ export default function ModuleSevenReadAloud({
   onStart,
   onStop,
   prominent = false,
+  checklist = null,
 }) {
+  const listenItems = Array.isArray(checklist) ? checklist.filter(Boolean) : [];
+
   const controls = (
-    <div className="space-y-4 text-left">
+    <div className="space-y-4 text-left" data-testid="module7-read-aloud-recorder">
       {prominent ? (
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-text-primary">
-            Record your read-aloud
-          </p>
+          <p className="text-sm font-semibold text-text-primary">Record and play back</p>
           <p className="text-sm leading-relaxed text-text-muted">
-            Read your entire essay aloud and record it. This is an important part
-            of revision—you are expected to complete this step before you start
-            revising section by section.
+            Record while you read the essay above, then play it back.
           </p>
         </div>
       ) : (
         <p className="text-xs leading-relaxed text-text-muted">
-          Strong writers often read their work aloud. Hearing your sentences helps
-          you notice awkward wording, missing explanation, repetitive phrasing,
-          and confusing transitions.
+          Hearing your sentences helps you notice stumbles, repetition, abrupt
+          transitions, and places that need explanation.
         </p>
       )}
 
+      <div className="flex flex-wrap items-center gap-3">
+        {!recording ? (
+          <button
+            type="button"
+            onClick={onStart}
+            disabled={locked}
+            className={[
+              "rounded-lg bg-theme-red font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark",
+              prominent ? "min-h-[44px] px-6 py-3 text-base" : "min-h-[44px] px-4 py-2 text-sm",
+            ].join(" ")}
+          >
+            Start read-aloud
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onStop}
+            className={[
+              "rounded-lg bg-yellow-500 font-semibold text-white shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark",
+              prominent ? "min-h-[44px] px-6 py-3 text-base" : "min-h-[44px] px-4 py-2 text-sm",
+            ].join(" ")}
+          >
+            Stop recording
+          </button>
+        )}
+      </div>
+
+      {listenItems.length > 0 ? (
+        <div
+          className="rounded-lg border border-border-soft/70 bg-white/90 px-3 py-3"
+          data-testid="module7-listen-checklist"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Listen for
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
+            {listenItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <label className="text-xs font-medium text-text-muted">Microphone</label>
+        <label className="text-xs font-medium text-text-muted" htmlFor="module7-mic-select">
+          Microphone
+        </label>
         <select
-          className="rounded-lg border border-border-soft bg-white px-2 py-1 text-sm text-text-primary"
+          id="module7-mic-select"
+          className="min-h-[44px] rounded-lg border border-border-soft bg-white px-2 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
           value={selectedDeviceId}
           onChange={onDeviceChange}
         >
@@ -59,48 +103,20 @@ export default function ModuleSevenReadAloud({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {!recording ? (
-          <button
-            type="button"
-            onClick={onStart}
-            disabled={locked}
-            className={[
-              "rounded-lg bg-theme-red font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50",
-              prominent ? "px-6 py-3 text-base" : "px-4 py-2 text-sm",
-            ].join(" ")}
-          >
-            Start read-aloud
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onStop}
-            className={[
-              "rounded-lg bg-yellow-500 font-semibold text-white shadow-soft",
-              prominent ? "px-6 py-3 text-base" : "px-4 py-2 text-sm",
-            ].join(" ")}
-          >
-            Stop recording
-          </button>
-        )}
-      </div>
-
       {audioURL ? (
-        <div className="space-y-2">
+        <div className="space-y-2" data-testid="module7-read-aloud-playback">
           <p className="text-sm font-medium text-text-primary">Your recording</p>
           <audio controls src={audioURL} className="w-full" />
-          <p className="text-xs leading-relaxed text-text-muted">
-            {prominent
-              ? "Listen back to your full essay. Note places that sound choppy, abrupt, or unclear—you will revise those spots in the steps that follow."
-              : "As you listen, note places that sound choppy or unclear. Then revise those spots in the section on your desk."}
+          <p className="text-xs leading-relaxed text-text-muted" role="status">
+            Play the recording back. Notice one unclear, repetitive, abrupt, or
+            underexplained place to strengthen later.
           </p>
           {audioURL.startsWith("http") ? (
             <a
               id="download-latest-audio-ui"
               href={audioURL}
               download="read-aloud"
-              className="text-sm text-theme-blue underline"
+              className="inline-flex min-h-[44px] items-center text-sm text-theme-blue underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
             >
               Download recording
             </a>
@@ -120,7 +136,8 @@ export default function ModuleSevenReadAloud({
 
   return (
     <details className="rounded-lg border border-border-soft/60 bg-surface-soft/30 px-4 py-3">
-      <summary className="cursor-pointer list-none text-sm font-medium text-text-primary">
+      <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 text-sm font-medium text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+        <span aria-hidden="true">▾</span>
         Hear your draft aloud
       </summary>
       <div className="mt-3">{controls}</div>

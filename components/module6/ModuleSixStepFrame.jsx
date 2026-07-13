@@ -142,70 +142,97 @@ function JobRightNowCard({ jobRightNow }) {
 }
 
 function SupportingDetails({ whyLines, exampleBlock, successItems }) {
+  const hasWhy = whyLines.length > 0;
+  const hasExample = Boolean(exampleBlock?.sample);
+  const hasSuccess = successItems.length > 0;
+  if (!hasWhy && !hasExample && !hasSuccess) return null;
+
   return (
     <div className="max-w-2xl space-y-2 text-left">
-      <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 px-4 py-2.5">
-        <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-          Why this matters
-        </summary>
-        <div className="mt-2 space-y-2">
-          {whyLines.length > 0 ? (
-            whyLines.map((line) => (
+      {hasWhy ? (
+        <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
+          <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+            <span
+              aria-hidden="true"
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-soft bg-white text-xs font-bold"
+            >
+              +
+            </span>
+            <span className="flex-1 text-left">Why this matters</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Show
+            </span>
+            <span aria-hidden="true" className="text-text-muted">
+              ▾
+            </span>
+          </summary>
+          <div className="space-y-2 border-t border-border-soft/50 px-4 py-3">
+            {whyLines.map((line) => (
               <p key={line} className="text-sm leading-relaxed text-text-muted">
                 {line}
               </p>
-            ))
-          ) : (
-            <p className="text-sm leading-relaxed text-text-muted">
-              Keep going in your own words. We&apos;re building thinking you can use later.
-            </p>
-          )}
-        </div>
-      </details>
+            ))}
+          </div>
+        </details>
+      ) : null}
 
-      <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 px-4 py-2.5">
-        <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-          An example (and why it works)
-        </summary>
-        <div className="mt-2 space-y-2">
-          {exampleBlock ? (
-            <>
-              <p className="text-sm leading-relaxed text-text-primary whitespace-pre-wrap">
-                {exampleBlock.sample}
+      {hasExample ? (
+        <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
+          <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+            <span
+              aria-hidden="true"
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-soft bg-white text-xs font-bold"
+            >
+              +
+            </span>
+            <span className="flex-1 text-left">An example (and why it works)</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Show
+            </span>
+            <span aria-hidden="true" className="text-text-muted">
+              ▾
+            </span>
+          </summary>
+          <div className="space-y-2 border-t border-border-soft/50 px-4 py-3">
+            <p className="text-sm leading-relaxed text-text-primary whitespace-pre-wrap">
+              {exampleBlock.sample}
+            </p>
+            {exampleBlock.whyItWorks ? (
+              <p className="text-sm leading-relaxed text-text-muted">
+                <span className="font-medium text-text-primary">Why this works: </span>
+                {exampleBlock.whyItWorks}
               </p>
-              {exampleBlock.whyItWorks ? (
-                <p className="text-sm leading-relaxed text-text-muted">
-                  <span className="font-medium text-text-primary">Why this works: </span>
-                  {exampleBlock.whyItWorks}
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <p className="text-sm leading-relaxed text-text-muted">
-              If you&apos;re not sure yet, start with a simple answer you can test.
-            </p>
-          )}
-        </div>
-      </details>
+            ) : null}
+          </div>
+        </details>
+      ) : null}
 
-      <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 px-4 py-2.5">
-        <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-          Self-check before you continue
-        </summary>
-        <div className="mt-2">
-          {successItems.length > 0 ? (
+      {hasSuccess ? (
+        <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
+          <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+            <span
+              aria-hidden="true"
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-soft bg-white text-xs font-bold"
+            >
+              +
+            </span>
+            <span className="flex-1 text-left">Self-check before you continue</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Show
+            </span>
+            <span aria-hidden="true" className="text-text-muted">
+              ▾
+            </span>
+          </summary>
+          <div className="border-t border-border-soft/50 px-4 py-3">
             <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
               {successItems.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
-          ) : (
-            <p className="text-sm leading-relaxed text-text-muted">
-              If your thinking is clear enough to explain, it&apos;s clear enough to keep going.
-            </p>
-          )}
-        </div>
-      </details>
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -227,6 +254,8 @@ export default function ModuleSixStepFrame({
   nextStepText = "",
   jobRightNow = null,
   supportingResources = null,
+  hideSupporting = false,
+  supportingPlacement = "before",
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
   const exampleBlock = normalizeExample(example);
@@ -234,14 +263,18 @@ export default function ModuleSixStepFrame({
     ? successLooksLike.filter(Boolean)
     : [];
   const actionFirst = !!jobRightNow?.steps?.length;
-
-  const supporting = (
-    <SupportingDetails
-      whyLines={whyLines}
-      exampleBlock={exampleBlock}
-      successItems={successItems}
-    />
-  );
+  const supporting =
+    hideSupporting ? null : (
+      <SupportingDetails
+        whyLines={whyLines}
+        exampleBlock={exampleBlock}
+        successItems={successItems}
+      />
+    );
+  const supportingBefore =
+    !actionFirst && supportingPlacement !== "after" ? supporting : null;
+  const supportingAfter =
+    !actionFirst && supportingPlacement === "after" ? supporting : null;
 
   return (
     <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
@@ -267,9 +300,11 @@ export default function ModuleSixStepFrame({
 
           {actionFirst ? <JobRightNowCard jobRightNow={jobRightNow} /> : null}
 
-          {!actionFirst ? supporting : null}
+          {supportingBefore}
 
           <div className="space-y-6 md:space-y-7">{children}</div>
+
+          {supportingAfter}
 
           {actionFirst ? (
             <section

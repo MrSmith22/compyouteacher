@@ -21,6 +21,10 @@ import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSevenReferenceShelf from "@/components/module7/ModuleSevenReferenceShelf";
 import ModuleSevenReadAloud from "@/components/module7/ModuleSevenReadAloud";
+import ModuleSevenReadAloudTaskCard from "@/components/module7/ModuleSevenReadAloudTaskCard";
+import ModuleSevenReadAloudObservation from "@/components/module7/ModuleSevenReadAloudObservation";
+import ModuleSevenReadAloudSecondaryTeaching from "@/components/module7/ModuleSevenReadAloudSecondaryTeaching";
+import ModuleSevenStrategyCard from "@/components/module7/ModuleSevenStrategyCard";
 import EssayProseView from "@/components/module7/EssayProseView";
 import {
   alignSectionsToOutline,
@@ -33,15 +37,32 @@ import {
   getWritingSectionLabel,
 } from "@/components/module6/module6StepPresentation";
 import { getModule7StepPresentation, MODULE7_STEP_TYPES } from "@/components/module7/module7StepPresentation";
+import {
+  MODULE7_LAYOUT_CONTRACT,
+} from "@/lib/module7/module7RevisionStrategy";
+import {
+  emptyReadAloudObservation,
+  evaluateReadAloudAdvanceGate,
+} from "@/lib/module7/module7ReadAloudObservation";
 import { logActivity } from "../lib/logActivity";
 
 const READ_ALOUD_STEP = { id: "read-aloud", type: MODULE7_STEP_TYPES.READ_ALOUD };
+const FINAL_REVIEW_STEP = {
+  id: "final-review",
+  type: MODULE7_STEP_TYPES.FINAL_REVIEW,
+};
 
 const FULL_DRAFT_READ_CLASS =
   "max-h-[min(480px,60vh)] overflow-y-auto rounded-xl border-2 border-theme-dark/15 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft";
 
+const READ_ALOUD_ESSAY_CLASS =
+  "max-h-[min(180px,28vh)] overflow-y-auto rounded-xl border-2 border-theme-dark/15 bg-white px-4 py-3 text-base leading-7 text-text-primary shadow-soft md:max-h-[min(240px,30vh)]";
+
 const REVISION_TEXTAREA_CLASS =
   "min-h-[min(320px,48vh)] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 disabled:cursor-not-allowed disabled:opacity-60";
+
+const ACTION_BUTTON_FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark";
 
 function pickAudioFormat() {
   const candidates = [
@@ -81,6 +102,9 @@ export default function ModuleSeven() {
 
   const [recording, setRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
+  const [readAloudObservation, setReadAloudObservation] = useState(
+    emptyReadAloudObservation
+  );
   const [devices, setDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [amp, setAmp] = useState(0);
@@ -106,12 +130,18 @@ export default function ModuleSeven() {
     [outline]
   );
 
-  const totalSteps = sectionSteps.length + 1;
+  const totalSteps = sectionSteps.length + 2;
   const isReadAloudStep = currentStepIndex === 0;
-  const currentRevisionStep = isReadAloudStep
-    ? null
-    : sectionSteps[currentStepIndex - 1] ?? null;
-  const presentationStep = isReadAloudStep ? READ_ALOUD_STEP : currentRevisionStep;
+  const isFinalReviewStep = currentStepIndex === sectionSteps.length + 1;
+  const currentRevisionStep =
+    isReadAloudStep || isFinalReviewStep
+      ? null
+      : sectionSteps[currentStepIndex - 1] ?? null;
+  const presentationStep = isReadAloudStep
+    ? READ_ALOUD_STEP
+    : isFinalReviewStep
+      ? FINAL_REVIEW_STEP
+      : currentRevisionStep;
   const presentation = useMemo(
     () => getModule7StepPresentation(presentationStep, outline),
     [presentationStep, outline]
@@ -391,6 +421,7 @@ export default function ModuleSeven() {
         "You already recorded a read-aloud. Record again and replace it?"
       );
       if (!confirmOverwrite) return;
+      setReadAloudObservation(emptyReadAloudObservation());
     }
 
     try {
@@ -432,6 +463,7 @@ export default function ModuleSeven() {
 
         const localUrl = URL.createObjectURL(blob);
         setAudioURL(localUrl);
+        setReadAloudObservation(emptyReadAloudObservation());
 
         const durationSeconds = await getBlobDurationSeconds(blob);
 
@@ -607,7 +639,23 @@ export default function ModuleSeven() {
   };
 
   const goNext = () => {
-    setCurrentStepIndex((index) => Math.min(sectionSteps.length, index + 1));
+    if (isReadAloudStep) {
+      const gate = evaluateReadAloudAdvanceGate({
+        audioURL,
+        observation: readAloudObservation,
+      });
+      if (!gate.ok) {
+        setRevisionNotice({
+          type: "error",
+          message: gate.message,
+        });
+        return;
+      }
+    }
+    setRevisionNotice(null);
+    setCurrentStepIndex((index) =>
+      Math.min(sectionSteps.length + 1, index + 1)
+    );
   };
 
   if (!session) {
@@ -686,11 +734,23 @@ export default function ModuleSeven() {
 
   const draftIndex = currentRevisionStep?.draftIndex ?? 0;
   const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === sectionSteps.length;
+  const isLastStep = isFinalReviewStep;
   const sectionLabel = currentRevisionStep
     ? getWritingSectionLabel(currentRevisionStep)
     : "";
   const sectionIsEmpty = !String(sections[draftIndex] || "").trim();
+  const stepKind = isReadAloudStep
+    ? "Read aloud"
+    : isFinalReviewStep
+      ? "Final review"
+      : "Revise";
+
+  const readAloudGate = evaluateReadAloudAdvanceGate({
+    audioURL,
+    observation: readAloudObservation,
+  });
+  const readAloudReady = readAloudGate.ok;
+  const canKeepGoing = !isReadAloudStep || readAloudReady;
 
   const referenceShelf = (
     <ModuleSevenReferenceShelf
@@ -702,42 +762,62 @@ export default function ModuleSeven() {
       observations={observations}
       sectionSteps={sectionSteps}
       sections={sections}
-      activeStep={isReadAloudStep ? null : currentRevisionStep}
-      highlightWholeDraft={isReadAloudStep}
+      activeStep={isReadAloudStep || isFinalReviewStep ? null : currentRevisionStep}
+      highlightWholeDraft={isReadAloudStep || isFinalReviewStep}
     />
   );
 
   return (
     <ModulePageShell>
+      <div
+        className="overflow-x-hidden"
+        data-wp020-layout={MODULE7_LAYOUT_CONTRACT.viewports.join("-")}
+        data-wp020-read-aloud={isReadAloudStep ? "task-first" : "section"}
+      >
       <ModuleSixStepFrame
         question={presentation.question}
-        whyMatters={presentation.whyMatters}
-        successLooksLike={presentation.successLooksLike}
+        whyMatters={isReadAloudStep ? [] : presentation.whyMatters}
+        successLooksLike={isReadAloudStep ? [] : presentation.successLooksLike}
         coachingMessage={presentation.coachingMessage}
         nextStepText={presentation.nextStepText}
         sidebar={referenceShelf}
+        hideSupporting={isReadAloudStep}
       >
-        <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
-          <p className="text-[11px] leading-relaxed text-text-muted">
-            Module 7 · {isReadAloudStep ? "Read aloud" : "Revise"} · step{" "}
-            {currentStepIndex + 1} of {totalSteps}
-            {isReadAloudStep ? "" : ". Same essay—one section at a time."}
-          </p>
-          <p className="text-[11px] leading-relaxed text-text-muted/80">
-            {isReadAloudStep
-              ? "Read your entire essay aloud before you revise section by section."
-              : "You planned it, outlined it, and drafted it. Now you're strengthening it."}
-          </p>
-        </div>
+        {!isReadAloudStep ? (
+          <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              Module 7 · {stepKind} · step {currentStepIndex + 1} of {totalSteps}
+              {isFinalReviewStep ? "" : ". Same essay—one section at a time."}
+            </p>
+            <p className="text-[11px] leading-relaxed text-text-muted/80">
+              {presentation.strengthFrame ||
+                "Your draft is complete. Now you are making it stronger."}
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              Module 7 · Read aloud · step 1 of {totalSteps}
+            </p>
+          </div>
+        )}
 
-        <WorkingSetSection
-          className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
-          label={presentation.workingSetLabel}
-          description={presentation.workingSetDescription}
-        >
-          {isReadAloudStep ? (
-            <div className="space-y-4 text-left">
-              <div className={FULL_DRAFT_READ_CLASS}>
+        {isReadAloudStep ? (
+          <div
+            className="space-y-5 text-left"
+            data-testid="module7-read-aloud-primary"
+          >
+            <ModuleSevenReadAloudTaskCard />
+
+            <WorkingSetSection
+              className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+              label={presentation.workingSetLabel}
+              description={presentation.workingSetDescription}
+            >
+              <div
+                className={READ_ALOUD_ESSAY_CLASS}
+                data-testid="module7-current-essay"
+              >
                 <EssayProseView
                   sectionSteps={sectionSteps}
                   sections={sections}
@@ -749,61 +829,116 @@ export default function ModuleSeven() {
                   }
                 />
               </div>
-              <ModuleSevenReadAloud
-                prominent
-                recording={recording}
-                audioURL={audioURL}
-                devices={devices}
-                selectedDeviceId={selectedDeviceId}
-                amp={amp}
-                locked={locked}
-                onDeviceChange={(e) => {
-                  setSelectedDeviceId(e.target.value);
-                  localStorage.setItem("chosenMicId", e.target.value);
-                }}
-                onStart={startRecording}
-                onStop={stopRecording}
-              />
-            </div>
-          ) : (
-            <div className="space-y-3 text-left">
-              <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
-              {sectionIsEmpty ? (
-                <p className="text-xs leading-relaxed text-text-muted">
-                  This section is empty. You can fill it with the draft you wrote in
-                  Module 6.
-                </p>
-              ) : null}
-              <textarea
-                spellCheck
-                autoCorrect="on"
-                autoCapitalize="sentences"
-                lang="en"
-                enterKeyHint="enter"
-                className={REVISION_TEXTAREA_CLASS}
-                value={sections[draftIndex] || ""}
-                onChange={(e) => updateSection(draftIndex, e.target.value)}
+            </WorkingSetSection>
+
+            <ModuleSevenReadAloud
+              prominent
+              recording={recording}
+              audioURL={audioURL}
+              devices={devices}
+              selectedDeviceId={selectedDeviceId}
+              amp={amp}
+              locked={locked}
+              checklist={presentation.strategy?.checklist || []}
+              onDeviceChange={(e) => {
+                setSelectedDeviceId(e.target.value);
+                localStorage.setItem("chosenMicId", e.target.value);
+              }}
+              onStart={startRecording}
+              onStop={stopRecording}
+            />
+
+            {audioURL ? (
+              <ModuleSevenReadAloudObservation
+                observation={readAloudObservation}
                 disabled={locked}
-                placeholder="Strengthen this section in your own words…"
+                onChange={(next) => {
+                  setReadAloudObservation(next);
+                  setRevisionNotice(null);
+                }}
               />
-              <p className="text-xs leading-relaxed text-text-muted">
-                Save your revision when you want to keep your progress for another
-                session.{" "}
-                <button
-                  type="button"
-                  onClick={restoreModule6Draft}
-                  disabled={locked}
-                  className="font-semibold text-theme-blue hover:underline disabled:opacity-50"
-                >
-                  Use my Module 6 draft
-                </button>
-              </p>
-            </div>
-          )}
-        </WorkingSetSection>
+            ) : null}
+
+            <ModuleSevenReadAloudSecondaryTeaching
+              strategy={presentation.strategy}
+            />
+          </div>
+        ) : (
+          <>
+            <ModuleSevenStrategyCard
+              strategy={presentation.strategy}
+              showEntryTeaching={false}
+              entryTeaching={null}
+              revisionStage={isFinalReviewStep ? "compare" : "change"}
+            />
+
+            <WorkingSetSection
+              className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+              label={presentation.workingSetLabel}
+              description={presentation.workingSetDescription}
+            >
+              {isFinalReviewStep ? (
+                <div className="space-y-3 text-left">
+                  <div className={FULL_DRAFT_READ_CLASS}>
+                    <EssayProseView
+                      sectionSteps={sectionSteps}
+                      sections={sections}
+                      emptyFallback={
+                        <p className="text-sm leading-relaxed text-text-muted">
+                          Your revised essay will appear here once sections have prose.
+                        </p>
+                      }
+                    />
+                  </div>
+                  <p className="text-sm leading-relaxed text-text-muted" role="status">
+                    This review does not change your prose. Use Back if you want to
+                    strengthen one more section.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 text-left">
+                  <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
+                  {sectionIsEmpty ? (
+                    <p className="text-xs leading-relaxed text-text-muted">
+                      This section is empty. You can fill it with the draft you wrote in
+                      Module 6.
+                    </p>
+                  ) : null}
+                  <textarea
+                    spellCheck
+                    autoCorrect="on"
+                    autoCapitalize="sentences"
+                    lang="en"
+                    enterKeyHint="enter"
+                    className={REVISION_TEXTAREA_CLASS}
+                    value={sections[draftIndex] || ""}
+                    onChange={(e) => updateSection(draftIndex, e.target.value)}
+                    disabled={locked}
+                    aria-label={`Revise ${sectionLabel || "this section"}`}
+                    placeholder="Strengthen this section in your own words…"
+                  />
+                  <p className="text-xs leading-relaxed text-text-muted">
+                    Save your revision when you want to keep your progress for another
+                    session.{" "}
+                    <button
+                      type="button"
+                      onClick={restoreModule6Draft}
+                      disabled={locked}
+                      className={`min-h-[44px] font-semibold text-theme-blue hover:underline disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
+                    >
+                      Use my Module 6 draft
+                    </button>
+                  </p>
+                </div>
+              )}
+            </WorkingSetSection>
+          </>
+        )}
 
         {revisionNotice ? (
           <div
+            role="status"
+            aria-live="polite"
             className={[
               "rounded-lg px-4 py-3 text-sm",
               revisionNotice.type === "success"
@@ -823,7 +958,7 @@ export default function ModuleSeven() {
               <button
                 type="button"
                 onClick={unlockForTesting}
-                className="rounded-md border border-border-soft bg-white px-3 py-1.5 text-xs text-text-muted"
+                className={`min-h-[44px] rounded-md border border-border-soft bg-white px-3 py-1.5 text-xs text-text-muted ${ACTION_BUTTON_FOCUS}`}
               >
                 Unlock to Test
               </button>
@@ -838,27 +973,30 @@ export default function ModuleSeven() {
                 type="button"
                 onClick={goBack}
                 disabled={locked}
-                className="rounded-lg bg-surface-soft px-4 py-2 text-text-primary hover:bg-border-soft/60 disabled:opacity-50"
+                className={`min-h-[44px] rounded-lg bg-surface-soft px-4 py-2 text-text-primary hover:bg-border-soft/60 disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
               >
                 Back
               </button>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => saveDraft()}
-              disabled={locked}
-              className="rounded-lg border border-theme-blue/30 bg-white px-4 py-2 text-sm font-medium text-theme-blue disabled:opacity-50"
-            >
-              Save revision
-            </button>
+            {!isReadAloudStep ? (
+              <button
+                type="button"
+                onClick={() => saveDraft()}
+                disabled={locked}
+                className={`min-h-[44px] rounded-lg border border-theme-blue/30 bg-white px-4 py-2 text-sm font-medium text-theme-blue disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
+              >
+                Save revision
+              </button>
+            ) : null}
             {!isLastStep ? (
               <button
                 type="button"
                 onClick={goNext}
-                disabled={locked}
-                className="rounded-lg bg-theme-blue px-4 py-2 font-medium text-white disabled:opacity-50"
+                disabled={locked || (isReadAloudStep && !canKeepGoing)}
+                aria-disabled={locked || (isReadAloudStep && !canKeepGoing)}
+                className={`min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 font-medium text-white disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
               >
                 Keep going
               </button>
@@ -867,14 +1005,26 @@ export default function ModuleSeven() {
                 type="button"
                 onClick={() => saveDraft({ finalized: true })}
                 disabled={locked}
-                className="rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft disabled:opacity-50"
+                className={`min-h-[44px] rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
               >
                 Finish revising and continue
               </button>
             )}
           </div>
         </div>
+        {isReadAloudStep && !readAloudReady ? (
+          <p
+            className="text-sm text-text-muted"
+            role="status"
+            aria-live="polite"
+            data-testid="module7-read-aloud-gate"
+            data-gate-reason={readAloudGate.reason}
+          >
+            {readAloudGate.message}
+          </p>
+        ) : null}
       </ModuleSixStepFrame>
+      </div>
     </ModulePageShell>
   );
 }
