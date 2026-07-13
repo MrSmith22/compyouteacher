@@ -711,6 +711,20 @@ export default function ModuleEight() {
                 format and turn in.
               </li>
             </ul>
+            {/* WP-037 — Persistent reassurance on every Module 8 step */}
+            <div
+              className="mt-3 border-t border-theme-blue/15 pt-3"
+              data-testid="module8-submission-reassurance"
+            >
+              <ul className="space-y-1 text-sm leading-relaxed text-text-primary">
+                <li>Your writing has been saved.</li>
+                <li>
+                  Nothing has been submitted yet. Module 8 prepares your Google
+                  Doc; Module 9 is when you create the final PDF to turn in.
+                </li>
+                <li>You can return and update your Google Doc.</li>
+              </ul>
+            </div>
           </div>
 
           <PreparationProgressPanel

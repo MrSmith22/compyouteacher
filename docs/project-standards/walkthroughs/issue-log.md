@@ -74,7 +74,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Resolved |
 | WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Resolved |
 | WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Resolved |
-| WP-037 | Module 8 lacks reassurance that submission has not happened yet | 8 | Medium | Instructional | Open |
+| WP-037 | Module 8 lacks reassurance that submission has not happened yet | 8 | Medium | Instructional | Resolved |
 | WP-038 | Module 9 needs internal APA Quick Guide | 9 | Critical | Instructional | Open |
 | WP-039 | Module 9 quiz stacks many questions instead of one concept per screen | 9 | High | Instructional / UX | Open |
 | WP-040 | Module 9 quiz feedback reports correctness without teaching | 9 | Medium | Instructional | Open |
@@ -1137,7 +1137,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All Module 8 screens
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Students fear accidentally submitting too early. Module 8 does not consistently reassure that writing is saved, nothing is submitted yet, and they can return to update.
 
@@ -1151,11 +1151,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Walk all Module 8 screens.
 2. Confirm reassurance messaging is visible on each.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleEight.js`; `tests/module8-wp037-submission-reassurance.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Extended the always-visible `module8-submission-doc-framing` panel with shared `module8-submission-reassurance`: writing saved; nothing submitted yet (Module 8 prepares the Doc; Module 9 final PDF); can return and update Google Doc. Outside step working-set conditionals so it appears on Create/Update, Format, and Ready. No new API/state/gates. Preserves WP-030–036. Focused WP-030–037 **58/58**; full suite **952/952**. Bounded browser: Module 8 sign-in wall blocked authenticated viewport checks—no CDP/auth loop.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
