@@ -42,6 +42,8 @@ import {
   getModule8StepPresentation,
   MODULE8_STEP_TYPES,
   MODULE8_WORKSPACE_STEPS,
+  MODULE8_FORMAT_APA_DOES,
+  MODULE8_FORMAT_CHANGE_CATEGORIES,
 } from "@/components/module8/module8StepPresentation";
 import { logActivity } from "../lib/logActivity";
 
@@ -760,14 +762,60 @@ export default function ModuleEight() {
           ) : null}
 
           {currentStep.type === MODULE8_STEP_TYPES.FORMAT ? (
-            <div className="space-y-4 text-left">
-              {submissionDocUrl ? (
-                <div className="rounded-lg border border-border-soft/60 bg-surface-soft/30 px-4 py-3">
-                  <p className="text-sm font-medium text-text-primary">Your Google Doc</p>
+            <div className="space-y-4 text-left" data-testid="module8-format-working-set">
+              {/* Stage 1 — What APA formatting does */}
+              <section
+                className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3"
+                data-testid="module8-format-what-apa-does"
+                aria-labelledby="module8-format-apa-does-heading"
+              >
+                <h3
+                  id="module8-format-apa-does-heading"
+                  className="text-sm font-semibold text-text-primary"
+                >
+                  What APA formatting does
+                </h3>
+                <ul className="mt-2 space-y-1 text-sm leading-relaxed text-text-muted">
+                  {MODULE8_FORMAT_APA_DOES.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </section>
+
+              {/* Stage 2 — What you will change */}
+              <section
+                className="rounded-lg border border-border-soft/60 bg-surface-soft/30 px-4 py-3"
+                data-testid="module8-format-what-you-change"
+                aria-labelledby="module8-format-change-heading"
+              >
+                <h3
+                  id="module8-format-change-heading"
+                  className="text-sm font-semibold text-text-primary"
+                >
+                  What you will change
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-text-primary">
+                  Your writing is finished. Do not rewrite your essay here—make these
+                  formatting changes inside your Google Doc.
+                </p>
+                <ul
+                  className="mt-2 flex flex-wrap gap-1.5"
+                  data-testid="module8-format-change-categories"
+                >
+                  {MODULE8_FORMAT_CHANGE_CATEGORIES.map((category) => (
+                    <li
+                      key={category}
+                      className="rounded-md border border-border-soft/70 bg-white px-2.5 py-1 text-xs font-medium text-text-primary"
+                    >
+                      {category}
+                    </li>
+                  ))}
+                </ul>
+                {submissionDocUrl ? (
                   <button
                     type="button"
                     onClick={openSubmissionGoogleDoc}
-                    className={`mt-2 inline-flex min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 ${
+                    className={`mt-3 inline-flex min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 ${
                       canAdvanceFromStep2
                         ? "border border-border-soft bg-white font-medium text-text-primary"
                         : "bg-theme-blue text-white shadow-soft"
@@ -776,52 +824,81 @@ export default function ModuleEight() {
                   >
                     Open your Google Doc
                   </button>
+                ) : (
+                  <p className="mt-3 text-xs text-text-muted">
+                    Create or update your Google Doc in the previous step before formatting.
+                  </p>
+                )}
+              </section>
+
+              {/* Stage 3 — Formatting checklist (same persisted checklist) */}
+              <section
+                data-testid="module8-format-checklist"
+                aria-labelledby="module8-format-checklist-heading"
+              >
+                <h3
+                  id="module8-format-checklist-heading"
+                  className="text-sm font-semibold text-text-primary"
+                >
+                  Formatting checklist
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                  After you finish each item in your Google Doc, check it off here.
+                </p>
+                <div className="mt-3 space-y-2">
+                  {CHECKLIST_ITEMS.map((label, index) => (
+                    <label
+                      key={label}
+                      className="flex items-start gap-2 text-sm leading-relaxed text-text-primary"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checklistState[index] || false}
+                        disabled={locked}
+                        onChange={(e) => {
+                          const next = [...checklistState];
+                          next[index] = e.target.checked;
+                          setChecklistState(next);
+                        }}
+                        className="mt-1 rounded border-border-soft text-theme-blue"
+                      />
+                      {label}
+                    </label>
+                  ))}
                 </div>
-              ) : null}
 
-              <p className="text-sm font-medium text-text-primary">
-                Most of the work in this step happens in your Google Doc.
-              </p>
-              <p className="text-sm leading-relaxed text-text-muted">
-                Come back here as you complete each formatting task. You should not
-                be editing your essay in the processor—only checking off what you
-                finished in your Google Doc.
-              </p>
+                {checklistError ? (
+                  <p className="mt-2 text-xs text-red-700">
+                    Checklist could not be saved: {checklistError}. Your selections are
+                    kept for this session.
+                  </p>
+                ) : null}
 
-              <div className="space-y-2">
-                {CHECKLIST_ITEMS.map((label, index) => (
-                  <label
-                    key={label}
-                    className="flex items-start gap-2 text-sm leading-relaxed text-text-primary"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checklistState[index] || false}
-                      disabled={locked}
-                      onChange={(e) => {
-                        const next = [...checklistState];
-                        next[index] = e.target.checked;
-                        setChecklistState(next);
-                      }}
-                      className="mt-1 rounded border-border-soft text-theme-blue"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
+                {checklistComplete ? (
+                  <p className="mt-2 text-sm font-medium text-theme-green">
+                    All formatting items complete.
+                  </p>
+                ) : null}
+              </section>
 
-              {checklistError ? (
-                <p className="text-xs text-red-700">
-                  Checklist could not be saved: {checklistError}. Your selections are
-                  kept for this session.
+              {/* Stage 4 — Continue cue (footer Keep going stays the gated control) */}
+              <section
+                className="rounded-lg border border-border-soft/50 bg-white px-4 py-3"
+                data-testid="module8-format-continue-cue"
+                aria-labelledby="module8-format-continue-heading"
+              >
+                <h3
+                  id="module8-format-continue-heading"
+                  className="text-sm font-semibold text-text-primary"
+                >
+                  Continue
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                  {checklistComplete
+                    ? "Checklist complete. Use Keep going below to move to the ready check."
+                    : "Keep going unlocks after every checklist item is complete."}
                 </p>
-              ) : null}
-
-              {checklistComplete ? (
-                <p className="text-sm font-medium text-theme-green">
-                  All formatting items complete.
-                </p>
-              ) : null}
+              </section>
             </div>
           ) : null}
 

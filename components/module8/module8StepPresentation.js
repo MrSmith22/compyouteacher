@@ -10,6 +10,22 @@ export const MODULE8_WORKSPACE_STEPS = [
   { id: "ready", type: MODULE8_STEP_TYPES.READY },
 ];
 
+/** WP-034 — Always-visible Format coaching (not only collapsed Why this matters). */
+export const MODULE8_FORMAT_APA_DOES = Object.freeze([
+  "Makes your paper consistent and easier to read.",
+  "Shows your reader you prepared the work carefully.",
+  "Changes how the paper looks—not your ideas or argument.",
+]);
+
+export const MODULE8_FORMAT_CHANGE_CATEGORIES = Object.freeze([
+  "Font",
+  "Spacing",
+  "Margins",
+  "Title page",
+  "Page numbers",
+  "References page",
+]);
+
 export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}) {
   if (step?.type === MODULE8_STEP_TYPES.CREATE_DOC) {
     return {
@@ -51,7 +67,8 @@ export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}
         "Most of the work in this step happens in your Google Doc. Come back here as you complete each formatting task. Do not edit your essay in the processor—you are only preparing how your paper looks.",
       nextStepText: "Next you will make sure you are ready to continue.",
       workingSetLabel: "Format your paper",
-      workingSetDescription: "On your desk: your APA formatting checklist.",
+      workingSetDescription:
+        "Your writing is finished. Use APA formatting in your Google Doc, then check off each item here.",
     };
   }
 

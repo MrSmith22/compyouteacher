@@ -71,7 +71,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Resolved |
 | WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Resolved |
 | WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Resolved |
-| WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Open |
+| WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Resolved |
 | WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Open |
 | WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Open |
 | WP-037 | Module 8 lacks reassurance that submission has not happened yet | 8 | Medium | Instructional | Open |
@@ -1053,7 +1053,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** APA formatting screen
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Students are told to format their paper but not how or why. The page has logical progression and a checklist but weak coaching on what APA formatting does and what students will change.
 
@@ -1067,11 +1067,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open APA formatting page.
 2. Confirm how/why coaching precedes the checklist.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleEight.js`; `components/module8/module8StepPresentation.js`; `tests/module8-wp034-apa-formatting-coaching.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Format working set now shows four visible stages before/around the existing checklist: What APA formatting does; What you will change (six category chips + Open Google Doc + writing-finished reassurance); Formatting checklist (same persisted CHECKLIST_ITEMS / Module 9 checklist APIs); Continue cue with Keep going still gated by `checklistComplete`. Coaching is not limited to collapsed Why this matters. APA shelf links unchanged. Browser acceptance at **390×844** and **1440×900**. Full suite 935/935.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after browser acceptance; this commit)
 
 ---
 

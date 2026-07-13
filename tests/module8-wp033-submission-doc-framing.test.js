@@ -80,13 +80,15 @@ describe("WP-033 Module 8 Google Doc submission framing", () => {
     assert.match(joined, /writing is complete|no longer improving your ideas/i);
     assert.match(joined, /Google Doc/i);
     assert.match(joined, /format/i);
-    assert.doesNotMatch(joined, /rewrite your essay|revise your ideas/i);
+    assert.doesNotMatch(joined, /revise your ideas|start rewriting your essay/i);
 
     const m8 = readSrc("components/ModuleEight.js");
     assert.ok(m8.includes("Your writing is complete."));
     assert.ok(m8.includes("You are no longer improving your ideas."));
     assert.ok(m8.includes("format and turn in"));
-    assert.ok(!/rewrite your essay|start revising again/i.test(m8));
+    // Reassurance against rewriting is allowed; do not prompt a new writing pass.
+    assert.ok(!/start revising again|rewrite your essay now/i.test(m8));
+    assert.ok(m8.includes("Do not rewrite your essay here") || m8.includes("no longer improving your ideas"));
   });
 
   it("preserves WP-030–032 recovery, buttons, and verified success contracts", () => {
