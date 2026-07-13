@@ -44,6 +44,7 @@ import {
   MODULE8_WORKSPACE_STEPS,
   MODULE8_FORMAT_APA_DOES,
   MODULE8_FORMAT_CHANGE_CATEGORIES,
+  MODULE8_READY_CONFIDENCE_ITEMS,
 } from "@/components/module8/module8StepPresentation";
 import { logActivity } from "../lib/logActivity";
 
@@ -138,6 +139,10 @@ export default function ModuleEight() {
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
   const [checklistLoading, setChecklistLoading] = useState(true);
   const [checklistError, setChecklistError] = useState(null);
+  // WP-035: local Ready-step confidence confirmations (not persisted APA checklist).
+  const [confidenceState, setConfidenceState] = useState(
+    () => Array(MODULE8_READY_CONFIDENCE_ITEMS.length).fill(false)
+  );
 
   const hasLoggedStartRef = useRef(false);
   const checklistLoadedRef = useRef(false);
@@ -163,6 +168,7 @@ export default function ModuleEight() {
   );
 
   const checklistComplete = checklistState.every(Boolean);
+  const confidenceComplete = confidenceState.every(Boolean);
 
   const getTextMetrics = (value) => {
     const raw = typeof value === "string" ? value : finishedEssayText;
@@ -317,21 +323,26 @@ export default function ModuleEight() {
     };
   }, [session?.user?.email, checklistState, checklistLoading]);
 
-  // WP-068: previously finalized students use the same success page as first-time
-  // completion once this-visit export (WP-002) and checklist are satisfied.
-  // Progress advance (WP-067) happens on /modules/8/success.
+  // WP-068 + WP-035: after this-visit verify and APA checklist, previously
+  // finalized students land on Ready (same as first-time) so the confidence
+  // checklist can complete before /modules/8/success (WP-067 advance).
   useEffect(() => {
     if (
       !previouslyFinalized ||
       !docVerifiedThisSession ||
       !checklistComplete ||
+      confidenceComplete ||
       navigatedToSuccessRef.current
     ) {
       return;
     }
-    navigatedToSuccessRef.current = true;
-    router.push("/modules/8/success");
-  }, [previouslyFinalized, docVerifiedThisSession, checklistComplete, router]);
+    setCurrentStepIndex(MODULE8_WORKSPACE_STEPS.length - 1);
+  }, [
+    previouslyFinalized,
+    docVerifiedThisSession,
+    checklistComplete,
+    confidenceComplete,
+  ]);
 
   const handleCreateOrUpdateSubmissionDoc = async ({
     forceCreate = false,
@@ -477,6 +488,16 @@ export default function ModuleEight() {
 
   const finishPreparing = async () => {
     if (!email) return;
+    // WP-035 + existing gates: never complete without verified Doc, APA checklist,
+    // and Ready confidence confirmations.
+    if (
+      !docVerifiedThisSession ||
+      !submissionDocUrl ||
+      !checklistComplete ||
+      !confidenceComplete
+    ) {
+      return;
+    }
 
     const text = finishedEssayText;
     if (!text.trim()) {
@@ -505,6 +526,7 @@ export default function ModuleEight() {
       module: 8,
       has_submission_doc: !!submissionDocUrl,
       checklist_complete: checklistComplete,
+      confidence_complete: confidenceComplete,
       ...metrics,
     });
 
@@ -591,7 +613,11 @@ export default function ModuleEight() {
 
   const canAdvanceFromStep1 = docVerifiedThisSession;
   const canAdvanceFromStep2 = checklistComplete;
-  const canFinish = docVerifiedThisSession && !!submissionDocUrl && checklistComplete;
+  const canFinish =
+    docVerifiedThisSession &&
+    !!submissionDocUrl &&
+    checklistComplete &&
+    confidenceComplete;
   const exportControlsDisabled =
     creatingDoc || (locked && docVerifiedThisSession);
   // WP-031: recovery panel already shows primary Continue after this-session verify.
@@ -903,7 +929,7 @@ export default function ModuleEight() {
           ) : null}
 
           {currentStep.type === MODULE8_STEP_TYPES.READY ? (
-            <div className="space-y-4 text-left">
+            <div className="space-y-4 text-left" data-testid="module8-ready-working-set">
               <p className="text-sm leading-relaxed text-text-muted">
                 You finished writing in Module 7. This step closes your preparation—not
                 another writing assignment.
@@ -924,6 +950,45 @@ export default function ModuleEight() {
                 </li>
               </ul>
 
+              <section
+                className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3"
+                data-testid="module8-ready-confidence-checklist"
+                aria-labelledby="module8-ready-confidence-heading"
+              >
+                <h3
+                  id="module8-ready-confidence-heading"
+                  className="text-sm font-semibold text-text-primary"
+                >
+                  Before continuing
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                  These checks do not submit your paper. They confirm your Google Doc is
+                  ready before you move to Module 9.
+                </p>
+                <div className="mt-3 space-y-2">
+                  {MODULE8_READY_CONFIDENCE_ITEMS.map((label, index) => (
+                    <label
+                      key={label}
+                      className="flex min-h-[44px] items-start gap-2 text-sm leading-relaxed text-text-primary"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={confidenceState[index] || false}
+                        disabled={locked}
+                        onChange={(e) => {
+                          const next = [...confidenceState];
+                          next[index] = e.target.checked;
+                          setConfidenceState(next);
+                        }}
+                        className="mt-1 rounded border-border-soft text-theme-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                        data-testid={`module8-ready-confidence-${index}`}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+
               <div className="rounded-lg bg-surface-soft/40 px-4 py-3">
                 <p className="text-sm font-medium text-text-primary">Reflection</p>
                 <p className="mt-1 text-sm leading-relaxed text-text-muted">
@@ -932,9 +997,12 @@ export default function ModuleEight() {
               </div>
 
               {!canFinish && !locked ? (
-                <p className="text-xs text-text-muted">
-                  Create or update your Google Doc with your latest essay and complete the
-                  APA checklist before continuing.
+                <p className="text-xs text-text-muted" data-testid="module8-ready-finish-hint">
+                  {!docVerifiedThisSession || !submissionDocUrl
+                    ? "Create or update your Google Doc with your latest essay first."
+                    : !checklistComplete
+                      ? "Complete the APA formatting checklist before finishing."
+                      : "Check every item under Before continuing, then finish preparing."}
                 </p>
               ) : null}
             </div>

@@ -26,6 +26,15 @@ export const MODULE8_FORMAT_CHANGE_CATEGORIES = Object.freeze([
   "References page",
 ]);
 
+/** WP-035 — Ready-step confidence confirmations (local UI; not the APA checklist). */
+export const MODULE8_READY_CONFIDENCE_ITEMS = Object.freeze([
+  "My newest essay appears.",
+  "My title page is correct.",
+  "My references page is complete.",
+  "Everything is double spaced.",
+  "The paper looks the way I expect.",
+]);
+
 export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}) {
   if (step?.type === MODULE8_STEP_TYPES.CREATE_DOC) {
     return {
@@ -86,7 +95,8 @@ export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}
         "You are closing preparation—not starting another writing assignment. Your Google Doc is formatted; Module 9 is quiz and upload.",
       nextStepText: "In Module 9 you will take a short APA quiz and submit your final PDF.",
       workingSetLabel: "Make sure you're ready",
-      workingSetDescription: "A quick check that your preparation is complete.",
+      workingSetDescription:
+        "Confirm your Google Doc looks ready. These checks do not submit your paper—they prepare you for Module 9.",
     };
   }
 

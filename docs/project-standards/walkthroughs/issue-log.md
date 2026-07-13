@@ -72,7 +72,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Resolved |
 | WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Resolved |
 | WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Resolved |
-| WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Open |
+| WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Resolved |
 | WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Open |
 | WP-037 | Module 8 lacks reassurance that submission has not happened yet | 8 | Medium | Instructional | Open |
 | WP-038 | Module 9 needs internal APA Quick Guide | 9 | Critical | Instructional | Open |
@@ -1081,7 +1081,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Ready to Submit screen
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Students should leave Ready to Submit feeling genuinely ready, not “I guess I’m ready.” The page lacks explicit confirmations (newest essay appears, title page correct, references complete, double spaced).
 
@@ -1095,11 +1095,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open Ready to Submit.
 2. Confirm five-item checklist is visible before Continue.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleEight.js`; `components/module8/module8StepPresentation.js`; `tests/module8-wp035-ready-confidence-checklist.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Ready step adds always-visible “Before continuing” five-item local confidence checklist (separate from persisted APA `CHECKLIST_ITEMS`). Final Finish stays disabled and `finishPreparing` returns unless verified Doc + APA checklist + all five confirmations. Copy clarifies these checks do not submit the paper. Previously finalized revisit now lands on Ready (not auto-success) until confidence completes, then Finish proceeds to `/modules/8/success`. Browser acceptance at **390×844** and **1440×900** (disabled → enabled Finish). Full suite 940/940.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after browser acceptance; this commit)
 
 ---
 
