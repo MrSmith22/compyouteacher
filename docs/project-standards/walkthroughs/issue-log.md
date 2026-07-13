@@ -75,9 +75,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Resolved |
 | WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Resolved |
 | WP-037 | Module 8 lacks reassurance that submission has not happened yet | 8 | Medium | Instructional | Resolved |
-| WP-038 | Module 9 needs internal APA Quick Guide | 9 | Critical | Instructional | Open |
-| WP-039 | Module 9 quiz stacks many questions instead of one concept per screen | 9 | High | Instructional / UX | Open |
-| WP-040 | Module 9 quiz feedback reports correctness without teaching | 9 | Medium | Instructional | Open |
+| WP-038 | Module 9 needs internal APA Quick Guide | 9 | Critical | Instructional | Resolved |
+| WP-039 | Module 9 quiz stacks many questions instead of one concept per screen | 9 | High | Instructional / UX | Resolved |
+| WP-040 | Module 9 quiz feedback reports correctness without teaching | 9 | Medium | Instructional | Resolved |
 | WP-041 | Module 9 formatting page lacks “do not rewrite” coaching | 9 | High | Instructional | Open |
 | WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Open |
 | WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Open |
@@ -1165,7 +1165,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** APA instruction area (new); reference throughout Module 9
 - **Priority:** Critical
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Instead of immediately presenting quiz questions, students need an internal APA Quick Guide covering only what this assignment requires: title page, font, margins, spacing, page numbers, references, in-text citations — with screenshots.
 
@@ -1180,11 +1180,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm guide remains accessible on formatting and PDF screens.
 3. Confirm Purdue OWL is optional, not primary.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/module9/ModuleNineApaQuickGuide.jsx`; `components/module9/ModuleNineApaLesson.jsx`; `components/module9/ModuleNineApaVisual.jsx`; `lib/module9/module9ApaLearning.js`; `components/ModuleNine.js`; `tests/module9-wp006-apa-learning.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Evidence-only reconciliation—no product redesign. Shared `ModuleNineApaQuickGuide` uses the same concept model as the lesson (`getModule9ApaQuickGuideSections` / `MODULE9_APA_CONCEPTS`: page setup/font·spacing·margins, title page, page numbers, in-text citations, references, plus formatting-vs-rewriting and abstract exceptions). Guide renders before Try-it in `ModuleNineApaLesson` and again on checklist + PDF steps in `ModuleNine.js`. Visuals are code-native APA models (`ModuleNineApaVisual`), not Drive screenshots—still satisfy the usable model intent. Purdue OWL is under “Optional extras” via `MODULE9_APA_SECONDARY_RESOURCES`. Covered by `tests/module9-wp006-apa-learning.test.js` (incl. WP-038–040 reconciliation case). Bounded browser: Module 9 showed `module9-apa-quick-guide` + lesson without auth block.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
@@ -1194,7 +1194,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** APA quiz screens
 - **Priority:** High
 - **Category:** Instructional / UX
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Pages can contain many quiz questions at once (Question 1 through Question 10). This violates one-concept-per-screen focus and increases cognitive load.
 
@@ -1208,11 +1208,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open APA quiz flow.
 2. Confirm only one question visible per screen.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/module9/ModuleNineApaLesson.jsx`; `lib/module9/module9ApaLearning.js`; `tests/module9-wp006-apa-learning.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Evidence-only. Lesson advances by `conceptIndex` with a single `practicePrompt` / option radiogroup per screen; Continue stays disabled until `canContinueApaConcept` (`feedbackSeen`). Source + state-machine tests in `module9-wp006-apa-learning.test.js` (cases 2–3, 7–8, reconciliation). No product-code change.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
@@ -1222,7 +1222,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** APA quiz feedback states
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Feedback primarily reports correct/incorrect. Master Spec recommends feedback that teaches — e.g., “APA uses double spacing because it improves readability and leaves room for instructor comments.”
 
@@ -1236,11 +1236,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Answer quiz questions correctly and incorrectly.
 2. Confirm each feedback state includes a teaching explanation.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/module9/module9ApaLearning.js`; `components/module9/ModuleNineApaLesson.jsx`; `tests/module9-wp006-apa-learning.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Evidence-only. Every option carries multi-sentence teaching `feedback`; UI shows concept copy under “That works.” / “Let’s look closer.” (`module9-apa-feedback`). `everyOptionHasTeachingFeedback` rejects binary-only strings; tests 5–6 + reconciliation enforce >20 chars and non-“correct/incorrect”-only messaging. No product-code change.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

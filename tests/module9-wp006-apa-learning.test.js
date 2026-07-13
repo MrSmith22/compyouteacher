@@ -257,4 +257,49 @@ describe("WP-006 Module 9 APA learning", () => {
     assert.equal(state.responses[concept.id].selectedOptionId, right.id);
     assert.equal(apa.summarizeApaLesson(state).score, 0);
   });
+
+  it("WP-038–040 reconciliation: guide before practice, one concept, teaching feedback", () => {
+    const ids = apa.MODULE9_APA_CONCEPTS.map((c) => c.id);
+    for (const required of [
+      "page-setup",
+      "title-page",
+      "page-numbers",
+      "references-page",
+      "in-text-citations",
+    ]) {
+      assert.ok(ids.includes(required), `missing concept ${required}`);
+    }
+    assert.ok(ids.some((id) => /page-setup|font|spacing|margin/i.test(id)));
+
+    const lesson = readSrc("../components/module9/ModuleNineApaLesson.jsx");
+    assert.ok(
+      lesson.indexOf("<ModuleNineApaQuickGuide") <
+        lesson.indexOf('data-testid="module9-apa-try-it"')
+    );
+    assert.ok(lesson.includes("disabled={!canContinue}"));
+    assert.ok(lesson.includes('data-testid="module9-apa-feedback"'));
+    assert.equal((lesson.match(/practicePrompt/g) || []).length, 1);
+
+    const guide = readSrc("../components/module9/ModuleNineApaQuickGuide.jsx");
+    assert.ok(guide.includes("Optional extras"));
+    assert.ok(guide.includes("MODULE9_APA_SECONDARY_RESOURCES"));
+    assert.ok(
+      apa.MODULE9_APA_SECONDARY_RESOURCES.some((r) => /owl\.purdue/i.test(r.href))
+    );
+
+    const modNine = readSrc("../components/ModuleNine.js");
+    const checklistIdx = modNine.indexOf("Format checklist confirmation");
+    const pdfIdx = modNine.indexOf("Submit your final essay as a PDF");
+    const guideAfterChecklist = modNine.indexOf(
+      "<ModuleNineApaQuickGuide",
+      checklistIdx
+    );
+    const guideAfterPdf = modNine.indexOf("<ModuleNineApaQuickGuide", pdfIdx);
+    assert.ok(checklistIdx > 0 && guideAfterChecklist > checklistIdx);
+    assert.ok(pdfIdx > 0 && guideAfterPdf > pdfIdx);
+
+    for (const concept of apa.MODULE9_APA_CONCEPTS) {
+      assert.equal(apa.everyOptionHasTeachingFeedback(concept), true);
+    }
+  });
 });
