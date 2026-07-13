@@ -2,6 +2,10 @@ import { google } from "googleapis";
 import { createClient } from "@supabase/supabase-js";
 import { runExportEssayToGoogleDocs } from "@/lib/exports/runExportEssayToGoogleDocs";
 import { grantSubmissionDocPermissions } from "@/lib/exports/devGoogleDocEditorOverride";
+import {
+  GOOGLE_OPERATION_TIMEOUT_MS,
+  withGoogleTimeout,
+} from "@/lib/exports/googleOperationTimeout";
 
 function getPrivateKeyFromEnv() {
   const raw = process.env.GOOGLE_PRIVATE_KEY || "";
@@ -65,6 +69,14 @@ function getServiceSupabase() {
   return createClient(url, key);
 }
 
+function logExportStep(step: string, extra: Record<string, unknown> = {}) {
+  console.info("[export-to-docs] step", {
+    step,
+    ...extra,
+    // Never log essay text, Doc body, credentials, or override email.
+  });
+}
+
 export type SubmissionDocPermissionResult = {
   documentId: string;
   studentWriterGranted: boolean;
@@ -77,8 +89,10 @@ export type SubmissionDocPermissionResult = {
 export type ExportEssayToGoogleDocsResult = {
   documentId: string;
   webViewLink: string;
-  operation: "created" | "updated" | "recreated";
+  operation: "created" | "updated" | "replacement_created";
   permissions?: SubmissionDocPermissionResult | null;
+  previousDocumentId?: string | null;
+  pointerReplaced?: boolean;
   verification?: {
     status: string;
     verified: boolean;
@@ -114,15 +128,22 @@ export type ExportEssayToGoogleDocsDeps = {
 
 async function createDefaultGoogleDeps() {
   const auth = buildGoogleAuth();
-  const authClient = await auth.getClient();
-  const docs = google.docs({ version: "v1", auth: authClient });
-  const drive = google.drive({ version: "v3", auth: authClient });
+  const authClient = await withGoogleTimeout(auth.getClient(), {
+    step: "auth.getClient",
+    timeoutMs: GOOGLE_OPERATION_TIMEOUT_MS,
+  });
+  const docs = google.docs({ version: "v1", auth: authClient as never });
+  const drive = google.drive({ version: "v3", auth: authClient as never });
 
   return {
     createDocument: async (title: string) => {
-      const created = await docs.documents.create({
-        requestBody: { title },
-      });
+      logExportStep("docs.create");
+      const created = await withGoogleTimeout(
+        docs.documents.create({
+          requestBody: { title },
+        }),
+        { step: "docs.create" }
+      );
       const documentId = created?.data?.documentId;
       if (!documentId) {
         throw new Error("Google Docs did not return a documentId");
@@ -130,38 +151,57 @@ async function createDefaultGoogleDeps() {
       return { documentId };
     },
     getDocument: async (documentId: string) => {
-      const res = await docs.documents.get({ documentId });
+      logExportStep("docs.get");
+      const res = await withGoogleTimeout(docs.documents.get({ documentId }), {
+        step: "docs.get",
+      });
       return res.data;
     },
     batchUpdate: async (documentId: string, requests: object[]) => {
-      await docs.documents.batchUpdate({
-        documentId,
-        requestBody: { requests },
-      });
+      logExportStep("docs.batchUpdate", { requestCount: requests.length });
+      await withGoogleTimeout(
+        docs.documents.batchUpdate({
+          documentId,
+          requestBody: { requests },
+        }),
+        { step: "docs.batchUpdate" }
+      );
     },
     shareDocument: async (documentId: string, email: string) => {
+      logExportStep("drive.permissions");
       return grantSubmissionDocPermissions({
         documentId,
         studentEmail: email,
         createPermission: async ({ type, role, emailAddress }) => {
-          await drive.permissions.create({
-            fileId: documentId,
-            requestBody: {
-              type,
-              role,
-              ...(emailAddress ? { emailAddress } : {}),
-            },
-            sendNotificationEmail: false,
-          });
+          await withGoogleTimeout(
+            drive.permissions.create({
+              fileId: documentId,
+              requestBody: {
+                type,
+                role,
+                ...(emailAddress ? { emailAddress } : {}),
+              },
+              sendNotificationEmail: false,
+            }),
+            {
+              step: emailAddress
+                ? "drive.permissions.writer"
+                : "drive.permissions.public",
+            }
+          );
         },
         env: process.env,
       });
     },
     getWebViewLink: async (documentId: string) => {
-      const file = await drive.files.get({
-        fileId: documentId,
-        fields: "webViewLink",
-      });
+      logExportStep("drive.files.get");
+      const file = await withGoogleTimeout(
+        drive.files.get({
+          fileId: documentId,
+          fields: "webViewLink",
+        }),
+        { step: "drive.files.get" }
+      );
       const webViewLink = file?.data?.webViewLink;
       if (!webViewLink) {
         throw new Error("Google Drive did not return a webViewLink");
@@ -175,6 +215,7 @@ function createDefaultStoreDeps() {
   const supabase = getServiceSupabase();
   return {
     getExportedDocRow: async (email: string) => {
+      logExportStep("supabase.getExportedDocRow");
       const { data, error } = await supabase
         .from("exported_docs")
         .select("document_id, web_view_link")
@@ -191,6 +232,7 @@ function createDefaultStoreDeps() {
       document_id: string;
       web_view_link: string;
     }) => {
+      logExportStep("supabase.upsertExportedDoc");
       const { error: upsertErr } = await supabase.from("exported_docs").upsert(
         row,
         { onConflict: "user_email" }
@@ -231,18 +273,26 @@ async function resolveDeps(deps: ExportEssayToGoogleDocsDeps = {}) {
  * Production Google Doc export pipeline (shared by /api/export-to-docs and dev seeds).
  * Creates once; updates the same document_id in place when exported_docs already has a row.
  * Never silently recreates an inaccessible existing document.
+ * Pass forceCreate for explicit WP-030 replacement (creates a new Doc; swaps pointer only after verify).
  */
 export async function exportEssayToGoogleDocs({
   email,
   text,
   deps = {},
+  forceCreate = false,
 }: {
   email: string;
   text: string;
   deps?: ExportEssayToGoogleDocsDeps;
+  forceCreate?: boolean;
 }): Promise<ExportEssayToGoogleDocsResult> {
   const resolved = await resolveDeps(deps);
-  return runExportEssayToGoogleDocs({ email, text, deps: resolved });
+  return runExportEssayToGoogleDocs({
+    email,
+    text,
+    deps: resolved,
+    forceCreate: !!forceCreate,
+  });
 }
 
 export {
@@ -254,3 +304,9 @@ export {
   getGoogleDocBodyEndIndex,
   resolveSubmissionDocPlan,
 } from "@/lib/exports/submissionGoogleDocHelpers";
+
+export {
+  GoogleOperationTimeoutError,
+  isGoogleOperationTimeoutError,
+  GOOGLE_OPERATION_TIMEOUT_MS,
+} from "@/lib/exports/googleOperationTimeout";

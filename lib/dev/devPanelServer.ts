@@ -568,6 +568,211 @@ export async function deleteGoogleDocRecord(userEmail: string) {
   return { ok: true as const, deleted: typeof count === "number" ? count : 0 };
 }
 
+/**
+ * WP-030 simulation: remove only the development student's exported_docs row.
+ * Does not delete any Google Drive file.
+ */
+export async function simulateMissingExportedDoc(userEmail: string) {
+  return deleteGoogleDocRecord(userEmail);
+}
+
+/**
+ * WP-030 simulation: overwrite document_id with a stale inaccessible ID.
+ * Does not delete the previous Google Drive file.
+ */
+export async function simulateStaleGoogleDoc(userEmail: string) {
+  const supabase = getSupabaseAdmin();
+  const staleId = `stale-sim-${Date.now()}`;
+  const staleLink = `https://docs.google.com/document/d/${staleId}/edit`;
+  const { error } = await supabase.from("exported_docs").upsert(
+    {
+      user_email: userEmail,
+      document_id: staleId,
+      web_view_link: staleLink,
+    },
+    { onConflict: "user_email" }
+  );
+  if (error) return { ok: false as const, error: error.message };
+  return {
+    ok: true as const,
+    simulation: "stale_document" as const,
+    documentId: staleId,
+    webViewLink: staleLink,
+  };
+}
+
+/**
+ * WP-030 simulation: create/update the real submission Doc via production pipeline
+ * so live verification can return verified (development student only).
+ */
+export async function simulateVerifiedGoogleDoc(userEmail: string) {
+  const exportRes = await getEssayTextForExportAdmin(userEmail);
+  if (exportRes.status !== "ok" || !exportRes.text) {
+    return {
+      ok: false as const,
+      error:
+        exportRes.status === "missing"
+          ? "No essay text found (complete Module 6/7 first)."
+          : "Could not load essay text for export.",
+    };
+  }
+  try {
+    const { exportEssayToGoogleDocs } = await import(
+      "@/lib/exports/exportEssayToGoogleDocs"
+    );
+    const result = await exportEssayToGoogleDocs({
+      email: userEmail,
+      text: exportRes.text,
+    });
+    return {
+      ok: true as const,
+      simulation: "verified_document" as const,
+      documentId: result.documentId,
+      webViewLink: result.webViewLink,
+      operation: result.operation,
+      verified: !!result.verification?.verified,
+      verificationStatus: result.verification?.status || null,
+    };
+  } catch (err) {
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "simulate_verified_failed",
+    };
+  }
+}
+
+/**
+ * WP-030 simulation: one-shot temporary verification failure (Scenario D).
+ * Next verify call for this student returns verification_error once.
+ */
+export async function simulateTemporaryVerificationFailure(userEmail: string) {
+  const { armTemporaryVerificationFailure } = await import(
+    "@/lib/dev/devSubmissionDocSimulations"
+  );
+  return armTemporaryVerificationFailure(userEmail);
+}
+
+/**
+ * WP-030 simulation: corrupt live Doc text slightly so verification returns mismatch.
+ * Does not change the exported_docs pointer. Does not delete the Drive file.
+ * Development student only.
+ */
+export async function simulateDocContentMismatch(userEmail: string) {
+  const supabase = getSupabaseAdmin();
+  const { data: row, error } = await supabase
+    .from("exported_docs")
+    .select("document_id, web_view_link")
+    .eq("user_email", userEmail)
+    .maybeSingle();
+  if (error) return { ok: false as const, error: error.message };
+  const documentId =
+    typeof row?.document_id === "string" ? row.document_id.trim() : "";
+  if (!documentId) {
+    return { ok: false as const, error: "No exported Google Doc to corrupt." };
+  }
+
+  try {
+    const { google } = await import("googleapis");
+    const { withGoogleTimeout } = await import(
+      "@/lib/exports/googleOperationTimeout"
+    );
+
+    const keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = (process.env.GOOGLE_PRIVATE_KEY || "")
+      .replace(/\\n/g, "\n")
+      .trim();
+
+    const auth = keyFile
+      ? new google.auth.GoogleAuth({
+          keyFile,
+          scopes: [
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/drive",
+          ],
+        })
+      : new google.auth.GoogleAuth({
+          credentials: {
+            client_email: clientEmail,
+            private_key: privateKey,
+          },
+          scopes: [
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/drive",
+          ],
+        });
+
+    const authClient = await withGoogleTimeout(auth.getClient(), {
+      step: "auth.getClient",
+    });
+    const docs = google.docs({ version: "v1", auth: authClient as never });
+    const document = await withGoogleTimeout(
+      docs.documents.get({ documentId }),
+      { step: "docs.get" }
+    );
+
+    // Alter one character inside an existing paragraph so ordered essay
+    // paragraphs no longer match (appending text alone does not mismatch).
+    const content = document.data?.body?.content || [];
+    let replaceStart: number | null = null;
+    for (const el of content) {
+      const elements = el.paragraph?.elements || [];
+      for (const pe of elements) {
+        const run = pe.textRun?.content || "";
+        if (run.trim().length >= 8 && typeof pe.startIndex === "number") {
+          replaceStart = pe.startIndex;
+          break;
+        }
+      }
+      if (replaceStart != null) break;
+    }
+    if (replaceStart == null) {
+      return {
+        ok: false as const,
+        error: "Could not find paragraph text to alter for mismatch simulation.",
+      };
+    }
+
+    await withGoogleTimeout(
+      docs.documents.batchUpdate({
+        documentId,
+        requestBody: {
+          requests: [
+            {
+              deleteContentRange: {
+                range: {
+                  startIndex: replaceStart,
+                  endIndex: replaceStart + 1,
+                },
+              },
+            },
+            {
+              insertText: {
+                location: { index: replaceStart },
+                text: "Z",
+              },
+            },
+          ],
+        },
+      }),
+      { step: "docs.batchUpdate" }
+    );
+
+    return {
+      ok: true as const,
+      simulation: "content_mismatch" as const,
+      documentId,
+      webViewLink: row?.web_view_link || null,
+    };
+  } catch (err) {
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "simulate_mismatch_failed",
+      code: (err as { code?: string })?.code || null,
+    };
+  }
+}
+
 export async function prepareGoogleDocExport(userEmail: string) {
   const exportRes = await getEssayTextForExportAdmin(userEmail);
   if (exportRes.status !== "ok" || !exportRes.text) {

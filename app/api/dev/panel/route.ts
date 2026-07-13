@@ -12,6 +12,11 @@ import {
   restartModule1,
   setCurrentModule,
   setModule9Shortcut,
+  simulateMissingExportedDoc,
+  simulateStaleGoogleDoc,
+  simulateVerifiedGoogleDoc,
+  simulateTemporaryVerificationFailure,
+  simulateDocContentMismatch,
 } from "@/lib/dev/devPanelServer";
 import { runSeedThrough, type SeedThroughTarget } from "@/lib/dev/seeds";
 import type { SeedModule9Options } from "@/lib/dev/seeds/seedModule9Ready";
@@ -116,6 +121,26 @@ export async function POST(req: Request) {
       }
       case "deleteGoogleDoc": {
         const result = await deleteGoogleDocRecord(email);
+        return NextResponse.json(result);
+      }
+      case "simulateMissingExportedDoc": {
+        const result = await simulateMissingExportedDoc(email);
+        return NextResponse.json(result);
+      }
+      case "simulateStaleGoogleDoc": {
+        const result = await simulateStaleGoogleDoc(email);
+        return NextResponse.json(result);
+      }
+      case "simulateVerifiedGoogleDoc": {
+        const result = await simulateVerifiedGoogleDoc(email);
+        return NextResponse.json(result);
+      }
+      case "simulateTemporaryVerificationFailure": {
+        const result = await simulateTemporaryVerificationFailure(email);
+        return NextResponse.json(result);
+      }
+      case "simulateDocContentMismatch": {
+        const result = await simulateDocContentMismatch(email);
         return NextResponse.json(result);
       }
       case "seedThrough": {

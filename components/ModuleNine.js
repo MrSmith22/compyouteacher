@@ -29,11 +29,14 @@ import {
   createOrUpdateSubmissionGoogleDoc,
   hydrateSubmissionGoogleDoc,
   verifySubmissionGoogleDocContent,
+  logSubmissionDocReplacementCancelled,
+  SUBMISSION_DOC_STATUS,
   SUBMISSION_DOC_VERIFICATION_STATUS,
   getSubmissionDocVerificationMessage,
   SUBMISSION_DOC_VERIFICATION_EXPLAIN,
   SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
+import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
@@ -59,6 +62,8 @@ export default function ModuleNine() {
   const [docNotice, setDocNotice] = useState(null);
   const [docContentVerified, setDocContentVerified] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
+  const [exportStatus, setExportStatus] = useState(null);
+  const [lastDocOperation, setLastDocOperation] = useState(null);
   const [finalPdfRow, setFinalPdfRow] = useState(null);
   const [guidedMode, setGuidedMode] = useState(true);
   const [viewedStep, setViewedStep] = useState(1);
@@ -294,14 +299,18 @@ export default function ModuleNine() {
     }
   };
 
-  const handleCreateOrUpdateSubmissionDoc = async () => {
+  const handleCreateOrUpdateSubmissionDoc = async ({
+    forceCreate = false,
+  } = {}) => {
     if (!session?.user?.email) return;
+    if (docBusy) return;
     const email = session.user.email;
     const hadExistingDoc = !!exportUrl;
 
     setDocBusy(true);
     setDocNotice(null);
     setPopupBlocked(false);
+    setExportStatus(SUBMISSION_DOC_STATUS.PREPARING);
     setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
     try {
       const result = await createOrUpdateSubmissionGoogleDoc({
@@ -309,24 +318,46 @@ export default function ModuleNine() {
         module: 9,
         hadExistingDoc,
         openInNewTab: true,
+        forceCreate: !!forceCreate,
+        recoveryAction: forceCreate
+          ? "create_new"
+          : hadExistingDoc
+            ? "update"
+            : "create",
       });
 
       if (!result.ok) {
         setDocContentVerified(false);
+        setLastDocOperation(null);
+        setExportStatus(result.reason);
+        setVerificationStatus(
+          result.reason === SUBMISSION_DOC_STATUS.EXISTING_DOCUMENT_UNAVAILABLE
+            ? SUBMISSION_DOC_VERIFICATION_STATUS.DOCUMENT_UNAVAILABLE
+            : result.reason === SUBMISSION_DOC_STATUS.MISSING_ESSAY
+              ? SUBMISSION_DOC_VERIFICATION_STATUS.MISSING_ESSAY
+              : result.verification?.status ||
+                SUBMISSION_DOC_VERIFICATION_STATUS.VERIFICATION_ERROR
+        );
         setDocNotice({
           type: "error",
           status: result.reason,
           message: result.message,
         });
-        setVerificationStatus(null);
         return;
       }
 
       setExportUrl(result.url);
       if (result.popupBlocked) setPopupBlocked(true);
+      setLastDocOperation(result.operation);
+      setExportStatus(result.reason);
 
       const verification = result.verification;
-      setVerificationStatus(verification?.status || null);
+      setVerificationStatus(
+        verification?.status ||
+          (result.contentVerified
+            ? SUBMISSION_DOC_VERIFICATION_STATUS.VERIFIED
+            : null)
+      );
       setDocContentVerified(!!result.contentVerified);
 
       const notices = [];
@@ -338,6 +369,12 @@ export default function ModuleNine() {
       notices.push(result.message);
       if (result.contentVerified) {
         notices.push(SUBMISSION_DOC_VERIFICATION_EXPLAIN);
+        if (
+          result.operation === "updated" ||
+          result.operation === "replacement_created"
+        ) {
+          notices.push("Review your APA formatting before downloading the PDF.");
+        }
       } else if (
         verification?.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
       ) {
@@ -671,12 +708,7 @@ export default function ModuleNine() {
                 aria-live="polite"
                 data-testid="module9-doc-notice"
                 data-status={docNotice.status || ""}
-                className={[
-                  "rounded-lg border px-4 py-3 text-sm leading-relaxed",
-                  docNotice.type === "success"
-                    ? "border-theme-green/30 bg-theme-green/5 text-text-primary"
-                    : "border-theme-red/30 bg-red-50 text-text-primary",
-                ].join(" ")}
+                className="sr-only"
               >
                 {docNotice.message}
               </div>
@@ -697,71 +729,52 @@ export default function ModuleNine() {
                       SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING
                     )}
               </p>
-            ) : null}
-
-            {docHydrated &&
-            verificationStatus ===
-              SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH ? (
-              <div
-                className="rounded-lg border border-theme-red/30 bg-red-50 px-4 py-3 text-sm text-text-primary"
-                data-testid="module9-doc-mismatch"
-              >
-                <p className="font-semibold">
-                  {getSubmissionDocVerificationMessage(
-                    SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
-                  )}
-                </p>
-                <p className="mt-1">{SUBMISSION_DOC_MISMATCH_RECOVERY}</p>
-                <button
-                  type="button"
-                  className={`mt-3 min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
-                  onClick={handleCreateOrUpdateSubmissionDoc}
-                  disabled={docBusy}
-                  data-testid="module9-update-google-doc-primary"
-                >
-                  {docBusy ? "Updating your Google Doc…" : "Update Google Doc"}
-                </button>
-              </div>
-            ) : null}
-
-            {docHydrated &&
-            (verificationStatus ===
-              SUBMISSION_DOC_VERIFICATION_STATUS.VERIFICATION_ERROR ||
-              verificationStatus ===
-                SUBMISSION_DOC_VERIFICATION_STATUS.DOCUMENT_UNAVAILABLE) ? (
-              <div
-                className="rounded-lg border border-theme-orange/30 bg-orange-50 px-4 py-3 text-sm text-text-primary"
-                data-testid="module9-doc-verification-error"
-              >
-                <p>
-                  {getSubmissionDocVerificationMessage(verificationStatus)}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
-                    onClick={handleRetryVerification}
-                  >
-                    Retry check
-                  </button>
-                  {exportUrl ? (
-                    <a
-                      href={exportUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`inline-flex min-h-[44px] items-center rounded border border-border-soft bg-white px-4 py-2 text-sm font-medium ${FOCUS_RING}`}
-                    >
-                      Open current Google Doc
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
+            ) : (
+              <SubmissionDocRecoveryPanel
+                module={9}
+                verificationStatus={verificationStatus}
+                exportStatus={exportStatus}
+                hasUrl={!!exportUrl}
+                contentVerified={docContentVerified}
+                operation={lastDocOperation}
+                docUrl={exportUrl}
+                busy={docBusy}
+                notice={docNotice}
+                testIdPrefix="module9-doc"
+                showProgressContinue={docReady && guidedMode}
+                onContinue={() => {
+                  setViewedStep(3);
+                  setTimeout(
+                    () => step3Ref.current?.scrollIntoView({ behavior: "smooth" }),
+                    0
+                  );
+                }}
+                onUpdate={() =>
+                  handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+                }
+                onCreate={() =>
+                  handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+                }
+                onCreateNew={() =>
+                  handleCreateOrUpdateSubmissionDoc({ forceCreate: true })
+                }
+                onRetry={handleRetryVerification}
+                onFinishEssay={() => router.push("/modules/7")}
+                onReplacementCancelled={() =>
+                  logSubmissionDocReplacementCancelled({
+                    userEmail: session?.user?.email,
+                    module: 9,
+                    hadExistingDoc: !!exportUrl,
+                  })
+                }
+              />
+            )}
 
             {docHydrated &&
             verificationStatus !==
               SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING &&
-            exportUrl ? (
+            exportUrl &&
+            docReady ? (
               <div className="space-y-3">
                 <p className="text-sm text-text-primary">
                   The Google Doc you prepared in Module 8 is the document you will
@@ -771,25 +784,15 @@ export default function ModuleNine() {
                 <div className="rounded-lg border border-border-soft bg-surface-soft p-3 text-sm shadow-soft">
                   <div className="mb-2 font-semibold">Your submission Google Doc</div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <a
+                    <button
+                      type="button"
                       className={`inline-flex min-h-[44px] items-center rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
-                      href={exportUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                      onClick={() =>
+                        window.open(exportUrl, "_blank", "noopener,noreferrer")
+                      }
                       data-testid="module9-open-submission-doc"
                     >
                       Open your Google Doc
-                    </a>
-                    <button
-                      type="button"
-                      className={`min-h-[44px] rounded border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-primary ${FOCUS_RING}`}
-                      onClick={handleCreateOrUpdateSubmissionDoc}
-                      disabled={docBusy}
-                      data-testid="module9-update-submission-doc"
-                    >
-                      {docBusy
-                        ? "Updating your Google Doc…"
-                        : "Update with your latest essay"}
                     </button>
                     <button
                       type="button"
@@ -819,46 +822,6 @@ export default function ModuleNine() {
                 </p>
               </div>
             ) : null}
-
-            {docHydrated &&
-            verificationStatus !==
-              SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING &&
-            !exportUrl ? (
-              <div className="space-y-3 rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-4 py-4">
-                <p className="text-sm font-semibold text-text-primary">
-                  Your submission Google Doc still needs to be prepared
-                </p>
-                <p className="text-sm text-text-primary">
-                  Module 8 usually creates this document. Create it here with the same
-                  pathway so you have one submission Google Doc to format.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleCreateOrUpdateSubmissionDoc}
-                  disabled={docBusy}
-                  className={`min-h-[44px] rounded bg-theme-blue px-6 py-3 text-sm font-semibold text-white shadow disabled:opacity-50 ${FOCUS_RING}`}
-                  data-testid="module9-create-submission-doc"
-                >
-                  {docBusy ? "Creating your Google Doc…" : "Create your Google Doc"}
-                </button>
-              </div>
-            ) : null}
-
-            {guidedMode && docReady && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewedStep(3);
-                  setTimeout(
-                    () => step3Ref.current?.scrollIntoView({ behavior: "smooth" }),
-                    0
-                  );
-                }}
-                className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
-              >
-                Continue to checklist →
-              </button>
-            )}
           </section>
         )}
 

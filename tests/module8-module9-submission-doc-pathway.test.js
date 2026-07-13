@@ -338,7 +338,7 @@ describe("WP-028 client messaging uses server operation", () => {
       getSubmissionDocStatusMessage(
         SUBMISSION_DOC_STATUS.EXISTING_DOCUMENT_UNAVAILABLE
       ),
-      /could not be opened or updated/i
+      /could not open or update the Google Doc currently connected/i
     );
   });
 
@@ -396,8 +396,10 @@ describe("WP-028 Module 8/9 pathway wiring", () => {
     assert.ok(m9.includes("CHECKLIST_ITEMS"));
     assert.ok(m9.includes("/api/final-pdf"));
     assert.ok(m9.includes("alreadySubmitted"));
-    assert.ok(m9.includes("Update with your latest essay"));
+    assert.ok(m9.includes("SubmissionDocRecoveryPanel"));
+    assert.ok(m9.includes("forceCreate"));
     assert.ok(m9.includes("hydrateSubmissionGoogleDoc"));
+    assert.ok(m9.includes("docReady"));
   });
 
   it("12. one click → one attempt + one outcome activity", () => {

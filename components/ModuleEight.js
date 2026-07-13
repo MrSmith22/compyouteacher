@@ -20,11 +20,14 @@ import {
   createOrUpdateSubmissionGoogleDoc,
   hydrateSubmissionGoogleDoc,
   verifySubmissionGoogleDocContent,
+  logSubmissionDocReplacementCancelled,
+  SUBMISSION_DOC_STATUS,
   SUBMISSION_DOC_VERIFICATION_STATUS,
   getSubmissionDocVerificationMessage,
   SUBMISSION_DOC_VERIFICATION_EXPLAIN,
   SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
+import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
@@ -125,7 +128,10 @@ export default function ModuleEight() {
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [docExportNotice, setDocExportNotice] = useState(null);
   const [verificationStatus, setVerificationStatus] = useState(null);
+  const [exportStatus, setExportStatus] = useState(null);
+  const [lastDocOperation, setLastDocOperation] = useState(null);
   const verificationInFlightRef = useRef(false);
+  const exportInFlightRef = useRef(false);
 
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
   const [checklistLoading, setChecklistLoading] = useState(true);
@@ -237,7 +243,8 @@ export default function ModuleEight() {
       // verified Google Doc for this visit. Only a successful Create/Update
       // in this session that also verifies content sets docVerifiedThisSession.
       setDocVerifiedThisSession(false);
-      setVerificationStatus(null);
+      // Do not clear verificationStatus here — the in-flight revisit verify
+      // owns status updates and must not be wiped by a race.
 
       if (m8?.final_ready) {
         setPreviouslyFinalized(true);
@@ -324,15 +331,18 @@ export default function ModuleEight() {
     router.push("/modules/8/success");
   }, [previouslyFinalized, docVerifiedThisSession, checklistComplete, router]);
 
-  const handleCreateOrUpdateSubmissionDoc = async () => {
+  const handleCreateOrUpdateSubmissionDoc = async ({
+    forceCreate = false,
+  } = {}) => {
     if (!email) return;
-    // Allow export even if Module 8 was previously finalized; block only after
-    // this visit has already verified and locked the success panel.
     if (locked && docVerifiedThisSession) return;
+    if (exportInFlightRef.current) return;
+    exportInFlightRef.current = true;
 
     const hadExistingDoc = !!submissionDocUrl;
     setCreatingDoc(true);
     setDocExportNotice(null);
+    setExportStatus(SUBMISSION_DOC_STATUS.PREPARING);
     setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
     setPopupBlocked(false);
     try {
@@ -341,11 +351,26 @@ export default function ModuleEight() {
         module: 8,
         hadExistingDoc,
         openInNewTab: true,
+        forceCreate: !!forceCreate,
+        recoveryAction: forceCreate
+          ? "create_new"
+          : hadExistingDoc
+            ? "update"
+            : "create",
       });
 
       if (!result.ok) {
         setDocVerifiedThisSession(false);
-        setVerificationStatus(null);
+        setLastDocOperation(null);
+        setExportStatus(result.reason);
+        setVerificationStatus(
+          result.reason === SUBMISSION_DOC_STATUS.EXISTING_DOCUMENT_UNAVAILABLE
+            ? SUBMISSION_DOC_VERIFICATION_STATUS.DOCUMENT_UNAVAILABLE
+            : result.reason === SUBMISSION_DOC_STATUS.MISSING_ESSAY
+              ? SUBMISSION_DOC_VERIFICATION_STATUS.MISSING_ESSAY
+              : result.verification?.status ||
+                SUBMISSION_DOC_VERIFICATION_STATUS.VERIFICATION_ERROR
+        );
         setDocExportNotice({
           type: "error",
           status: result.reason,
@@ -356,11 +381,19 @@ export default function ModuleEight() {
 
       setSubmissionDocUrl(result.url);
       if (result.popupBlocked) setPopupBlocked(true);
+      setLastDocOperation(result.operation);
+      setExportStatus(result.reason);
 
       const verification = result.verification;
-      setVerificationStatus(verification?.status || null);
+      setVerificationStatus(
+        verification?.status ||
+          (result.contentVerified
+            ? SUBMISSION_DOC_VERIFICATION_STATUS.VERIFIED
+            : null)
+      );
 
       // WP-029: unlock only when immediate write verification passes.
+      // WP-002: this-session Create/Update/Create-new that verifies.
       if (result.contentVerified) {
         setDocVerifiedThisSession(true);
       } else {
@@ -376,6 +409,14 @@ export default function ModuleEight() {
       notices.push(result.message);
       if (result.contentVerified) {
         notices.push(SUBMISSION_DOC_VERIFICATION_EXPLAIN);
+        if (
+          result.operation === "updated" ||
+          result.operation === "replacement_created"
+        ) {
+          notices.push(
+            "Review your APA formatting before continuing."
+          );
+        }
       } else if (
         verification?.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
       ) {
@@ -389,6 +430,34 @@ export default function ModuleEight() {
       });
     } finally {
       setCreatingDoc(false);
+      exportInFlightRef.current = false;
+    }
+  };
+
+  const handleRetryDocVerification = async () => {
+    if (!email || verificationInFlightRef.current) return;
+    verificationInFlightRef.current = true;
+    setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
+    setDocExportNotice(null);
+    try {
+      const v = await verifySubmissionGoogleDocContent({
+        userEmail: email,
+        module: 8,
+      });
+      setVerificationStatus(v.status);
+      if (v.url) setSubmissionDocUrl(v.url);
+      // WP-002: Retry alone does not unlock progression.
+      setDocExportNotice({
+        type: v.verified ? "success" : "error",
+        status: v.status,
+        message: v.verified
+          ? `${v.message} ${SUBMISSION_DOC_VERIFICATION_EXPLAIN}`
+          : v.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
+            ? `${v.message} ${SUBMISSION_DOC_MISMATCH_RECOVERY}`
+            : v.message,
+      });
+    } finally {
+      verificationInFlightRef.current = false;
     }
   };
 
@@ -606,23 +675,6 @@ export default function ModuleEight() {
             <div className="space-y-4 text-left">
               {finishedEssayPreview}
 
-              {docExportNotice ? (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  data-testid="module8-doc-export-notice"
-                  data-status={docExportNotice.status || ""}
-                  className={[
-                    "rounded-lg border px-4 py-3 text-sm leading-relaxed",
-                    docExportNotice.type === "success"
-                      ? "border-theme-green/30 bg-theme-green/5 text-text-primary"
-                      : "border-theme-red/30 bg-red-50 text-text-primary",
-                  ].join(" ")}
-                >
-                  {docExportNotice.message}
-                </div>
-              ) : null}
-
               {verificationStatus ===
               SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING ? (
                 <p
@@ -635,120 +687,46 @@ export default function ModuleEight() {
                     SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING
                   )}
                 </p>
-              ) : null}
-
-              {docVerifiedThisSession &&
-              verificationStatus ===
-                SUBMISSION_DOC_VERIFICATION_STATUS.VERIFIED ? (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  data-testid="module8-doc-verification-status"
-                  className="rounded-lg border border-theme-green/30 bg-theme-green/5 px-4 py-3 text-sm text-text-primary"
-                >
-                  <p className="font-semibold">
-                    {getSubmissionDocVerificationMessage(
-                      SUBMISSION_DOC_VERIFICATION_STATUS.VERIFIED
-                    )}
-                  </p>
-                  <p className="mt-1 text-text-muted">
-                    {SUBMISSION_DOC_VERIFICATION_EXPLAIN}
-                  </p>
-                </div>
-              ) : null}
-
-              {!submissionDocUrl ? (
-                <div className="rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-5 py-4 shadow-soft">
-                  <p className="text-sm leading-relaxed text-text-primary">
-                    Your finished essay will be placed into a Google Doc.
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                    This is the paper you&apos;ll format in APA style before turning
-                    it in—not a place to rewrite your essay.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleCreateOrUpdateSubmissionDoc}
-                    disabled={exportControlsDisabled}
-                    className="mt-4 min-h-[44px] rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {creatingDoc ? "Creating your Google Doc…" : "Create your Google Doc"}
-                  </button>
-                </div>
-              ) : !docVerifiedThisSession ? (
-                <div className="space-y-3 rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-5 py-4 shadow-soft">
-                  <p className="text-sm font-semibold text-text-primary">
-                    Confirm your Google Doc has your latest essay
-                  </p>
-                  <p className="text-sm leading-relaxed text-text-muted">
-                    A Google Doc from an earlier visit may still be linked here. Update
-                    it now so the document matches the essay you finished—then continue.
-                  </p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={handleCreateOrUpdateSubmissionDoc}
-                      disabled={exportControlsDisabled}
-                      className="min-h-[44px] rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {creatingDoc
-                        ? "Updating your Google Doc…"
-                        : "Update your Google Doc"}
-                    </button>
-                    <a
-                      href={submissionDocUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex min-h-[44px] items-center text-sm font-medium text-theme-blue underline"
-                    >
-                      Open current Google Doc
-                    </a>
-                  </div>
-                </div>
               ) : (
-                <div className="space-y-3 rounded-xl border border-theme-green/30 bg-theme-green/5 px-4 py-4">
-                  <p className="text-sm font-semibold text-theme-green">
-                    Your Google Doc is ready
-                  </p>
-                  <ul className="space-y-1.5 text-sm text-text-primary">
-                    <li>✓ Google Doc created with your latest essay</li>
-                    <li>
-                      ✓{" "}
-                      <a
-                        href={submissionDocUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-theme-blue underline"
-                      >
-                        Open your Google Doc
-                      </a>
-                    </li>
-                    <li>✓ Check that your title page is in the document</li>
-                  </ul>
-                  {popupBlocked ? (
-                    <p className="text-xs text-text-muted">
-                      If a popup blocker stopped the new tab, use the link above.
-                    </p>
-                  ) : null}
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText(submissionDocUrl)}
-                      className="text-xs text-theme-blue underline"
-                    >
-                      Copy link to your Google Doc
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCreateOrUpdateSubmissionDoc}
-                      disabled={exportControlsDisabled}
-                      className="text-xs text-theme-blue underline disabled:opacity-50"
-                    >
-                      {creatingDoc ? "Updating…" : "Update again with latest essay"}
-                    </button>
-                  </div>
-                </div>
+                <SubmissionDocRecoveryPanel
+                  module={8}
+                  verificationStatus={verificationStatus}
+                  exportStatus={exportStatus}
+                  hasUrl={!!submissionDocUrl}
+                  contentVerified={docVerifiedThisSession}
+                  operation={lastDocOperation}
+                  docUrl={submissionDocUrl}
+                  busy={creatingDoc || exportControlsDisabled}
+                  notice={docExportNotice}
+                  testIdPrefix="module8-doc"
+                  showProgressContinue={docVerifiedThisSession}
+                  onContinue={goNext}
+                  onUpdate={() =>
+                    handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+                  }
+                  onCreate={() =>
+                    handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+                  }
+                  onCreateNew={() =>
+                    handleCreateOrUpdateSubmissionDoc({ forceCreate: true })
+                  }
+                  onRetry={handleRetryDocVerification}
+                  onFinishEssay={() => router.push("/modules/7")}
+                  onReplacementCancelled={() =>
+                    logSubmissionDocReplacementCancelled({
+                      userEmail: email,
+                      module: 8,
+                      hadExistingDoc: !!submissionDocUrl,
+                    })
+                  }
+                />
               )}
+
+              {popupBlocked && submissionDocUrl ? (
+                <p className="text-xs text-text-muted">
+                  If a popup blocker stopped the new tab, use Open current Google Doc.
+                </p>
+              ) : null}
             </div>
           ) : null}
 

@@ -34,13 +34,14 @@ describe("DEV_GOOGLE_DOC_EDITOR_EMAIL policy helpers", () => {
     });
     assert.equal(result.eligible, false);
     assert.equal(result.reason, "missing");
+    // Localhost student emails are never Drive writers (prevents stalled permissions.create).
     assert.deepEqual(
       resolveWriterRecipientEmails({
         studentEmail: DEV_STUDENT,
         editorEmail: "",
         nodeEnv: "development",
       }).writers,
-      [DEV_STUDENT]
+      []
     );
   });
 
@@ -105,15 +106,15 @@ describe("DEV_GOOGLE_DOC_EDITOR_EMAIL policy helpers", () => {
     });
     assert.deepEqual(writers, [REAL_EDITOR]);
 
-    // Eligible localhost student + same editor as a second distinct recipient
-    // already covered; when student equals override after sanitize, once:
+    // Eligible localhost student must not receive a Drive user-writer grant
+    // (@localhost is unresolvable and can stall permissions.create).
     const dup = resolveWriterRecipientEmails({
       studentEmail: DEV_STUDENT,
       editorEmail: REAL_EDITOR,
       nodeEnv: "development",
     });
-    assert.deepEqual(dup.writers, [DEV_STUDENT, REAL_EDITOR]);
-    assert.equal(new Set(dup.writers.map((w) => w.toLowerCase())).size, 2);
+    assert.deepEqual(dup.writers, [REAL_EDITOR]);
+    assert.equal(new Set(dup.writers.map((w) => w.toLowerCase())).size, 1);
   });
 });
 
@@ -134,7 +135,7 @@ describe("grantSubmissionDocPermissions + export create/update", () => {
 
     assert.equal(result.overrideWriterAttempted, true);
     assert.equal(result.overrideWriterGranted, true);
-    assert.equal(result.studentWriterGranted, true);
+    assert.equal(result.studentWriterGranted, false);
     assert.equal(result.publicReaderGranted, true);
     assert.ok(
       granted.some(
@@ -144,13 +145,14 @@ describe("grantSubmissionDocPermissions + export create/update", () => {
           g.emailAddress === REAL_EDITOR
       )
     );
-    assert.ok(
+    assert.equal(
       granted.some(
         (g) =>
           g.type === "user" &&
           g.role === "writer" &&
           g.emailAddress === DEV_STUDENT
-      )
+      ),
+      false
     );
     assert.ok(granted.some((g) => g.type === "anyone" && g.role === "reader"));
   });
@@ -223,7 +225,7 @@ describe("grantSubmissionDocPermissions + export create/update", () => {
     });
     assert.equal(result.overrideWriterAttempted, true);
     assert.equal(result.overrideWriterGranted, false);
-    assert.equal(result.studentWriterGranted, true);
+    assert.equal(result.studentWriterGranted, false);
     assert.equal(result.publicReaderGranted, true);
   });
 });

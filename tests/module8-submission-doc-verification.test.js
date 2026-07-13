@@ -326,10 +326,9 @@ describe("WP-029 Module 8/9 gates and UX wiring", () => {
 
     assert.ok(m9.includes("docContentVerified"));
     assert.ok(m9.includes("docReady"));
-    assert.ok(m9.includes("module9-doc-mismatch"));
-    assert.ok(m9.includes("Update Google Doc"));
-    assert.ok(m9.includes("Retry check"));
-    assert.ok(m9.includes("module9-doc-verification-error"));
+    assert.ok(m9.includes("SubmissionDocRecoveryPanel"));
+    assert.ok(m9.includes("forceCreate"));
+    assert.ok(m9.includes("handleRetryVerification"));
     assert.equal(m9.includes('2. Google Doc {exportUrl ? "✓"'), false);
     assert.ok(m9.includes("docReady ? \"✓\""));
 
@@ -337,6 +336,12 @@ describe("WP-029 Module 8/9 gates and UX wiring", () => {
     assert.ok(client.includes("submission_doc_verified"));
     assert.ok(client.includes("submission_doc_mismatch"));
     assert.ok(client.includes("submission_doc_verification_failed"));
+
+    // Shared recovery labels live in the recovery model; Module 9 uses the panel.
+    const recovery = readSrc("../lib/exports/submissionDocRecovery.js");
+    assert.ok(recovery.includes("Update Google Doc") || recovery.includes('"update"'));
+    assert.ok(recovery.includes("Retry check") || recovery.includes("retry_check"));
+    assert.ok(m9.includes("Retry check") || m9.includes("onRetry={handleRetryVerification}"));
     assert.ok(client.includes("verificationInFlightRef") === false);
     assert.ok(client.includes("safeVerificationLogPayload"));
     assert.equal(client.includes("DEV_GOOGLE_DOC_EDITOR_EMAIL"), false);

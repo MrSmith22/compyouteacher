@@ -5,9 +5,11 @@ import {
   ExistingDocumentUnavailableError,
   exportEssayToGoogleDocs,
   isExistingDocumentUnavailableError,
+  isGoogleOperationTimeoutError,
   SUBMISSION_DOC_ERROR_CODES,
 } from "@/lib/exports/exportEssayToGoogleDocs";
 import { getAuthoritativeEssayTextForUser } from "@/lib/exports/verifySubmissionGoogleDoc";
+import { SUBMISSION_DOC_VERIFICATION_STATUS } from "@/lib/exports/submissionDocVerification";
 
 export async function POST(req) {
   try {
@@ -17,11 +19,14 @@ export async function POST(req) {
     }
     const userEmail = session.user.email;
 
-    // Ignore client-supplied email/text for authority; resolve server-side.
+    // Ignore client-supplied email/text/documentId for authority; resolve server-side.
+    // Only forceCreate (boolean) is accepted as an intentional recovery signal.
     const body = await req.json().catch(() => null);
     if (body?.email && body.email !== userEmail) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+
+    const forceCreate = body?.forceCreate === true;
 
     const essay = await getAuthoritativeEssayTextForUser(userEmail);
     if (essay.status !== "ok" || !essay.text?.trim()) {
@@ -41,6 +46,18 @@ export async function POST(req) {
     const result = await exportEssayToGoogleDocs({
       email: userEmail,
       text: essay.text,
+      forceCreate,
+    });
+
+    console.info("[export-to-docs]", {
+      operation: result.operation,
+      documentId: result.documentId || null,
+      previousDocumentId: result.previousDocumentId || null,
+      pointerReplaced: !!result.pointerReplaced,
+      verificationStatus: result.verification?.status || null,
+      verified: !!result.verification?.verified,
+      forceCreate,
+      // Never log essay text, Doc body, credentials, or override email.
     });
 
     return NextResponse.json({
@@ -49,10 +66,18 @@ export async function POST(req) {
       operation: result.operation,
       verification: result.verification || null,
       sourceModule: essay.sourceModule,
+      previousDocumentId: result.previousDocumentId || null,
+      pointerReplaced: !!result.pointerReplaced,
     });
   } catch (err) {
     const message = err?.message || "Export failed";
-    console.error("Export error:", err);
+    console.error("Export error:", {
+      message,
+      code: err?.code || null,
+      step: err?.step || null,
+      previousDocumentId: err?.previousDocumentId || null,
+      pointerPreserved: !!err?.pointerPreserved,
+    });
 
     if (
       err instanceof ExistingDocumentUnavailableError ||
@@ -67,6 +92,49 @@ export async function POST(req) {
       );
     }
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (err?.code === "replacement_verification_failed") {
+      return NextResponse.json(
+        {
+          error: message,
+          code: "replacement_verification_failed",
+          verification: err.verification || null,
+          previousDocumentId: err.previousDocumentId || null,
+          pointerPreserved: true,
+        },
+        { status: 502 }
+      );
+    }
+
+    if (isGoogleOperationTimeoutError(err)) {
+      return NextResponse.json(
+        {
+          error:
+            "We could not finish updating your Google Doc right now. This may be a temporary connection problem.",
+          code: SUBMISSION_DOC_ERROR_CODES.GOOGLE_OPERATION_TIMEOUT,
+          step: err?.step || null,
+          verification: {
+            status: SUBMISSION_DOC_VERIFICATION_STATUS.VERIFICATION_ERROR,
+            verified: false,
+            documentId: null,
+            url: null,
+            expectedParagraphCount: null,
+            matchedParagraphCount: null,
+            firstMissingParagraphIndex: null,
+            expectedWordCount: null,
+            documentWordCount: null,
+            checkedAt: new Date().toISOString(),
+          },
+        },
+        { status: 504 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: message,
+        code: SUBMISSION_DOC_ERROR_CODES.TEMPORARY_SERVICE_FAILURE,
+      },
+      { status: 500 }
+    );
   }
 }

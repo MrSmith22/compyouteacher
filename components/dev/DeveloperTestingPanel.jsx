@@ -574,6 +574,76 @@ export default function DeveloperTestingPanel() {
           </section>
 
           <section>
+            <p className={sectionTitle}>WP-030 Doc recovery simulations</p>
+            <p className="mb-1 text-[10px] text-amber-800">
+              Simulations only. Stale-link does not delete Drive files. Affects the
+              signed-in development student only.
+            </p>
+            <div className="flex flex-wrap gap-1">
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Simulated missing exported_docs row", async () => {
+                    await panelAction("simulateMissingExportedDoc");
+                  })
+                }
+              >
+                Simulate: missing row
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Simulated stale/inaccessible document_id", async () => {
+                    await panelAction("simulateStaleGoogleDoc");
+                  })
+                }
+              >
+                Simulate: stale document ID
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Simulated verified current document", async () => {
+                    await panelAction("simulateVerifiedGoogleDoc");
+                  })
+                }
+              >
+                Simulate: verified current Doc
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Simulated temporary verification failure (one-shot)", async () => {
+                    await panelAction("simulateTemporaryVerificationFailure");
+                  })
+                }
+              >
+                Simulate: temporary verify failure
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Simulated one-word Doc content mismatch", async () => {
+                    await panelAction("simulateDocContentMismatch");
+                  })
+                }
+              >
+                Simulate: Doc content mismatch
+              </button>
+            </div>
+          </section>
+
+          <section>
             <p className={sectionTitle}>Source texts</p>
             <div className="flex flex-wrap gap-1">
               <button

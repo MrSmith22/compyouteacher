@@ -67,7 +67,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-026 | Module 7 revision language can imply writing is “wrong” | 7 | Low | Copy / Voice | Open |
 | WP-028 | Module 8 lacks single authoritative export pathway | 8 | Critical | Architecture | Open |
 | WP-029 | Module 8 lacks export verification against latest essay | 8 | High | Architecture / Trust | Open |
-| WP-030 | Module 8 lacks recovery actions for export problems | 8 | High | UX / Trust | Open |
+| WP-030 | Module 8 lacks recovery actions for export problems | 8 | High | UX / Trust | Resolved |
 | WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Open |
 | WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Open |
 | WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Open |
@@ -941,7 +941,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Google Doc export and formatting screens
 - **Priority:** High
 - **Category:** UX / Trust
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** There is no obvious recovery path when export goes wrong. Students should always have access to Update Google Doc, Create New Google Doc, and Open Current Submission Document.
 
@@ -955,11 +955,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Simulate stale/missing doc states.
 2. Confirm all three recovery actions are visible and functional.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/exports/submissionDocRecovery.js`; `components/exports/SubmissionDocRecoveryPanel.jsx`; `lib/exports/createOrUpdateSubmissionGoogleDocClient.js`; `lib/exports/googleOperationTimeout.js`; `lib/exports/runExportEssayToGoogleDocs.js`; `lib/exports/exportEssayToGoogleDocs.ts`; `lib/exports/devGoogleDocEditorOverride.js`; `app/api/export-to-docs/route.js`; `app/api/verify-submission-doc/route.js`; `components/ModuleEight.js`; `components/ModuleNine.js`; Dev Panel submission-doc simulations
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 8–9 use a shared recovery model with Update Google Doc, Open Current Submission Document, Retry check, and Create a new Google Doc (confirmed replacement only; never auto-replace; keep the old Drive file and pointer until a verified new Doc exists). Safe Update keeps the same Google Doc ID/URL. Temporary Google/API failures (including timeouts) end loading and surface Retry primary + Open when available—not mismatch—so progression stays locked until verified. Root hang fixed by skipping non-grantable `@localhost` writer grants; Google Drive/Docs operations use a 25s timeout; client requests abort at 60s. Browser acceptance: Scenario A (mismatch → one Update → same Doc → verified; progression unlocked; essay wording restored) and Scenario D (one-shot temporary failure → Retry → verified) at **390×844** and **1440×900**. Full suite 916/916.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after browser acceptance; this commit)
 
 ---
 
