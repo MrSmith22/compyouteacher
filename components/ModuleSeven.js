@@ -44,6 +44,13 @@ import {
   emptyReadAloudObservation,
   evaluateReadAloudAdvanceGate,
 } from "@/lib/module7/module7ReadAloudObservation";
+import {
+  advanceModule7StepIndex,
+  clampModule7StepIndex,
+  getModule7MaxStepIndex,
+  getModule7TotalSteps,
+  retreatModule7StepIndex,
+} from "@/lib/module7/module7StepBounds";
 import { logActivity } from "../lib/logActivity";
 
 const READ_ALOUD_STEP = { id: "read-aloud", type: MODULE7_STEP_TYPES.READ_ALOUD };
@@ -130,9 +137,10 @@ export default function ModuleSeven() {
     [outline]
   );
 
-  const totalSteps = sectionSteps.length + 2;
+  const totalSteps = getModule7TotalSteps(sectionSteps.length);
   const isReadAloudStep = currentStepIndex === 0;
-  const isFinalReviewStep = currentStepIndex === sectionSteps.length + 1;
+  const isFinalReviewStep =
+    currentStepIndex === getModule7MaxStepIndex(sectionSteps.length);
   const currentRevisionStep =
     isReadAloudStep || isFinalReviewStep
       ? null
@@ -333,9 +341,12 @@ export default function ModuleSeven() {
 
   useEffect(() => {
     if (sectionSteps.length === 0) return;
-    const maxIndex = sectionSteps.length;
-    if (currentStepIndex > maxIndex) {
-      setCurrentStepIndex(maxIndex);
+    const nextIndex = clampModule7StepIndex(
+      currentStepIndex,
+      sectionSteps.length
+    );
+    if (nextIndex !== currentStepIndex) {
+      setCurrentStepIndex(nextIndex);
     }
   }, [sectionSteps.length, currentStepIndex]);
 
@@ -635,7 +646,9 @@ export default function ModuleSeven() {
   };
 
   const goBack = () => {
-    setCurrentStepIndex((index) => Math.max(0, index - 1));
+    setCurrentStepIndex((index) =>
+      retreatModule7StepIndex(index, sectionSteps.length)
+    );
   };
 
   const goNext = () => {
@@ -654,7 +667,7 @@ export default function ModuleSeven() {
     }
     setRevisionNotice(null);
     setCurrentStepIndex((index) =>
-      Math.min(sectionSteps.length + 1, index + 1)
+      advanceModule7StepIndex(index, sectionSteps.length)
     );
   };
 
