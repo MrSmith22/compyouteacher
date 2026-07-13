@@ -28,6 +28,11 @@ import {
 import {
   createOrUpdateSubmissionGoogleDoc,
   hydrateSubmissionGoogleDoc,
+  verifySubmissionGoogleDocContent,
+  SUBMISSION_DOC_VERIFICATION_STATUS,
+  getSubmissionDocVerificationMessage,
+  SUBMISSION_DOC_VERIFICATION_EXPLAIN,
+  SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
@@ -52,6 +57,8 @@ export default function ModuleNine() {
   const [docBusy, setDocBusy] = useState(false);
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [docNotice, setDocNotice] = useState(null);
+  const [docContentVerified, setDocContentVerified] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState(null);
   const [finalPdfRow, setFinalPdfRow] = useState(null);
   const [guidedMode, setGuidedMode] = useState(true);
   const [viewedStep, setViewedStep] = useState(1);
@@ -61,6 +68,7 @@ export default function ModuleNine() {
 
   const hasLoggedStartRef = useRef(false);
   const hasLoggedSubmissionDetectedRef = useRef(false);
+  const verificationInFlightRef = useRef(false);
   const step2Ref = useRef(null);
   const step3Ref = useRef(null);
   const step4Ref = useRef(null);
@@ -68,9 +76,11 @@ export default function ModuleNine() {
 
   const alreadySubmitted = !!finalPdfRow;
   const checklistComplete = checklistState.every(Boolean);
+  // WP-029: link alone is not enough for Google Doc ✓ / progression.
+  const docReady = !!exportUrl && docContentVerified;
   const activeStep = !submitted
     ? 1
-    : !exportUrl
+    : !docReady
       ? 2
       : !checklistComplete
         ? 3
@@ -145,13 +155,60 @@ export default function ModuleNine() {
   useEffect(() => {
     (async () => {
       if (!session?.user?.email) return;
-      const hydrated = await hydrateSubmissionGoogleDoc({
-        userEmail: session.user.email,
-      });
-      if (hydrated.url) setExportUrl(hydrated.url);
-      setDocHydrated(true);
-      if (hydrated.error) {
-        console.warn(hydrated.error);
+      if (verificationInFlightRef.current) return;
+      verificationInFlightRef.current = true;
+      const email = session.user.email;
+      try {
+        const hydrated = await hydrateSubmissionGoogleDoc({
+          userEmail: email,
+        });
+        if (hydrated.url) setExportUrl(hydrated.url);
+        setDocHydrated(true);
+        if (hydrated.error) {
+          console.warn(hydrated.error);
+        }
+
+        if (!hydrated.url) {
+          setDocContentVerified(false);
+          setVerificationStatus(
+            SUBMISSION_DOC_VERIFICATION_STATUS.MISSING_DOCUMENT
+          );
+          return;
+        }
+
+        setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
+        const v = await verifySubmissionGoogleDocContent({
+          userEmail: email,
+          module: 9,
+        });
+        setVerificationStatus(v.status);
+        setDocContentVerified(!!v.verified);
+        if (v.url) setExportUrl(v.url);
+
+        if (v.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH) {
+          setDocNotice({
+            type: "error",
+            status: v.status,
+            message: `${v.message} ${SUBMISSION_DOC_MISMATCH_RECOVERY}`,
+          });
+        } else if (
+          v.status === SUBMISSION_DOC_VERIFICATION_STATUS.VERIFICATION_ERROR ||
+          v.status === SUBMISSION_DOC_VERIFICATION_STATUS.DOCUMENT_UNAVAILABLE
+        ) {
+          setDocNotice({
+            type: "error",
+            status: v.status,
+            message: v.message,
+          });
+        } else if (v.verified) {
+          setDocNotice({
+            type: "success",
+            status: v.status,
+            message: `${v.message} ${SUBMISSION_DOC_VERIFICATION_EXPLAIN}`,
+          });
+        }
+      } finally {
+        verificationInFlightRef.current = false;
       }
     })();
   }, [session]);
@@ -245,6 +302,7 @@ export default function ModuleNine() {
     setDocBusy(true);
     setDocNotice(null);
     setPopupBlocked(false);
+    setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
     try {
       const result = await createOrUpdateSubmissionGoogleDoc({
         userEmail: email,
@@ -254,16 +312,22 @@ export default function ModuleNine() {
       });
 
       if (!result.ok) {
+        setDocContentVerified(false);
         setDocNotice({
           type: "error",
           status: result.reason,
           message: result.message,
         });
+        setVerificationStatus(null);
         return;
       }
 
       setExportUrl(result.url);
       if (result.popupBlocked) setPopupBlocked(true);
+
+      const verification = result.verification;
+      setVerificationStatus(verification?.status || null);
+      setDocContentVerified(!!result.contentVerified);
 
       const notices = [];
       if (result.usedModule6Fallback) {
@@ -272,13 +336,48 @@ export default function ModuleNine() {
         );
       }
       notices.push(result.message);
+      if (result.contentVerified) {
+        notices.push(SUBMISSION_DOC_VERIFICATION_EXPLAIN);
+      } else if (
+        verification?.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
+      ) {
+        notices.push(SUBMISSION_DOC_MISMATCH_RECOVERY);
+      }
+
       setDocNotice({
-        type: "success",
-        status: result.reason,
+        type: result.contentVerified ? "success" : "error",
+        status: verification?.status || result.reason,
         message: notices.join(" "),
       });
     } finally {
       setDocBusy(false);
+    }
+  };
+
+  const handleRetryVerification = async () => {
+    if (!session?.user?.email || verificationInFlightRef.current) return;
+    verificationInFlightRef.current = true;
+    setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
+    setDocNotice(null);
+    try {
+      const v = await verifySubmissionGoogleDocContent({
+        userEmail: session.user.email,
+        module: 9,
+      });
+      setVerificationStatus(v.status);
+      setDocContentVerified(!!v.verified);
+      if (v.url) setExportUrl(v.url);
+      setDocNotice({
+        type: v.verified ? "success" : "error",
+        status: v.status,
+        message: v.verified
+          ? `${v.message} ${SUBMISSION_DOC_VERIFICATION_EXPLAIN}`
+          : v.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
+            ? `${v.message} ${SUBMISSION_DOC_MISMATCH_RECOVERY}`
+            : v.message,
+      });
+    } finally {
+      verificationInFlightRef.current = false;
     }
   };
 
@@ -309,13 +408,17 @@ export default function ModuleNine() {
   };
 
   const canUpload =
-    submitted && exportUrl && checklistComplete && !!pdfFile && !uploading;
+    submitted &&
+    docReady &&
+    checklistComplete &&
+    !!pdfFile &&
+    !uploading;
 
   const handleUploadPDF = async () => {
     if (!session?.user?.email) return;
-    if (!submitted || !exportUrl || !checklistComplete) {
+    if (!submitted || !docReady || !checklistComplete) {
       setUploadError(
-        "Complete all previous steps (APA practice, Google Doc, checklist) before uploading."
+        "Complete all previous steps (APA practice, verified Google Doc, checklist) before uploading."
       );
       return;
     }
@@ -456,7 +559,7 @@ export default function ModuleNine() {
                     activeStep >= 2 ? "bg-theme-green text-white" : "bg-surface-soft"
                   }`}
                 >
-                  2. Google Doc {exportUrl ? "✓" : ""}
+                  2. Google Doc {docReady ? "✓" : ""}
                 </span>
                 <span
                   className={`rounded px-2 py-1 ${
@@ -534,7 +637,7 @@ export default function ModuleNine() {
               . Keep the Quick Guide nearby while you format your Google Doc.
             </p>
             <ModuleNineApaQuickGuide defaultOpen={false} compact />
-            {guidedMode && !exportUrl && (
+            {guidedMode && !docReady && (
               <button
                 type="button"
                 onClick={() => {
@@ -559,7 +662,7 @@ export default function ModuleNine() {
             data-testid="module9-submission-doc-step"
           >
             <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-              Step 2 of 4: Your submission Google Doc{exportUrl ? " ✓" : ""}
+              Step 2 of 4: Your submission Google Doc{docReady ? " ✓" : ""}
             </h2>
 
             {docNotice ? (
@@ -579,9 +682,86 @@ export default function ModuleNine() {
               </div>
             ) : null}
 
-            {!docHydrated ? (
-              <p className="text-sm text-text-muted">Checking for your Google Doc…</p>
-            ) : exportUrl ? (
+            {!docHydrated ||
+            verificationStatus ===
+              SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING ? (
+              <p
+                role="status"
+                aria-live="polite"
+                data-testid="module9-doc-verification-status"
+                className="text-sm text-text-muted"
+              >
+                {!docHydrated
+                  ? "Checking for your Google Doc…"
+                  : getSubmissionDocVerificationMessage(
+                      SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING
+                    )}
+              </p>
+            ) : null}
+
+            {docHydrated &&
+            verificationStatus ===
+              SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH ? (
+              <div
+                className="rounded-lg border border-theme-red/30 bg-red-50 px-4 py-3 text-sm text-text-primary"
+                data-testid="module9-doc-mismatch"
+              >
+                <p className="font-semibold">
+                  {getSubmissionDocVerificationMessage(
+                    SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
+                  )}
+                </p>
+                <p className="mt-1">{SUBMISSION_DOC_MISMATCH_RECOVERY}</p>
+                <button
+                  type="button"
+                  className={`mt-3 min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
+                  onClick={handleCreateOrUpdateSubmissionDoc}
+                  disabled={docBusy}
+                  data-testid="module9-update-google-doc-primary"
+                >
+                  {docBusy ? "Updating your Google Doc…" : "Update Google Doc"}
+                </button>
+              </div>
+            ) : null}
+
+            {docHydrated &&
+            (verificationStatus ===
+              SUBMISSION_DOC_VERIFICATION_STATUS.VERIFICATION_ERROR ||
+              verificationStatus ===
+                SUBMISSION_DOC_VERIFICATION_STATUS.DOCUMENT_UNAVAILABLE) ? (
+              <div
+                className="rounded-lg border border-theme-orange/30 bg-orange-50 px-4 py-3 text-sm text-text-primary"
+                data-testid="module9-doc-verification-error"
+              >
+                <p>
+                  {getSubmissionDocVerificationMessage(verificationStatus)}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
+                    onClick={handleRetryVerification}
+                  >
+                    Retry check
+                  </button>
+                  {exportUrl ? (
+                    <a
+                      href={exportUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`inline-flex min-h-[44px] items-center rounded border border-border-soft bg-white px-4 py-2 text-sm font-medium ${FOCUS_RING}`}
+                    >
+                      Open current Google Doc
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {docHydrated &&
+            verificationStatus !==
+              SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING &&
+            exportUrl ? (
               <div className="space-y-3">
                 <p className="text-sm text-text-primary">
                   The Google Doc you prepared in Module 8 is the document you will
@@ -638,7 +818,12 @@ export default function ModuleNine() {
                   </a>
                 </p>
               </div>
-            ) : (
+            ) : null}
+
+            {docHydrated &&
+            verificationStatus !==
+              SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING &&
+            !exportUrl ? (
               <div className="space-y-3 rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-4 py-4">
                 <p className="text-sm font-semibold text-text-primary">
                   Your submission Google Doc still needs to be prepared
@@ -657,9 +842,9 @@ export default function ModuleNine() {
                   {docBusy ? "Creating your Google Doc…" : "Create your Google Doc"}
                 </button>
               </div>
-            )}
+            ) : null}
 
-            {guidedMode && exportUrl && (
+            {guidedMode && docReady && (
               <button
                 type="button"
                 onClick={() => {
@@ -679,7 +864,7 @@ export default function ModuleNine() {
 
         {(!guidedMode || viewedStep === 3) &&
           submitted &&
-          exportUrl &&
+          docReady &&
           !alreadySubmitted && (
             <section
               ref={step3Ref}
@@ -757,7 +942,7 @@ export default function ModuleNine() {
 
         {(!guidedMode || viewedStep === 4) &&
           submitted &&
-          exportUrl &&
+          docReady &&
           checklistComplete &&
           !alreadySubmitted && (
             <section

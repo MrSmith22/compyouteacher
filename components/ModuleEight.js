@@ -19,6 +19,11 @@ import {
 import {
   createOrUpdateSubmissionGoogleDoc,
   hydrateSubmissionGoogleDoc,
+  verifySubmissionGoogleDocContent,
+  SUBMISSION_DOC_VERIFICATION_STATUS,
+  getSubmissionDocVerificationMessage,
+  SUBMISSION_DOC_VERIFICATION_EXPLAIN,
+  SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import ModulePageShell from "@/components/layout/ModulePageShell";
@@ -119,6 +124,8 @@ export default function ModuleEight() {
   const [creatingDoc, setCreatingDoc] = useState(false);
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [docExportNotice, setDocExportNotice] = useState(null);
+  const [verificationStatus, setVerificationStatus] = useState(null);
+  const verificationInFlightRef = useRef(false);
 
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
   const [checklistLoading, setChecklistLoading] = useState(true);
@@ -198,6 +205,29 @@ export default function ModuleEight() {
 
       if (docResult.url) {
         setSubmissionDocUrl(docResult.url);
+        if (!verificationInFlightRef.current) {
+          verificationInFlightRef.current = true;
+          setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
+          verifySubmissionGoogleDocContent({
+            userEmail: email,
+            module: 8,
+          })
+            .then((v) => {
+              setVerificationStatus(v.status);
+              if (v.url) setSubmissionDocUrl(v.url);
+              // Informational only — WP-002 still requires this-session Create/Update.
+              if (v.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH) {
+                setDocExportNotice({
+                  type: "error",
+                  status: v.status,
+                  message: `${v.message} ${SUBMISSION_DOC_MISMATCH_RECOVERY}`,
+                });
+              }
+            })
+            .finally(() => {
+              verificationInFlightRef.current = false;
+            });
+        }
       }
       if (docResult.error) {
         console.warn("Submission doc hydrate:", docResult.error);
@@ -205,8 +235,9 @@ export default function ModuleEight() {
 
       // WP-002: never treat final_ready, exported_docs, or seeded history as a
       // verified Google Doc for this visit. Only a successful Create/Update
-      // in this session sets docVerifiedThisSession.
+      // in this session that also verifies content sets docVerifiedThisSession.
       setDocVerifiedThisSession(false);
+      setVerificationStatus(null);
 
       if (m8?.final_ready) {
         setPreviouslyFinalized(true);
@@ -229,7 +260,7 @@ export default function ModuleEight() {
           module: 8,
           from_module7_final: !!m7?.final_text,
           module8_already_locked: !!m8?.final_ready,
-          has_submission_doc: !!docResult.data?.web_view_link,
+          has_submission_doc: !!docResult.url,
           ...metrics,
         });
       }
@@ -302,6 +333,7 @@ export default function ModuleEight() {
     const hadExistingDoc = !!submissionDocUrl;
     setCreatingDoc(true);
     setDocExportNotice(null);
+    setVerificationStatus(SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING);
     setPopupBlocked(false);
     try {
       const result = await createOrUpdateSubmissionGoogleDoc({
@@ -312,6 +344,8 @@ export default function ModuleEight() {
       });
 
       if (!result.ok) {
+        setDocVerifiedThisSession(false);
+        setVerificationStatus(null);
         setDocExportNotice({
           type: "error",
           status: result.reason,
@@ -321,8 +355,17 @@ export default function ModuleEight() {
       }
 
       setSubmissionDocUrl(result.url);
-      setDocVerifiedThisSession(true);
       if (result.popupBlocked) setPopupBlocked(true);
+
+      const verification = result.verification;
+      setVerificationStatus(verification?.status || null);
+
+      // WP-029: unlock only when immediate write verification passes.
+      if (result.contentVerified) {
+        setDocVerifiedThisSession(true);
+      } else {
+        setDocVerifiedThisSession(false);
+      }
 
       const notices = [];
       if (result.usedModule6Fallback) {
@@ -331,9 +374,17 @@ export default function ModuleEight() {
         );
       }
       notices.push(result.message);
+      if (result.contentVerified) {
+        notices.push(SUBMISSION_DOC_VERIFICATION_EXPLAIN);
+      } else if (
+        verification?.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
+      ) {
+        notices.push(SUBMISSION_DOC_MISMATCH_RECOVERY);
+      }
+
       setDocExportNotice({
-        type: "success",
-        status: result.reason,
+        type: result.contentVerified ? "success" : "error",
+        status: verification?.status || result.reason,
         message: notices.join(" "),
       });
     } finally {
@@ -569,6 +620,40 @@ export default function ModuleEight() {
                   ].join(" ")}
                 >
                   {docExportNotice.message}
+                </div>
+              ) : null}
+
+              {verificationStatus ===
+              SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING ? (
+                <p
+                  role="status"
+                  aria-live="polite"
+                  data-testid="module8-doc-verification-status"
+                  className="text-sm text-text-muted"
+                >
+                  {getSubmissionDocVerificationMessage(
+                    SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING
+                  )}
+                </p>
+              ) : null}
+
+              {docVerifiedThisSession &&
+              verificationStatus ===
+                SUBMISSION_DOC_VERIFICATION_STATUS.VERIFIED ? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  data-testid="module8-doc-verification-status"
+                  className="rounded-lg border border-theme-green/30 bg-theme-green/5 px-4 py-3 text-sm text-text-primary"
+                >
+                  <p className="font-semibold">
+                    {getSubmissionDocVerificationMessage(
+                      SUBMISSION_DOC_VERIFICATION_STATUS.VERIFIED
+                    )}
+                  </p>
+                  <p className="mt-1 text-text-muted">
+                    {SUBMISSION_DOC_VERIFICATION_EXPLAIN}
+                  </p>
                 </div>
               ) : null}
 

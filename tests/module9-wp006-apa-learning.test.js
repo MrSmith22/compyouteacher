@@ -181,7 +181,8 @@ describe("WP-006 Module 9 APA learning", () => {
     assert.ok(modNine.includes("getModule9FormattingChecklistItems") || modNine.includes("CHECKLIST_ITEMS"));
     assert.ok(modNine.includes("/api/final-pdf"));
     assert.ok(modNine.includes("canUpload ="));
-    assert.ok(modNine.includes("submitted && exportUrl && checklistComplete"));
+    assert.ok(modNine.includes("docReady"));
+    assert.ok(modNine.includes("checklistComplete"));
     assert.ok(modNine.includes('router.push("/modules/9/success")'));
     assert.ok(modNine.includes("alreadySubmitted"));
     assert.equal(modNine.includes("handleExportToGoogleDocs"), false);

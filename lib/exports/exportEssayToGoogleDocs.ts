@@ -79,6 +79,18 @@ export type ExportEssayToGoogleDocsResult = {
   webViewLink: string;
   operation: "created" | "updated" | "recreated";
   permissions?: SubmissionDocPermissionResult | null;
+  verification?: {
+    status: string;
+    verified: boolean;
+    documentId: string | null;
+    url: string | null;
+    expectedParagraphCount: number | null;
+    matchedParagraphCount: number | null;
+    firstMissingParagraphIndex: number | null;
+    expectedWordCount: number | null;
+    documentWordCount: number | null;
+    checkedAt: string;
+  } | null;
 };
 
 export type ExportEssayToGoogleDocsDeps = {

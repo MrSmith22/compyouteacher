@@ -97,7 +97,6 @@ function makeDeps({
       batchUpdate: async (documentId, requests) => {
         calls.batchUpdate += 1;
         calls.batchRequests.push({ documentId, requests });
-        // After replace, document still same id; body end grows with text length approx.
         const textReq = requests.find((r) => r.insertText);
         const text = textReq?.insertText?.text || "";
         bodies.set(documentId, {
@@ -105,13 +104,26 @@ function makeDeps({
           body: {
             content: [
               { endIndex: 1 },
-              { startIndex: 1, endIndex: Math.max(2, 1 + text.length + 1) },
+              {
+                startIndex: 1,
+                endIndex: Math.max(2, 1 + text.length + 1),
+                paragraph: {
+                  elements: [{ textRun: { content: `${text}\n` } }],
+                },
+              },
             ],
           },
         });
       },
       shareDocument: async () => {
         calls.shareDocument += 1;
+        return {
+          studentWriterGranted: true,
+          overrideWriterAttempted: false,
+          overrideWriterGranted: null,
+          publicReaderGranted: true,
+          writerRecipientCount: 1,
+        };
       },
       getWebViewLink: async (documentId) => {
         calls.getWebViewLink += 1;
