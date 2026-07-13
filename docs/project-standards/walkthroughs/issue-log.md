@@ -79,7 +79,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-039 | Module 9 quiz stacks many questions instead of one concept per screen | 9 | High | Instructional / UX | Resolved |
 | WP-040 | Module 9 quiz feedback reports correctness without teaching | 9 | Medium | Instructional | Resolved |
 | WP-041 | Module 9 formatting page lacks “do not rewrite” coaching | 9 | High | Instructional | Resolved |
-| WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Open |
+| WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Resolved |
 | WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Open |
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Open |
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Open |
@@ -1278,7 +1278,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Export Final Draft to Google Docs button
 - **Priority:** Medium
 - **Category:** Copy / Voice
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Current label “Export Final Draft to Google Docs” uses technical vocabulary. Master Spec recommends “Create My Final Google Doc” or “Update My Final Google Doc.”
 
@@ -1292,11 +1292,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open Module 9 export with no prior doc; confirm “Create” label.
 2. Open with existing doc; confirm “Update” label.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`; `components/exports/SubmissionDocRecoveryPanel.jsx`; `lib/exports/submissionDocRecovery.js`; `tests/module9-wp042-create-update-doc-labels.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Already satisfied—no copy/workflow change. Legacy “Export Final Draft to Google Docs” removed; Module 9 uses shared `SubmissionDocRecoveryPanel` with `hasUrl={!!exportUrl}`, verification, and Create/Update/Create-new handlers. Labels from `getRecoveryActionLabel`: Create your Google Doc / Update Google Doc / Create a new Google Doc (+ busy variants). Aligns with Module 8 recovery vocabulary. Focused regression `module9-wp042-create-update-doc-labels.test.js`.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
