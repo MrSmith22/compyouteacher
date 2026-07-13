@@ -17,8 +17,21 @@ import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import ModulePageShell from "@/components/layout/ModulePageShell";
+import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
+import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
+import {
+  MODULE9_APA_ENTRY,
+  MODULE9_APA_JOURNEY,
+  MODULE9_APA_QUIZ_TOTAL,
+  MODULE9_LAYOUT_CONTRACT,
+  buildEmptyApaLessonState,
+  getModule9FormattingChecklistItems,
+} from "@/lib/module9/module9ApaLearning";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
+const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
+const FOCUS_RING =
+  "focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2";
 
 export default function ModuleNine() {
   const { data: session } = useSession();
@@ -26,8 +39,8 @@ export default function ModuleNine() {
 
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [review, setReview] = useState([]); // per-question report
+  const [lessonState, setLessonState] = useState(() => buildEmptyApaLessonState());
+  const [apaPersisting, setApaPersisting] = useState(false);
 
   const [pdfFile, setPdfFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -46,33 +59,22 @@ export default function ModuleNine() {
   const step2Ref = useRef(null);
   const step3Ref = useRef(null);
   const step4Ref = useRef(null);
-  const [gateOk, setGateOk] = useState(null); // null = loading, true/false = result
+  const [gateOk, setGateOk] = useState(null);
 
   const alreadySubmitted = !!finalPdfRow;
   const checklistComplete = checklistState.every(Boolean);
-  const activeStep =
-    !submitted
-      ? 1
-      : !exportUrl
-        ? 2
-        : !checklistComplete
-          ? 3
-          : !alreadySubmitted
-            ? 4
-            : 4;
-
-  const CHECKLIST_ITEMS = [
-    "Font: Times New Roman, size 12.",
-    "Spacing: double spaced everywhere, including references.",
-    "Margins: one inch on all sides.",
-    "Title page: includes title, your name, school, course, teacher, and date in the correct spots.",
-    "Page numbers: page number in the top right corner of every page.",
-    "References page: starts on a new page, entries in alphabetical order by author last name, double spaced.",
-  ];
+  const activeStep = !submitted
+    ? 1
+    : !exportUrl
+      ? 2
+      : !checklistComplete
+        ? 3
+        : 4;
 
   const checklistLoadedRef = useRef(false);
   const saveDebounceRef = useRef(null);
   const hasInitialLoadDoneRef = useRef(false);
+  const quizHydratedRef = useRef(false);
 
   useEffect(() => {
     const email = session?.user?.email;
@@ -112,83 +114,6 @@ export default function ModuleNine() {
       if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
     };
   }, [session?.user?.email, checklistState, checklistLoading]);
-
-  const questions = [
-    {
-      q: "What is the correct font for APA Style papers?",
-      opts: ["Times New Roman, 12 pt", "Calibri, 8 pt", "Arial, 14 pt"],
-      a: "Times New Roman, 12 pt",
-    },
-    {
-      q: "What spacing should be used in an APA formatted paper?",
-      opts: ["Single", "1.5 spacing", "Double"],
-      a: "Double",
-    },
-    {
-      q: "Where does the title page appear in an APA paper?",
-      opts: ["At the end", "After the abstract", "As the first page"],
-      a: "As the first page",
-    },
-    {
-      q: "Which of the following is a correct in text citation in APA?",
-      opts: ["(Smith, 2020)", "[Smith 2020]", "Smith, 2020:"],
-      a: "(Smith, 2020)",
-    },
-    {
-      q: "How should the reference page be formatted?",
-      opts: [
-        "Double spaced, alphabetical order",
-        "Single spaced, numbered list",
-        "Double spaced, chronological order",
-      ],
-      a: "Double spaced, alphabetical order",
-    },
-    {
-      q: "What is the correct page header on the title page?",
-      opts: [
-        "Title of the paper only",
-        "Page number only",
-        "Title and page number, right aligned",
-      ],
-      a: "Title and page number, right aligned",
-    },
-    {
-      q: "What belongs on the title page in APA format?",
-      opts: [
-        "Title, author, institution, course, instructor, date",
-        "Only the title and author name",
-        "Title, table of contents, and date",
-      ],
-      a: "Title, author, institution, course, instructor, date",
-    },
-    {
-      q: "MLK's 'I Have a Dream' speech and 'Letter from Birmingham Jail' are best cited as:",
-      opts: ["Primary sources", "Secondary sources", "Tertiary sources"],
-      a: "Primary sources",
-    },
-    {
-      q: "Do student APA papers always need an abstract?",
-      opts: [
-        "Yes, always",
-        "No, only if the teacher or assignment requires it",
-        "Yes, if the paper is longer than 2 pages",
-      ],
-      a: "No, only if the teacher or assignment requires it",
-    },
-    {
-      q: "What is the correct order for an APA paper?",
-      opts: [
-        "Title Page → Abstract → Body → References",
-        "Introduction → Body → References → Title Page",
-        "Title Page → References → Body → Abstract",
-      ],
-      a: "Title Page → Abstract → Body → References",
-    },
-  ];
-
-  useEffect(() => {
-    setUserAnswers(Array(questions.length).fill(""));
-  }, []);
 
   useEffect(() => {
     if (!session?.user?.email) return;
@@ -242,54 +167,65 @@ export default function ModuleNine() {
   }, [session?.user?.email]);
 
   useEffect(() => {
-    if (!session?.user?.email || !finalPdfRow || hasLoggedSubmissionDetectedRef.current) return;
+    if (!session?.user?.email || !finalPdfRow || hasLoggedSubmissionDetectedRef.current)
+      return;
     hasLoggedSubmissionDetectedRef.current = true;
     logActivity(session.user.email, "submission_detected", { module: 9 });
   }, [session?.user?.email, finalPdfRow]);
 
-  const handleAnswer = (idx, val) => {
-    const copy = [...userAnswers];
-    copy[idx] = val;
-    setUserAnswers(copy);
-  };
+  // Hydrate APA practice completion from module9_quiz (not authoritative for PDF submission).
+  useEffect(() => {
+    if (!session?.user?.email || quizHydratedRef.current) return;
+    quizHydratedRef.current = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("module9_quiz")
+        .select("score, total, submitted_at")
+        .eq("user_email", session.user.email)
+        .maybeSingle();
+      if (error) {
+        console.warn(error);
+        return;
+      }
+      if (data?.submitted_at) {
+        setSubmitted(true);
+        setScore(typeof data.score === "number" ? data.score : 0);
+        setViewedStep((step) => Math.max(step, 2));
+      }
+    })();
+  }, [session?.user?.email]);
 
-  const handleSubmit = async () => {
-    let total = 0;
-    const report = questions.map((item, i) => {
-      const selected = userAnswers[i] || "";
-      const correct = selected === item.a;
-      if (correct) total += 1;
-      return {
-        i,
-        question: item.q,
-        selected,
-        correctAnswer: item.a,
-        correct,
-        options: item.opts,
-      };
-    });
-
-    setScore(total);
-    setReview(report);
+  const persistApaPractice = async (summary) => {
+    if (apaPersisting || submitted) return;
+    setApaPersisting(true);
+    setScore(summary.score);
     setSubmitted(true);
 
     if (session?.user?.email) {
       await supabase.from("module9_quiz").upsert({
         user_email: session.user.email,
-        score: total,
-        total: questions.length,
+        score: summary.score,
+        total: summary.total || MODULE9_APA_QUIZ_TOTAL,
         submitted_at: new Date().toISOString(),
       });
 
       await logActivity(session.user.email, "quiz_submitted", {
         module: 9,
-        score: total,
-        total: questions.length,
-        details: report.map((r) => ({
-          index: r.i,
+        score: summary.score,
+        total: summary.total || MODULE9_APA_QUIZ_TOTAL,
+        details: summary.details.map((r) => ({
+          index: r.index,
+          conceptId: r.conceptId,
           correct: r.correct,
         })),
+        score_definition: "first_attempt",
       });
+    }
+
+    setApaPersisting(false);
+    if (guidedMode) {
+      setViewedStep(2);
+      setTimeout(() => step2Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
     }
   };
 
@@ -359,7 +295,7 @@ export default function ModuleNine() {
     }
   };
 
-  const MAX_PDF_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+  const MAX_PDF_SIZE_BYTES = 15 * 1024 * 1024;
 
   const handleFileSelect = (e) => {
     setUploadError(null);
@@ -391,7 +327,9 @@ export default function ModuleNine() {
   const handleUploadPDF = async () => {
     if (!session?.user?.email) return;
     if (!submitted || !exportUrl || !checklistComplete) {
-      setUploadError("Complete all previous steps (quiz, export, checklist) before uploading.");
+      setUploadError(
+        "Complete all previous steps (APA practice, export, checklist) before uploading."
+      );
       return;
     }
     if (!pdfFile) {
@@ -488,66 +426,64 @@ export default function ModuleNine() {
   }
 
   return (
-    <ModulePageShell contentMax="lg">
-      <div className="space-y-8">
-        <header className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-          <h1 className="text-3xl font-extrabold text-theme-blue">📘 Module 9: APA Format and Final Submission</h1>
-          <div className="text-gray-700 text-sm md:text-base space-y-3">
-            <p>
-              Congratulations—your essay is already finished. In this module, you are
-              preparing that paper for submission. You are not writing new paragraphs
-              or changing your ideas.
-            </p>
-            <p>
-              APA formatting changes how the paper looks on the page, not what it says.
-              You will complete four simple steps:
-            </p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Review the APA checklist.</li>
-              <li>Complete the short APA quiz.</li>
-              <li>Prepare your Google Doc.</li>
-              <li>Download and upload your final PDF.</li>
+    <ModulePageShell contentMax={MODULE9_LAYOUT_CONTRACT.contentMax}>
+      <div
+        className="space-y-8 overflow-x-hidden"
+        data-wp006-layout={MODULE9_LAYOUT_CONTRACT.viewports.join("-")}
+      >
+        <header className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6">
+          <h1 className="text-3xl font-extrabold text-theme-blue">
+            Module 9: APA Format and Final Submission
+          </h1>
+          <div className="space-y-3 text-sm text-text-primary md:text-base">
+            <p className="font-semibold">{MODULE9_APA_ENTRY.title}</p>
+            <p>{MODULE9_APA_ENTRY.lead}</p>
+            <p>{MODULE9_APA_ENTRY.framing}</p>
+            <ol className="list-inside list-decimal space-y-1">
+              {MODULE9_APA_JOURNEY.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
             </ol>
           </div>
           {!alreadySubmitted && (
-            <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-gray-200">
-              <label className="flex items-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-4 border-t border-border-soft pt-2">
+              <label className="flex min-h-[44px] items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={guidedMode}
                   onChange={(e) => setGuidedMode(e.target.checked)}
-                  className="rounded border-gray-300 text-theme-blue"
+                  className="rounded border-border-soft text-theme-blue"
                 />
                 Guided mode
               </label>
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span
-                  className={`px-2 py-1 rounded ${
-                    activeStep >= 1 ? "bg-theme-green text-white" : "bg-gray-200"
+                  className={`rounded px-2 py-1 ${
+                    activeStep >= 1 ? "bg-theme-green text-white" : "bg-surface-soft"
                   }`}
                 >
-                  Step 1: Quiz {submitted ? "✓" : ""}
+                  1. Learn APA {submitted ? "✓" : ""}
                 </span>
                 <span
-                  className={`px-2 py-1 rounded ${
-                    activeStep >= 2 ? "bg-theme-green text-white" : "bg-gray-200"
+                  className={`rounded px-2 py-1 ${
+                    activeStep >= 2 ? "bg-theme-green text-white" : "bg-surface-soft"
                   }`}
                 >
-                  Step 2: Export {exportUrl ? "✓" : ""}
+                  2. Google Doc {exportUrl ? "✓" : ""}
                 </span>
                 <span
-                  className={`px-2 py-1 rounded ${
-                    activeStep >= 3 ? "bg-theme-green text-white" : "bg-gray-200"
+                  className={`rounded px-2 py-1 ${
+                    activeStep >= 3 ? "bg-theme-green text-white" : "bg-surface-soft"
                   }`}
                 >
-                  Step 3: Checklist {checklistComplete ? "✓" : ""}
+                  3. Checklist {checklistComplete ? "✓" : ""}
                 </span>
                 <span
-                  className={`px-2 py-1 rounded ${
-                    activeStep >= 4 ? "bg-theme-green text-white" : "bg-gray-200"
+                  className={`rounded px-2 py-1 ${
+                    activeStep >= 4 ? "bg-theme-green text-white" : "bg-surface-soft"
                   }`}
                 >
-                  Step 4: Upload PDF
+                  4. Upload PDF
                 </span>
               </div>
             </div>
@@ -555,16 +491,21 @@ export default function ModuleNine() {
         </header>
 
         {alreadySubmitted && (
-          <section className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-            <h2 className="text-lg font-semibold text-theme-dark">Submitted: Final PDF received</h2>
-            <p className="text-sm text-gray-700">Your work for this module is complete. Use the links below to open your documents.</p>
+          <section className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6">
+            <h2 className="text-lg font-semibold text-text-primary">
+              Submitted: Final PDF received
+            </h2>
+            <p className="text-sm text-text-primary">
+              Your work for this module is complete. Use the links below to open your
+              documents.
+            </p>
             <div className="flex flex-wrap gap-3">
               {(finalPdfRow?.public_url || finalPdfRow?.web_view_link) && (
                 <a
                   href={finalPdfRow.public_url || finalPdfRow.web_view_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 rounded bg-theme-blue text-white text-sm font-semibold shadow hover:opacity-90"
+                  className={`inline-flex min-h-[44px] items-center rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
                 >
                   Open final PDF
                 </a>
@@ -574,339 +515,286 @@ export default function ModuleNine() {
                   href={exportUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 rounded bg-theme-green text-white text-sm font-semibold shadow hover:opacity-90"
+                  className={`inline-flex min-h-[44px] items-center rounded bg-theme-green px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
                 >
                   Open Google Doc
                 </a>
               )}
             </div>
+            <ModuleNineApaQuickGuide compact />
           </section>
         )}
 
-        {(!guidedMode || activeStep <= 3) && (activeStep === 1 || activeStep === 2 || activeStep === 3) && !alreadySubmitted && (
-        <section className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-          <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
-            <span role="img" aria-label="checklist">📋</span>
-            APA Formatting Checklist
-          </h2>
-          <p className="text-sm text-gray-700">
-            Use this checklist while you work in the Google Doc. Think of it as a style uniform. Every student paper will not
-            say the same thing, but they all wear the same APA clothing.
-          </p>
-          <p className="text-sm text-gray-700">
-            📄 Google Doc template (already set up for you):{" "}
-            <a
-              href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-theme-blue underline"
-            >
-              Copy APA Google Docs Template
-            </a>
-          </p>
-          <p className="text-xs text-gray-600">
-            Open the template, click the button to make your own copy, then paste your final essay into the body of that
-            document. Replace the placeholder text on the title page with your own information.
-          </p>
-
-          <div className="mt-3 border-t border-gray-200 pt-3">
-            <h3 className="text-sm font-semibold text-theme-dark mb-1">Need more help with APA style?</h3>
-            <ul className="list-disc ml-6 text-xs text-gray-700 space-y-1">
-              <li>
-                Official APA sample student paper:{" "}
-                <a
-                  href="https://apastyle.apa.org/style-grammar-guidelines/paper-format/student-annotated"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-theme-blue underline"
-                >
-                  APA Style student paper example
-                </a>
-              </li>
-              <li>
-                Purdue OWL APA Formatting and Style Guide:{" "}
-                <a
-                  href="https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/general_format.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-theme-blue underline"
-                >
-                  Purdue OWL APA guide
-                </a>
-              </li>
-            </ul>
-            <p className="text-xs text-gray-600 mt-1">
-              You do not have to read every word. Use the examples to double check things like the title page, page numbers,
-              in text citations, and reference entries.
-            </p>
-          </div>
-        </section>
+        {(!guidedMode || viewedStep === 1) && !alreadySubmitted && !submitted && (
+          <ModuleNineApaLesson
+            lessonState={lessonState}
+            onLessonStateChange={setLessonState}
+            onComplete={persistApaPractice}
+            alreadyPersisted={false}
+          />
         )}
 
-        {(!guidedMode || viewedStep === 1) && !alreadySubmitted && (
-        <section className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-          <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
-            <span role="img" aria-label="quiz">✏️</span>
-            Step 1 of 4: Quiz{submitted ? " ✓" : ""}
-          </h2>
-          <p className="text-sm text-gray-700">
-            This quiz is practice. It helps you notice the biggest APA rules before you format your Google Doc. If you miss
-            some questions, use the checklist and resources above to fix your paper.
-          </p>
-
-          {questions.map((item, idx) => (
-            <div key={idx} className="space-y-2">
-              <p className="font-medium text-sm md:text-base">
-                {idx + 1}. {item.q}
-              </p>
-              {item.opts.map((opt, oIdx) => {
-                const chosen = userAnswers[idx];
-                const isCorrect = submitted && opt === item.a;
-                const isWrongChoice = submitted && chosen === opt && chosen !== item.a;
-
-                return (
-                  <label
-                    key={oIdx}
-                    className={`block text-sm ${isCorrect ? "text-green-700" : ""} ${isWrongChoice ? "text-red-700" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name={`q-${idx}`}
-                      value={opt}
-                      disabled={submitted}
-                      checked={userAnswers[idx] === opt}
-                      onChange={() => handleAnswer(idx, opt)}
-                      className="mr-2"
-                    />
-                    {opt}
-                    {submitted && isCorrect && <span className="ml-2 text-xs">✓ correct</span>}
-                    {submitted && isWrongChoice && <span className="ml-2 text-xs">✗</span>}
-                  </label>
-                );
-              })}
-              {submitted && userAnswers[idx] !== item.a && (
-                <div className="text-xs text-gray-700">
-                  Correct answer: <span className="font-semibold">{item.a}</span>
-                </div>
-              )}
-              <hr className="my-2" />
-            </div>
-          ))}
-
-          {!submitted ? (
-            <button
-              onClick={handleSubmit}
-              className="bg-theme-green text-white px-6 py-3 rounded shadow text-sm font-semibold"
-            >
-              ✅ Submit Quiz
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <div className="text-theme-green font-semibold text-sm">
-                🎯 You scored {score} / {questions.length}.
-              </div>
-              {alreadySubmitted && (
-                <p className="text-sm text-gray-700">
-                  Your final PDF has been submitted. Use the links at the top of this page to open your documents.
-                </p>
-              )}
-              {guidedMode && submitted && !alreadySubmitted && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewedStep(2);
-                    setTimeout(() => step2Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
-                  }}
-                  className="bg-theme-blue text-white px-4 py-2 rounded shadow text-sm font-semibold hover:opacity-90"
-                >
-                  Continue to Step 2 →
-                </button>
-              )}
-            </div>
-          )}
-        </section>
+        {(!guidedMode || viewedStep >= 1) && !alreadySubmitted && submitted && (
+          <section className="space-y-3 rounded-xl border border-theme-green/30 bg-theme-green/5 px-4 py-4 shadow-soft md:px-6">
+            <h2 className="text-lg font-semibold text-text-primary">
+              APA practice complete
+            </h2>
+            <p className="text-sm text-text-primary">
+              You practiced the APA choices this assignment uses
+              {typeof score === "number"
+                ? ` (first-try matches: ${score} / ${MODULE9_APA_QUIZ_TOTAL})`
+                : ""}
+              . Keep the Quick Guide nearby while you format your Google Doc.
+            </p>
+            <ModuleNineApaQuickGuide defaultOpen={false} compact />
+            {guidedMode && !exportUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewedStep(2);
+                  setTimeout(
+                    () => step2Ref.current?.scrollIntoView({ behavior: "smooth" }),
+                    0
+                  );
+                }}
+                className={`min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
+              >
+                Continue to prepare your Google Doc
+              </button>
+            )}
+          </section>
         )}
 
         {(!guidedMode || viewedStep === 2) && submitted && !alreadySubmitted && (
-        <section ref={step2Ref} className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-          <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
-            <span role="img" aria-label="export">✍</span>
-            Step 2 of 4: Export to Google Docs{exportUrl ? " ✓" : ""}
-          </h2>
-          <p className="text-sm text-gray-700">
-            Send your final essay to a Google Doc that is already set up in APA style. Then you will format it and download a PDF.
-          </p>
-          <button
-            onClick={handleExportToGoogleDocs}
-            className="bg-theme-blue text-white px-6 py-3 rounded shadow text-sm font-semibold"
+          <section
+            ref={step2Ref}
+            className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
           >
-            Export Final Draft to Google Docs (APA Format)
-          </button>
-          {exportUrl && (
-            <div className="mt-4 border rounded-lg p-3 bg-theme-light shadow-sm text-sm">
-              <div className="font-semibold mb-2">Your Google Doc</div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <a className="text-theme-blue underline" href={exportUrl} target="_blank" rel="noreferrer">
-                  Open your document
-                </a>
-                <button
-                  className="px-3 py-1 border rounded text-xs"
-                  onClick={() => navigator.clipboard.writeText(exportUrl)}
-                >
-                  Copy link
-                </button>
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+              Step 2 of 4: Prepare your Google Doc{exportUrl ? " ✓" : ""}
+            </h2>
+            <p className="text-sm text-text-primary">
+              Send your final essay to a Google Doc that is already set up in APA style.
+              Then format it using the Quick Guide and checklist.
+            </p>
+            <p className="text-sm text-text-primary">
+              Optional template:{" "}
+              <a
+                href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex min-h-[44px] items-center text-theme-blue underline ${FOCUS_RING}`}
+              >
+                Copy APA Google Docs Template
+              </a>
+            </p>
+            <button
+              onClick={handleExportToGoogleDocs}
+              className={`min-h-[44px] rounded bg-theme-blue px-6 py-3 text-sm font-semibold text-white shadow ${FOCUS_RING}`}
+            >
+              Export Final Draft to Google Docs (APA Format)
+            </button>
+            {exportUrl && (
+              <div className="mt-4 rounded-lg border border-border-soft bg-surface-soft p-3 text-sm shadow-soft">
+                <div className="mb-2 font-semibold">Your Google Doc</div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <a
+                    className={`text-theme-blue underline ${FOCUS_RING}`}
+                    href={exportUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open your document
+                  </a>
+                  <button
+                    className={`min-h-[44px] rounded border border-border-soft px-3 py-1 text-xs ${FOCUS_RING}`}
+                    onClick={() => navigator.clipboard.writeText(exportUrl)}
+                  >
+                    Copy link
+                  </button>
+                </div>
+                {popupBlocked && (
+                  <p className="mt-2 text-xs text-theme-orange">
+                    If a popup blocker stopped the new tab, use the link above or allow
+                    popups for this site.
+                  </p>
+                )}
               </div>
-              {popupBlocked && (
-                <p className="text-xs text-orange-700 mt-2">
-                  If a popup blocker stopped the new tab, use the link above or allow popups for this site.
+            )}
+            {guidedMode && exportUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewedStep(3);
+                  setTimeout(
+                    () => step3Ref.current?.scrollIntoView({ behavior: "smooth" }),
+                    0
+                  );
+                }}
+                className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
+              >
+                Continue to checklist →
+              </button>
+            )}
+          </section>
+        )}
+
+        {(!guidedMode || viewedStep === 3) &&
+          submitted &&
+          exportUrl &&
+          !alreadySubmitted && (
+            <section
+              ref={step3Ref}
+              className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
+            >
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                Step 3 of 4: Format checklist confirmation
+                {checklistComplete ? " ✓" : ""}
+              </h2>
+              <p className="text-sm text-text-primary">
+                Confirm you have applied each APA formatting item in your Google Doc
+                before uploading your PDF.
+              </p>
+              <ModuleNineApaQuickGuide compact />
+              <div className="space-y-2">
+                {CHECKLIST_ITEMS.map((label, i) => (
+                  <label
+                    key={label}
+                    className="flex min-h-[44px] items-center gap-2 text-sm text-text-primary"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checklistState[i] || false}
+                      onChange={(e) => {
+                        const next = [...checklistState];
+                        next[i] = e.target.checked;
+                        setChecklistState(next);
+                      }}
+                      className="rounded border-border-soft text-theme-blue"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              {checklistError && (
+                <p className="mt-1 text-xs text-theme-red">
+                  Checklist could not be saved: {checklistError}. Your selections are
+                  kept for this session.
                 </p>
               )}
-            </div>
-          )}
-          {guidedMode && exportUrl && (
-            <button
-              type="button"
-              onClick={() => {
-                setViewedStep(3);
-                setTimeout(() => step3Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
-              }}
-              className="bg-theme-blue text-white px-4 py-2 rounded shadow text-sm font-semibold hover:opacity-90"
-            >
-              Continue to Step 3 →
-            </button>
-          )}
-        </section>
-        )}
-
-        {(!guidedMode || viewedStep === 3) && submitted && exportUrl && !alreadySubmitted && (
-        <section ref={step3Ref} className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-          <h2 className="text-xl font-semibold text-theme-dark flex items-center gap-2">
-            <span role="img" aria-label="confirm">✅</span>
-            Step 3 of 4: Format Checklist Confirmation{checklistComplete ? " ✓" : ""}
-          </h2>
-          <p className="text-sm text-gray-700">
-            Confirm you have applied each APA formatting item in your Google Doc before uploading your PDF.
-          </p>
-          <div className="space-y-2">
-            {CHECKLIST_ITEMS.map((label, i) => (
-              <label key={i} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={checklistState[i] || false}
-                  onChange={(e) => {
-                    const next = [...checklistState];
-                    next[i] = e.target.checked;
-                    setChecklistState(next);
+              {checklistComplete && (
+                <p className="text-sm font-medium text-theme-green">
+                  All items confirmed. Proceed to upload your PDF.
+                </p>
+              )}
+              {guidedMode && checklistComplete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewedStep(4);
+                    setTimeout(
+                      () => step4Ref.current?.scrollIntoView({ behavior: "smooth" }),
+                      0
+                    );
                   }}
-                  className="rounded border-gray-300 text-theme-blue"
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-          {checklistError && (
-            <p className="text-xs text-theme-red mt-1">
-              Checklist could not be saved: {checklistError}. Your selections are kept for this session.
-            </p>
+                  className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
+                >
+                  Continue to upload →
+                </button>
+              )}
+            </section>
           )}
-          {checklistComplete && (
-            <p className="text-theme-green text-sm font-medium">All items confirmed. Proceed to upload your PDF.</p>
-          )}
-          {guidedMode && checklistComplete && (
-            <button
-              type="button"
-              onClick={() => {
-                setViewedStep(4);
-                setTimeout(() => step4Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
-              }}
-              className="bg-theme-blue text-white px-4 py-2 rounded shadow text-sm font-semibold hover:opacity-90"
-            >
-              Continue to Step 4 →
-            </button>
-          )}
-        </section>
-        )}
 
         {alreadySubmitted && (
-          <section className="mt-6 pt-6 border-t border-gray-200">
+          <section className="mt-6 border-t border-border-soft pt-6">
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="bg-theme-red text-white px-6 py-3 rounded shadow text-sm font-semibold hover:opacity-90"
+              className={`min-h-[44px] rounded bg-theme-red px-6 py-3 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
             >
               Back to Dashboard
             </button>
           </section>
         )}
 
-        {(!guidedMode || viewedStep === 4) && submitted && exportUrl && checklistComplete && !alreadySubmitted && (
-          <section ref={step4Ref} className="space-y-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm md:px-8 md:py-6">
-            <h2 className="text-lg font-semibold text-theme-dark flex items-center gap-2">
-              <span role="img" aria-label="upload">📤</span>
-              Step 4 of 4: Submit Your Final Essay as a PDF
-            </h2>
-            <div className="text-sm text-gray-700 space-y-3">
-              <p>Follow these steps to turn your Google Doc into a PDF:</p>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>Open your Google Doc.</li>
-                <li>
-                  Click <strong>File</strong> at the top of the page.
-                </li>
-                <li>
-                  Click <strong>Download</strong>.
-                </li>
-                <li>
-                  Click <strong>PDF Document (.pdf)</strong>.
-                </li>
-                <li>
-                  Save the PDF somewhere easy to find, such as your{" "}
-                  <strong>Downloads</strong> folder or your <strong>Desktop</strong>.
-                </li>
-              </ol>
-              <p>
-                When the PDF has finished downloading, come back to this page and
-                upload that PDF. This is the version your teacher will grade.
-              </p>
-            </div>
-
-            <div className="bg-theme-light border border-gray-200 rounded-lg px-4 py-3 text-xs space-y-1 mb-3">
-              <p className="font-semibold">Before you upload:</p>
-              <p>• Make sure your file name ends with .pdf</p>
-              <p>• Choose the PDF you just downloaded—not a Word file or a screenshot</p>
-            </div>
-
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={handleFileSelect}
-              className="mb-2 text-sm"
-            />
-
-            {uploadError && (
-              <div className="rounded-lg border border-theme-red bg-red-50 px-4 py-3 text-sm text-theme-red mb-2">
-                {uploadError}
-              </div>
-            )}
-
-            <button
-              onClick={handleUploadPDF}
-              disabled={!canUpload}
-              className={`bg-theme-orange text-white px-6 py-2 rounded shadow text-sm font-semibold ${
-                !canUpload ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+        {(!guidedMode || viewedStep === 4) &&
+          submitted &&
+          exportUrl &&
+          checklistComplete &&
+          !alreadySubmitted && (
+            <section
+              ref={step4Ref}
+              className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             >
-              {uploading ? "Uploading…" : "📎 Upload Final PDF"}
-            </button>
-
-            {pdfFile && !uploading && (
-              <div className="text-xs text-gray-600 mt-1">
-                Selected: {pdfFile.name}
-                {" "}
-                ({(pdfFile.size / (1024 * 1024)).toFixed(1)} MB)
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                Step 4 of 4: Submit your final essay as a PDF
+              </h2>
+              <ModuleNineApaQuickGuide compact />
+              <div className="space-y-3 text-sm text-text-primary">
+                <p>Follow these steps to turn your Google Doc into a PDF:</p>
+                <ol className="list-inside list-decimal space-y-2">
+                  <li>Open your Google Doc.</li>
+                  <li>
+                    Click <strong>File</strong> at the top of the page.
+                  </li>
+                  <li>
+                    Click <strong>Download</strong>.
+                  </li>
+                  <li>
+                    Click <strong>PDF Document (.pdf)</strong>.
+                  </li>
+                  <li>
+                    Save the PDF somewhere easy to find, such as your{" "}
+                    <strong>Downloads</strong> folder or your <strong>Desktop</strong>.
+                  </li>
+                </ol>
+                <p>
+                  When the PDF has finished downloading, come back to this page and
+                  upload that PDF. This is the version your teacher will grade.
+                </p>
               </div>
-            )}
-          </section>
-        )}
+
+              <div className="mb-3 space-y-1 rounded-lg border border-border-soft bg-surface-soft px-4 py-3 text-xs">
+                <p className="font-semibold">Before you upload:</p>
+                <p>• Make sure your file name ends with .pdf</p>
+                <p>• Choose the PDF you just downloaded—not a Word file or a screenshot</p>
+              </div>
+
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={handleFileSelect}
+                className="mb-2 min-h-[44px] text-sm"
+              />
+
+              {uploadError && (
+                <div
+                  className="mb-2 rounded-lg border border-theme-red bg-red-50 px-4 py-3 text-sm text-theme-red"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {uploadError}
+                </div>
+              )}
+
+              <button
+                onClick={handleUploadPDF}
+                disabled={!canUpload}
+                className={`min-h-[44px] rounded bg-theme-orange px-6 py-2 text-sm font-semibold text-white shadow ${
+                  !canUpload ? "cursor-not-allowed opacity-50" : ""
+                } ${FOCUS_RING}`}
+              >
+                {uploading ? "Uploading…" : "Upload Final PDF"}
+              </button>
+
+              {pdfFile && !uploading && (
+                <div className="mt-1 text-xs text-text-muted">
+                  Selected: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(1)}{" "}
+                  MB)
+                </div>
+              )}
+            </section>
+          )}
       </div>
     </ModulePageShell>
   );
