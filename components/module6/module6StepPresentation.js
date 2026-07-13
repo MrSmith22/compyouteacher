@@ -1,3 +1,5 @@
+import { formatModule6BodyJobSentence } from "../../lib/module6/bodyJobWording.js";
+
 export const SECTION_TYPES = {
   INTRO: "intro",
   BODY: "body",
@@ -195,12 +197,9 @@ export function getModule6StepPresentation(step, outline) {
     const point =
       String(card.point || card.bucket || "").trim() ||
       `the point you planned for body paragraph ${paragraphNumber}`;
-    const job =
-      String(card.job || step.job || "").trim() ||
-      "develop one part of your thesis";
-    const jobSentence = /^this paragraph/i.test(job)
-      ? job
-      : `This paragraph ${job.charAt(0).toLowerCase()}${job.slice(1).replace(/\.$/, "")}.`;
+    const jobSentence = formatModule6BodyJobSentence(card.job || step.job, {
+      jobId: card.jobId || step.jobId,
+    });
 
     return {
       question: `How will you explain this point: ${point}?`,

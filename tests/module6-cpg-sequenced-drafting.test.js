@@ -478,6 +478,123 @@ describe("CP-G API contracts and gates", () => {
     });
     assert.equal(finalize.gradesStyle, false);
   });
+
+  it("27b. Hello! + immediate Keep going is blocked with no navigation write", () => {
+    // Reproduce rapid type → Keep going against a live sections snapshot
+    // (the same path ModuleSix must use so React state lag cannot bypass the gate).
+    const live = { sections: [""], meta: { currentStageId: "section-0" } };
+    const writes = [];
+
+    // Student types Hello! (6 chars < SECTION_MIN_CHARS).
+    live.sections = ["Hello!"];
+
+    const gate = persist.evaluateForwardNavigationGate({
+      sections: persist.resolveLiveDraftSections(live.sections, [""]),
+      draftIndex: 0,
+      isReviewStage: false,
+    });
+    assert.equal(gate.blocked, true);
+    assert.equal(gate.ok, false);
+    assert.ok(gate.message);
+    assert.equal(gate.gradesStyle, false);
+    assert.equal(persist.evaluateSectionReadiness("Hello!").ok, false);
+
+    if (!gate.blocked) {
+      writes.push({
+        action: "navigate",
+        sections: live.sections,
+        meta: { currentStageId: "section-1" },
+      });
+    }
+
+    assert.equal(writes.length, 0);
+    assert.deepEqual(live.sections, ["Hello!"]);
+  });
+
+  it("27c. Valid section at minimum advances and saves destination once", async () => {
+    const min = persist.SECTION_MIN_CHARS;
+    const valid = "x".repeat(min);
+    assert.equal(persist.evaluateSectionReadiness(valid).ok, true);
+
+    const live = {
+      sections: [valid, "", "", ""],
+      meta: { currentStageId: "section-0" },
+    };
+    const writes = [];
+    const controller = persist.createDraftWriteController();
+
+    const gate = persist.evaluateForwardNavigationGate({
+      sections: live.sections,
+      draftIndex: 0,
+      isReviewStage: false,
+    });
+    assert.equal(gate.blocked, false);
+
+    const nav = await controller.beginNavigate(async () => {
+      writes.push({
+        action: "navigate",
+        sections: [...live.sections],
+        meta: { currentStageId: "section-1" },
+      });
+      return { ok: true, sections: live.sections };
+    }, {
+      sections: live.sections,
+      meta: { currentStageId: "section-1" },
+    });
+
+    assert.equal(nav.ok, true);
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0].meta.currentStageId, "section-1");
+    assert.equal(writes[0].sections[0], valid);
+  });
+
+  it("27d. Body-job fallback and Module 4 jobs render grammatically", () => {
+    const wording = require("../lib/module6/bodyJobWording.js");
+    assert.equal(
+      wording.formatModule6BodyJobSentence(""),
+      "This paragraph develops one part of your thesis."
+    );
+    assert.equal(
+      wording.formatModule6BodyJobSentence(null),
+      "This paragraph develops one part of your thesis."
+    );
+    // Stored Module 4 job value is not rewritten; display conjugates mechanically.
+    assert.equal(
+      wording.formatModule6BodyJobSentence("Analyze the speech"),
+      "This paragraph analyzes the speech."
+    );
+    assert.equal(
+      wording.formatModule6BodyJobSentence("Compare both works."),
+      "This paragraph compares both works."
+    );
+    assert.equal(
+      wording.formatModule6BodyJobSentence("This paragraph builds ethos."),
+      "This paragraph builds ethos."
+    );
+
+    const presentation = getModule6StepPresentation(
+      {
+        type: "body",
+        bodyIndex: 0,
+        draftIndex: 1,
+        job: null,
+      },
+      { body: [{ point: "A point", job: "" }] }
+    );
+    assert.equal(
+      presentation.organizationalJob,
+      "This paragraph develops one part of your thesis."
+    );
+    assert.equal(presentation.organizationalJob.includes("develop one part"), false);
+
+    const src = fs.readFileSync(
+      path.join(__dirname, "../components/ModuleSix.js"),
+      "utf8"
+    );
+    assert.ok(src.includes("evaluateForwardNavigationGate"));
+    assert.ok(src.includes("resolveLiveDraftSections"));
+    assert.ok(src.includes("draftSnapshotRef.current = {\n        sections: copy"));
+  });
 });
 
 describe("CP-G upstream outline change and Module 7", () => {

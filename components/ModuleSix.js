@@ -53,6 +53,8 @@ import {
   draftContentSignature,
   shouldAutosaveDraft,
   evaluateSectionReadiness,
+  evaluateForwardNavigationGate,
+  resolveLiveDraftSections,
   evaluateDraftFinalizeReadiness,
   wordCount,
   deriveModule6FullText,
@@ -553,32 +555,49 @@ export default function ModuleSix() {
   const updateSection = (i, val) => {
     if (locked || !writesAllowed) return;
     markDirty();
+    setSectionGateMessage("");
     setDraft((prev) => {
       const copy = [...prev];
       copy[i] = val;
+      // Keep a synchronous live snapshot so Keep going can gate on the newest
+      // textarea value even before React re-renders.
+      draftSnapshotRef.current = {
+        sections: copy,
+        meta: draftSnapshotRef.current?.meta ?? draftMeta,
+      };
       return copy;
     });
   };
 
   const goBack = async () => {
     if (uiStageIndex <= 0 || navBusy) return;
-    await persistAndNavigateStage(uiStageIndex - 1);
+    const liveSections = resolveLiveDraftSections(
+      draftSnapshotRef.current?.sections,
+      draft
+    );
+    await persistAndNavigateStage(uiStageIndex - 1, liveSections);
   };
 
   const goNext = async () => {
     if (navBusy || locked) return;
-    if (!isReviewStage) {
-      const draftIndex = currentStep?.draftIndex;
-      if (typeof draftIndex === "number") {
-        const gate = evaluateSectionReadiness(draft[draftIndex]);
-        if (!gate.ok) {
-          setSectionGateMessage(gate.message);
-          return;
-        }
-      }
+
+    const liveSections = resolveLiveDraftSections(
+      draftSnapshotRef.current?.sections,
+      draft
+    );
+    const draftIndex = currentStep?.draftIndex;
+    const gate = evaluateForwardNavigationGate({
+      sections: liveSections,
+      draftIndex,
+      isReviewStage,
+    });
+    if (gate.blocked) {
+      setSectionGateMessage(gate.message);
+      return;
     }
+
     if (uiStageIndex >= uiStages.length - 1) return;
-    await persistAndNavigateStage(uiStageIndex + 1);
+    await persistAndNavigateStage(uiStageIndex + 1, liveSections);
   };
 
   const editFromReview = async (proseIndex) => {
