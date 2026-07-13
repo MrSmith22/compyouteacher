@@ -80,7 +80,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-040 | Module 9 quiz feedback reports correctness without teaching | 9 | Medium | Instructional | Resolved |
 | WP-041 | Module 9 formatting page lacks “do not rewrite” coaching | 9 | High | Instructional | Resolved |
 | WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Resolved |
-| WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Open |
+| WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Resolved |
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Open |
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Open |
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Open |
@@ -1306,7 +1306,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** APA guide, formatting, PDF download screens
 - **Priority:** High
 - **Category:** Instructional / Visual Design
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Module 9 should rely heavily on screenshots (correct title page, references, spacing, page numbers, PDF export menu). Currently visual examples are insufficient.
 
@@ -1320,11 +1320,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Confirm each APA concept has at least one screenshot.
 2. Confirm PDF page shows File → Download → PDF menu path visually.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/module9/ModuleNineApaVisual.jsx`; `components/module9/ModuleNinePdfDownloadVisual.jsx`; `components/ModuleNine.js`; `tests/module9-wp043-visual-models.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) APA concept visuals already covered by code-native `ModuleNineApaVisual` (preserved). Added `ModuleNinePdfDownloadVisual` schematic File → Download → PDF Document (.pdf) menu for Step 4, placed with download instructions before the file upload control. Accessible figure/figcaption/`role="img"`; no remote images; overflow-safe max width for ~390px. No upload/progression changes. Focused tests cover APA coverage + PDF visual placement.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

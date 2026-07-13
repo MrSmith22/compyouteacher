@@ -17,6 +17,7 @@ import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import ModulePageShell from "@/components/layout/ModulePageShell";
 import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
+import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
 import {
   MODULE9_APA_ENTRY,
   MODULE9_APA_JOURNEY,
@@ -921,6 +922,7 @@ export default function ModuleNine() {
               <ModuleNineApaQuickGuide compact />
               <div className="space-y-3 text-sm text-text-primary">
                 <p>Follow these steps to turn your Google Doc into a PDF:</p>
+                <ModuleNinePdfDownloadVisual />
                 <ol className="list-inside list-decimal space-y-2">
                   <li>Open your Google Doc.</li>
                   <li>
