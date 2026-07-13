@@ -105,6 +105,8 @@ export type ExportEssayToGoogleDocsResult = {
     documentWordCount: number | null;
     checkedAt: string;
   } | null;
+  /** WP-032: ISO timestamp when verified export completed server-side. */
+  completedAt?: string | null;
 };
 
 export type ExportEssayToGoogleDocsDeps = {

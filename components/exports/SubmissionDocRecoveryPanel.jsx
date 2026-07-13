@@ -12,6 +12,10 @@ import {
   SUBMISSION_DOC_RECOVERY_DISCLOSURE_LABEL,
   SUBMISSION_DOC_REPLACEMENT_CONFIRMATION,
 } from "@/lib/exports/submissionDocRecovery";
+import {
+  formatSubmissionDocCompletedAt,
+  SUBMISSION_DOC_READY_FOR_FORMATTING,
+} from "@/lib/exports/submissionDocSuccessConfirmation";
 
 const FOCUS_RING =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2";
@@ -140,6 +144,41 @@ function ReplacementConfirmation({
   );
 }
 
+function SuccessConfirmationDetails({ confirmation, testIdPrefix }) {
+  if (!confirmation) return null;
+  const formatted = formatSubmissionDocCompletedAt(confirmation.completedAt);
+  return (
+    <div
+      className="mt-3 border-t border-theme-green/20 pt-3"
+      data-testid={`${testIdPrefix}-success-confirmation`}
+    >
+      <dl className="grid grid-cols-1 gap-1.5 text-xs leading-relaxed text-text-primary sm:grid-cols-3 sm:gap-3">
+        <div>
+          <dt className="font-medium text-text-muted">Last updated</dt>
+          <dd data-testid={`${testIdPrefix}-success-completed-at`}>
+            {formatted || confirmation.completedAt}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium text-text-muted">Essay words</dt>
+          <dd data-testid={`${testIdPrefix}-success-word-count`}>
+            {confirmation.wordCount.toLocaleString()}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium text-text-muted">Status</dt>
+          <dd
+            className="font-semibold text-theme-green"
+            data-testid={`${testIdPrefix}-success-status`}
+          >
+            {confirmation.statusLabel}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
 /**
  * @param {{
  *   module: 8|9,
@@ -157,7 +196,17 @@ function ReplacementConfirmation({
  *   onContinue?: () => void,
  *   onFinishEssay?: () => void,
  *   onReplacementCancelled?: () => void,
- *   notice?: { type?: string, message?: string, status?: string }|null,
+ *   notice?: {
+ *     type?: string,
+ *     message?: string,
+ *     status?: string,
+ *     confirmation?: {
+ *       statement?: string,
+ *       completedAt?: string,
+ *       wordCount?: number,
+ *       statusLabel?: string,
+ *     }|null,
+ *   }|null,
  *   showProgressContinue?: boolean,
  *   testIdPrefix?: string,
  * }} props
@@ -283,7 +332,7 @@ export default function SubmissionDocRecoveryPanel({
       data-recovery-state={plan.state}
       data-module={module}
     >
-      {notice?.message ? (
+      {notice?.message || notice?.confirmation ? (
         <div
           role="status"
           aria-live="polite"
@@ -296,7 +345,29 @@ export default function SubmissionDocRecoveryPanel({
               : "border-theme-red/30 bg-red-50 text-text-primary",
           ].join(" ")}
         >
-          {notice.message}
+          {notice.type === "success" && notice.confirmation?.statement ? (
+            <p className="font-medium text-text-primary">
+              {notice.confirmation.statement}
+            </p>
+          ) : notice.message ? (
+            <p>{notice.message}</p>
+          ) : null}
+          {notice.type === "success" &&
+          notice.confirmation?.statusLabel ===
+            SUBMISSION_DOC_READY_FOR_FORMATTING ? (
+            <SuccessConfirmationDetails
+              confirmation={notice.confirmation}
+              testIdPrefix={testIdPrefix}
+            />
+          ) : null}
+          {notice.type === "success" &&
+          notice.message &&
+          notice.confirmation?.statement &&
+          notice.message !== notice.confirmation.statement ? (
+            <p className="mt-2 text-xs leading-relaxed text-text-muted">
+              {notice.message}
+            </p>
+          ) : null}
         </div>
       ) : null}
 

@@ -406,28 +406,32 @@ export default function ModuleEight() {
           "Using your Module 6 draft because a finalized Module 7 version was not found. If you finished revising in Module 7, go back and finalize first."
         );
       }
-      notices.push(result.message);
-      if (result.contentVerified) {
-        notices.push(SUBMISSION_DOC_VERIFICATION_EXPLAIN);
-        if (
-          result.operation === "updated" ||
-          result.operation === "replacement_created"
-        ) {
-          notices.push(
-            "Review your APA formatting before continuing."
-          );
-        }
-      } else if (
-        verification?.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
-      ) {
-        notices.push(SUBMISSION_DOC_MISMATCH_RECOVERY);
-      }
 
-      setDocExportNotice({
-        type: result.contentVerified ? "success" : "error",
-        status: verification?.status || result.reason,
-        message: notices.join(" "),
-      });
+      if (result.contentVerified && result.confirmation) {
+        // WP-032: compact verified confirmation (statement + metadata in panel).
+        if (notices.length === 0) {
+          notices.push(result.confirmation.statement);
+        }
+        setDocExportNotice({
+          type: "success",
+          status: verification?.status || result.reason,
+          message: notices.join(" "),
+          confirmation: result.confirmation,
+        });
+      } else {
+        notices.push(result.message);
+        if (
+          verification?.status === SUBMISSION_DOC_VERIFICATION_STATUS.MISMATCH
+        ) {
+          notices.push(SUBMISSION_DOC_MISMATCH_RECOVERY);
+        }
+        setDocExportNotice({
+          type: "error",
+          status: verification?.status || result.reason,
+          message: notices.join(" "),
+          confirmation: null,
+        });
+      }
     } finally {
       setCreatingDoc(false);
       exportInFlightRef.current = false;

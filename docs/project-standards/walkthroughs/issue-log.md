@@ -69,7 +69,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-029 | Module 8 lacks export verification against latest essay | 8 | High | Architecture / Trust | Open |
 | WP-030 | Module 8 lacks recovery actions for export problems | 8 | High | UX / Trust | Resolved |
 | WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Resolved |
-| WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Open |
+| WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Resolved |
 | WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Open |
 | WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Open |
 | WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Open |
@@ -997,7 +997,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Post-export success state
 - **Priority:** High
 - **Category:** Instructional / UX
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Success messaging is minimal (e.g., “Google Doc created”) without last-updated time, word count, or status. Students cannot confirm the export reflects their latest work.
 
@@ -1011,11 +1011,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Export a doc; confirm rich confirmation appears.
 2. Re-export after edits; confirm timestamp and word count update.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/exports/submissionDocSuccessConfirmation.js`; `lib/exports/runExportEssayToGoogleDocs.js`; `app/api/export-to-docs/route.js`; `lib/exports/createOrUpdateSubmissionGoogleDocClient.js`; `components/ModuleEight.js`; `components/exports/SubmissionDocRecoveryPanel.jsx`; `tests/module8-wp032-export-success-confirmation.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Verified Create/Update/replacement responses include a rich confirmation built only when content verification succeeds: operation-appropriate success statement, ISO `completedAt` from successful server-side finish (locale-formatted in UI), exported essay word count from `expectedWordCount`, and status “Ready for formatting”. No extra Google Drive/Docs round-trip. Mismatch, timeout, temporary failure, and unverified replacement never receive this confirmation. Re-export refreshes word count and completion time. Browser acceptance at **390×844** and **1440×900**: compact success metadata above recovery Continue (single primary). Full suite 926/926.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after browser acceptance; this commit)
 
 ---
 

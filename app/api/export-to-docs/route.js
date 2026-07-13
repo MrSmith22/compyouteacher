@@ -10,6 +10,7 @@ import {
 } from "@/lib/exports/exportEssayToGoogleDocs";
 import { getAuthoritativeEssayTextForUser } from "@/lib/exports/verifySubmissionGoogleDoc";
 import { SUBMISSION_DOC_VERIFICATION_STATUS } from "@/lib/exports/submissionDocVerification";
+import { buildSubmissionDocSuccessConfirmation } from "@/lib/exports/submissionDocSuccessConfirmation";
 
 export async function POST(req) {
   try {
@@ -49,6 +50,15 @@ export async function POST(req) {
       forceCreate,
     });
 
+    const completedAt =
+      result.completedAt ||
+      (result.verification?.verified ? new Date().toISOString() : null);
+    const confirmation = buildSubmissionDocSuccessConfirmation({
+      operation: result.operation,
+      verification: result.verification,
+      completedAt,
+    });
+
     console.info("[export-to-docs]", {
       operation: result.operation,
       documentId: result.documentId || null,
@@ -56,6 +66,8 @@ export async function POST(req) {
       pointerReplaced: !!result.pointerReplaced,
       verificationStatus: result.verification?.status || null,
       verified: !!result.verification?.verified,
+      completedAt: confirmation?.completedAt || null,
+      wordCount: confirmation?.wordCount ?? null,
       forceCreate,
       // Never log essay text, Doc body, credentials, or override email.
     });
@@ -68,6 +80,8 @@ export async function POST(req) {
       sourceModule: essay.sourceModule,
       previousDocumentId: result.previousDocumentId || null,
       pointerReplaced: !!result.pointerReplaced,
+      completedAt: confirmation?.completedAt || null,
+      confirmation,
     });
   } catch (err) {
     const message = err?.message || "Export failed";
