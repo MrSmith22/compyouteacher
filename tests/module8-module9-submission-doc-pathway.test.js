@@ -202,6 +202,7 @@ describe("WP-028 runExportEssayToGoogleDocs create/update", () => {
 
     assert.equal(calls.createDocument, 0);
     assert.equal(calls.batchUpdate, 1);
+    assert.equal(calls.shareDocument, 1);
     assert.equal(calls.upsertExportedDoc, 1);
     assert.equal(result.operation, SUBMISSION_DOC_OPERATIONS.UPDATED);
     assert.equal(result.documentId, "existing-doc-9");
@@ -300,6 +301,7 @@ describe("WP-028 runExportEssayToGoogleDocs create/update", () => {
     });
     assert.equal(updateRun.calls.createDocument, 0);
     assert.equal(updateRun.calls.batchUpdate, 1);
+    assert.equal(updateRun.calls.shareDocument, 1);
     assert.equal(updateRun.calls.upsertExportedDoc, 1);
   });
 });

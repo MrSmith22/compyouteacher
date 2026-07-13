@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { createClient } from "@supabase/supabase-js";
 import { runExportEssayToGoogleDocs } from "@/lib/exports/runExportEssayToGoogleDocs";
+import { grantSubmissionDocPermissions } from "@/lib/exports/devGoogleDocEditorOverride";
 
 function getPrivateKeyFromEnv() {
   const raw = process.env.GOOGLE_PRIVATE_KEY || "";
@@ -64,10 +65,20 @@ function getServiceSupabase() {
   return createClient(url, key);
 }
 
+export type SubmissionDocPermissionResult = {
+  documentId: string;
+  studentWriterGranted: boolean;
+  overrideWriterAttempted: boolean;
+  overrideWriterGranted: boolean | null;
+  publicReaderGranted: boolean;
+  writerRecipientCount: number;
+};
+
 export type ExportEssayToGoogleDocsResult = {
   documentId: string;
   webViewLink: string;
   operation: "created" | "updated" | "recreated";
+  permissions?: SubmissionDocPermissionResult | null;
 };
 
 export type ExportEssayToGoogleDocsDeps = {
@@ -82,7 +93,10 @@ export type ExportEssayToGoogleDocsDeps = {
   createDocument?: (title: string) => Promise<{ documentId: string }>;
   getDocument?: (documentId: string) => Promise<unknown>;
   batchUpdate?: (documentId: string, requests: object[]) => Promise<void>;
-  shareDocument?: (documentId: string, email: string) => Promise<void>;
+  shareDocument?: (
+    documentId: string,
+    email: string
+  ) => Promise<SubmissionDocPermissionResult | void>;
   getWebViewLink?: (documentId: string) => Promise<string>;
 };
 
@@ -114,22 +128,21 @@ async function createDefaultGoogleDeps() {
       });
     },
     shareDocument: async (documentId: string, email: string) => {
-      try {
-        await drive.permissions.create({
-          fileId: documentId,
-          requestBody: { type: "user", role: "writer", emailAddress: email },
-          sendNotificationEmail: false,
-        });
-      } catch (permErr) {
-        console.warn(
-          "Could not grant writer permission to user:",
-          permErr instanceof Error ? permErr.message : permErr
-        );
-      }
-
-      await drive.permissions.create({
-        fileId: documentId,
-        requestBody: { type: "anyone", role: "reader" },
+      return grantSubmissionDocPermissions({
+        documentId,
+        studentEmail: email,
+        createPermission: async ({ type, role, emailAddress }) => {
+          await drive.permissions.create({
+            fileId: documentId,
+            requestBody: {
+              type,
+              role,
+              ...(emailAddress ? { emailAddress } : {}),
+            },
+            sendNotificationEmail: false,
+          });
+        },
+        env: process.env,
       });
     },
     getWebViewLink: async (documentId: string) => {
