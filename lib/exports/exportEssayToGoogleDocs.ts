@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import { createClient } from "@supabase/supabase-js";
+import { runExportEssayToGoogleDocs } from "@/lib/exports/runExportEssayToGoogleDocs";
 
 function getPrivateKeyFromEnv() {
   const raw = process.env.GOOGLE_PRIVATE_KEY || "";
@@ -66,86 +67,165 @@ function getServiceSupabase() {
 export type ExportEssayToGoogleDocsResult = {
   documentId: string;
   webViewLink: string;
+  operation: "created" | "updated" | "recreated";
 };
 
-/**
- * Production Google Doc export pipeline (shared by /api/export-to-docs and dev seeds).
- * Creates a Docs file, shares it, upserts exported_docs, returns document_id + link.
- */
-export async function exportEssayToGoogleDocs({
-  email,
-  text,
-}: {
-  email: string;
-  text: string;
-}): Promise<ExportEssayToGoogleDocsResult> {
-  if (!text?.trim() || !email?.trim()) {
-    throw new Error("Missing text or email");
-  }
+export type ExportEssayToGoogleDocsDeps = {
+  getExportedDocRow?: (
+    email: string
+  ) => Promise<{ document_id?: string | null; web_view_link?: string | null } | null>;
+  upsertExportedDoc?: (row: {
+    user_email: string;
+    document_id: string;
+    web_view_link: string;
+  }) => Promise<void>;
+  createDocument?: (title: string) => Promise<{ documentId: string }>;
+  getDocument?: (documentId: string) => Promise<unknown>;
+  batchUpdate?: (documentId: string, requests: object[]) => Promise<void>;
+  shareDocument?: (documentId: string, email: string) => Promise<void>;
+  getWebViewLink?: (documentId: string) => Promise<string>;
+};
 
+async function createDefaultGoogleDeps() {
   const auth = buildGoogleAuth();
   const authClient = await auth.getClient();
   const docs = google.docs({ version: "v1", auth: authClient });
   const drive = google.drive({ version: "v3", auth: authClient });
 
-  const created = await docs.documents.create({
-    requestBody: { title: "APA Final Essay" },
-  });
-
-  const documentId = created?.data?.documentId;
-  if (!documentId) {
-    throw new Error("Google Docs did not return a documentId");
-  }
-
-  await docs.documents.batchUpdate({
-    documentId,
-    requestBody: {
-      requests: [{ insertText: { location: { index: 1 }, text } }],
+  return {
+    createDocument: async (title: string) => {
+      const created = await docs.documents.create({
+        requestBody: { title },
+      });
+      const documentId = created?.data?.documentId;
+      if (!documentId) {
+        throw new Error("Google Docs did not return a documentId");
+      }
+      return { documentId };
     },
-  });
-
-  try {
-    await drive.permissions.create({
-      fileId: documentId,
-      requestBody: { type: "user", role: "writer", emailAddress: email },
-      sendNotificationEmail: false,
-    });
-  } catch (permErr) {
-    console.warn(
-      "Could not grant writer permission to user:",
-      permErr instanceof Error ? permErr.message : permErr
-    );
-  }
-
-  await drive.permissions.create({
-    fileId: documentId,
-    requestBody: { type: "anyone", role: "reader" },
-  });
-
-  const file = await drive.files.get({
-    fileId: documentId,
-    fields: "webViewLink",
-  });
-
-  const webViewLink = file?.data?.webViewLink;
-  if (!webViewLink) {
-    throw new Error("Google Drive did not return a webViewLink");
-  }
-
-  const supabase = getServiceSupabase();
-  const { error: upsertErr } = await supabase.from("exported_docs").upsert(
-    {
-      user_email: email,
-      document_id: documentId,
-      web_view_link: webViewLink,
+    getDocument: async (documentId: string) => {
+      const res = await docs.documents.get({ documentId });
+      return res.data;
     },
-    { onConflict: "user_email" }
-  );
+    batchUpdate: async (documentId: string, requests: object[]) => {
+      await docs.documents.batchUpdate({
+        documentId,
+        requestBody: { requests },
+      });
+    },
+    shareDocument: async (documentId: string, email: string) => {
+      try {
+        await drive.permissions.create({
+          fileId: documentId,
+          requestBody: { type: "user", role: "writer", emailAddress: email },
+          sendNotificationEmail: false,
+        });
+      } catch (permErr) {
+        console.warn(
+          "Could not grant writer permission to user:",
+          permErr instanceof Error ? permErr.message : permErr
+        );
+      }
 
-  if (upsertErr) {
-    console.error("Supabase upsert error:", upsertErr);
-    // Match production route: do not fail the export if logging fails.
-  }
-
-  return { documentId, webViewLink };
+      await drive.permissions.create({
+        fileId: documentId,
+        requestBody: { type: "anyone", role: "reader" },
+      });
+    },
+    getWebViewLink: async (documentId: string) => {
+      const file = await drive.files.get({
+        fileId: documentId,
+        fields: "webViewLink",
+      });
+      const webViewLink = file?.data?.webViewLink;
+      if (!webViewLink) {
+        throw new Error("Google Drive did not return a webViewLink");
+      }
+      return webViewLink;
+    },
+  };
 }
+
+function createDefaultStoreDeps() {
+  const supabase = getServiceSupabase();
+  return {
+    getExportedDocRow: async (email: string) => {
+      const { data, error } = await supabase
+        .from("exported_docs")
+        .select("document_id, web_view_link")
+        .eq("user_email", email)
+        .maybeSingle();
+      if (error) {
+        console.warn("exported_docs lookup error:", error.message);
+        return null;
+      }
+      return data ?? null;
+    },
+    upsertExportedDoc: async (row: {
+      user_email: string;
+      document_id: string;
+      web_view_link: string;
+    }) => {
+      const { error: upsertErr } = await supabase.from("exported_docs").upsert(
+        row,
+        { onConflict: "user_email" }
+      );
+      if (upsertErr) {
+        console.error("Supabase upsert error:", upsertErr);
+      }
+    },
+  };
+}
+
+async function resolveDeps(deps: ExportEssayToGoogleDocsDeps = {}) {
+  const needsGoogle =
+    !deps.createDocument ||
+    !deps.getDocument ||
+    !deps.batchUpdate ||
+    !deps.shareDocument ||
+    !deps.getWebViewLink;
+  const needsStore = !deps.getExportedDocRow || !deps.upsertExportedDoc;
+
+  const googleDefaults = needsGoogle ? await createDefaultGoogleDeps() : {};
+  const storeDefaults = needsStore ? createDefaultStoreDeps() : {};
+
+  return {
+    getExportedDocRow:
+      deps.getExportedDocRow ?? storeDefaults.getExportedDocRow!,
+    upsertExportedDoc:
+      deps.upsertExportedDoc ?? storeDefaults.upsertExportedDoc!,
+    createDocument: deps.createDocument ?? googleDefaults.createDocument!,
+    getDocument: deps.getDocument ?? googleDefaults.getDocument!,
+    batchUpdate: deps.batchUpdate ?? googleDefaults.batchUpdate!,
+    shareDocument: deps.shareDocument ?? googleDefaults.shareDocument!,
+    getWebViewLink: deps.getWebViewLink ?? googleDefaults.getWebViewLink!,
+  };
+}
+
+/**
+ * Production Google Doc export pipeline (shared by /api/export-to-docs and dev seeds).
+ * Creates once; updates the same document_id in place when exported_docs already has a row.
+ * Never silently recreates an inaccessible existing document.
+ */
+export async function exportEssayToGoogleDocs({
+  email,
+  text,
+  deps = {},
+}: {
+  email: string;
+  text: string;
+  deps?: ExportEssayToGoogleDocsDeps;
+}): Promise<ExportEssayToGoogleDocsResult> {
+  const resolved = await resolveDeps(deps);
+  return runExportEssayToGoogleDocs({ email, text, deps: resolved });
+}
+
+export {
+  ExistingDocumentUnavailableError,
+  isExistingDocumentUnavailableError,
+  SUBMISSION_DOC_OPERATIONS,
+  SUBMISSION_DOC_ERROR_CODES,
+  buildReplaceGoogleDocBodyRequests,
+  getGoogleDocBodyEndIndex,
+  resolveSubmissionDocPlan,
+} from "@/lib/exports/submissionGoogleDocHelpers";

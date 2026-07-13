@@ -6,14 +6,12 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { requireModuleAccess } from "@/lib/supabase/helpers/moduleGate";
 import {
-  getExportedDocLink,
   getStudentExport,
 } from "@/lib/supabase/helpers/studentExports";
 import {
   getModule9Checklist,
   upsertModule9Checklist,
 } from "@/lib/supabase/helpers/module9Checklist";
-import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
 import { logActivity } from "../lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import ModulePageShell from "@/components/layout/ModulePageShell";
@@ -27,6 +25,10 @@ import {
   buildEmptyApaLessonState,
   getModule9FormattingChecklistItems,
 } from "@/lib/module9/module9ApaLearning";
+import {
+  createOrUpdateSubmissionGoogleDoc,
+  hydrateSubmissionGoogleDoc,
+} from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
@@ -46,7 +48,10 @@ export default function ModuleNine() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [exportUrl, setExportUrl] = useState(null);
+  const [docHydrated, setDocHydrated] = useState(false);
+  const [docBusy, setDocBusy] = useState(false);
   const [popupBlocked, setPopupBlocked] = useState(false);
+  const [docNotice, setDocNotice] = useState(null);
   const [finalPdfRow, setFinalPdfRow] = useState(null);
   const [guidedMode, setGuidedMode] = useState(true);
   const [viewedStep, setViewedStep] = useState(1);
@@ -140,11 +145,14 @@ export default function ModuleNine() {
   useEffect(() => {
     (async () => {
       if (!session?.user?.email) return;
-      const { data, error } = await getExportedDocLink({
+      const hydrated = await hydrateSubmissionGoogleDoc({
         userEmail: session.user.email,
       });
-      if (error) console.warn(error);
-      if (data?.web_view_link) setExportUrl(data.web_view_link);
+      if (hydrated.url) setExportUrl(hydrated.url);
+      setDocHydrated(true);
+      if (hydrated.error) {
+        console.warn(hydrated.error);
+      }
     })();
   }, [session]);
 
@@ -229,69 +237,48 @@ export default function ModuleNine() {
     }
   };
 
-  const handleExportToGoogleDocs = async () => {
+  const handleCreateOrUpdateSubmissionDoc = async () => {
     if (!session?.user?.email) return;
-
     const email = session.user.email;
+    const hadExistingDoc = !!exportUrl;
 
-    const exportRes = await getFinalTextForExport({ userEmail: email });
+    setDocBusy(true);
+    setDocNotice(null);
+    setPopupBlocked(false);
+    try {
+      const result = await createOrUpdateSubmissionGoogleDoc({
+        userEmail: email,
+        module: 9,
+        hadExistingDoc,
+        openInNewTab: true,
+      });
 
-    await logActivity(email, "export_to_docs_attempt", {
-      module: 9,
-      status: exportRes.status,
-      sourceModule: exportRes.sourceModule,
-      details: exportRes.details,
-    });
-
-    if (exportRes.status !== "ok" || !exportRes.text) {
-      if (exportRes.status === "missing") {
-        alert(
-          "We could not find your essay text yet. Go back to Module 7 and make sure you completed your revision, then try again."
-        );
+      if (!result.ok) {
+        setDocNotice({
+          type: "error",
+          status: result.reason,
+          message: result.message,
+        });
         return;
       }
 
-      alert(
-        "We hit a problem while trying to load your essay text. Please refresh and try again. If it keeps happening, tell your teacher."
-      );
-      return;
-    }
+      setExportUrl(result.url);
+      if (result.popupBlocked) setPopupBlocked(true);
 
-    if (exportRes.sourceModule === 6) {
-      alert(
-        "We are exporting your Module 6 draft because we could not find a finalized Module 7 version yet. If you revised in Module 7, go back and finalize it first."
-      );
-    }
-
-    const res = await fetch("/api/export-to-docs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: exportRes.text, email }),
-    });
-
-    const result = await res.json();
-    if (!res.ok) {
-      alert("Failed to export to Google Docs.");
-      await logActivity(email, "export_to_docs_failed", {
-        module: 9,
-        status: "api_failed",
+      const notices = [];
+      if (result.usedModule6Fallback) {
+        notices.push(
+          "Using your Module 6 draft because a finalized Module 7 version was not found. If you finished revising in Module 7, finalize there first."
+        );
+      }
+      notices.push(result.message);
+      setDocNotice({
+        type: "success",
+        status: result.reason,
+        message: notices.join(" "),
       });
-      return;
-    }
-
-    setExportUrl(result.url);
-
-    await logActivity(email, "export_to_docs", {
-      module: 9,
-      url: result.url,
-      sourceModule: exportRes.sourceModule,
-      status: exportRes.status,
-      details: exportRes.details,
-    });
-
-    const win = window.open(result.url, "_blank");
-    if (!win || win.closed || typeof win.closed === "undefined") {
-      setPopupBlocked(true);
+    } finally {
+      setDocBusy(false);
     }
   };
 
@@ -328,7 +315,7 @@ export default function ModuleNine() {
     if (!session?.user?.email) return;
     if (!submitted || !exportUrl || !checklistComplete) {
       setUploadError(
-        "Complete all previous steps (APA practice, export, checklist) before uploading."
+        "Complete all previous steps (APA practice, Google Doc, checklist) before uploading."
       );
       return;
     }
@@ -569,58 +556,109 @@ export default function ModuleNine() {
           <section
             ref={step2Ref}
             className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
+            data-testid="module9-submission-doc-step"
           >
             <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-              Step 2 of 4: Prepare your Google Doc{exportUrl ? " ✓" : ""}
+              Step 2 of 4: Your submission Google Doc{exportUrl ? " ✓" : ""}
             </h2>
-            <p className="text-sm text-text-primary">
-              Send your final essay to a Google Doc that is already set up in APA style.
-              Then format it using the Quick Guide and checklist.
-            </p>
-            <p className="text-sm text-text-primary">
-              Optional template:{" "}
-              <a
-                href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex min-h-[44px] items-center text-theme-blue underline ${FOCUS_RING}`}
+
+            {docNotice ? (
+              <div
+                role="status"
+                aria-live="polite"
+                data-testid="module9-doc-notice"
+                data-status={docNotice.status || ""}
+                className={[
+                  "rounded-lg border px-4 py-3 text-sm leading-relaxed",
+                  docNotice.type === "success"
+                    ? "border-theme-green/30 bg-theme-green/5 text-text-primary"
+                    : "border-theme-red/30 bg-red-50 text-text-primary",
+                ].join(" ")}
               >
-                Copy APA Google Docs Template
-              </a>
-            </p>
-            <button
-              onClick={handleExportToGoogleDocs}
-              className={`min-h-[44px] rounded bg-theme-blue px-6 py-3 text-sm font-semibold text-white shadow ${FOCUS_RING}`}
-            >
-              Export Final Draft to Google Docs (APA Format)
-            </button>
-            {exportUrl && (
-              <div className="mt-4 rounded-lg border border-border-soft bg-surface-soft p-3 text-sm shadow-soft">
-                <div className="mb-2 font-semibold">Your Google Doc</div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <a
-                    className={`text-theme-blue underline ${FOCUS_RING}`}
-                    href={exportUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open your document
-                  </a>
-                  <button
-                    className={`min-h-[44px] rounded border border-border-soft px-3 py-1 text-xs ${FOCUS_RING}`}
-                    onClick={() => navigator.clipboard.writeText(exportUrl)}
-                  >
-                    Copy link
-                  </button>
+                {docNotice.message}
+              </div>
+            ) : null}
+
+            {!docHydrated ? (
+              <p className="text-sm text-text-muted">Checking for your Google Doc…</p>
+            ) : exportUrl ? (
+              <div className="space-y-3">
+                <p className="text-sm text-text-primary">
+                  The Google Doc you prepared in Module 8 is the document you will
+                  format in APA style. You are changing how it looks—not rewriting
+                  your essay.
+                </p>
+                <div className="rounded-lg border border-border-soft bg-surface-soft p-3 text-sm shadow-soft">
+                  <div className="mb-2 font-semibold">Your submission Google Doc</div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <a
+                      className={`inline-flex min-h-[44px] items-center rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
+                      href={exportUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid="module9-open-submission-doc"
+                    >
+                      Open your Google Doc
+                    </a>
+                    <button
+                      type="button"
+                      className={`min-h-[44px] rounded border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-primary ${FOCUS_RING}`}
+                      onClick={handleCreateOrUpdateSubmissionDoc}
+                      disabled={docBusy}
+                      data-testid="module9-update-submission-doc"
+                    >
+                      {docBusy
+                        ? "Updating your Google Doc…"
+                        : "Update with your latest essay"}
+                    </button>
+                    <button
+                      type="button"
+                      className={`min-h-[44px] rounded border border-border-soft px-3 py-1 text-xs ${FOCUS_RING}`}
+                      onClick={() => navigator.clipboard.writeText(exportUrl)}
+                    >
+                      Copy link
+                    </button>
+                  </div>
+                  {popupBlocked ? (
+                    <p className="mt-2 text-xs text-theme-orange">
+                      If a popup blocker stopped the new tab, use Open your Google Doc
+                      above.
+                    </p>
+                  ) : null}
                 </div>
-                {popupBlocked && (
-                  <p className="mt-2 text-xs text-theme-orange">
-                    If a popup blocker stopped the new tab, use the link above or allow
-                    popups for this site.
-                  </p>
-                )}
+                <p className="text-sm text-text-muted">
+                  Optional template (if you need a blank APA layout):{" "}
+                  <a
+                    href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex min-h-[44px] items-center text-theme-blue underline ${FOCUS_RING}`}
+                  >
+                    Copy APA Google Docs Template
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-4 py-4">
+                <p className="text-sm font-semibold text-text-primary">
+                  Your submission Google Doc still needs to be prepared
+                </p>
+                <p className="text-sm text-text-primary">
+                  Module 8 usually creates this document. Create it here with the same
+                  pathway so you have one submission Google Doc to format.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCreateOrUpdateSubmissionDoc}
+                  disabled={docBusy}
+                  className={`min-h-[44px] rounded bg-theme-blue px-6 py-3 text-sm font-semibold text-white shadow disabled:opacity-50 ${FOCUS_RING}`}
+                  data-testid="module9-create-submission-doc"
+                >
+                  {docBusy ? "Creating your Google Doc…" : "Create your Google Doc"}
+                </button>
               </div>
             )}
+
             {guidedMode && exportUrl && (
               <button
                 type="button"

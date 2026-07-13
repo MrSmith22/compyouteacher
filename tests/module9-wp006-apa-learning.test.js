@@ -174,16 +174,19 @@ describe("WP-006 Module 9 APA learning", () => {
     assert.ok(overview.includes("quiz_score") || overview.includes("score"));
   });
 
-  it("15. Export/checklist/PDF gates remain after APA completion", () => {
+  it("15. Google Doc / checklist / PDF gates remain after APA completion", () => {
     const modNine = readSrc("../components/ModuleNine.js");
-    assert.ok(modNine.includes("handleExportToGoogleDocs"));
-    assert.ok(modNine.includes("/api/export-to-docs"));
+    assert.ok(modNine.includes("createOrUpdateSubmissionGoogleDoc"));
+    assert.ok(modNine.includes("hydrateSubmissionGoogleDoc"));
     assert.ok(modNine.includes("getModule9FormattingChecklistItems") || modNine.includes("CHECKLIST_ITEMS"));
     assert.ok(modNine.includes("/api/final-pdf"));
     assert.ok(modNine.includes("canUpload ="));
     assert.ok(modNine.includes("submitted && exportUrl && checklistComplete"));
     assert.ok(modNine.includes('router.push("/modules/9/success")'));
     assert.ok(modNine.includes("alreadySubmitted"));
+    assert.equal(modNine.includes("handleExportToGoogleDocs"), false);
+    assert.equal(modNine.includes("Export Final Draft to Google Docs"), false);
+    assert.equal(modNine.includes('fetch("/api/export-to-docs"'), false);
   });
 
   it("16. No quiz completion inferred from instructional copy alone", () => {

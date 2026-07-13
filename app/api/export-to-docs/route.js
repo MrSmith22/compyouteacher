@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { exportEssayToGoogleDocs } from "@/lib/exports/exportEssayToGoogleDocs";
+import {
+  ExistingDocumentUnavailableError,
+  exportEssayToGoogleDocs,
+  isExistingDocumentUnavailableError,
+  SUBMISSION_DOC_ERROR_CODES,
+} from "@/lib/exports/exportEssayToGoogleDocs";
 
 export async function POST(req) {
   try {
@@ -15,10 +20,28 @@ export async function POST(req) {
     }
 
     const result = await exportEssayToGoogleDocs({ email, text });
-    return NextResponse.json({ url: result.webViewLink });
+    return NextResponse.json({
+      url: result.webViewLink,
+      documentId: result.documentId,
+      operation: result.operation,
+    });
   } catch (err) {
     const message = err?.message || "Export failed";
     console.error("Export error:", err);
+
+    if (
+      err instanceof ExistingDocumentUnavailableError ||
+      isExistingDocumentUnavailableError(err)
+    ) {
+      return NextResponse.json(
+        {
+          error: message,
+          code: SUBMISSION_DOC_ERROR_CODES.EXISTING_DOCUMENT_UNAVAILABLE,
+        },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

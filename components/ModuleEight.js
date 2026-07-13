@@ -13,13 +13,13 @@ import {
 } from "@/lib/artifacts/readArtifactsClient";
 import { upsertModule8DraftArtifact } from "@/lib/artifacts/writeArtifacts";
 import {
-  getExportedDocLink,
-} from "@/lib/supabase/helpers/studentExports";
-import {
   getModule9Checklist,
   upsertModule9Checklist,
 } from "@/lib/supabase/helpers/module9Checklist";
-import { getFinalTextForExport } from "@/lib/supabase/helpers/studentDrafts";
+import {
+  createOrUpdateSubmissionGoogleDoc,
+  hydrateSubmissionGoogleDoc,
+} from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
@@ -118,6 +118,7 @@ export default function ModuleEight() {
   const [previouslyFinalized, setPreviouslyFinalized] = useState(false);
   const [creatingDoc, setCreatingDoc] = useState(false);
   const [popupBlocked, setPopupBlocked] = useState(false);
+  const [docExportNotice, setDocExportNotice] = useState(null);
 
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
   const [checklistLoading, setChecklistLoading] = useState(true);
@@ -182,7 +183,7 @@ export default function ModuleEight() {
       const [m7Result, m8Result, docResult] = await Promise.all([
         getModule7DraftRow(),
         getModule8DraftRow(),
-        getExportedDocLink({ userEmail: email }),
+        hydrateSubmissionGoogleDoc({ userEmail: email }),
       ]);
 
       if (!m7Result.ok) console.error("Module 7 fetch error:", m7Result.error);
@@ -195,8 +196,11 @@ export default function ModuleEight() {
       setFinishedEssayText(essayText);
       setSections(splitDraftIntoSections(essayText, sectionCount));
 
-      if (docResult.data?.web_view_link) {
-        setSubmissionDocUrl(docResult.data.web_view_link);
+      if (docResult.url) {
+        setSubmissionDocUrl(docResult.url);
+      }
+      if (docResult.error) {
+        console.warn("Submission doc hydrate:", docResult.error);
       }
 
       // WP-002: never treat final_ready, exported_docs, or seeded history as a
@@ -297,72 +301,41 @@ export default function ModuleEight() {
 
     const hadExistingDoc = !!submissionDocUrl;
     setCreatingDoc(true);
+    setDocExportNotice(null);
+    setPopupBlocked(false);
     try {
-      const exportRes = await getFinalTextForExport({ userEmail: email });
-
-      await logActivity(email, "export_to_docs_attempt", {
+      const result = await createOrUpdateSubmissionGoogleDoc({
+        userEmail: email,
         module: 8,
-        status: exportRes.status,
-        sourceModule: exportRes.sourceModule,
-        details: exportRes.details,
-        had_existing_doc: hadExistingDoc,
+        hadExistingDoc,
+        openInNewTab: true,
       });
 
-      if (exportRes.status !== "ok" || !exportRes.text) {
-        if (exportRes.status === "missing") {
-          alert(
-            "We could not find your finished essay yet. Go back to Module 7 and finish revising your essay, then try again."
-          );
-          return;
-        }
-        alert(
-          "We hit a problem while trying to load your essay. Please refresh and try again."
-        );
-        return;
-      }
-
-      if (exportRes.sourceModule === 6) {
-        alert(
-          "We are using your Module 6 draft because we could not find a finalized Module 7 version yet. If you finished revising in Module 7, go back and finalize first."
-        );
-      }
-
-      const res = await fetch("/api/export-to-docs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: exportRes.text, email }),
-      });
-
-      const result = await res.json();
-      if (!res.ok) {
-        alert(
-          hadExistingDoc
-            ? "We could not update your Google Doc. Please try again."
-            : "We could not create your Google Doc. Please try again."
-        );
-        await logActivity(email, "export_to_docs_failed", {
-          module: 8,
-          status: "api_failed",
+      if (!result.ok) {
+        setDocExportNotice({
+          type: "error",
+          status: result.reason,
+          message: result.message,
         });
         return;
       }
 
       setSubmissionDocUrl(result.url);
       setDocVerifiedThisSession(true);
+      if (result.popupBlocked) setPopupBlocked(true);
 
-      await logActivity(email, "export_to_docs", {
-        module: 8,
-        url: result.url,
-        sourceModule: exportRes.sourceModule,
-        status: exportRes.status,
-        details: exportRes.details,
-        updated_existing: hadExistingDoc,
-      });
-
-      const win = window.open(result.url, "_blank");
-      if (!win || win.closed || typeof win.closed === "undefined") {
-        setPopupBlocked(true);
+      const notices = [];
+      if (result.usedModule6Fallback) {
+        notices.push(
+          "Using your Module 6 draft because a finalized Module 7 version was not found. If you finished revising in Module 7, go back and finalize first."
+        );
       }
+      notices.push(result.message);
+      setDocExportNotice({
+        type: "success",
+        status: result.reason,
+        message: notices.join(" "),
+      });
     } finally {
       setCreatingDoc(false);
     }
@@ -582,6 +555,23 @@ export default function ModuleEight() {
             <div className="space-y-4 text-left">
               {finishedEssayPreview}
 
+              {docExportNotice ? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  data-testid="module8-doc-export-notice"
+                  data-status={docExportNotice.status || ""}
+                  className={[
+                    "rounded-lg border px-4 py-3 text-sm leading-relaxed",
+                    docExportNotice.type === "success"
+                      ? "border-theme-green/30 bg-theme-green/5 text-text-primary"
+                      : "border-theme-red/30 bg-red-50 text-text-primary",
+                  ].join(" ")}
+                >
+                  {docExportNotice.message}
+                </div>
+              ) : null}
+
               {!submissionDocUrl ? (
                 <div className="rounded-xl border-2 border-theme-blue/25 bg-theme-blue/5 px-5 py-4 shadow-soft">
                   <p className="text-sm leading-relaxed text-text-primary">
@@ -595,7 +585,7 @@ export default function ModuleEight() {
                     type="button"
                     onClick={handleCreateOrUpdateSubmissionDoc}
                     disabled={exportControlsDisabled}
-                    className="mt-4 rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-4 min-h-[44px] rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {creatingDoc ? "Creating your Google Doc…" : "Create your Google Doc"}
                   </button>
@@ -614,7 +604,7 @@ export default function ModuleEight() {
                       type="button"
                       onClick={handleCreateOrUpdateSubmissionDoc}
                       disabled={exportControlsDisabled}
-                      className="rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
+                      className="min-h-[44px] rounded-lg bg-theme-blue px-6 py-3 text-base font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {creatingDoc
                         ? "Updating your Google Doc…"
@@ -624,7 +614,7 @@ export default function ModuleEight() {
                       href={submissionDocUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-theme-blue underline"
+                      className="inline-flex min-h-[44px] items-center text-sm font-medium text-theme-blue underline"
                     >
                       Open current Google Doc
                     </a>
