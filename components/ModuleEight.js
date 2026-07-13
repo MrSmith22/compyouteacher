@@ -546,12 +546,14 @@ export default function ModuleEight() {
             Finish your outline in Module 5, then return here to prepare your essay
             for submission.
           </p>
-          <a
-            href="/modules/5"
-            className="inline-block rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white hover:brightness-105"
+          <button
+            type="button"
+            onClick={() => router.push("/modules/5")}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+            data-testid="module8-go-module-5"
           >
             Go to Module 5
-          </a>
+          </button>
         </div>
       </div>
     );
@@ -564,12 +566,14 @@ export default function ModuleEight() {
           <p className="text-text-primary">
             Finish your essay in Module 7 before preparing it for submission.
           </p>
-          <a
-            href="/modules/7"
-            className="inline-block rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white hover:brightness-105"
+          <button
+            type="button"
+            onClick={() => router.push("/modules/7")}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+            data-testid="module8-go-module-7"
           >
             Go to Module 7
-          </a>
+          </button>
         </div>
       </div>
     );
@@ -584,6 +588,24 @@ export default function ModuleEight() {
   const canFinish = docVerifiedThisSession && !!submissionDocUrl && checklistComplete;
   const exportControlsDisabled =
     creatingDoc || (locked && docVerifiedThisSession);
+  // WP-031: recovery panel already shows primary Continue after this-session verify.
+  const showFooterKeepGoing =
+    !isLastStep &&
+    !locked &&
+    !(
+      currentStep.type === MODULE8_STEP_TYPES.CREATE_DOC &&
+      docVerifiedThisSession
+    );
+
+  const openSubmissionGoogleDoc = () => {
+    if (!submissionDocUrl || typeof window === "undefined") return;
+    const opened = window.open(
+      submissionDocUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+    if (!opened) setPopupBlocked(true);
+  };
 
   const referenceShelf = (
     <ModuleEightReferenceShelf
@@ -735,14 +757,18 @@ export default function ModuleEight() {
               {submissionDocUrl ? (
                 <div className="rounded-lg border border-border-soft/60 bg-surface-soft/30 px-4 py-3">
                   <p className="text-sm font-medium text-text-primary">Your Google Doc</p>
-                  <a
-                    href={submissionDocUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-theme-blue underline"
+                  <button
+                    type="button"
+                    onClick={openSubmissionGoogleDoc}
+                    className={`mt-2 inline-flex min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 ${
+                      canAdvanceFromStep2
+                        ? "border border-border-soft bg-white font-medium text-text-primary"
+                        : "bg-theme-blue text-white shadow-soft"
+                    }`}
+                    data-testid="module8-format-open-doc"
                   >
                     Open your Google Doc
-                  </a>
+                  </button>
                 </div>
               ) : null}
 
@@ -841,7 +867,8 @@ export default function ModuleEight() {
             <button
               type="button"
               onClick={() => router.push("/modules/8/success")}
-              className="inline-block rounded-lg bg-theme-blue px-4 py-2 text-sm font-semibold text-white"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-4 py-2 text-sm font-semibold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+              data-testid="module8-locked-continue"
             >
               Continue
             </button>
@@ -854,14 +881,15 @@ export default function ModuleEight() {
               <button
                 type="button"
                 onClick={goBack}
-                className="rounded-lg bg-surface-soft px-4 py-2 text-text-primary hover:bg-border-soft/60"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border-soft bg-white px-4 py-2 text-text-primary hover:bg-surface-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                data-testid="module8-back"
               >
                 Back
               </button>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            {!isLastStep && !locked ? (
+            {showFooterKeepGoing ? (
               <button
                 type="button"
                 onClick={goNext}
@@ -869,7 +897,8 @@ export default function ModuleEight() {
                   (currentStepIndex === 0 && !canAdvanceFromStep1) ||
                   (currentStepIndex === 1 && !canAdvanceFromStep2)
                 }
-                className="rounded-lg bg-theme-blue px-4 py-2 font-medium text-white disabled:opacity-50"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-4 py-2 font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 disabled:opacity-50"
+                data-testid="module8-keep-going"
               >
                 Keep going
               </button>
@@ -879,7 +908,8 @@ export default function ModuleEight() {
                 type="button"
                 onClick={finishPreparing}
                 disabled={!canFinish}
-                className="rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft disabled:opacity-50"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 disabled:opacity-50"
+                data-testid="module8-finish-prepare"
               >
                 Finish preparing your essay and continue
               </button>

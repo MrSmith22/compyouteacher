@@ -377,7 +377,7 @@ export default function SubmissionDocRecoveryPanel({
             <div className="mt-4 border-t border-border-soft/60 pt-3">
               <button
                 type="button"
-                className={`text-left text-sm font-medium text-theme-blue underline ${FOCUS_RING} rounded`}
+                className={`inline-flex min-h-[40px] items-center rounded-lg border border-transparent px-2 py-1.5 text-left text-sm font-medium text-theme-blue hover:bg-theme-blue/5 ${FOCUS_RING}`}
                 aria-expanded={disclosureOpen}
                 onClick={() => setDisclosureOpen((open) => !open)}
                 data-testid={`${testIdPrefix}-recovery-disclosure`}

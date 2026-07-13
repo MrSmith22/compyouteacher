@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 
 export default function ModuleEightSuccess() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [ready, setReady] = useState(false);
 
@@ -46,17 +47,20 @@ export default function ModuleEightSuccess() {
         ) : null}
 
         {ready ? (
-          <Link
-            href="/modules/9"
-            className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
+          <button
+            type="button"
+            onClick={() => router.push("/modules/9")}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+            data-testid="module8-success-continue"
           >
             Continue to Module 9
-          </Link>
+          </button>
         ) : (
           <button
             type="button"
             disabled
-            className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-gray-300 px-6 py-2 text-sm font-semibold text-gray-600 shadow cursor-not-allowed"
+            data-testid="module8-success-continue"
           >
             Continue to Module 9
           </button>

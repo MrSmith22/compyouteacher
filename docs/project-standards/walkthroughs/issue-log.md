@@ -68,7 +68,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-028 | Module 8 lacks single authoritative export pathway | 8 | Critical | Architecture | Open |
 | WP-029 | Module 8 lacks export verification against latest essay | 8 | High | Architecture / Trust | Open |
 | WP-030 | Module 8 lacks recovery actions for export problems | 8 | High | UX / Trust | Resolved |
-| WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Open |
+| WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Resolved |
 | WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Open |
 | WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Open |
 | WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Open |
@@ -969,7 +969,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Google Doc, formatting, and submission-prep screens
 - **Priority:** High
 - **Category:** UX
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Module 8 mixes hyperlinks and buttons for expected actions. Students recognize buttons but often overlook hyperlinks.
 
@@ -983,11 +983,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Audit Module 8 interactive elements.
 2. Confirm every expected action is a visible button.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleEight.js`; `components/exports/SubmissionDocRecoveryPanel.jsx`; `components/module8/ModuleEightReferenceShelf.jsx`; `app/modules/8/success/page.js`; `tests/module8-wp031-action-buttons.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Module 8 workflow actions (Create/Update, Open, Retry, Create-new, Keep going / Continue / Finish, gate “Go to Module 5/7”, success “Continue to Module 9”) render as accessible `<button>` controls with primary/secondary hierarchy and 44px min hit target. Format-step “Open your Google Doc” is a button (`window.open` + popup-blocker handling); after this-session verify on Create-doc, footer Keep going is suppressed so recovery Continue is the sole primary. APA template/sample/OWL remain semantic links. WP-030 recovery contracts preserved (same-doc Update, confirmed replacement only, Retry on temporary failure, progression locked until verified). Browser acceptance at **390×844** and **1440×900**: Update primary + Open/Create-new secondary buttons; APA resources stay links; success Continue is a button. Full suite 920/920.
 
-**Resolved in commit:**
+**Resolved in commit:** (closed after browser acceptance; this commit)
 
 ---
 

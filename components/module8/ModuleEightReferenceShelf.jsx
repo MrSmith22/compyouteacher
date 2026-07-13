@@ -145,6 +145,7 @@ export default function ModuleEightReferenceShelf({
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-theme-blue underline"
+            data-testid="module8-apa-template-link"
           >
             Copy APA Google Docs template
           </a>
@@ -161,6 +162,7 @@ export default function ModuleEightReferenceShelf({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-theme-blue underline"
+                data-testid="module8-apa-sample-link"
               >
                 APA student paper example
               </a>
@@ -171,6 +173,7 @@ export default function ModuleEightReferenceShelf({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-theme-blue underline"
+                data-testid="module8-apa-owl-link"
               >
                 Purdue OWL APA guide
               </a>
