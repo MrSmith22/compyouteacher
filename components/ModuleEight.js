@@ -409,6 +409,14 @@ export default function ModuleEight() {
       // WP-002: this-session Create/Update/Create-new that verifies.
       if (result.contentVerified) {
         setDocVerifiedThisSession(true);
+        // WP-036: verified Create/Update/Create-new replaces the Google Doc body
+        // (deleteContentRange + insertText). Manual APA formatting applied in the
+        // Doc is therefore stale—reset Format and Ready confirmations only here,
+        // not on navigate/cancel/timeout/mismatch/failed verification.
+        setChecklistState(Array(CHECKLIST_ITEMS.length).fill(false));
+        setConfidenceState(
+          Array(MODULE8_READY_CONFIDENCE_ITEMS.length).fill(false)
+        );
       } else {
         setDocVerifiedThisSession(false);
       }
@@ -484,6 +492,11 @@ export default function ModuleEight() {
 
   const goNext = () => {
     setCurrentStepIndex((index) => Math.min(MODULE8_WORKSPACE_STEPS.length - 1, index + 1));
+  };
+
+  /** WP-036: navigate to Create/Update only—does not export or clear checklists. */
+  const openUpdateGoogleDocWorkingSet = () => {
+    setCurrentStepIndex(0);
   };
 
   const finishPreparing = async () => {
@@ -925,6 +938,21 @@ export default function ModuleEight() {
                     : "Keep going unlocks after every checklist item is complete."}
                 </p>
               </section>
+
+              {/* WP-036 — Escape hatch: navigate only; Keep going remains primary */}
+              <div
+                className="flex flex-wrap gap-2"
+                data-testid="module8-format-escape-hatches"
+              >
+                <button
+                  type="button"
+                  onClick={openUpdateGoogleDocWorkingSet}
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                  data-testid="module8-format-update-doc-escape"
+                >
+                  Update Google Doc
+                </button>
+              </div>
             </div>
           ) : null}
 
@@ -994,6 +1022,31 @@ export default function ModuleEight() {
                 <p className="mt-1 text-sm leading-relaxed text-text-muted">
                   What is one formatting choice you made that helps your reader?
                 </p>
+              </div>
+
+              {/* WP-036 — Escape hatches: secondary only; Finish stays sole primary */}
+              <div
+                className="flex flex-wrap gap-2"
+                data-testid="module8-ready-escape-hatches"
+              >
+                {submissionDocUrl ? (
+                  <button
+                    type="button"
+                    onClick={openSubmissionGoogleDoc}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                    data-testid="module8-ready-open-doc"
+                  >
+                    Open Google Doc
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={openUpdateGoogleDocWorkingSet}
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                  data-testid="module8-ready-update-doc-escape"
+                >
+                  Update Google Doc
+                </button>
               </div>
 
               {!canFinish && !locked ? (

@@ -73,7 +73,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-033 | Module 8 does not explain what the Google Doc represents | 8 | Medium | Instructional | Resolved |
 | WP-034 | Module 8 APA formatting page lacks how/why coaching | 8 | Medium | Instructional | Resolved |
 | WP-035 | Module 8 Ready to Submit screen lacks confidence checklist | 8 | Medium | Instructional | Resolved |
-| WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Open |
+| WP-036 | Module 8 missing escape hatches to update Google Doc | 8 | Medium | Navigation / Flow | Resolved |
 | WP-037 | Module 8 lacks reassurance that submission has not happened yet | 8 | Medium | Instructional | Open |
 | WP-038 | Module 9 needs internal APA Quick Guide | 9 | Critical | Instructional | Open |
 | WP-039 | Module 9 quiz stacks many questions instead of one concept per screen | 9 | High | Instructional / UX | Open |
@@ -1109,7 +1109,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Formatting and submission-prep screens after initial export
 - **Priority:** Medium
 - **Category:** Navigation / Flow
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Students can feel trapped after export if they need to update the Google Doc. Master Spec: “Never trap students.” Allow return paths to update the doc from later Module 8 screens.
 
@@ -1123,11 +1123,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Progress past initial export.
 2. Confirm Update Google Doc remains accessible.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleEight.js`; `tests/module8-wp036-update-doc-escape-hatches.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Secondary **Update Google Doc** escape hatch on Format and Ready navigates to the existing Create/Update working set only (`setCurrentStepIndex(0)`)—no second export path and no checklist clear on navigate. Evidence: verified Update replaces Doc body via `deleteContentRange` + `insertText` (`buildReplaceGoogleDocBodyRequests` / `replaceDocumentBody`), so APA (6) and Ready confidence (5) reset **only** after `contentVerified` success. WP-032 confirmation remains on the Create step. Open Google Doc remains available; Keep going/Finish stay the sole primary progression actions. Focused WP-030–036 **54/54**; full suite **948/948**. Live browser: Format escape hatch confirmed after verified Update; dual-viewport CDP acceptance interrupted/unreliable—no further automation loops.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
