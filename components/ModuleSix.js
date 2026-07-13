@@ -1067,7 +1067,11 @@ export default function ModuleSix() {
 
           <div className="mt-4 space-y-3 border-t border-border-soft/60 pt-4">
             {sectionGateMessage ? (
-              <p className="text-sm text-theme-orange break-words" role="status">
+              <p
+                className="text-sm text-theme-orange break-words"
+                role="status"
+                aria-live="polite"
+              >
                 {sectionGateMessage}
               </p>
             ) : null}
