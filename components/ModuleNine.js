@@ -920,7 +920,14 @@ export default function ModuleNine() {
                 Step 4 of 4: Submit your final essay as a PDF
               </h2>
               <ModuleNineApaQuickGuide compact />
-              <div className="space-y-3 text-sm text-text-primary">
+
+              <div
+                className="space-y-3 text-sm text-text-primary"
+                data-testid="module9-pdf-download-instructions"
+              >
+                <h3 className="text-base font-semibold text-text-primary">
+                  Download your Google Doc as a PDF
+                </h3>
                 <p>Follow these steps to turn your Google Doc into a PDF:</p>
                 <ModuleNinePdfDownloadVisual />
                 <ol className="list-inside list-decimal space-y-2">
@@ -945,6 +952,38 @@ export default function ModuleNine() {
                 </p>
               </div>
 
+              <div
+                className="space-y-3 rounded-lg border border-theme-orange/25 bg-theme-orange/[0.05] px-4 py-3 text-sm text-text-primary"
+                data-testid="module9-pdf-upload-coaching"
+              >
+                <h3 className="text-base font-semibold text-text-primary">
+                  Upload your PDF
+                </h3>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  After the PDF is saved on your device, upload it here.
+                </p>
+                <ol className="list-decimal space-y-2 pl-5 leading-relaxed">
+                  <li>
+                    Choose the file control below (your browser may label it Choose
+                    File or Browse).
+                  </li>
+                  <li>
+                    Locate the PDF in Downloads, Desktop, or the folder where you
+                    saved it.
+                  </li>
+                  <li>
+                    Select the newest PDF, then choose Open.
+                  </li>
+                  <li>
+                    Check the Selected filename on this page, then choose{" "}
+                    <strong>Upload Final PDF</strong>.
+                  </li>
+                  <li>
+                    Wait for the successful upload confirmation.
+                  </li>
+                </ol>
+              </div>
+
               <div className="mb-3 space-y-1 rounded-lg border border-border-soft bg-surface-soft px-4 py-3 text-xs">
                 <p className="font-semibold">Before you upload:</p>
                 <p>• Make sure your file name ends with .pdf</p>
@@ -956,6 +995,7 @@ export default function ModuleNine() {
                 accept=".pdf,application/pdf"
                 onChange={handleFileSelect}
                 className="mb-2 min-h-[44px] text-sm"
+                data-testid="module9-pdf-file-input"
               />
 
               {uploadError && (
@@ -974,12 +1014,16 @@ export default function ModuleNine() {
                 className={`min-h-[44px] rounded bg-theme-orange px-6 py-2 text-sm font-semibold text-white shadow ${
                   !canUpload ? "cursor-not-allowed opacity-50" : ""
                 } ${FOCUS_RING}`}
+                data-testid="module9-upload-final-pdf"
               >
                 {uploading ? "Uploading…" : "Upload Final PDF"}
               </button>
 
               {pdfFile && !uploading && (
-                <div className="mt-1 text-xs text-text-muted">
+                <div
+                  className="mt-1 text-xs text-text-muted"
+                  data-testid="module9-pdf-selected"
+                >
                   Selected: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(1)}{" "}
                   MB)
                 </div>

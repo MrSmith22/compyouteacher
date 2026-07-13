@@ -43,8 +43,8 @@ describe("WP-043 Module 9 APA and PDF visual models", () => {
     const m9 = readSrc("components/ModuleNine.js");
     assert.ok(m9.includes("ModuleNinePdfDownloadVisual"));
     const visualIdx = m9.indexOf("<ModuleNinePdfDownloadVisual");
-    const uploadInputIdx = m9.indexOf('type="file"');
-    const uploadBtnIdx = m9.indexOf("Upload Final PDF");
+    const uploadInputIdx = m9.indexOf('data-testid="module9-pdf-file-input"');
+    const uploadBtnIdx = m9.indexOf('data-testid="module9-upload-final-pdf"');
     const stepsIntroIdx = m9.indexOf(
       "Follow these steps to turn your Google Doc into a PDF"
     );

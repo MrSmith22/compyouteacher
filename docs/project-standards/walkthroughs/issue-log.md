@@ -81,7 +81,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-041 | Module 9 formatting page lacks “do not rewrite” coaching | 9 | High | Instructional | Resolved |
 | WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Resolved |
 | WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Resolved |
-| WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Open |
+| WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Resolved |
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Open |
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Open |
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Open |
@@ -1334,7 +1334,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** PDF upload screen
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Upload functions correctly but needs stronger coaching. The choose-file → locate → open → upload → confirmation flow should not remain implicit.
 
@@ -1348,11 +1348,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Walk upload page with a novice tester.
 2. Confirm steps are numbered and match actual upload flow.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`; `tests/module9-wp044-upload-coaching.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Step 4 separates **Download your Google Doc as a PDF** from always-visible **Upload your PDF** coaching (`module9-pdf-upload-coaching`): Choose file control → Locate PDF → Open → check Selected / Upload Final PDF → wait for confirmation. Placed after WP-043 download visual and before file input. Upload handlers, accept types, and Selected feedback unchanged. WP-045/046 not included.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
