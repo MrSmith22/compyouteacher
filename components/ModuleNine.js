@@ -776,7 +776,10 @@ export default function ModuleNine() {
             exportUrl &&
             docReady ? (
               <div className="space-y-3">
-                <p className="text-sm text-text-primary">
+                <p
+                  className="text-sm text-text-primary"
+                  data-testid="module9-do-not-rewrite-coaching"
+                >
                   The Google Doc you prepared in Module 8 is the document you will
                   format in APA style. You are changing how it looks—not rewriting
                   your essay.

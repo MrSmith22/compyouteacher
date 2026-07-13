@@ -78,7 +78,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-038 | Module 9 needs internal APA Quick Guide | 9 | Critical | Instructional | Resolved |
 | WP-039 | Module 9 quiz stacks many questions instead of one concept per screen | 9 | High | Instructional / UX | Resolved |
 | WP-040 | Module 9 quiz feedback reports correctness without teaching | 9 | Medium | Instructional | Resolved |
-| WP-041 | Module 9 formatting page lacks “do not rewrite” coaching | 9 | High | Instructional | Open |
+| WP-041 | Module 9 formatting page lacks “do not rewrite” coaching | 9 | High | Instructional | Resolved |
 | WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Open |
 | WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Open |
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Open |
@@ -1250,7 +1250,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Formatting screen
 - **Priority:** High
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** The formatting page is largely successful but does not explicitly tell students what to change vs leave alone. Students may rewrite content when they should only adjust formatting.
 
@@ -1264,11 +1264,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open Module 9 formatting page.
 2. Confirm “do not rewrite” guidance is visible before actions.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`; `lib/module9/module9ApaLearning.js`; `tests/module9-wp041-do-not-rewrite-coaching.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Already satisfied—no duplicate instructional prose. Guided and unguided share Step 2 (`!guidedMode || viewedStep === 2`): “changing how it looks—not rewriting your essay” (`module9-do-not-rewrite-coaching`) precedes Open Google Doc and the Format checklist step in source order. Reinforced by `MODULE9_APA_ENTRY.framing` and the formatting-vs-rewriting APA concept. Test id + focused regression only.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
