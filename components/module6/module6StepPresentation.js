@@ -219,9 +219,7 @@ export function getModule6StepPresentation(step, outline) {
 
   if (step.type === SECTION_TYPES.BODY) {
     const card = body[step.bodyIndex] || {};
-    const title =
-      String(card.bucket || card.point || "").trim() ||
-      `Body paragraph ${step.bodyIndex + 1}`;
+    const writingLabel = getWritingSectionLabel(step);
     const isLastBody = step.bodyIndex === body.length - 1;
     const pointCount = Array.isArray(card.points) ? card.points.length : 0;
     const paragraphNumber =
@@ -293,7 +291,8 @@ export function getModule6StepPresentation(step, outline) {
       },
       organizationalJob: jobSentence,
       paragraphPoint: point,
-      workingSetLabel: title,
+      // Writing chrome: Body Paragraph N (planning bucket stays on Need Help / shelf).
+      workingSetLabel: writingLabel,
       workingSetDescription:
         "On your desk: this body section only. Check Need Help if you forget your plan.",
       outlineHelpTitle: "Outline points for this paragraph",

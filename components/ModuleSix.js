@@ -965,7 +965,6 @@ export default function ModuleSix() {
                       <div>
                         <p className="text-sm font-semibold text-theme-blue">
                           {getWritingSectionLabel(step)}
-                          {step.job ? ` · ${step.job}` : ""}
                         </p>
                         <p className="mt-1 text-xs text-text-muted">
                           {words} words ·{" "}

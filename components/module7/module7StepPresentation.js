@@ -1,4 +1,7 @@
-import { SECTION_TYPES } from "../module6/module6StepPresentation.js";
+import {
+  SECTION_TYPES,
+  getWritingSectionLabel,
+} from "../module6/module6StepPresentation.js";
 import {
   buildModule7JobRightNow,
   getModule7RevisionStrategy,
@@ -115,7 +118,7 @@ export function getModule7StepPresentation(step, outline) {
           "Check context and thesis placement. Improve one thing so the reader arrives at your claim clearly.",
         nextStepText:
           body.length > 0
-            ? `Next you will revise your first body section: ${body[0]?.bucket || "your first paragraph plan"}.`
+            ? "Next you will revise Body Paragraph 1."
             : "Next you will revise your conclusion.",
         workingSetLabel: "Introduction",
         workingSetDescription: "On your desk: your opening section only.",
@@ -126,13 +129,22 @@ export function getModule7StepPresentation(step, outline) {
 
   if (step.type === SECTION_TYPES.BODY) {
     const card = body[step.bodyIndex] || {};
-    const title = String(card.bucket || "").trim() || `Body paragraph ${step.bodyIndex + 1}`;
+    const writingLabel = getWritingSectionLabel(step);
+    const point =
+      String(card.point || card.bucket || "").trim() ||
+      writingLabel.toLowerCase();
     const isLastBody = step.bodyIndex === body.length - 1;
     const strategy = getModule7RevisionStrategy(step);
+    const nextBodyIndex = step.bodyIndex + 1;
+    const nextWritingLabel = getWritingSectionLabel({
+      type: SECTION_TYPES.BODY,
+      bodyIndex: nextBodyIndex,
+    });
 
     return withStrategy(
       {
-        question: `How can you strengthen this section: ${title}?`,
+        // Point remains coaching/desk support; working-set chrome uses writing labels.
+        question: `How can you strengthen this section: ${point}?`,
         whyMatters: [
           "Each body section proves one part of your argument.",
           "Compare the paragraph’s point with what the section actually explains—then improve one strategy.",
@@ -145,8 +157,8 @@ export function getModule7StepPresentation(step, outline) {
         coachingMessage: `${strategy.teach} Keep this section as your only working set.`,
         nextStepText: isLastBody
           ? "Next you will revise your conclusion."
-          : `Next you will revise: ${body[step.bodyIndex + 1]?.bucket || "the following section"}.`,
-        workingSetLabel: title,
+          : `Next you will revise ${nextWritingLabel}.`,
+        workingSetLabel: writingLabel,
         workingSetDescription: "On your desk: this body section only.",
       },
       step

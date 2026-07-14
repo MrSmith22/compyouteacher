@@ -100,7 +100,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Needs Verification |
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Needs Verification |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Needs Verification |
-| WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
+| WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Resolved |
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
 | WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
 | WP-066 | Align Module 7 revision labels with Module 6 writing language | 7 | Medium | Instructional / UX | Resolved |
@@ -1918,7 +1918,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Draft assembly; Module 6 drafting; Module 7 revision views
 - **Priority:** High
 - **Category:** Instructional / Architecture
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Roman numerals, outline labels, and planning prompts are correct during planning but should gradually disappear as students move toward drafting and revision. By Module 7, students should experience a real essay — not an outline wrapped around an essay (see also WP-001).
 
@@ -1932,11 +1932,26 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Trace outline labels through Modules 5 → 6 → 7.
 2. Confirm labels are absent from student-facing essay text after assembly.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/planningSupportFadeContract.js`; `components/module6/module6StepPresentation.js` (`buildDraftSectionSteps`, `getWritingSectionLabel`); `lib/module6/draftPersistenceHelpers.js` (`deriveModule6FullText`); `components/module7/module7DraftSections.js` (`getEssayProseBlocks`, `joinSections`); `components/module7/EssayProseView.jsx`; `components/module7/module7StepPresentation.js`; `components/ModuleSix.js` (whole-draft review headers)
 
-**Resolution notes:**
+**Resolution notes:** Closed primarily through reconciliation with WP-001 / WP-065 / WP-066 rather than a Module 5–7 redesign. Fade schedule documented in `lib/ui/planningSupportFadeContract.js`:
 
-**Resolved in commit:**
+| Stage | Representation | Planning labels | Student prose |
+|---|---|---|---|
+| Module 5 | planning | allowed / intentional | n/a (plans & outline) |
+| Module 6 writing chrome + assembled draft | writing | forbidden | section prose only |
+| Module 6 Need Help / shelf / desk | reference_support | allowed | task-relevant support only |
+| Module 7 Read Aloud / revision / final review / saved `full_text` | writing | forbidden | prose only (`EssayProseView`) |
+| Module 7 desk | reference_support | separate artifacts | WP-049 evidence/reasoning retained |
+| Module 8 finished-essay preview | writing (downstream) | forbidden in preview | `EssayProseView` |
+
+Already-compliant paths: `deriveModule6FullText` / `joinSections` / `getEssayProseBlocks` never concatenate roman/title/bucket into prose; Module 6–7 textbox labels already used `getWritingSectionLabel`; Module 5 planning UI unchanged; no student-text sanitizing regex introduced (a student may legitimately write “I.” or “Introduction”).
+
+Actual residual chrome leak repaired at presentation boundaries (not assembly): Module 6/7 body `workingSetLabel` previously used outline bucket/point titles; Module 6 whole-draft review headers appended `step.job`. Both now use writing-language labels only. Internal step metadata (`roman`, `title`, `job`, `bodyIndex`) retained for shelves/mapping. Hostile fixture `II. PLANNING LABEL` stays out of assembled prose.
+
+Browser (this pass): port 3000 was not listening — no new live session. Status relies on architectural trace + regression tests plus historical live verification recorded for WP-001 / WP-065 / WP-066.
+
+**Resolved in commit:** Codify planning-support fade from outline to revision (`observation-engine-redesign`)
 
 ---
 
