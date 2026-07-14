@@ -38,6 +38,8 @@ import {
   SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
+import ScreenContractCues from "@/components/shared/ScreenContractCues";
+import { MODULE9_SCREEN_CONTRACT } from "@/lib/module9/module9ScreenContract";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
@@ -678,12 +680,27 @@ export default function ModuleNine() {
         )}
 
         {viewedStep === 1 && !alreadySubmitted && !submitted && (
-          <ModuleNineApaLesson
-            lessonState={lessonState}
-            onLessonStateChange={setLessonState}
-            onComplete={persistApaPractice}
-            alreadyPersisted={false}
-          />
+          <div className="space-y-4">
+            <header className="space-y-3 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8">
+              <h2
+                className="text-xl font-semibold text-text-primary"
+                data-testid="screen-contract-task"
+              >
+                {MODULE9_SCREEN_CONTRACT[1].task}
+              </h2>
+              <ScreenContractCues
+                purpose={MODULE9_SCREEN_CONTRACT[1].purpose}
+                how={MODULE9_SCREEN_CONTRACT[1].how}
+                finished={MODULE9_SCREEN_CONTRACT[1].finished}
+              />
+            </header>
+            <ModuleNineApaLesson
+              lessonState={lessonState}
+              onLessonStateChange={setLessonState}
+              onComplete={persistApaPractice}
+              alreadyPersisted={false}
+            />
+          </div>
         )}
 
         {viewedStep === 2 && submitted && !alreadySubmitted && (
@@ -692,9 +709,17 @@ export default function ModuleNine() {
             className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             data-testid="module9-submission-doc-step"
           >
-            <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+            <h2
+              className="flex items-center gap-2 text-xl font-semibold text-text-primary"
+              data-testid="screen-contract-task"
+            >
               Open the paper you prepared{docReady ? " ✓" : ""}
             </h2>
+            <ScreenContractCues
+              purpose={MODULE9_SCREEN_CONTRACT[2].purpose}
+              how={MODULE9_SCREEN_CONTRACT[2].how}
+              finished={MODULE9_SCREEN_CONTRACT[2].finished}
+            />
             <p className="text-sm text-text-primary">
               Open and verify the Google Doc you prepared in Module 8. You do not need
               to create a new export when that document is already ready.
@@ -833,10 +858,18 @@ export default function ModuleNine() {
               ref={step3Ref}
               className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             >
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+              <h2
+                className="flex items-center gap-2 text-xl font-semibold text-text-primary"
+                data-testid="screen-contract-task"
+              >
                 Format your paper with the APA guide
                 {checklistComplete ? " ✓" : ""}
               </h2>
+              <ScreenContractCues
+                purpose={MODULE9_SCREEN_CONTRACT[3].purpose}
+                how={MODULE9_SCREEN_CONTRACT[3].how}
+                finished={MODULE9_SCREEN_CONTRACT[3].finished}
+              />
               <p className="text-sm text-text-primary">
                 Use the APA guide and confirm each formatting item in your Google Doc
                 before you download the PDF.
@@ -912,9 +945,17 @@ export default function ModuleNine() {
               ref={step4Ref}
               className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             >
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+              <h2
+                className="flex items-center gap-2 text-lg font-semibold text-text-primary"
+                data-testid="screen-contract-task"
+              >
                 Download, check, and submit your PDF
               </h2>
+              <ScreenContractCues
+                purpose={MODULE9_SCREEN_CONTRACT[4].purpose}
+                how={MODULE9_SCREEN_CONTRACT[4].how}
+                finished={MODULE9_SCREEN_CONTRACT[4].finished}
+              />
               <ModuleNineApaQuickGuide compact />
 
               <div

@@ -2,6 +2,12 @@ import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
 import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
+import ScreenContractCues from "@/components/shared/ScreenContractCues";
+import {
+  pickVisibleFinished,
+  pickVisiblePurpose,
+  remainingContractLines,
+} from "@/components/shared/screenContractHelpers";
 
 export const MODULE6_NEED_HELP_ID = "module-6-need-help";
 
@@ -97,7 +103,10 @@ function JobRightNowCard({ jobRightNow }) {
   if (!steps.length) return null;
 
   return (
-    <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15">
+    <div
+      className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15"
+      data-testid="screen-contract-how"
+    >
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
         Your job right now
       </p>
@@ -158,7 +167,7 @@ function SupportingDetails({ whyLines, exampleBlock, successItems }) {
             >
               +
             </span>
-            <span className="flex-1 text-left">Why this matters</span>
+            <span className="flex-1 text-left">More about why this matters</span>
             <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
               Show
             </span>
@@ -216,7 +225,7 @@ function SupportingDetails({ whyLines, exampleBlock, successItems }) {
             >
               +
             </span>
-            <span className="flex-1 text-left">Self-check before you continue</span>
+            <span className="flex-1 text-left">More self-check details</span>
             <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
               Show
             </span>
@@ -253,6 +262,7 @@ export default function ModuleSixStepFrame({
   coachingMessage = "",
   nextStepText = "",
   jobRightNow = null,
+  howToSucceed = "",
   supportingResources = null,
   hideSupporting = false,
   supportingPlacement = "before",
@@ -262,13 +272,23 @@ export default function ModuleSixStepFrame({
   const successItems = Array.isArray(successLooksLike)
     ? successLooksLike.filter(Boolean)
     : [];
+  const visiblePurpose = pickVisiblePurpose(whyLines);
+  const visibleFinished = pickVisibleFinished(successItems);
+  const whyForDisclosure = remainingContractLines(whyLines, visiblePurpose);
+  const successForDisclosure = remainingContractLines(
+    successItems,
+    visibleFinished
+  );
   const actionFirst = !!jobRightNow?.steps?.length;
+  const howSummary = String(
+    howToSucceed || (!actionFirst ? coachingMessage : "") || ""
+  ).trim();
   const supporting =
     hideSupporting ? null : (
       <SupportingDetails
-        whyLines={whyLines}
+        whyLines={whyForDisclosure}
         exampleBlock={exampleBlock}
-        successItems={successItems}
+        successItems={successForDisclosure}
       />
     );
   const supportingBefore =
@@ -288,9 +308,18 @@ export default function ModuleSixStepFrame({
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
               Start here
             </p>
-            <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+            <h1
+              className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]"
+              data-testid="screen-contract-task"
+            >
               {question}
             </h1>
+            <ScreenContractCues
+              purpose={visiblePurpose}
+              how={howSummary}
+              finished={visibleFinished}
+              showHow={!actionFirst}
+            />
             {actionFirst ? (
               <div className="pt-1">
                 <NeedHelpJumpLink />

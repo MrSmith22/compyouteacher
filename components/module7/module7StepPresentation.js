@@ -27,9 +27,18 @@ export function getModule7StepPresentation(step, outline) {
     return withStrategy(
       {
         question: "How does your essay sound when you hear it aloud?",
-        whyMatters: [],
-        successLooksLike: [],
+        whyMatters: [
+          "Hearing the essay helps you notice places a reader might stumble.",
+          "You are listening for clarity—not starting a new draft.",
+        ],
+        successLooksLike: [
+          "You recorded and listened to the essay at least once.",
+          "You noticed at least one place that could be clearer for a reader.",
+          "You are ready to revise one section at a time.",
+        ],
         example: "",
+        howToSucceed:
+          "Record the essay, listen once for clarity, then move on to revise one section.",
         coachingMessage:
           "Record the essay on your desk, listen once, then move on to revise one section at a time.",
         nextStepText: "Next you will revise your introduction—one section at a time.",

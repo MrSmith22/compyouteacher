@@ -48,6 +48,9 @@ export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}
         "You can open the document and see your title page.",
         "You understand this is preparation—not rewriting.",
       ],
+      howToSucceed: hasExistingDoc
+        ? "Update your existing Google Doc so it contains your newest finished essay."
+        : "Create a Google Doc that contains your finished essay—the paper you will format.",
       coachingMessage:
         "You are preparing the paper your teacher will read—not changing what you wrote.",
       nextStepText: "Next you will format your paper in APA style inside your Google Doc.",
@@ -72,6 +75,8 @@ export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}
         "Your title page and page numbers are in place.",
         "Your references page follows APA rules.",
       ],
+      howToSucceed:
+        "In your Google Doc, apply APA font, spacing, margins, title page, page numbers, and references—then check each item here.",
       coachingMessage:
         "Most of the work in this step happens in your Google Doc. Come back here as you complete each formatting task. Do not edit your essay in the processor—you are only preparing how your paper looks.",
       nextStepText: "Next you will make sure you are ready to continue.",
@@ -86,14 +91,19 @@ export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}
       question: "Is your paper ready to turn in?",
       whyMatters: [
         "You already finished writing. This is a quick check before submission.",
-        "Module 9 is where you demonstrate your APA knowledge and upload your PDF.",
+        "Module 9 is where you finish APA checks and upload your PDF.",
       ],
       successLooksLike: [
-        "What is one formatting choice you made that helps your reader?",
+        "My newest essay appears in the Google Doc.",
+        "My title page and references page look correct.",
+        "Everything is double spaced and looks the way I expect.",
       ],
+      howToSucceed:
+        "Confirm each readiness item for the Google Doc you prepared—then continue to Module 9.",
       coachingMessage:
-        "You are closing preparation—not starting another writing assignment. Your Google Doc is formatted; Module 9 is quiz and upload.",
-      nextStepText: "In Module 9 you will take a short APA quiz and submit your final PDF.",
+        "You are closing preparation—not starting another writing assignment. Your Google Doc is formatted; Module 9 is where you submit the PDF.",
+      nextStepText:
+        "In Module 9 you will finish APA formatting checks and submit your final PDF.",
       workingSetLabel: "Make sure you're ready",
       workingSetDescription:
         "Confirm your Google Doc looks ready. These checks do not submit your paper—they prepare you for Module 9.",

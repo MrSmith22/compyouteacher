@@ -789,10 +789,13 @@ export default function ModuleSeven() {
       >
       <ModuleSixStepFrame
         question={presentation.question}
-        whyMatters={isReadAloudStep ? [] : presentation.whyMatters}
-        successLooksLike={isReadAloudStep ? [] : presentation.successLooksLike}
+        whyMatters={presentation.whyMatters}
+        successLooksLike={presentation.successLooksLike}
         coachingMessage={presentation.coachingMessage}
         nextStepText={presentation.nextStepText}
+        howToSucceed={
+          presentation.howToSucceed || presentation.strategy?.teach || ""
+        }
         sidebar={referenceShelf}
         hideSupporting={isReadAloudStep}
       >

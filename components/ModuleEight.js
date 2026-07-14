@@ -690,6 +690,7 @@ export default function ModuleEight() {
         successLooksLike={presentation.successLooksLike}
         coachingMessage={presentation.coachingMessage}
         nextStepText={presentation.nextStepText}
+        howToSucceed={presentation.howToSucceed || ""}
         sidebar={referenceShelf}
       >
         <div className="space-y-3">

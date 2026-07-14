@@ -70,6 +70,36 @@ export function getWritingSectionLabel(step) {
 }
 
 /**
+ * Whole-draft review stage (after every prose section).
+ * Shared presentation object so WP-048 can assert the four-question contract.
+ */
+export function getModule6ReviewPresentation() {
+  return {
+    question: "Is each section ready for revision?",
+    whyMatters: [
+      "A quick whole-draft check catches empty sections before you leave Module 6.",
+      "You are not grading style here—only confirming every required section has prose.",
+    ],
+    successLooksLike: [
+      "Every section (introduction, body paragraphs, and conclusion) has writing.",
+    ],
+    coachingMessage:
+      "Scan each section. Use Edit to return to a section that needs more writing.",
+    nextStepText:
+      "When every section has prose, finish your draft and continue to revision.",
+    jobRightNow: {
+      lead: "Review your draft as a whole.",
+      steps: [
+        "Confirm introduction, each body paragraph, and conclusion have writing.",
+        "Edit any empty section before you finish.",
+      ],
+    },
+    workingSetLabel: "Whole-draft review",
+    workingSetDescription: "Check section readiness, then finish when ready.",
+  };
+}
+
+/**
  * Instructional coaching for one Module 6 drafting step.
  * Returns copy only — no workflow changes.
  */

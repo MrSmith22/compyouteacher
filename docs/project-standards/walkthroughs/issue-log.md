@@ -85,7 +85,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Resolved |
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Resolved |
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Needs Verification |
-| WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Open |
+| WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Needs Verification |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Open |
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Open |
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Open |
@@ -1447,7 +1447,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All student-facing task screens
 - **Priority:** High
 - **Category:** Instructional / UX
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Every screen should answer: What am I doing? Why am I doing it? How do I do it successfully? How do I know I’m finished? Questions 3 and 4 are especially weak — students are told to revise/write/format without coaching or success criteria.
 
@@ -1462,11 +1462,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Score each against the four questions.
 3. Fail if any question lacks a visible answer.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/module6/ModuleSixStepFrame.jsx`; `components/shared/ScreenContractCues.jsx`; `components/shared/screenContractHelpers.js`; `tests/wp048-four-question-screen-contract.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) First Modules 6–9 pass only—not app-wide complete. Phase A audit (in the focused test matrix) found purpose/finished often lived only inside collapsed `Why this matters` / `Self-check` disclosures; Module 7 read-aloud had empty purpose/finished; Module 8 Ready’s success cue was a reflective question; Module 6 whole-draft review had no `successLooksLike` (purpose/how visible; finished only hinted in the guide rail). Phase B: enhanced shared `ModuleSixStepFrame` + `ScreenContractCues` so a concise purpose and “You’re ready when…” are always visible; how stays in `jobRightNow` (M6) or `howToSucceed`/coaching (M7–8); review stage uses `getModule6ReviewPresentation()`; deeper lines/examples remain collapsed without duplicating the visible lines. Module 9 uses journey-step contract copy without restoring Guided/scores. Status remains **Needs Verification** because the issue is app-wide and representative states outside Modules 6–9 were not audited.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

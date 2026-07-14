@@ -22,6 +22,7 @@ import InfoCallout from "@/components/ui/InfoCallout";
 import {
   getWritingSectionLabel,
   getModule6StepPresentation,
+  getModule6ReviewPresentation,
   SECTION_TYPES,
 } from "@/components/module6/module6StepPresentation";
 import {
@@ -116,25 +117,7 @@ export default function ModuleSix() {
 
   const presentation = useMemo(() => {
     if (isReviewStage) {
-      return {
-        question: "Is each section ready for revision?",
-        whyMatters: [
-          "A quick whole-draft check catches empty sections before you leave Module 6.",
-          "You are not grading style here—only confirming every required section has prose.",
-        ],
-        coachingMessage:
-          "Scan each section. Use Edit to return to a section that needs more writing.",
-        nextStepText: "When every section has prose, finish your draft and continue to revision.",
-        jobRightNow: {
-          lead: "Review your draft as a whole.",
-          steps: [
-            "Confirm introduction, each body paragraph, and conclusion have writing.",
-            "Edit any empty section before you finish.",
-          ],
-        },
-        workingSetLabel: "Whole-draft review",
-        workingSetDescription: "Check section readiness, then finish when ready.",
-      };
+      return getModule6ReviewPresentation();
     }
     return getModule6StepPresentation(currentStep, outline);
   }, [currentStep, outline, isReviewStage]);
