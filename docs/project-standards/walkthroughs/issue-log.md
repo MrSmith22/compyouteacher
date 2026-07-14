@@ -92,7 +92,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Needs Verification |
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Needs Verification |
 | WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Needs Verification |
-| WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Open |
+| WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Needs Verification |
 | WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Open |
 | WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Open |
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Open |
@@ -1640,11 +1640,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-055 — Feedback uses Correct/Incorrect without teaching
 
-- **Module:** App-wide (most visible in Module 9)
+- **Module:** App-wide (pilot repair: Module 1 quiz; Modules 2 & 9 verified compliant; Module 3 excluded)
 - **Screen or area:** Quiz and validation feedback
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Feedback often stops at “Correct” or “Incorrect” without explaining why. Master Spec §33 requires teaching through feedback.
 
@@ -1658,9 +1658,15 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Trigger correct and incorrect feedback states.
 2. Confirm each includes teaching content.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleOne.js`, `lib/module1/quizHelpers.js`, `lib/ui/teachingFeedbackContract.js`, `tests/wp055-teaching-feedback.test.js` (Module 2 / Module 9 product files unchanged when already compliant)
 
 **Resolution notes:**
+- Feedback audit matrix documented in `tests/wp055-teaching-feedback.test.js` (`WP055_FEEDBACK_AUDIT_MATRIX`): Module 1 active quiz repaired; Module 2 rhetorical lesson and Module 9 APA already have teaching feedback; Modules 4–8 lack comparable instructional quizzes; `components/ModuleSystem.js` is dormant/unmounted; Module 3 excluded; operational save/load/upload errors excluded from teaching rewrites.
+- Module 1 content model extended with `correctFeedback` / `incorrectFeedback` on every `MODULE1_QUIZ_V2` item; UI uses `That works.` / `Let’s look closer.` plus explanation with `role="status"`, `aria-live="polite"`, `data-testid="quiz-item-feedback"`, and `data-feedback-correct` (neutral styling, not color-only).
+- Questions, options, answers, order, `QUIZ_CONTENT_VERSION` (2), scoring, and persistence payload shape unchanged.
+- Module 2 and Module 9 preserved (no product file edits required).
+- Status remains Needs Verification (app-wide issue; Module 3 out of scope; browser coverage bounded).
+- Browser: no listener on port 3000 during verification; Module 1 quiz and Module 9 APA were **not reached live**. Acceptance relies on unit/contract tests for this pass.
 
 **Resolved in commit:**
 

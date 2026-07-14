@@ -20,11 +20,15 @@ import {
   canAdvanceQuizItem,
   canSubmitQuiz,
   getActiveQuiz,
+  getModule1QuizTeachingExplanation,
   getQuizStatusLabel,
   normalizeQuizAnswers,
   QUIZ_CONTENT_VERSION,
   resolveQuizVersionMigration,
 } from "@/lib/module1/quizHelpers";
+import {
+  getTeachingFeedbackPresentation,
+} from "@/lib/ui/teachingFeedbackContract";
 import {
   advanceStep2FromLearn,
   advanceStep2FromTransition,
@@ -145,6 +149,27 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const canAdvanceItem = canAdvanceQuizItem(userAnswers, quizIndex);
   const canFinalize = canSubmitQuiz(userAnswers, { quizSubmitted });
 
+  const isQuizCorrect = (index) =>
+    Boolean(
+      userAnswers[index] &&
+        userAnswers[index].toLowerCase() ===
+          String(quiz[index]?.answer || "").toLowerCase()
+    );
+
+  const activeAnswered = Boolean(userAnswers[quizIndex]);
+  const activeIsCorrect = isQuizCorrect(quizIndex);
+  const showQuizTeachingFeedback =
+    Boolean(itemFeedback) || (quizSubmitted && activeAnswered);
+  const activeTeaching = showQuizTeachingFeedback
+    ? getTeachingFeedbackPresentation({
+        correct: activeIsCorrect,
+        explanation: getModule1QuizTeachingExplanation(
+          activeQuestion,
+          activeIsCorrect
+        ),
+      })
+    : null;
+
   const handleAnswerChange = (index, value) => {
     setUserAnswers((prev) => {
       const updatedAnswers = normalizeQuizAnswers(prev, quiz.length);
@@ -156,13 +181,6 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
       value && value.toLowerCase() === expected ? "correct" : "incorrect"
     );
   };
-
-  const isQuizCorrect = (index) =>
-    Boolean(
-      userAnswers[index] &&
-        userAnswers[index].toLowerCase() ===
-          String(quiz[index]?.answer || "").toLowerCase()
-    );
 
   const getScoreData = () => {
     const total = quiz.length;
@@ -518,19 +536,20 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
                       </option>
                     ))}
                   </select>
-                  {(itemFeedback || quizSubmitted) && (
-                    <p
-                      className={`mt-2 text-sm font-semibold ${
-                        isQuizCorrect(quizIndex)
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
+                  {activeTeaching ? (
+                    <div
+                      className="mt-3 rounded-lg border border-border-soft bg-white px-3 py-3 text-sm leading-relaxed text-text-primary"
                       role="status"
+                      aria-live="polite"
                       data-testid="quiz-item-feedback"
+                      data-feedback-correct={
+                        activeTeaching.correct ? "true" : "false"
+                      }
                     >
-                      {isQuizCorrect(quizIndex) ? "Correct" : "Incorrect"}
-                    </p>
-                  )}
+                      <p className="font-semibold">{activeTeaching.heading}</p>
+                      <p className="mt-1">{activeTeaching.explanation}</p>
+                    </div>
+                  ) : null}
                 </div>
               </section>
             ) : null}
