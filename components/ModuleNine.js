@@ -41,6 +41,16 @@ import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecove
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
+/** Step 4 only — local confirmations for the PDF selected to upload (not Step 3 APA). */
+const FINAL_UPLOAD_CHECKLIST_ITEMS = Object.freeze([
+  "The PDF opens correctly.",
+  "The title page appears.",
+  "The references page appears.",
+  "The paper is double-spaced.",
+  "This is the newest version of the essay.",
+]);
+const EMPTY_FINAL_UPLOAD_CHECKLIST = () =>
+  Array(FINAL_UPLOAD_CHECKLIST_ITEMS.length).fill(false);
 const FOCUS_RING =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2";
 
@@ -54,6 +64,9 @@ export default function ModuleNine() {
   const [apaPersisting, setApaPersisting] = useState(false);
 
   const [pdfFile, setPdfFile] = useState(null);
+  const [finalUploadChecklistState, setFinalUploadChecklistState] = useState(
+    () => EMPTY_FINAL_UPLOAD_CHECKLIST()
+  );
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [exportUrl, setExportUrl] = useState(null);
@@ -82,6 +95,7 @@ export default function ModuleNine() {
 
   const alreadySubmitted = !!finalPdfRow;
   const checklistComplete = checklistState.every(Boolean);
+  const finalUploadChecklistComplete = finalUploadChecklistState.every(Boolean);
   // WP-029: link alone is not enough for Google Doc ✓ / progression.
   const docReady = !!exportUrl && docContentVerified;
   const activeStep = !submitted
@@ -426,6 +440,7 @@ export default function ModuleNine() {
     const file = e.target.files?.[0];
     if (!file) {
       setPdfFile(null);
+      setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
       return;
     }
     const isPdf =
@@ -433,16 +448,19 @@ export default function ModuleNine() {
     if (!isPdf) {
       setUploadError("File must be a PDF. Please select a file ending in .pdf");
       setPdfFile(null);
+      setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
       e.target.value = "";
       return;
     }
     if (file.size > MAX_PDF_SIZE_BYTES) {
       setUploadError("File is too large. Maximum size is 15 MB.");
       setPdfFile(null);
+      setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
       e.target.value = "";
       return;
     }
     setPdfFile(file);
+    setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
   };
 
   const canUpload =
@@ -450,6 +468,7 @@ export default function ModuleNine() {
     docReady &&
     checklistComplete &&
     !!pdfFile &&
+    finalUploadChecklistComplete &&
     !uploading;
 
   const handleUploadPDF = async () => {
@@ -462,6 +481,12 @@ export default function ModuleNine() {
     }
     if (!pdfFile) {
       setUploadError("Please select a PDF first.");
+      return;
+    }
+    if (!finalUploadChecklistComplete) {
+      setUploadError(
+        "Confirm each item on the final upload checklist for this PDF before uploading."
+      );
       return;
     }
 
@@ -1022,6 +1047,58 @@ export default function ModuleNine() {
                 </div>
               )}
 
+              {pdfFile ? (
+                <div
+                  className="rounded-lg border border-theme-blue/20 bg-theme-blue/[0.04] px-4 py-3 text-sm text-text-primary"
+                  data-testid="module9-pdf-selected"
+                >
+                  Selected: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(1)}{" "}
+                  MB)
+                </div>
+              ) : (
+                <p className="text-sm text-text-muted" data-testid="module9-pdf-selected-empty">
+                  Select a PDF above before confirming the checklist.
+                </p>
+              )}
+
+              <div
+                className="space-y-3 rounded-lg border border-theme-blue/30 bg-theme-blue/[0.05] px-4 py-4"
+                data-testid="module9-final-upload-checklist"
+              >
+                <h3 className="text-base font-semibold text-text-primary">
+                  Confirm this PDF before you upload
+                </h3>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  Open the selected file on your device and check each item. This is
+                  not the Step 3 APA formatting checklist—these confirmations apply only
+                  to the PDF you are about to upload.
+                </p>
+                <div className="space-y-2">
+                  {FINAL_UPLOAD_CHECKLIST_ITEMS.map((label, i) => (
+                    <label
+                      key={label}
+                      className={`flex min-h-[44px] items-center gap-2 text-sm text-text-primary ${
+                        !pdfFile ? "cursor-not-allowed opacity-60" : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={finalUploadChecklistState[i] || false}
+                        disabled={!pdfFile}
+                        data-testid={`module9-final-upload-check-${i}`}
+                        onChange={(e) => {
+                          const next = [...finalUploadChecklistState];
+                          next[i] = e.target.checked;
+                          setFinalUploadChecklistState(next);
+                        }}
+                        className="rounded border-border-soft text-theme-blue"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={handleUploadPDF}
                 disabled={!canUpload}
@@ -1032,16 +1109,6 @@ export default function ModuleNine() {
               >
                 {uploading ? "Uploading…" : "Upload Final PDF"}
               </button>
-
-              {pdfFile && !uploading && (
-                <div
-                  className="mt-1 text-xs text-text-muted"
-                  data-testid="module9-pdf-selected"
-                >
-                  Selected: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(1)}{" "}
-                  MB)
-                </div>
-              )}
             </section>
           )}
       </div>

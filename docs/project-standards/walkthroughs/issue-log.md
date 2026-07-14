@@ -83,7 +83,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Resolved |
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Resolved |
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Resolved |
-| WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Open |
+| WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Resolved |
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Open |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Open |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Open |
@@ -1390,7 +1390,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Pre-upload verification area
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Before upload, students should verify: PDF opens correctly, title page appears, references page appears, everything is double spaced, this is the newest essay.
 
@@ -1404,11 +1404,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open upload screen.
 2. Confirm five-item checklist appears before upload.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`; `tests/module9-wp046-final-upload-checklist.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Added Step 4-only `finalUploadChecklistState` (session-local, five items) with `module9-final-upload-checklist`, visually distinct from Step 3’s persisted APA `CHECKLIST_ITEMS`. Selected filename appears before the final checklist; checkboxes stay disabled until a valid PDF is selected; confirmations reset on clear/reject/new selection. `canUpload` and `handleUploadPDF` both require all five checks. Upload failures keep the selected file and confirmations for retry. No Step 3, API, replacement policy, WP-045, or WP-047 changes.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
