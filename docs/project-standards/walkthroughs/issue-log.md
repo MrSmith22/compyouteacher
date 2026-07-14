@@ -99,7 +99,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Needs Verification |
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Needs Verification |
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Needs Verification |
-| WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
+| WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Needs Verification |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
 | WP-065 | Transition Module 6 from outline language to writing language | 6 | High | Instructional / UX | Resolved |
@@ -1880,11 +1880,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-062 — Students feel lost on several screens
 
-- **Module:** App-wide
+- **Module:** App-wide (pilot: Modules 6–9)
 - **Screen or area:** Multiple screens across Modules 6–9
 - **Priority:** High
 - **Category:** UX / Cognitive Load
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Students experienced “I don’t know what this page wants” on several screens. Screens do not consistently answer: Where am I? What am I working on? How does this connect to prior work? What happens next?
 
@@ -1898,9 +1898,15 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Re-run walkthrough on previously confusing screens.
 2. Confirm no screen produces “I don’t know what this wants.”
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/screenOrientationContract.js`, `components/module6/ModuleSixStepFrame.jsx`, `components/module6/module6StepPresentation.js`, `components/module8/module8StepPresentation.js`, `lib/module9/module9ScreenContract.js`, `components/ModuleSix.js`, `components/ModuleNine.js`, `tests/wp062-screen-orientation-audit.test.js`
 
 **Resolution notes:**
+- Reconciliation pass: reused `ModuleModeCue`, journey/progress strips, task H1, ScreenContractCues, build-forward framing, desks/notebook, recovery panels, and success transitions. No new four-card orientation dashboard.
+- Matrix (`WP062_ORIENTATION_MATRIX`) covers M6 intro/body/conclusion/review/save-fail, M7 read-aloud before/after + section revisions + final review, M8 create/recovery/format/ready, M9 APA/Doc/format/upload/already-submitted/gate/success.
+- Already strong: mode+task+desk on most M6–8 frames; M8 recovery does not claim verified while repairing; M9 success transition already names Dashboard.
+- Gaps repaired: center-visible `What happens next:` (`screen-orientation-next`) so mobile is not Guide-only; M6 conclusion next now → whole-draft review; M6 build-forward on unlocked draft/review stages; M8 format next → ready check before Module 9; M9 per-step next lines; M9 gate orientation + Go to Module 8; already-submitted finished/next copy + dashboard test id.
+- Status remains Needs Verification (app-wide; Modules 6–9 pilot; browser bounded).
+- Browser: no listener on port 3000 during verification; orientation states **not reached live**.
 
 **Resolved in commit:**
 

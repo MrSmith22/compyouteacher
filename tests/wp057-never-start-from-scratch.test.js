@@ -72,21 +72,19 @@ describe("WP-057 Modules 4–5 carry-forward", () => {
 });
 
 describe("WP-057 Module 6 drafting build-forward", () => {
-  it("5. first-stage framing always visible and says not starting over", () => {
+  it("5. drafting framing always visible and says not starting over", () => {
     const m6 = readSrc("components/ModuleSix.js");
     assert.match(m6, /data-testid="module6-build-forward-framing"/);
     assert.match(m6, /data-build-forward-module="6"/);
     assert.match(m6, /You are not starting over/);
-    assert.match(
-      m6,
-      /You already figured out what you want\s+to say/
-    );
+    assert.match(m6, /You already figured out what you want to say/);
     // Promoted out of Need Help / InfoCallout — not disclosure-only.
     assert.doesNotMatch(m6, /InfoCallout/);
     assert.ok(m6.includes('data-testid="module6-build-forward-framing"'));
+    // WP-062: build-forward stays always visible on unlocked draft/review stages.
     assert.ok(
-      m6.includes("isFirstStage && !locked"),
-      "first-stage gated always-visible strip"
+      m6.includes("{!locked ? (") || m6.includes("!locked ? ("),
+      "unlocked always-visible build-forward strip"
     );
   });
 

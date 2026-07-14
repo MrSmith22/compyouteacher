@@ -79,7 +79,8 @@ export function getModule8StepPresentation(step, { hasExistingDoc = false } = {}
         "In your Google Doc, apply APA font, spacing, margins, title page, page numbers, and references—then check each item here.",
       coachingMessage:
         "Most of the work in this step happens in your Google Doc. Come back here as you complete each formatting task. Do not edit your essay in the processor—you are only preparing how your paper looks.",
-      nextStepText: "Next you will make sure you are ready to continue.",
+      nextStepText:
+        "Next you will complete the ready check before Module 9.",
       workingSetLabel: "Format your paper",
       workingSetDescription:
         "Your writing is finished. Use APA formatting in your Google Doc, then check off each item here.",

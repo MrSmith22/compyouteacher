@@ -25,7 +25,6 @@ import {
   RHYTHM_PAGE_CLASS,
   RHYTHM_PROSE_CLASS,
 } from "@/lib/ui/instructionalRhythmContract";
-
 export const MODULE6_NEED_HELP_ID = "module-6-need-help";
 
 const RESOURCE_CUE = {
@@ -303,6 +302,18 @@ export default function ModuleSixStepFrame({
                 showHow={!actionFirst}
               />
             </div>
+            {String(nextStepText || "").trim() ? (
+              <p
+                className="max-w-3xl text-sm leading-relaxed text-text-muted"
+                data-testid="screen-orientation-next"
+                data-orientation-question="next"
+              >
+                <span className="font-medium text-text-primary">
+                  What happens next:{" "}
+                </span>
+                {String(nextStepText).trim()}
+              </p>
+            ) : null}
             {actionFirst ? (
               <div className="pt-1">
                 <NeedHelpJumpLink />

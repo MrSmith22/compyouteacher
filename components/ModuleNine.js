@@ -59,6 +59,23 @@ import {
   RHYTHM_MOBILE_SAFE_CLASS,
   RHYTHM_PAGE_CLASS,
 } from "@/lib/ui/instructionalRhythmContract";
+import Link from "next/link";
+
+function ModuleNineOrientationNext({ step }) {
+  const next = MODULE9_SCREEN_CONTRACT[step]?.next;
+  if (!next) return null;
+  return (
+    <p
+      className="mt-2 max-w-3xl text-sm leading-relaxed text-text-muted"
+      data-testid="screen-orientation-next"
+      data-orientation-question="next"
+      data-orientation-module9-step={String(step)}
+    >
+      <span className="font-medium text-text-primary">What happens next: </span>
+      {next}
+    </p>
+  );
+}
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
@@ -611,9 +628,40 @@ export default function ModuleNine() {
   if (gateOk === false) {
     return (
       <ModulePageShell contentMax="md">
-        <p className="text-center text-text-primary">
-          Finish Module 8 before starting Module 9.
-        </p>
+        <div
+          className="mx-auto max-w-lg space-y-4 rounded-xl border border-border-soft/70 bg-white px-5 py-6 text-left shadow-soft"
+          data-testid="module9-gate-blocked"
+        >
+          <ModuleModeCue module={9} />
+          <h1 className={HIERARCHY_MODULE_CHROME_CLASS}>
+            Module 9 is waiting on Module 8
+          </h1>
+          <p className="text-sm leading-relaxed text-text-primary">
+            Finish preparing your Google Doc in Module 8 before you format and
+            submit the PDF here.
+          </p>
+          <p className="text-sm leading-relaxed text-text-muted">
+            Module 9 uses the paper you prepared in Module 8—it does not start a
+            new essay.
+          </p>
+          <p
+            className="text-sm leading-relaxed text-text-muted"
+            data-testid="screen-orientation-next"
+            data-orientation-question="next"
+          >
+            <span className="font-medium text-text-primary">
+              What happens next:{" "}
+            </span>
+            Go to Module 8, finish preparation, then return here.
+          </p>
+          <Link
+            href="/modules/8"
+            className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS} inline-flex items-center justify-center`}
+            data-testid="module9-go-module-8"
+          >
+            Go to Module 8
+          </Link>
+        </div>
       </ModulePageShell>
     );
   }
@@ -679,13 +727,28 @@ export default function ModuleNine() {
         </header>
 
         {alreadySubmitted && (
-          <section className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6">
+          <section
+            className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
+            data-testid="module9-already-submitted"
+          >
             <h2 className="text-lg font-semibold text-text-primary">
               Your PDF was received
             </h2>
             <p className="text-sm text-text-primary">
-              Your work for this module is complete. Use the buttons below to open your
-              documents. Opening a file does not submit anything again.
+              You’re finished with Module 9. Nothing else needs to be submitted
+              here. Use the buttons below to open your documents—opening a file
+              only lets you review what you turned in and does not submit again.
+            </p>
+            <p
+              className="text-sm leading-relaxed text-text-muted"
+              data-testid="screen-orientation-next"
+              data-orientation-question="next"
+            >
+              <span className="font-medium text-text-primary">
+                What happens next:{" "}
+              </span>
+              Return to your dashboard when you’re done reviewing your files.
+              There is no further Module 9 instructional step.
             </p>
             <div className="flex flex-wrap gap-3">
               {(finalPdfRow?.public_url || finalPdfRow?.web_view_link) && (
@@ -738,6 +801,7 @@ export default function ModuleNine() {
                   how={MODULE9_SCREEN_CONTRACT[1].how}
                   finished={MODULE9_SCREEN_CONTRACT[1].finished}
                 />
+                <ModuleNineOrientationNext step={1} />
               </div>
             </header>
             <div data-hierarchy-level={HIERARCHY_LEVELS.work} data-hierarchy-emphasis="active">
@@ -775,6 +839,7 @@ export default function ModuleNine() {
                 how={MODULE9_SCREEN_CONTRACT[2].how}
                 finished={MODULE9_SCREEN_CONTRACT[2].finished}
               />
+              <ModuleNineOrientationNext step={2} />
             </div>
             {progressCelebration?.message &&
             progressCelebration.toStep === "google-doc" ? (
@@ -954,6 +1019,7 @@ export default function ModuleNine() {
                   how={MODULE9_SCREEN_CONTRACT[3].how}
                   finished={MODULE9_SCREEN_CONTRACT[3].finished}
                 />
+                <ModuleNineOrientationNext step={3} />
               </div>
               {progressCelebration?.message &&
               progressCelebration.toStep === "formatting-checklist" ? (
@@ -1033,7 +1099,8 @@ export default function ModuleNine() {
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className={`min-h-[44px] rounded bg-theme-red px-6 py-3 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
+              className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+              data-testid="module9-back-dashboard"
             >
               Back to Dashboard
             </button>
@@ -1069,6 +1136,7 @@ export default function ModuleNine() {
                   how={MODULE9_SCREEN_CONTRACT[4].how}
                   finished={MODULE9_SCREEN_CONTRACT[4].finished}
                 />
+                <ModuleNineOrientationNext step={4} />
               </div>
               {progressCelebration?.message &&
               progressCelebration.toStep === "download-upload" ? (

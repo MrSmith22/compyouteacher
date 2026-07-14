@@ -74,9 +74,14 @@ describe("WP-058 Modules 4–9 cue integration", () => {
 
     for (const row of integrations) {
       const src = readSrc(row.path);
-      if (row.module === 4 || row.module === 9) {
+      if (row.module === 4) {
         assert.match(src, /ModuleModeCue/);
         assert.equal((src.match(/<ModuleModeCue/g) || []).length, 1);
+      } else if (row.module === 9) {
+        // Main journey header + mutually exclusive Module-8 gate shell (WP-062).
+        assert.match(src, /ModuleModeCue/);
+        assert.ok((src.match(/<ModuleModeCue/g) || []).length <= 2);
+        assert.match(src, /module9-gate-blocked/);
       } else if (row.module === 5) {
         assert.match(src, /ModuleModeCue/);
         assert.equal((src.match(/<ModuleModeCue/g) || []).length, 1);

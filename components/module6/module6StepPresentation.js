@@ -331,7 +331,7 @@ export function getModule6StepPresentation(step, outline) {
     coachingMessage:
       "Follow Your job right now. Keep it short. Need Help has your thesis (blue) and conclusion notes (green).",
     nextStepText:
-      "When this section feels ready, finish your draft and continue to revision.",
+      "Next you will review the whole draft before finishing Module 6.",
     thesisCoach:
       "Your thesis returns here in new wording so the reader hears your main idea one last time—do not invent a different main idea.",
     outlineCoach: hasConclusionPlan

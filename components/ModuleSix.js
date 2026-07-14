@@ -906,15 +906,15 @@ export default function ModuleSix() {
               {proseStageCount ? ` · ${proseStageCount} writing sections` : ""}.
               One section at a time.
             </p>
-            {isFirstStage && !locked ? (
+            {!locked ? (
               <p
                 className="mt-1 text-[11px] leading-relaxed text-text-muted/90"
                 data-testid="module6-build-forward-framing"
                 data-build-forward-module="6"
               >
-                You are not starting over. You already figured out what you want
-                to say. Now you help your reader understand it—one section at a
-                time.
+                {isReviewStage
+                  ? "You are still using the same draft sections you wrote earlier—this check confirms each one is ready before Module 7."
+                  : "You are not starting over. You already figured out what you want to say. Now you help your reader understand it—one section at a time."}
               </p>
             ) : null}
             {!locked ? (
