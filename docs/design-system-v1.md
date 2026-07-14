@@ -279,13 +279,18 @@ The design system must preserve readability and navigability.
 ### Rules
 
 - New feature work should prefer shared primitives over repeating raw utility bundles.
-- Buttons should standardize around semantic variants:
-  - primary
-  - success
-  - warning
-  - destructive
-  - secondary / ghost
-- Links should standardize around the project’s blue linked-text style.
+- Buttons should standardize around semantic variants from `lib/ui/hierarchyContract.js`:
+  - **Primary** (`HIERARCHY_ACTION_PRIMARY_CLASS`): the current forward workflow action — one visually dominant primary/final action per state
+  - **Final** (`HIERARCHY_ACTION_FINAL_CLASS`): irreversible or high-stakes submission / completion
+  - **Secondary** (`HIERARCHY_ACTION_SECONDARY_CLASS`): escape, open, copy, retry alternative, or retrieval — optional operations
+  - Workflow operations use `<button type="button">` (unless intentionally submitting a form)
+  - Disabled buttons must explain their gate nearby
+  - All action controls retain keyboard focus (`HIERARCHY_FOCUS_RING_CLASS`) and at least a 44px target
+- Links:
+  - **Reference** (`HIERARCHY_REFERENCE_LINK_CLASS`): optional external instructional material (APA templates, Purdue OWL, samples)
+  - **Navigation**: genuine route or sign-in location changes without performing workflow work
+  - Do not style ordinary instructional text as links
+  - Do not convert reference resources into JavaScript buttons
 
 ## 11. Motion
 

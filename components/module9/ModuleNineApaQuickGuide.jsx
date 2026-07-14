@@ -6,6 +6,7 @@ import {
   MODULE9_APA_SECONDARY_RESOURCES,
   getModule9ApaQuickGuideSections,
 } from "@/lib/module9/module9ApaLearning";
+import { HIERARCHY_REFERENCE_LINK_CLASS } from "@/lib/ui/hierarchyContract";
 
 /**
  * Internal APA Quick Guide — same content model as the lesson.
@@ -80,7 +81,7 @@ export default function ModuleNineApaQuickGuide({
                   href={resource.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-[44px] items-center text-theme-blue underline focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                  className={HIERARCHY_REFERENCE_LINK_CLASS}
                 >
                   {resource.label}
                 </a>

@@ -11,7 +11,12 @@ import {
   getExportedDocLink,
   getStudentExport,
 } from "@/lib/supabase/helpers/studentExports";
-import { HIERARCHY_ACTION_PRIMARY_CLASS, HIERARCHY_FOCUS_RING_CLASS } from "@/lib/ui/hierarchyContract";
+import {
+  HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_ACTION_SECONDARY_CLASS,
+  HIERARCHY_FOCUS_RING_CLASS,
+} from "@/lib/ui/hierarchyContract";
+import { openExternalResource } from "@/lib/ui/openExternalResource";
 
 const TRANSITION = getModuleRoleTransition(9, null);
 
@@ -52,7 +57,7 @@ export default function ModuleNineSuccessPage() {
   }, [session]);
 
   const finalPdfLink = finalPdfRow?.public_url || finalPdfRow?.web_view_link;
-  const hasLinks = !!finalPdfLink || !!exportUrl;
+  const hasFiles = !!finalPdfLink || !!exportUrl;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-theme-light px-4 py-10">
@@ -64,22 +69,23 @@ export default function ModuleNineSuccessPage() {
             What you can do now
           </h2>
           <p className="text-sm leading-relaxed text-text-muted">
-            You may keep copies of your work for your records. These buttons open the
-            files you already created—they do not submit your essay again.
+            You may keep copies of your work for your records. Use the buttons below to
+            open the files you already created—they do not submit your essay again.
           </p>
 
           {loaded ? (
             <div className="space-y-4 pt-1">
               {finalPdfLink ? (
                 <div className="space-y-1.5">
-                  <a
-                    href={finalPdfLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-lg bg-theme-blue px-4 py-2.5 text-sm font-semibold text-white shadow-soft hover:brightness-110"
+                  <button
+                    type="button"
+                    className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                    onClick={() => openExternalResource(finalPdfLink)}
+                    data-testid="module9-success-open-pdf"
+                    aria-label="Open your submitted PDF in a new tab"
                   >
                     Open your submitted PDF
-                  </a>
+                  </button>
                   <p className="text-xs leading-relaxed text-text-muted">
                     This is the PDF your teacher received. Open it if you want to check
                     what was turned in.
@@ -89,14 +95,15 @@ export default function ModuleNineSuccessPage() {
 
               {exportUrl ? (
                 <div className="space-y-1.5">
-                  <a
-                    href={exportUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-lg bg-theme-green px-4 py-2.5 text-sm font-semibold text-white shadow-soft hover:brightness-110"
+                  <button
+                    type="button"
+                    className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                    onClick={() => openExternalResource(exportUrl)}
+                    data-testid="module9-success-open-doc"
+                    aria-label="Open your Google Doc in a new tab"
                   >
                     Open your Google Doc
-                  </a>
+                  </button>
                   <p className="text-xs leading-relaxed text-text-muted">
                     This is your working Google Doc. You can keep it for your records or
                     for future writing.
@@ -104,16 +111,16 @@ export default function ModuleNineSuccessPage() {
                 </div>
               ) : null}
 
-              {!hasLinks ? (
+              {!hasFiles ? (
                 <p className="text-sm leading-relaxed text-text-muted">
-                  Your submission was recorded. Document links are not available on this
+                  Your submission was recorded. Document files are not available on this
                   screen right now. You can return to your dashboard, and ask your teacher
                   if you need help finding your files.
                 </p>
               ) : null}
             </div>
           ) : (
-            <p className="text-sm text-text-muted">Loading your document links…</p>
+            <p className="text-sm text-text-muted">Loading your documents…</p>
           )}
         </section>
 

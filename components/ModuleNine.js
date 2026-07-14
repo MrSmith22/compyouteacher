@@ -19,10 +19,14 @@ import ScreenContractCues from "@/components/shared/ScreenContractCues";
 import {
   HIERARCHY_ACTION_FINAL_CLASS,
   HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_ACTION_SECONDARY_CLASS,
+  HIERARCHY_FOCUS_RING_CLASS,
   HIERARCHY_LEVELS,
   HIERARCHY_MODULE_CHROME_CLASS,
+  HIERARCHY_REFERENCE_LINK_CLASS,
   HIERARCHY_TASK_CLASS,
 } from "@/lib/ui/hierarchyContract";
+import { openExternalResource } from "@/lib/ui/openExternalResource";
 import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
 import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
@@ -660,29 +664,35 @@ export default function ModuleNine() {
               Your PDF was received
             </h2>
             <p className="text-sm text-text-primary">
-              Your work for this module is complete. Use the links below to open your
-              documents.
+              Your work for this module is complete. Use the buttons below to open your
+              documents. Opening a file does not submit anything again.
             </p>
             <div className="flex flex-wrap gap-3">
               {(finalPdfRow?.public_url || finalPdfRow?.web_view_link) && (
-                <a
-                  href={finalPdfRow.public_url || finalPdfRow.web_view_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex min-h-[44px] items-center rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
+                <button
+                  type="button"
+                  className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                  onClick={() =>
+                    openExternalResource(
+                      finalPdfRow.public_url || finalPdfRow.web_view_link
+                    )
+                  }
+                  data-testid="module9-open-final-pdf"
+                  aria-label="Open final PDF in a new tab"
                 >
                   Open final PDF
-                </a>
+                </button>
               )}
               {exportUrl && (
-                <a
-                  href={exportUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex min-h-[44px] items-center rounded bg-theme-green px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
+                <button
+                  type="button"
+                  className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                  onClick={() => openExternalResource(exportUrl)}
+                  data-testid="module9-open-submitted-doc"
+                  aria-label="Open Google Doc in a new tab"
                 >
                   Open Google Doc
-                </a>
+                </button>
               )}
             </div>
             <ModuleNineApaQuickGuide compact />
@@ -827,18 +837,23 @@ export default function ModuleNine() {
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
-                      className={`inline-flex min-h-[44px] items-center rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
-                      onClick={() =>
-                        window.open(exportUrl, "_blank", "noopener,noreferrer")
-                      }
+                      className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                      onClick={() => {
+                        const result = openExternalResource(exportUrl);
+                        if (!result.opened && result.reason === "blocked") {
+                          setPopupBlocked(true);
+                        }
+                      }}
                       data-testid="module9-open-submission-doc"
+                      aria-label="Open your Google Doc in a new tab"
                     >
                       Open your Google Doc
                     </button>
                     <button
                       type="button"
-                      className={`min-h-[44px] rounded border border-border-soft px-3 py-1 text-xs ${FOCUS_RING}`}
+                      className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
                       onClick={() => navigator.clipboard.writeText(exportUrl)}
+                      aria-label="Copy Google Doc link"
                     >
                       Copy link
                     </button>
@@ -856,7 +871,7 @@ export default function ModuleNine() {
                     href="https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex min-h-[44px] items-center text-theme-blue underline ${FOCUS_RING}`}
+                    className={HIERARCHY_REFERENCE_LINK_CLASS}
                   >
                     Copy APA Google Docs Template
                   </a>

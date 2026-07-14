@@ -1,6 +1,7 @@
 import Card from "@/components/ui/Card";
 import { romanNumeral } from "@/components/module6/module6StepPresentation";
 import { MODULE8_STEP_TYPES } from "@/components/module8/module8StepPresentation";
+import { HIERARCHY_REFERENCE_LINK_CLASS } from "@/lib/ui/hierarchyContract";
 
 const APA_TEMPLATE_URL =
   "https://docs.google.com/document/d/14oSW0QNGaDbnmF3QL3UzFku2dJIgw3nGDV6K-HGvNtY/copy";
@@ -144,7 +145,7 @@ export default function ModuleEightReferenceShelf({
             href={APA_TEMPLATE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-theme-blue underline"
+            className={HIERARCHY_REFERENCE_LINK_CLASS}
             data-testid="module8-apa-template-link"
           >
             Copy APA Google Docs template
@@ -161,7 +162,7 @@ export default function ModuleEightReferenceShelf({
                 href={APA_SAMPLE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-theme-blue underline"
+                className={HIERARCHY_REFERENCE_LINK_CLASS}
                 data-testid="module8-apa-sample-link"
               >
                 APA student paper example
@@ -172,7 +173,7 @@ export default function ModuleEightReferenceShelf({
                 href={PURDUE_APA_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-theme-blue underline"
+                className={HIERARCHY_REFERENCE_LINK_CLASS}
                 data-testid="module8-apa-owl-link"
               >
                 Purdue OWL APA guide

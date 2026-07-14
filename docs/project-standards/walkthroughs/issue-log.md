@@ -90,7 +90,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Needs Verification |
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Needs Verification |
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Needs Verification |
-| WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Open |
+| WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Needs Verification |
 | WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Open |
 | WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Open |
 | WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Open |
@@ -1588,7 +1588,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All action surfaces
 - **Priority:** High
 - **Category:** UX
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** The application mixes buttons, hyperlinks, and plain text for actions. Students overlook hyperlinks and wonder what is clickable.
 
@@ -1602,11 +1602,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Audit interactive elements on Modules 8–9.
 2. Confirm actions are buttons; links are reference-only.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/hierarchyContract.js`; `lib/ui/openExternalResource.js`; `components/ModuleNine.js`; `app/modules/9/success/page.js`; `components/module8/ModuleEightReferenceShelf.jsx`; `components/module9/ModuleNineApaQuickGuide.jsx`; `docs/design-system-v1.md`; `tests/wp053-action-affordance-contract.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 8–9 verification pass. Taxonomy: primary / final / secondary / reference link / navigation. Converted already-submitted + Module 9 success “Open PDF/Doc” filled anchors to secondary `type="button"` retrieval actions via `openExternalResource`. Retained APA template/OWL/sample as `HIERARCHY_REFERENCE_LINK_CLASS` anchors. Module 8 WP-031 Create/Update/Open/Retry/Continue buttons unchanged. Documented affordances in `docs/design-system-v1.md`. Status **Needs Verification** (app-wide; browser coverage bounded).
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
