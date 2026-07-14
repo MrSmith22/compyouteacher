@@ -28,6 +28,7 @@ import ModuleSevenStrategyCard from "@/components/module7/ModuleSevenStrategyCar
 import EssayProseView from "@/components/module7/EssayProseView";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
 import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
+import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
 import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
   HIERARCHY_ACTION_FINAL_CLASS,
@@ -35,6 +36,7 @@ import {
   HIERARCHY_ACTION_SECONDARY_CLASS,
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
+import { getModule7ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
   alignSectionsToOutline,
   getSectionCountFromOutline,
@@ -136,6 +138,8 @@ export default function ModuleSeven() {
   // re-apply final_ready locking (common with overlapping fetches in development).
   const devUnlockedForTestingRef = useRef(false);
   const [revisionNotice, setRevisionNotice] = useState(null);
+  /** WP-056 — local transient celebration; never persisted. */
+  const [progressCelebration, setProgressCelebration] = useState(null);
 
   const email = session?.user?.email ?? null;
   const showDevUnlock = process.env.NODE_ENV === "development";
@@ -199,6 +203,7 @@ export default function ModuleSeven() {
       if (!email) return;
 
       setGateBlocked(false);
+      setProgressCelebration(null);
       setOutlineLoading(true);
       setOutlineMissing(false);
 
@@ -655,6 +660,7 @@ export default function ModuleSeven() {
   };
 
   const goBack = () => {
+    setProgressCelebration(null);
     setCurrentStepIndex((index) =>
       retreatModule7StepIndex(index, sectionSteps.length)
     );
@@ -675,9 +681,18 @@ export default function ModuleSeven() {
       }
     }
     setRevisionNotice(null);
-    setCurrentStepIndex((index) =>
-      advanceModule7StepIndex(index, sectionSteps.length)
-    );
+    const fromIndex = currentStepIndex;
+    const toIndex = advanceModule7StepIndex(fromIndex, sectionSteps.length);
+    if (toIndex > fromIndex) {
+      setProgressCelebration(
+        getModule7ProgressCelebration({
+          fromIndex,
+          toIndex,
+          sectionSteps,
+        })
+      );
+    }
+    setCurrentStepIndex(toIndex);
   };
 
   if (!session) {
@@ -844,6 +859,15 @@ export default function ModuleSeven() {
             </p>
           </div>
         )}
+
+        {progressCelebration?.message ? (
+          <ProgressCelebrationBridge
+            module={7}
+            fromStep={progressCelebration.fromStep}
+            toStep={progressCelebration.toStep}
+            message={progressCelebration.message}
+          />
+        ) : null}
 
         {isReadAloudStep ? (
           <div

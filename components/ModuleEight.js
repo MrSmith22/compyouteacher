@@ -39,8 +39,10 @@ import {
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
+import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
 import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
+import { getModule8ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
   getSectionCountFromOutline,
   splitDraftIntoSections,
@@ -132,6 +134,8 @@ export default function ModuleEight() {
   const [sections, setSections] = useState([]);
   const [locked, setLocked] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  /** WP-056 — local transient celebration; never persisted. */
+  const [progressCelebration, setProgressCelebration] = useState(null);
 
   const [submissionDocUrl, setSubmissionDocUrl] = useState(null);
   const [docVerifiedThisSession, setDocVerifiedThisSession] = useState(false);
@@ -194,6 +198,7 @@ export default function ModuleEight() {
 
       setOutlineLoading(true);
       setOutlineMissing(false);
+      setProgressCelebration(null);
 
       const outlineResult = await getOutlineRow(5);
       if (!outlineResult.ok) {
@@ -345,6 +350,7 @@ export default function ModuleEight() {
     ) {
       return;
     }
+    setProgressCelebration(null);
     setCurrentStepIndex(MODULE8_WORKSPACE_STEPS.length - 1);
   }, [
     previouslyFinalized,
@@ -496,15 +502,29 @@ export default function ModuleEight() {
   };
 
   const goBack = () => {
+    setProgressCelebration(null);
     setCurrentStepIndex((index) => Math.max(0, index - 1));
   };
 
   const goNext = () => {
-    setCurrentStepIndex((index) => Math.min(MODULE8_WORKSPACE_STEPS.length - 1, index + 1));
+    if (currentStepIndex === 0 && !docVerifiedThisSession) return;
+    if (currentStepIndex === 1 && !checklistComplete) return;
+    const fromType = MODULE8_WORKSPACE_STEPS[currentStepIndex]?.type;
+    const toIndex = Math.min(
+      MODULE8_WORKSPACE_STEPS.length - 1,
+      currentStepIndex + 1
+    );
+    if (toIndex <= currentStepIndex) return;
+    const toType = MODULE8_WORKSPACE_STEPS[toIndex]?.type;
+    setProgressCelebration(
+      getModule8ProgressCelebration({ fromType, toType })
+    );
+    setCurrentStepIndex(toIndex);
   };
 
   /** WP-036: navigate to Create/Update only—does not export or clear checklists. */
   const openUpdateGoogleDocWorkingSet = () => {
+    setProgressCelebration(null);
     setCurrentStepIndex(0);
   };
 
@@ -767,6 +787,15 @@ export default function ModuleEight() {
                 : "Make sure you're ready"}
           </p>
         </div>
+
+        {progressCelebration?.message ? (
+          <ProgressCelebrationBridge
+            module={8}
+            fromStep={progressCelebration.fromStep}
+            toStep={progressCelebration.toStep}
+            message={progressCelebration.message}
+          />
+        ) : null}
 
         <WorkingSetSection
           className={HIERARCHY_WORK_SURFACE_CLASS}

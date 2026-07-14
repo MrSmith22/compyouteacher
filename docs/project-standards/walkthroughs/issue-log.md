@@ -93,7 +93,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Needs Verification |
 | WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Needs Verification |
 | WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Needs Verification |
-| WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Open |
+| WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Needs Verification |
 | WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Open |
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Open |
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Open |
@@ -1674,11 +1674,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-056 — Insufficient mid-module progress celebration
 
-- **Module:** App-wide
+- **Module:** App-wide (pilot pass: Modules 6–9 only)
 - **Screen or area:** Between-task screens; section completions
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Completion pages are reasonably good, but progress is not celebrated throughout modules. Small celebrations (“Great — you’ve chosen your evidence. Now let’s explain why it matters.”) are missing.
 
@@ -1692,9 +1692,16 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Complete individual sections within modules.
 2. Confirm celebratory bridge text appears between steps.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/shared/ProgressCelebrationBridge.jsx`, `lib/ui/moduleProgressCelebrations.js`, `components/ModuleSix.js`, `components/ModuleSeven.js`, `components/ModuleEight.js`, `components/ModuleNine.js`, `tests/wp056-mid-module-progress-celebrations.test.js`
 
 **Resolution notes:**
+- Transition audit matrix in `tests/wp056-mid-module-progress-celebrations.test.js` / `WP056_TRANSITION_AUDIT_MATRIX`.
+- Contract: local `progressCelebration` only; `role="status"` + `aria-live="polite"`; concrete completed work + next job; no timer, persistence, activity event, confetti, or duplicate terminal success-page bridge.
+- Representative messages: Module 6 intro→body (“Your introduction is drafted…”), Module 7 read-aloud (“You finished the read-aloud and named what you noticed…”), Module 8 Doc→Format (“Your Google Doc now has your verified finished essay…”), Module 9 APA→Doc (“You finished the APA learning moves…”).
+- Positive triggers: successful forward navigation after gates/saves (M6 `persistAndNavigateStage` ok from `goNext`; M7 after read-aloud gate; M8 verified session / checklist complete; M9 fresh APA completion, verified Continue, checklist Continue).
+- Suppressions: Back, Edit/escape hatch, failed save/verify/upload, blocked gates, hydration/WP-047 resume, already-submitted.
+- Status remains Needs Verification (app-wide issue; Modules 6–9 scope; browser coverage bounded).
+- Browser: no listener on port 3000 during verification; mid-module celebration bridges were **not reached live**. Acceptance relies on unit/contract tests for this pass.
 
 **Resolved in commit:**
 

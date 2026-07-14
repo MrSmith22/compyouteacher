@@ -21,6 +21,7 @@ import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShel
 import InfoCallout from "@/components/ui/InfoCallout";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
 import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
+import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
 import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
   HIERARCHY_ACTION_FINAL_CLASS,
@@ -29,6 +30,7 @@ import {
   HIERARCHY_FOCUS_RING_CLASS,
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
+import { getModule6ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
   getWritingSectionLabel,
   getModule6StepPresentation,
@@ -102,6 +104,8 @@ export default function ModuleSix() {
   const [finalizeError, setFinalizeError] = useState("");
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [sectionGateMessage, setSectionGateMessage] = useState("");
+  /** WP-056 — local transient celebration; never persisted. */
+  const [progressCelebration, setProgressCelebration] = useState(null);
 
   const hasLoggedStartRef = useRef(false);
   const loadGenerationRef = useRef(0);
@@ -180,6 +184,7 @@ export default function ModuleSix() {
 
       const generation = ++loadGenerationRef.current;
       setHydrationReady(false);
+      setProgressCelebration(null);
       setReadState(MODULE6_DRAFT_READ_STATE.PENDING);
       setReadError("");
       setOutlineReview(null);
@@ -564,6 +569,7 @@ export default function ModuleSix() {
 
   const goBack = async () => {
     if (uiStageIndex <= 0 || navBusy) return;
+    setProgressCelebration(null);
     const liveSections = resolveLiveDraftSections(
       draftSnapshotRef.current?.sections,
       draft
@@ -590,7 +596,16 @@ export default function ModuleSix() {
     }
 
     if (uiStageIndex >= uiStages.length - 1) return;
-    await persistAndNavigateStage(uiStageIndex + 1, liveSections);
+    const fromIndex = uiStageIndex;
+    const toIndex = uiStageIndex + 1;
+    const fromStep = uiStages[fromIndex];
+    const toStep = uiStages[toIndex];
+    const result = await persistAndNavigateStage(toIndex, liveSections);
+    if (result?.ok) {
+      setProgressCelebration(
+        getModule6ProgressCelebration({ fromStep, toStep })
+      );
+    }
   };
 
   const editFromReview = async (proseIndex) => {
@@ -598,6 +613,7 @@ export default function ModuleSix() {
       (s) => s.type !== MODULE6_DRAFT_STAGE.REVIEW && s.draftIndex === proseIndex
     );
     if (target < 0) return;
+    setProgressCelebration(null);
     await persistAndNavigateStage(target);
   };
 
@@ -903,6 +919,15 @@ export default function ModuleSix() {
           </div>
 
           <TaskRelevantArtifacts items={deskArtifacts.items} />
+
+          {progressCelebration?.message ? (
+            <ProgressCelebrationBridge
+              module={6}
+              fromStep={progressCelebration.fromStep}
+              toStep={progressCelebration.toStep}
+              message={progressCelebration.message}
+            />
+          ) : null}
 
           {isReviewStage ? (
             <WorkingSetSection

@@ -31,6 +31,8 @@ import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
 import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
 import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
+import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
+import { getModule9ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
   MODULE9_APA_ENTRY,
   MODULE9_APA_JOURNEY,
@@ -94,6 +96,8 @@ export default function ModuleNine() {
   const [lastDocOperation, setLastDocOperation] = useState(null);
   const [finalPdfRow, setFinalPdfRow] = useState(null);
   const [viewedStep, setViewedStep] = useState(1);
+  /** WP-056 — local transient celebration; never persisted. */
+  const [progressCelebration, setProgressCelebration] = useState(null);
   const hasResumedJourneyRef = useRef(false);
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
   const [checklistLoading, setChecklistLoading] = useState(true);
@@ -108,6 +112,10 @@ export default function ModuleNine() {
   const [gateOk, setGateOk] = useState(null);
 
   const alreadySubmitted = !!finalPdfRow;
+
+  useEffect(() => {
+    if (alreadySubmitted) setProgressCelebration(null);
+  }, [alreadySubmitted]);
   const checklistComplete = checklistState.every(Boolean);
   const finalUploadChecklistComplete = finalUploadChecklistState.every(Boolean);
   // WP-029: link alone is not enough for Google Doc ✓ / progression.
@@ -301,6 +309,8 @@ export default function ModuleNine() {
     if (!docHydrated || checklistLoading) return;
     hasResumedJourneyRef.current = true;
     const resumeAt = !docReady ? 2 : !checklistComplete ? 3 : 4;
+    // WP-056: resume must not present a fresh mid-module celebration.
+    setProgressCelebration(null);
     setViewedStep(resumeAt);
   }, [
     submitted,
@@ -340,6 +350,9 @@ export default function ModuleNine() {
 
     setApaPersisting(false);
     hasResumedJourneyRef.current = true;
+    setProgressCelebration(
+      getModule9ProgressCelebration({ fromStep: 1, toStep: 2 })
+    );
     setViewedStep(2);
     setTimeout(() => step2Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
   };
@@ -747,6 +760,15 @@ export default function ModuleNine() {
               how={MODULE9_SCREEN_CONTRACT[2].how}
               finished={MODULE9_SCREEN_CONTRACT[2].finished}
             />
+            {progressCelebration?.message &&
+            progressCelebration.toStep === "google-doc" ? (
+              <ProgressCelebrationBridge
+                module={9}
+                fromStep={progressCelebration.fromStep}
+                toStep={progressCelebration.toStep}
+                message={progressCelebration.message}
+              />
+            ) : null}
             <p className="text-sm text-text-primary">
               Open and verify the Google Doc you prepared in Module 8. You do not need
               to create a new export when that document is already ready.
@@ -792,6 +814,10 @@ export default function ModuleNine() {
                 testIdPrefix="module9-doc"
                 showProgressContinue={docReady}
                 onContinue={() => {
+                  if (!docReady) return;
+                  setProgressCelebration(
+                    getModule9ProgressCelebration({ fromStep: 2, toStep: 3 })
+                  );
                   setViewedStep(3);
                   setTimeout(
                     () => step3Ref.current?.scrollIntoView({ behavior: "smooth" }),
@@ -905,6 +931,15 @@ export default function ModuleNine() {
                 how={MODULE9_SCREEN_CONTRACT[3].how}
                 finished={MODULE9_SCREEN_CONTRACT[3].finished}
               />
+              {progressCelebration?.message &&
+              progressCelebration.toStep === "formatting-checklist" ? (
+                <ProgressCelebrationBridge
+                  module={9}
+                  fromStep={progressCelebration.fromStep}
+                  toStep={progressCelebration.toStep}
+                  message={progressCelebration.message}
+                />
+              ) : null}
               <p className="text-sm text-text-primary">
                 Use the APA guide and confirm each formatting item in your Google Doc
                 before you download the PDF.
@@ -945,6 +980,10 @@ export default function ModuleNine() {
                 <button
                   type="button"
                   onClick={() => {
+                    if (!checklistComplete) return;
+                    setProgressCelebration(
+                      getModule9ProgressCelebration({ fromStep: 3, toStep: 4 })
+                    );
                     setViewedStep(4);
                     setTimeout(
                       () => step4Ref.current?.scrollIntoView({ behavior: "smooth" }),
@@ -995,6 +1034,15 @@ export default function ModuleNine() {
                 how={MODULE9_SCREEN_CONTRACT[4].how}
                 finished={MODULE9_SCREEN_CONTRACT[4].finished}
               />
+              {progressCelebration?.message &&
+              progressCelebration.toStep === "download-upload" ? (
+                <ProgressCelebrationBridge
+                  module={9}
+                  fromStep={progressCelebration.fromStep}
+                  toStep={progressCelebration.toStep}
+                  message={progressCelebration.message}
+                />
+              ) : null}
               <ModuleNineApaQuickGuide compact />
 
               <div
