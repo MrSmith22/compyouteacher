@@ -1,10 +1,16 @@
 "use client";
 
 import ArtifactChip from "@/components/ui/ArtifactChip";
+import {
+  HIERARCHY_DESK_BODY_CLASS,
+  HIERARCHY_DESK_CLASS,
+  HIERARCHY_DESK_ITEM_CLASS,
+  HIERARCHY_LEVELS,
+} from "@/lib/ui/hierarchyContract";
 
 /**
  * Compact desk of already-saved artifacts for the current drafting/revision step.
- * Does not rewrite student work. Omits empty groups.
+ * Level 4 support — quieter than the active writing/decision surface.
  */
 export default function TaskRelevantArtifacts({
   items = [],
@@ -15,30 +21,32 @@ export default function TaskRelevantArtifacts({
 
   return (
     <section
-      className="rounded-xl border border-border-soft/70 bg-surface-soft/40 px-4 py-4 text-left shadow-soft md:px-5"
+      className={HIERARCHY_DESK_CLASS}
       data-testid="task-relevant-artifacts"
+      data-hierarchy-level={HIERARCHY_LEVELS.work}
+      data-hierarchy-emphasis="support"
       aria-label={heading}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
         {heading}
       </p>
-      <div className="mt-3 space-y-3">
+      <div className="mt-2.5 space-y-2">
         {visible.map((item) => (
           <div
             key={item.id}
-            className="rounded-lg border border-border-soft/60 bg-white/80 px-3 py-3"
+            className={HIERARCHY_DESK_ITEM_CLASS}
             data-testid={`task-relevant-artifact-${item.kind}`}
           >
             <div className="flex flex-wrap items-center gap-2">
               {item.artifactType ? (
                 <ArtifactChip artifactType={item.artifactType} label={item.label} />
               ) : (
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
                   {item.label}
                 </p>
               )}
             </div>
-            <ul className="mt-2 list-none space-y-1.5 text-sm leading-relaxed text-text-primary">
+            <ul className={`mt-1.5 list-none space-y-1 ${HIERARCHY_DESK_BODY_CLASS}`}>
               {item.lines.map((line, index) => (
                 <li key={`${item.id}-${index}`} className="whitespace-pre-wrap break-words">
                   {line}

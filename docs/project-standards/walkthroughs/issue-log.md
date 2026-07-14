@@ -87,7 +87,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Needs Verification |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Needs Verification |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Needs Verification |
-| WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Open |
+| WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Needs Verification |
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Open |
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Open |
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Open |
@@ -1504,7 +1504,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All student-facing pages
 - **Priority:** High
 - **Category:** Visual Design
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Many pages feel bland because instructions, buttons, examples, references, sidebars, text boxes, and helper text share nearly identical visual weight. Students must decide what matters instead of being guided.
 
@@ -1518,11 +1518,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Review sample pages from each module against five-level hierarchy.
 2. Confirm current task is the largest element on each page.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/hierarchyContract.js`; `components/module6/ModuleSixStepFrame.jsx`; `components/shared/ScreenContractCues.jsx`; `components/shared/TaskRelevantArtifacts.jsx`; `components/ModuleSix.js`; `components/ModuleSeven.js`; `components/ModuleEight.js`; `components/ModuleNine.js`; `tests/wp050-five-level-visual-hierarchy.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 6–9 pilot only—not app-wide visual acceptance. Shared `hierarchyContract` tokens + `data-hierarchy-level` markers strengthen L1 task headings, quiet L2 objective cues, soften L3 instruction (JobRightNow/strategy), keep L4 desk quieter than active work surfaces, demote L5 shelves/guides, and make Keep going / Finish / Upload Final PDF dominate adjacent Back/Save actions—without adding five cards or a louder color system. Module 9 module chrome demoted so journey-step tasks win. Status remains **Needs Verification** pending broader app visual judgment.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

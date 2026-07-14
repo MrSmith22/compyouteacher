@@ -80,29 +80,30 @@ export default function ModuleSevenStrategyCard({
         </section>
       ) : null}
 
-      {primary ? (
+          {primary ? (
         <section
-          className="rounded-xl border-2 border-theme-blue/30 bg-theme-blue/5 px-4 py-4 shadow-soft"
+          className="rounded-xl border border-border-soft/80 bg-surface-soft/50 px-4 py-4 text-left"
           aria-label={`Revision strategy: ${primary.title}`}
           data-testid="module7-strategy-card"
           data-strategy-id={primary.id}
           data-strategy-focus={primary.focusId || ""}
+          data-hierarchy-level="instruction"
         >
           <p
-            className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-blue"
+            className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted"
             data-testid="module7-revision-stage-label"
           >
             {stageLabel}
           </p>
-          <p className="mt-1 text-sm leading-relaxed text-text-primary">{stageHint}</p>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+          <p className="mt-1 text-sm leading-relaxed text-text-muted">{stageHint}</p>
+          <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-text-muted">
             {MODULE7_REVISION_CYCLE_LABEL}
           </p>
-          <h2 className="mt-2 text-base font-bold leading-snug text-text-primary md:text-lg">
+          <h2 className="mt-2 text-base font-semibold leading-snug text-text-primary md:text-lg">
             {primary.title}
           </h2>
           {!entry ? (
-            <p className="mt-2 text-sm font-semibold leading-relaxed text-text-primary">
+            <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary">
               {primary.strengthFrame}
             </p>
           ) : null}
@@ -112,11 +113,11 @@ export default function ModuleSevenStrategyCard({
             <li>{primary.improvePrompt}</li>
           </ol>
           {Array.isArray(primary.checklist) && primary.checklist.length > 0 ? (
-            <div className="mt-3 rounded-lg border border-border-soft/70 bg-white/80 px-3 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            <div className="mt-3 rounded-lg border border-border-soft/50 bg-white/70 px-3 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
                 {primary.id === "final-review" ? "Confirm" : "Keep in mind"}
               </p>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-muted">
                 {primary.checklist.map((item) => (
                   <li key={item}>{item}</li>
                 ))}

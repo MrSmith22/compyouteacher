@@ -8,6 +8,16 @@ import {
   pickVisiblePurpose,
   remainingContractLines,
 } from "@/components/shared/screenContractHelpers";
+import {
+  HIERARCHY_INSTRUCTION_BODY_CLASS,
+  HIERARCHY_INSTRUCTION_CLASS,
+  HIERARCHY_INSTRUCTION_LABEL_CLASS,
+  HIERARCHY_INSTRUCTION_LEAD_CLASS,
+  HIERARCHY_LEVELS,
+  HIERARCHY_REFERENCE_ASIDE_CLASS,
+  HIERARCHY_REFERENCE_CLASS,
+  HIERARCHY_TASK_CLASS,
+} from "@/lib/ui/hierarchyContract";
 
 export const MODULE6_NEED_HELP_ID = "module-6-need-help";
 
@@ -90,10 +100,11 @@ function NeedHelpJumpLink() {
     <a
       href={`#${MODULE6_NEED_HELP_ID}`}
       onClick={scrollToNeedHelp}
-      className="inline-flex items-center gap-2 rounded-lg border-2 border-theme-orange/40 bg-theme-orange/10 px-3.5 py-2 text-sm font-semibold text-theme-orange shadow-soft transition hover:bg-theme-orange/15 focus:outline-none focus:ring-2 focus:ring-theme-orange/30"
+      className="inline-flex items-center gap-2 rounded-lg border border-border-soft/80 bg-surface-soft/60 px-3.5 py-2 text-sm font-medium text-text-muted transition hover:bg-surface-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+      data-hierarchy-level={HIERARCHY_LEVELS.reference}
     >
       Need Help
-      <span className="text-xs font-medium text-theme-orange/80">↓ thesis, outline & tips</span>
+      <span className="text-xs font-medium text-text-muted/80">↓ thesis, outline & tips</span>
     </a>
   );
 }
@@ -104,18 +115,17 @@ function JobRightNowCard({ jobRightNow }) {
 
   return (
     <div
-      className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-5 py-5 shadow-soft ring-1 ring-theme-orange/15"
+      className={HIERARCHY_INSTRUCTION_CLASS}
       data-testid="screen-contract-how"
+      data-hierarchy-level={HIERARCHY_LEVELS.instruction}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
-        Your job right now
-      </p>
+      <p className={HIERARCHY_INSTRUCTION_LABEL_CLASS}>Your job right now</p>
       {jobRightNow.lead ? (
-        <p className="mt-2 text-base font-semibold leading-snug text-text-primary">
-          {jobRightNow.lead}
-        </p>
+        <p className={HIERARCHY_INSTRUCTION_LEAD_CLASS}>{jobRightNow.lead}</p>
       ) : null}
-      <ol className="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-text-primary md:text-base">
+      <ol
+        className={`mt-3 list-decimal space-y-2 pl-5 ${HIERARCHY_INSTRUCTION_BODY_CLASS}`}
+      >
         {steps.map((step) => {
           const cue = step.find ? RESOURCE_CUE[step.find] : null;
           return (
@@ -131,7 +141,7 @@ function JobRightNowCard({ jobRightNow }) {
           );
         })}
       </ol>
-      <p className="mt-4 text-sm font-medium leading-relaxed text-text-primary">
+      <p className={`mt-3 font-medium ${HIERARCHY_INSTRUCTION_BODY_CLASS}`}>
         {jobRightNow.closing || "Start with Step 1 in the writing box below."}
       </p>
       {jobRightNow.findHint ? (
@@ -140,7 +150,7 @@ function JobRightNowCard({ jobRightNow }) {
           <a
             href={`#${MODULE6_NEED_HELP_ID}`}
             onClick={scrollToNeedHelp}
-            className="font-semibold text-theme-orange underline decoration-theme-orange/40 underline-offset-2 hover:decoration-theme-orange"
+            className="font-medium text-text-muted underline decoration-border-soft underline-offset-2 hover:text-text-primary"
           >
             Jump to Need Help
           </a>
@@ -157,7 +167,10 @@ function SupportingDetails({ whyLines, exampleBlock, successItems }) {
   if (!hasWhy && !hasExample && !hasSuccess) return null;
 
   return (
-    <div className="max-w-2xl space-y-2 text-left">
+    <div
+      className="max-w-2xl space-y-2 text-left"
+      data-hierarchy-level={HIERARCHY_LEVELS.reference}
+    >
       {hasWhy ? (
         <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
           <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
@@ -298,8 +311,8 @@ export default function ModuleSixStepFrame({
 
   return (
     <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
-      <WorkspaceSidebar className="opacity-80 lg:col-span-1">
-        {sidebar}
+      <WorkspaceSidebar className={`${HIERARCHY_REFERENCE_CLASS} lg:col-span-1`}>
+        <div data-hierarchy-level={HIERARCHY_LEVELS.reference}>{sidebar}</div>
       </WorkspaceSidebar>
 
       <WorkspaceCenter className="min-w-0">
@@ -309,8 +322,9 @@ export default function ModuleSixStepFrame({
               Start here
             </p>
             <h1
-              className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]"
+              className={HIERARCHY_TASK_CLASS}
               data-testid="screen-contract-task"
+              data-hierarchy-level={HIERARCHY_LEVELS.task}
             >
               {question}
             </h1>
@@ -331,20 +345,27 @@ export default function ModuleSixStepFrame({
 
           {supportingBefore}
 
-          <div className="space-y-6 md:space-y-7">{children}</div>
+          <div
+            className="space-y-6 md:space-y-7"
+            data-hierarchy-level={HIERARCHY_LEVELS.work}
+            data-hierarchy-emphasis="active"
+          >
+            {children}
+          </div>
 
           {supportingAfter}
 
           {actionFirst ? (
             <section
               id={MODULE6_NEED_HELP_ID}
-              className="scroll-mt-24 space-y-5 rounded-xl border-2 border-theme-orange/25 bg-theme-orange/[0.04] px-4 py-5 md:px-5"
+              className="scroll-mt-24 space-y-4 rounded-xl border border-border-soft/70 bg-surface-soft/30 px-4 py-4 md:px-5"
               aria-labelledby="module-6-need-help-heading"
+              data-hierarchy-level={HIERARCHY_LEVELS.reference}
             >
               <div className="space-y-1 text-left">
                 <p
                   id="module-6-need-help-heading"
-                  className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange"
+                  className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted"
                 >
                   Need Help
                 </p>
@@ -360,13 +381,16 @@ export default function ModuleSixStepFrame({
         </div>
       </WorkspaceCenter>
 
-      <WorkspaceGuide className="opacity-90">
-        <aside className="space-y-5 rounded-xl bg-surface-soft/70 px-5 py-5 text-left">
+      <WorkspaceGuide className={HIERARCHY_REFERENCE_CLASS}>
+        <aside
+          className={HIERARCHY_REFERENCE_ASIDE_CLASS}
+          data-hierarchy-level={HIERARCHY_LEVELS.reference}
+        >
           <div className="space-y-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
               From your teacher
             </p>
-            <p className="text-sm leading-relaxed text-text-primary">
+            <p className="text-sm leading-relaxed text-text-muted">
               {coachingMessage ||
                 "Keep your language simple and honest. Clear thinking beats fancy words."}
             </p>

@@ -31,6 +31,13 @@ import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecove
 import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
+import {
+  HIERARCHY_ACTION_FINAL_CLASS,
+  HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_ACTION_SECONDARY_CLASS,
+  HIERARCHY_FOCUS_RING_CLASS,
+  HIERARCHY_WORK_SURFACE_CLASS,
+} from "@/lib/ui/hierarchyContract";
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
 import {
   getSectionCountFromOutline,
@@ -695,7 +702,8 @@ export default function ModuleEight() {
       >
         <div className="space-y-3">
           <div
-            className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3 text-left"
+            className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-left"
+            data-hierarchy-level="instruction"
             data-testid="module8-submission-doc-framing"
           >
             <p className="text-sm font-semibold text-text-primary">
@@ -752,7 +760,7 @@ export default function ModuleEight() {
         </div>
 
         <WorkingSetSection
-          className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+          className={HIERARCHY_WORK_SURFACE_CLASS}
           label={presentation.workingSetLabel}
           description={presentation.workingSetDescription}
         >
@@ -1101,7 +1109,7 @@ export default function ModuleEight() {
               <button
                 type="button"
                 onClick={goBack}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border-soft bg-white px-4 py-2 text-text-primary hover:bg-surface-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2"
+                className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
                 data-testid="module8-back"
               >
                 Back
@@ -1117,8 +1125,9 @@ export default function ModuleEight() {
                   (currentStepIndex === 0 && !canAdvanceFromStep1) ||
                   (currentStepIndex === 1 && !canAdvanceFromStep2)
                 }
-                className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-4 py-2 font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 disabled:opacity-50"
+                className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
                 data-testid="module8-keep-going"
+                data-hierarchy-action="primary"
               >
                 Keep going
               </button>
@@ -1128,8 +1137,9 @@ export default function ModuleEight() {
                 type="button"
                 onClick={finishPreparing}
                 disabled={!canFinish}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 disabled:opacity-50"
+                className={`${HIERARCHY_ACTION_FINAL_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
                 data-testid="module8-finish-prepare"
+                data-hierarchy-action="final"
               >
                 Finish preparing your essay and continue
               </button>

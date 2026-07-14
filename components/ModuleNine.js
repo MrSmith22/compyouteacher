@@ -15,6 +15,14 @@ import {
 import { logActivity } from "../lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import ModulePageShell from "@/components/layout/ModulePageShell";
+import ScreenContractCues from "@/components/shared/ScreenContractCues";
+import {
+  HIERARCHY_ACTION_FINAL_CLASS,
+  HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_LEVELS,
+  HIERARCHY_MODULE_CHROME_CLASS,
+  HIERARCHY_TASK_CLASS,
+} from "@/lib/ui/hierarchyContract";
 import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
 import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
@@ -38,7 +46,6 @@ import {
   SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
-import ScreenContractCues from "@/components/shared/ScreenContractCues";
 import { MODULE9_SCREEN_CONTRACT } from "@/lib/module9/module9ScreenContract";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
@@ -602,18 +609,21 @@ export default function ModuleNine() {
         className="space-y-8 overflow-x-hidden"
         data-wp006-layout={MODULE9_LAYOUT_CONTRACT.viewports.join("-")}
       >
-        <header className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6">
-          <h1 className="text-3xl font-extrabold text-theme-blue">
+        <header
+          className="space-y-3 rounded-xl border border-border-soft/70 bg-surface-soft/40 px-6 py-4 md:px-8 md:py-5"
+          data-hierarchy-level={HIERARCHY_LEVELS.reference}
+        >
+          <h1 className={HIERARCHY_MODULE_CHROME_CLASS}>
             Module 9: APA Format and Final Submission
           </h1>
-          <p className="text-sm font-semibold leading-relaxed text-text-primary md:text-base">
+          <p className="text-sm leading-relaxed text-text-muted md:text-[0.95rem]">
             {MODULE9_APA_ENTRY.framing}
           </p>
           {!alreadySubmitted && (
             <nav
               aria-label="Your Module 9 journey"
               data-testid="module9-journey-progress"
-              className="border-t border-border-soft pt-3"
+              className="border-t border-border-soft/70 pt-3"
             >
               <ol className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
                 {MODULE9_APA_JOURNEY.map((label, index) => {
@@ -625,7 +635,7 @@ export default function ModuleNine() {
                       key={label}
                       className={`rounded-lg px-3 py-2 text-xs leading-snug sm:text-sm ${
                         isCurrent
-                          ? "bg-theme-blue text-white shadow-soft"
+                          ? "bg-theme-blue text-white"
                           : isComplete
                             ? "bg-theme-green/15 text-theme-dark"
                             : "bg-surface-soft text-text-muted"
@@ -681,10 +691,11 @@ export default function ModuleNine() {
 
         {viewedStep === 1 && !alreadySubmitted && !submitted && (
           <div className="space-y-4">
-            <header className="space-y-3 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8">
+            <header className="space-y-3 rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8">
               <h2
-                className="text-xl font-semibold text-text-primary"
+                className={HIERARCHY_TASK_CLASS}
                 data-testid="screen-contract-task"
+                data-hierarchy-level={HIERARCHY_LEVELS.task}
               >
                 {MODULE9_SCREEN_CONTRACT[1].task}
               </h2>
@@ -694,24 +705,29 @@ export default function ModuleNine() {
                 finished={MODULE9_SCREEN_CONTRACT[1].finished}
               />
             </header>
+            <div data-hierarchy-level={HIERARCHY_LEVELS.work} data-hierarchy-emphasis="active">
             <ModuleNineApaLesson
               lessonState={lessonState}
               onLessonStateChange={setLessonState}
               onComplete={persistApaPractice}
               alreadyPersisted={false}
             />
+            </div>
           </div>
         )}
 
         {viewedStep === 2 && submitted && !alreadySubmitted && (
           <section
             ref={step2Ref}
-            className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
+            className="space-y-4 rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8 md:py-6"
             data-testid="module9-submission-doc-step"
+            data-hierarchy-level={HIERARCHY_LEVELS.work}
+            data-hierarchy-emphasis="active"
           >
             <h2
-              className="flex items-center gap-2 text-xl font-semibold text-text-primary"
+              className={HIERARCHY_TASK_CLASS}
               data-testid="screen-contract-task"
+              data-hierarchy-level={HIERARCHY_LEVELS.task}
             >
               Open the paper you prepared{docReady ? " ✓" : ""}
             </h2>
@@ -856,11 +872,14 @@ export default function ModuleNine() {
           !alreadySubmitted && (
             <section
               ref={step3Ref}
-              className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
+              className="space-y-4 rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8 md:py-6"
+              data-hierarchy-level={HIERARCHY_LEVELS.work}
+              data-hierarchy-emphasis="active"
             >
               <h2
-                className="flex items-center gap-2 text-xl font-semibold text-text-primary"
+                className={HIERARCHY_TASK_CLASS}
                 data-testid="screen-contract-task"
+                data-hierarchy-level={HIERARCHY_LEVELS.task}
               >
                 Format your paper with the APA guide
                 {checklistComplete ? " ✓" : ""}
@@ -916,7 +935,8 @@ export default function ModuleNine() {
                       0
                     );
                   }}
-                  className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
+                  className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${FOCUS_RING}`}
+                  data-hierarchy-action="primary"
                 >
                   Continue to download and submit →
                 </button>
@@ -943,11 +963,14 @@ export default function ModuleNine() {
           !alreadySubmitted && (
             <section
               ref={step4Ref}
-              className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
+              className="space-y-4 rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8 md:py-6"
+              data-hierarchy-level={HIERARCHY_LEVELS.work}
+              data-hierarchy-emphasis="active"
             >
               <h2
-                className="flex items-center gap-2 text-lg font-semibold text-text-primary"
+                className={HIERARCHY_TASK_CLASS}
                 data-testid="screen-contract-task"
+                data-hierarchy-level={HIERARCHY_LEVELS.task}
               >
                 Download, check, and submit your PDF
               </h2>
@@ -1114,10 +1137,11 @@ export default function ModuleNine() {
               <button
                 onClick={handleUploadPDF}
                 disabled={!canUpload}
-                className={`min-h-[44px] rounded bg-theme-orange px-6 py-2 text-sm font-semibold text-white shadow ${
+                className={`${HIERARCHY_ACTION_FINAL_CLASS} ${
                   !canUpload ? "cursor-not-allowed opacity-50" : ""
                 } ${FOCUS_RING}`}
                 data-testid="module9-upload-final-pdf"
+                data-hierarchy-action="final"
               >
                 {uploading ? "Uploading…" : "Upload Final PDF"}
               </button>

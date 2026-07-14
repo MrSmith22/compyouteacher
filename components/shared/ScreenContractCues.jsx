@@ -1,8 +1,14 @@
 "use client";
 
+import {
+  HIERARCHY_LEVELS,
+  HIERARCHY_OBJECTIVE_CLASS,
+  HIERARCHY_OBJECTIVE_LABEL_CLASS,
+} from "@/lib/ui/hierarchyContract";
+
 /**
  * Minimal always-visible four-question cues.
- * Does not replace module-specific strategy cards or examples.
+ * Level 2 — supports the task heading without competing with it.
  */
 export default function ScreenContractCues({
   purpose = "",
@@ -16,31 +22,38 @@ export default function ScreenContractCues({
   if (!purposeText && !howText && !finishedText) return null;
 
   return (
-    <div className="max-w-3xl space-y-2 text-left" data-testid="screen-contract-cues">
+    <div
+      className="max-w-3xl space-y-1.5 text-left"
+      data-testid="screen-contract-cues"
+      data-hierarchy-level={HIERARCHY_LEVELS.objective}
+    >
       {purposeText ? (
         <p
-          className="text-sm leading-relaxed text-text-primary md:text-base"
+          className={HIERARCHY_OBJECTIVE_CLASS}
           data-testid="screen-contract-purpose"
+          data-hierarchy-level={HIERARCHY_LEVELS.objective}
         >
-          <span className="font-semibold text-text-primary">Why this matters: </span>
+          <span className={HIERARCHY_OBJECTIVE_LABEL_CLASS}>Why this matters: </span>
           {purposeText}
         </p>
       ) : null}
       {howText ? (
         <p
-          className="text-sm leading-relaxed text-text-primary md:text-base"
+          className={HIERARCHY_OBJECTIVE_CLASS}
           data-testid="screen-contract-how"
+          data-hierarchy-level={HIERARCHY_LEVELS.instruction}
         >
-          <span className="font-semibold text-text-primary">How to succeed: </span>
+          <span className={HIERARCHY_OBJECTIVE_LABEL_CLASS}>How to succeed: </span>
           {howText}
         </p>
       ) : null}
       {finishedText ? (
         <p
-          className="text-sm leading-relaxed text-text-primary md:text-base"
+          className={HIERARCHY_OBJECTIVE_CLASS}
           data-testid="screen-contract-finished"
+          data-hierarchy-level={HIERARCHY_LEVELS.objective}
         >
-          <span className="font-semibold text-text-primary">You’re ready when: </span>
+          <span className={HIERARCHY_OBJECTIVE_LABEL_CLASS}>You’re ready when: </span>
           {finishedText}
         </p>
       ) : null}

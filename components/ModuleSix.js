@@ -22,6 +22,13 @@ import InfoCallout from "@/components/ui/InfoCallout";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
 import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
+  HIERARCHY_ACTION_FINAL_CLASS,
+  HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_ACTION_SECONDARY_CLASS,
+  HIERARCHY_FOCUS_RING_CLASS,
+  HIERARCHY_WORK_SURFACE_CLASS,
+} from "@/lib/ui/hierarchyContract";
+import {
   getWritingSectionLabel,
   getModule6StepPresentation,
   getModule6ReviewPresentation,
@@ -897,7 +904,7 @@ export default function ModuleSix() {
 
           {isReviewStage ? (
             <WorkingSetSection
-              className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+              className={HIERARCHY_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
               description={presentation.workingSetDescription}
             >
@@ -942,7 +949,7 @@ export default function ModuleSix() {
             </WorkingSetSection>
           ) : (
             <WorkingSetSection
-              className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+              className={HIERARCHY_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
               description={
                 presentation.workingSetDescription ||
@@ -1027,7 +1034,7 @@ export default function ModuleSix() {
                     type="button"
                     onClick={() => goBack()}
                     disabled={locked || navBusy || !writesAllowed}
-                    className="min-h-[44px] rounded-lg bg-surface-soft px-4 py-2 text-text-primary hover:bg-border-soft/60 disabled:opacity-50"
+                    className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
                   >
                     Back
                   </button>
@@ -1039,7 +1046,8 @@ export default function ModuleSix() {
                     type="button"
                     onClick={() => goNext()}
                     disabled={locked || navBusy || !writesAllowed}
-                    className="min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 font-medium text-white disabled:opacity-50"
+                    className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                    data-hierarchy-action="primary"
                   >
                     Keep going
                   </button>
@@ -1048,7 +1056,8 @@ export default function ModuleSix() {
                     type="button"
                     onClick={() => finalizeDraft()}
                     disabled={locked || isFinalizing || !writesAllowed}
-                    className="min-h-[44px] rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft disabled:opacity-50"
+                    className={`${HIERARCHY_ACTION_FINAL_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                    data-hierarchy-action="final"
                   >
                     {isFinalizing ? "Saving draft…" : "Finish draft and continue"}
                   </button>

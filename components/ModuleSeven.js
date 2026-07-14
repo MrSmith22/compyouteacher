@@ -29,6 +29,12 @@ import EssayProseView from "@/components/module7/EssayProseView";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
 import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
+  HIERARCHY_ACTION_FINAL_CLASS,
+  HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_ACTION_SECONDARY_CLASS,
+  HIERARCHY_WORK_SURFACE_CLASS,
+} from "@/lib/ui/hierarchyContract";
+import {
   alignSectionsToOutline,
   getSectionCountFromOutline,
   joinSections,
@@ -845,7 +851,7 @@ export default function ModuleSeven() {
             <ModuleSevenReadAloudTaskCard />
 
             <WorkingSetSection
-              className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+              className={HIERARCHY_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
               description={presentation.workingSetDescription}
             >
@@ -910,7 +916,7 @@ export default function ModuleSeven() {
             <TaskRelevantArtifacts items={deskArtifacts.items} />
 
             <WorkingSetSection
-              className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"
+              className={HIERARCHY_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
               description={presentation.workingSetDescription}
             >
@@ -1010,7 +1016,7 @@ export default function ModuleSeven() {
                 type="button"
                 onClick={goBack}
                 disabled={locked}
-                className={`min-h-[44px] rounded-lg bg-surface-soft px-4 py-2 text-text-primary hover:bg-border-soft/60 disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
+                className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${ACTION_BUTTON_FOCUS}`}
               >
                 Back
               </button>
@@ -1022,7 +1028,7 @@ export default function ModuleSeven() {
                 type="button"
                 onClick={() => saveDraft()}
                 disabled={locked}
-                className={`min-h-[44px] rounded-lg border border-theme-blue/30 bg-white px-4 py-2 text-sm font-medium text-theme-blue disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
+                className={`${HIERARCHY_ACTION_SECONDARY_CLASS} ${ACTION_BUTTON_FOCUS}`}
               >
                 Save revision
               </button>
@@ -1033,7 +1039,8 @@ export default function ModuleSeven() {
                 onClick={goNext}
                 disabled={locked || (isReadAloudStep && !canKeepGoing)}
                 aria-disabled={locked || (isReadAloudStep && !canKeepGoing)}
-                className={`min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 font-medium text-white disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
+                className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${ACTION_BUTTON_FOCUS}`}
+                data-hierarchy-action="primary"
               >
                 Keep going
               </button>
@@ -1042,7 +1049,8 @@ export default function ModuleSeven() {
                 type="button"
                 onClick={() => saveDraft({ finalized: true })}
                 disabled={locked}
-                className={`min-h-[44px] rounded-lg bg-theme-orange px-4 py-2 font-medium text-white shadow-soft disabled:opacity-50 ${ACTION_BUTTON_FOCUS}`}
+                className={`${HIERARCHY_ACTION_FINAL_CLASS} ${ACTION_BUTTON_FOCUS}`}
+                data-hierarchy-action="final"
               >
                 Finish revising and continue
               </button>
