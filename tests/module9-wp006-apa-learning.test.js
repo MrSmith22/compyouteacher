@@ -227,7 +227,7 @@ describe("WP-006 Module 9 APA learning", () => {
   it("19. Submitted-student path still short-circuits the lesson", () => {
     const modNine = readSrc("../components/ModuleNine.js");
     assert.ok(modNine.includes("alreadySubmitted && ("));
-    assert.ok(modNine.includes("Submitted: Final PDF received"));
+    assert.ok(modNine.includes("Your PDF was received"));
     assert.ok(modNine.includes("!alreadySubmitted && !submitted"));
   });
 
@@ -288,8 +288,8 @@ describe("WP-006 Module 9 APA learning", () => {
     );
 
     const modNine = readSrc("../components/ModuleNine.js");
-    const checklistIdx = modNine.indexOf("Format checklist confirmation");
-    const pdfIdx = modNine.indexOf("Submit your final essay as a PDF");
+    const checklistIdx = modNine.indexOf("Format your paper with the APA guide");
+    const pdfIdx = modNine.indexOf("Download, check, and submit your PDF");
     const guideAfterChecklist = modNine.indexOf(
       "<ModuleNineApaQuickGuide",
       checklistIdx

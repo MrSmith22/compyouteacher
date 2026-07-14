@@ -330,7 +330,10 @@ describe("WP-029 Module 8/9 gates and UX wiring", () => {
     assert.ok(m9.includes("forceCreate"));
     assert.ok(m9.includes("handleRetryVerification"));
     assert.equal(m9.includes('2. Google Doc {exportUrl ? "✓"'), false);
-    assert.ok(m9.includes("docReady ? \"✓\""));
+    assert.ok(
+      m9.includes('docReady ? " ✓"') || m9.includes('docReady ? "✓"'),
+      "Module 9 completion mark must key off verified docReady, not URL alone"
+    );
 
     assert.ok(client.includes("submission_doc_verification_started"));
     assert.ok(client.includes("submission_doc_verified"));

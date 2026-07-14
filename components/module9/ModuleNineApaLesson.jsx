@@ -34,8 +34,7 @@ export default function ModuleNineApaLesson({
   const response = lessonState.responses[concept.id] || {};
   const evaluation = evaluateApaResponse(concept, response.selectedOptionId);
   const canContinue = canContinueApaConcept(lessonState, concept.id);
-  const summary = summarizeApaLesson(lessonState, concepts);
-  const progressLabel = `APA Quick Guide · idea ${lessonState.conceptIndex + 1} of ${concepts.length}`;
+  const progressLabel = `APA move ${lessonState.conceptIndex + 1} of ${concepts.length}`;
 
   useEffect(() => {
     if (!headingRef.current) return;
@@ -58,11 +57,6 @@ export default function ModuleNineApaLesson({
         <p className="text-sm leading-relaxed text-text-primary">
           {MODULE9_APA_HANDOFF.body}
         </p>
-        <p className="text-sm text-text-muted" role="status">
-          Practice summary: {summary.score} of {summary.total} first tries matched
-          the target answer. You can continue either way—this is learning, not a
-          pass/fail test.
-        </p>
         <ModuleNineApaQuickGuide defaultOpen compact={false} />
         {!alreadyPersisted ? (
           <button
@@ -71,7 +65,7 @@ export default function ModuleNineApaLesson({
             className={`min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow-soft ${FOCUS_RING}`}
             data-testid="module9-apa-continue-to-doc"
           >
-            Continue to prepare your Google Doc
+            Continue to open your Google Doc
           </button>
         ) : null}
       </section>
@@ -246,7 +240,7 @@ export default function ModuleNineApaLesson({
             data-testid="module9-apa-continue"
           >
             {lessonState.conceptIndex >= concepts.length - 1
-              ? "Finish APA practice"
+              ? "Finish these APA moves"
               : "Continue"}
           </button>
         </div>

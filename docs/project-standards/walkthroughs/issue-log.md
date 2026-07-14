@@ -84,7 +84,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Resolved |
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Resolved |
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Resolved |
-| WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Open |
+| WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Needs Verification |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Open |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Open |
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Open |
@@ -1418,7 +1418,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Full Module 9 journey (quiz → export → format → PDF → upload → complete)
 - **Priority:** High
 - **Category:** UX / Flow
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Module 9 should feel like a teacher walking beside a student through the final minutes before submission. Instead it feels like an LMS quiz and checklist — narrow layout, test-first APA, duplicated export, and transactional screens.
 
@@ -1433,11 +1433,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Confirm flow feels instructional, not assessive.
 3. Confirm no step duplicates Module 8 without clear purpose.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`; `components/module9/ModuleNineApaLesson.jsx`; `lib/module9/module9ApaLearning.js`; `tests/module9-wp047-teacher-guided-flow.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Presentation/flow refinement only—architecture preserved. Removed student-facing Guided mode and all-steps branch; one `viewedStep` sequence with resume-to-earliest-incomplete hydration. Removed student-facing scores / first-try / pass-fail framing while keeping `module9_quiz` score persistence and teacher analytics. Softened transactional headings to warm action labels; compact `module9-journey-progress` indicator. Consolidated duplicated APA-complete scoring panel; entry copy stays in `ModuleNineApaLesson`. Verified-Doc reuse + recovery panel unchanged; WP-038–046 content preserved. Automated suites green. Bounded browser verified Step 1 journey labels (no Guided mode / no first-try copy) at 390×844 and 1440×900 without horizontal overflow—did **not** complete a full student walkthrough of Steps 2–4 / success, so status is **Needs Verification** pending that human e2e judgment.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

@@ -28,35 +28,31 @@ describe("WP-041 Module 9 do-not-rewrite coaching", () => {
     assert.ok(/not rewriting/i.test(m9));
   });
 
-  it("places coaching before Open Google Doc and before Format checklist", () => {
+  it("places coaching before Open Google Doc and before the format step", () => {
     const m9 = readSrc("components/ModuleNine.js");
     const coachIdx = m9.indexOf('data-testid="module9-do-not-rewrite-coaching"');
     const openIdx = m9.indexOf('data-testid="module9-open-submission-doc"');
-    const checklistIdx = m9.indexOf("Format checklist confirmation");
+    const checklistIdx = m9.indexOf("Format your paper with the APA guide");
 
     assert.ok(coachIdx > 0);
     assert.ok(openIdx > coachIdx, "Open Google Doc must follow coaching");
     assert.ok(
       checklistIdx > openIdx,
-      "Format checklist step must follow Open Doc / coaching block"
+      "Format step must follow Open Doc / coaching block"
     );
   });
 
-  it("keeps coaching on both guided and unguided Module 9 paths", () => {
+  it("keeps coaching on the sequential Module 9 document step", () => {
     const m9 = readSrc("components/ModuleNine.js");
-    // Same Step 2 section serves both: (!guidedMode || viewedStep === 2)
     const step2Gate = m9.indexOf(
-      "(!guidedMode || viewedStep === 2) && submitted && !alreadySubmitted"
+      "viewedStep === 2 && submitted && !alreadySubmitted"
     );
     const coachIdx = m9.indexOf('data-testid="module9-do-not-rewrite-coaching"');
-    const step2End = m9.indexOf(
-      "(!guidedMode || viewedStep === 3) &&",
-      step2Gate
-    );
+    const step2End = m9.indexOf("viewedStep === 3 &&", step2Gate);
     assert.ok(step2Gate > 0);
     assert.ok(coachIdx > step2Gate && coachIdx < step2End);
-    assert.ok(m9.includes("guidedMode"));
-    assert.ok(m9.includes("setGuidedMode"));
+    assert.equal(m9.includes("guidedMode"), false);
+    assert.equal(m9.includes("setGuidedMode"), false);
   });
 
   it("reinforces formatting-vs-rewriting in APA learning content without duplicate Module 9 prose", () => {

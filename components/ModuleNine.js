@@ -79,8 +79,8 @@ export default function ModuleNine() {
   const [exportStatus, setExportStatus] = useState(null);
   const [lastDocOperation, setLastDocOperation] = useState(null);
   const [finalPdfRow, setFinalPdfRow] = useState(null);
-  const [guidedMode, setGuidedMode] = useState(true);
   const [viewedStep, setViewedStep] = useState(1);
+  const hasResumedJourneyRef = useRef(false);
   const [checklistState, setChecklistState] = useState(Array(6).fill(false));
   const [checklistLoading, setChecklistLoading] = useState(true);
   const [checklistError, setChecklistError] = useState(null);
@@ -258,7 +258,7 @@ export default function ModuleNine() {
     logActivity(session.user.email, "submission_detected", { module: 9 });
   }, [session?.user?.email, finalPdfRow]);
 
-  // Hydrate APA practice completion from module9_quiz (not authoritative for PDF submission).
+  // Hydrate APA teaching completion from module9_quiz (teacher analytics; not PDF authority).
   useEffect(() => {
     if (!session?.user?.email || quizHydratedRef.current) return;
     quizHydratedRef.current = true;
@@ -274,11 +274,28 @@ export default function ModuleNine() {
       }
       if (data?.submitted_at) {
         setSubmitted(true);
+        // Keep score/total in state for teacher analytics contracts; never surface to students.
         setScore(typeof data.score === "number" ? data.score : 0);
-        setViewedStep((step) => Math.max(step, 2));
       }
     })();
   }, [session?.user?.email]);
+
+  // Returning students resume at the earliest incomplete step once gates are known.
+  useEffect(() => {
+    if (hasResumedJourneyRef.current) return;
+    if (!submitted || alreadySubmitted) return;
+    if (!docHydrated || checklistLoading) return;
+    hasResumedJourneyRef.current = true;
+    const resumeAt = !docReady ? 2 : !checklistComplete ? 3 : 4;
+    setViewedStep(resumeAt);
+  }, [
+    submitted,
+    alreadySubmitted,
+    docHydrated,
+    checklistLoading,
+    docReady,
+    checklistComplete,
+  ]);
 
   const persistApaPractice = async (summary) => {
     if (apaPersisting || submitted) return;
@@ -308,10 +325,9 @@ export default function ModuleNine() {
     }
 
     setApaPersisting(false);
-    if (guidedMode) {
-      setViewedStep(2);
-      setTimeout(() => step2Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
-    }
+    hasResumedJourneyRef.current = true;
+    setViewedStep(2);
+    setTimeout(() => step2Ref.current?.scrollIntoView({ behavior: "smooth" }), 0);
   };
 
   const handleCreateOrUpdateSubmissionDoc = async ({
@@ -588,65 +604,48 @@ export default function ModuleNine() {
           <h1 className="text-3xl font-extrabold text-theme-blue">
             Module 9: APA Format and Final Submission
           </h1>
-          <div className="space-y-3 text-sm text-text-primary md:text-base">
-            <p className="font-semibold">{MODULE9_APA_ENTRY.title}</p>
-            <p>{MODULE9_APA_ENTRY.lead}</p>
-            <p>{MODULE9_APA_ENTRY.framing}</p>
-            <ol className="list-inside list-decimal space-y-1">
-              {MODULE9_APA_JOURNEY.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </div>
+          <p className="text-sm font-semibold leading-relaxed text-text-primary md:text-base">
+            {MODULE9_APA_ENTRY.framing}
+          </p>
           {!alreadySubmitted && (
-            <div className="flex flex-wrap items-center gap-4 border-t border-border-soft pt-2">
-              <label className="flex min-h-[44px] items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={guidedMode}
-                  onChange={(e) => setGuidedMode(e.target.checked)}
-                  className="rounded border-border-soft text-theme-blue"
-                />
-                Guided mode
-              </label>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span
-                  className={`rounded px-2 py-1 ${
-                    activeStep >= 1 ? "bg-theme-green text-white" : "bg-surface-soft"
-                  }`}
-                >
-                  1. Learn APA {submitted ? "✓" : ""}
-                </span>
-                <span
-                  className={`rounded px-2 py-1 ${
-                    activeStep >= 2 ? "bg-theme-green text-white" : "bg-surface-soft"
-                  }`}
-                >
-                  2. Google Doc {docReady ? "✓" : ""}
-                </span>
-                <span
-                  className={`rounded px-2 py-1 ${
-                    activeStep >= 3 ? "bg-theme-green text-white" : "bg-surface-soft"
-                  }`}
-                >
-                  3. Checklist {checklistComplete ? "✓" : ""}
-                </span>
-                <span
-                  className={`rounded px-2 py-1 ${
-                    activeStep >= 4 ? "bg-theme-green text-white" : "bg-surface-soft"
-                  }`}
-                >
-                  4. Upload PDF
-                </span>
-              </div>
-            </div>
+            <nav
+              aria-label="Your Module 9 journey"
+              data-testid="module9-journey-progress"
+              className="border-t border-border-soft pt-3"
+            >
+              <ol className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                {MODULE9_APA_JOURNEY.map((label, index) => {
+                  const stepNumber = index + 1;
+                  const isComplete = activeStep > stepNumber;
+                  const isCurrent = viewedStep === stepNumber;
+                  return (
+                    <li
+                      key={label}
+                      className={`rounded-lg px-3 py-2 text-xs leading-snug sm:text-sm ${
+                        isCurrent
+                          ? "bg-theme-blue text-white shadow-soft"
+                          : isComplete
+                            ? "bg-theme-green/15 text-theme-dark"
+                            : "bg-surface-soft text-text-muted"
+                      }`}
+                      aria-current={isCurrent ? "step" : undefined}
+                    >
+                      <span className="font-semibold">
+                        {isComplete ? "✓ " : `${stepNumber}. `}
+                      </span>
+                      {label}
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
           )}
         </header>
 
         {alreadySubmitted && (
           <section className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6">
             <h2 className="text-lg font-semibold text-text-primary">
-              Submitted: Final PDF received
+              Your PDF was received
             </h2>
             <p className="text-sm text-text-primary">
               Your work for this module is complete. Use the links below to open your
@@ -678,7 +677,7 @@ export default function ModuleNine() {
           </section>
         )}
 
-        {(!guidedMode || viewedStep === 1) && !alreadySubmitted && !submitted && (
+        {viewedStep === 1 && !alreadySubmitted && !submitted && (
           <ModuleNineApaLesson
             lessonState={lessonState}
             onLessonStateChange={setLessonState}
@@ -687,47 +686,19 @@ export default function ModuleNine() {
           />
         )}
 
-        {(!guidedMode || viewedStep >= 1) && !alreadySubmitted && submitted && (
-          <section className="space-y-3 rounded-xl border border-theme-green/30 bg-theme-green/5 px-4 py-4 shadow-soft md:px-6">
-            <h2 className="text-lg font-semibold text-text-primary">
-              APA practice complete
-            </h2>
-            <p className="text-sm text-text-primary">
-              You practiced the APA choices this assignment uses
-              {typeof score === "number"
-                ? ` (first-try matches: ${score} / ${MODULE9_APA_QUIZ_TOTAL})`
-                : ""}
-              . Keep the Quick Guide nearby while you format your Google Doc.
-            </p>
-            <ModuleNineApaQuickGuide defaultOpen={false} compact />
-            {guidedMode && !docReady && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewedStep(2);
-                  setTimeout(
-                    () => step2Ref.current?.scrollIntoView({ behavior: "smooth" }),
-                    0
-                  );
-                }}
-                className={`min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 text-sm font-semibold text-white ${FOCUS_RING}`}
-              >
-                Continue to prepare your Google Doc
-              </button>
-            )}
-          </section>
-        )}
-
-        {(!guidedMode || viewedStep === 2) && submitted && !alreadySubmitted && (
+        {viewedStep === 2 && submitted && !alreadySubmitted && (
           <section
             ref={step2Ref}
             className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             data-testid="module9-submission-doc-step"
           >
             <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-              Step 2 of 4: Your submission Google Doc{docReady ? " ✓" : ""}
+              Open the paper you prepared{docReady ? " ✓" : ""}
             </h2>
-
+            <p className="text-sm text-text-primary">
+              Open and verify the Google Doc you prepared in Module 8. You do not need
+              to create a new export when that document is already ready.
+            </p>
             {docNotice ? (
               <div
                 role="status"
@@ -767,7 +738,7 @@ export default function ModuleNine() {
                 busy={docBusy}
                 notice={docNotice}
                 testIdPrefix="module9-doc"
-                showProgressContinue={docReady && guidedMode}
+                showProgressContinue={docReady}
                 onContinue={() => {
                   setViewedStep(3);
                   setTimeout(
@@ -854,7 +825,7 @@ export default function ModuleNine() {
           </section>
         )}
 
-        {(!guidedMode || viewedStep === 3) &&
+        {viewedStep === 3 &&
           submitted &&
           docReady &&
           !alreadySubmitted && (
@@ -863,12 +834,12 @@ export default function ModuleNine() {
               className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             >
               <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                Step 3 of 4: Format checklist confirmation
+                Format your paper with the APA guide
                 {checklistComplete ? " ✓" : ""}
               </h2>
               <p className="text-sm text-text-primary">
-                Confirm you have applied each APA formatting item in your Google Doc
-                before uploading your PDF.
+                Use the APA guide and confirm each formatting item in your Google Doc
+                before you download the PDF.
               </p>
               <ModuleNineApaQuickGuide compact />
               <div className="space-y-2">
@@ -899,10 +870,10 @@ export default function ModuleNine() {
               )}
               {checklistComplete && (
                 <p className="text-sm font-medium text-theme-green">
-                  All items confirmed. Proceed to upload your PDF.
+                  Formatting looks ready. Continue to download and submit your PDF.
                 </p>
               )}
-              {guidedMode && checklistComplete && (
+              {checklistComplete && (
                 <button
                   type="button"
                   onClick={() => {
@@ -914,7 +885,7 @@ export default function ModuleNine() {
                   }}
                   className={`min-h-[44px] rounded bg-theme-blue px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90 ${FOCUS_RING}`}
                 >
-                  Continue to upload →
+                  Continue to download and submit →
                 </button>
               )}
             </section>
@@ -932,7 +903,7 @@ export default function ModuleNine() {
           </section>
         )}
 
-        {(!guidedMode || viewedStep === 4) &&
+        {viewedStep === 4 &&
           submitted &&
           docReady &&
           checklistComplete &&
@@ -942,7 +913,7 @@ export default function ModuleNine() {
               className="space-y-4 rounded-xl border border-border-soft bg-white px-6 py-5 shadow-soft md:px-8 md:py-6"
             >
               <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                Step 4 of 4: Submit your final essay as a PDF
+                Download, check, and submit your PDF
               </h2>
               <ModuleNineApaQuickGuide compact />
 

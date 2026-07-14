@@ -40,18 +40,19 @@ describe("WP-046 Module 9 final upload checklist", () => {
     assert.equal(REQUIRED_ITEMS.length, 5);
 
     // Step 3 remains the persisted six-item APA checklist.
+    // Step 3 remains the persisted six-item APA checklist.
     assert.ok(m9.includes("const CHECKLIST_ITEMS = getModule9FormattingChecklistItems()"));
     assert.ok(m9.includes("checklistState"));
     assert.ok(m9.includes("upsertModule9Checklist"));
-    assert.ok(m9.includes("Step 3 of 4: Format checklist confirmation"));
+    assert.ok(m9.includes("Format your paper with the APA guide"));
     assert.ok(
       m9.includes(
         "not the Step 3 APA formatting checklist"
       )
     );
 
-    const step3Start = m9.indexOf("Step 3 of 4: Format checklist confirmation");
-    const step4Start = m9.indexOf("Step 4 of 4: Submit your final essay as a PDF");
+    const step3Start = m9.indexOf("Format your paper with the APA guide");
+    const step4Start = m9.indexOf("Download, check, and submit your PDF");
     const finalChecklistUi = m9.indexOf('data-testid="module9-final-upload-checklist"');
     assert.ok(step3Start > 0 && step4Start > step3Start);
     assert.ok(finalChecklistUi > step4Start);
