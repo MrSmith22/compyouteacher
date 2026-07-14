@@ -8,6 +8,11 @@ import {
   isRhetoricalSituationLessonSatisfied,
 } from "@/lib/module2/rhetoricalSituationGate";
 import { isModule2SourcePreparationComplete } from "@/lib/module2/module2SourceReadiness";
+import { buildRhetoricalSituationSummary } from "@/lib/module2/rhetoricalSituationSummary";
+import {
+  MODULE2_ARTIFACT_MODULE,
+  mergeModule2ArtifactBundle,
+} from "@/lib/module2/module2ArtifactBundle";
 
 /**
  * GET /api/module2/rhetorical-situation-status
@@ -98,8 +103,9 @@ export async function GET() {
 
 /**
  * POST /api/module2/rhetorical-situation-status
- * Body: { complete: true }
- * Records completion only (timestamp). Never stores a score.
+ * Body: { complete: true, answers?: Record<string,string> }
+ * Records completion timestamp and optional situation summary artifact.
+ * Never stores a score. Does not rewrite claims/patterns/theses.
  */
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -179,11 +185,49 @@ export async function POST(req) {
       );
     }
 
+    const summary = buildRhetoricalSituationSummary({
+      answers: body?.answers || {},
+      completedAt: data?.rhetorical_situation_completed_at || completedAt,
+    });
+
+    // Persist versioned summary on module-2 student_buckets (no new table).
+    try {
+      const { data: bucketRow } = await supabase
+        .from("student_buckets")
+        .select("*")
+        .eq("user_email", email)
+        .eq("module", MODULE2_ARTIFACT_MODULE)
+        .maybeSingle();
+
+      const nextFlow = mergeModule2ArtifactBundle(bucketRow?.flow_state, {
+        rhetoricalSituationSummary: summary,
+      });
+
+      await supabase.from("student_buckets").upsert(
+        {
+          user_email: email,
+          module: MODULE2_ARTIFACT_MODULE,
+          buckets: bucketRow?.buckets ?? [],
+          reflection: bucketRow?.reflection ?? null,
+          flow_state: nextFlow,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_email,module" }
+      );
+    } catch (summaryErr) {
+      console.error(
+        "rhetorical-situation-status summary persist error:",
+        summaryErr
+      );
+      // Completion timestamp already saved; summary is additive compatibility.
+    }
+
     return NextResponse.json({
       lessonComplete: true,
       completedAt: data?.rhetorical_situation_completed_at || completedAt,
       grandfathered: false,
       reason: "completed",
+      summary,
     });
   } catch (err) {
     console.error("rhetorical-situation-status POST error:", err);

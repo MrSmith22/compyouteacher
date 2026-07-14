@@ -233,12 +233,15 @@ export default function ModuleTwoSourcePage() {
     }
   };
 
-  const persistLessonComplete = useCallback(async () => {
+  const persistLessonComplete = useCallback(async (payload = {}) => {
     try {
       const res = await fetch("/api/module2/rhetorical-situation-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ complete: true }),
+        body: JSON.stringify({
+          complete: true,
+          answers: payload?.answers || {},
+        }),
       });
       if (!res.ok) return false;
       setLessonSatisfied(true);

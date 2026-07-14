@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import Panel from "@/components/ui/Panel";
 import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
 import { isPathAllowedForModule } from "@/lib/supabase/helpers/moduleGate";
@@ -15,106 +16,208 @@ import {
   getModule2AnalysisAccessDecision,
   readRhetoricalSituationDevBypassFlag,
 } from "@/lib/module2/rhetoricalSituationGate";
+import {
+  MODULE2_DENIED_MESSAGE,
+  MODULE2_ENTRY_GATE_STATES,
+  MODULE2_ENTRY_RECHECK,
+  MODULE2_GATE_ERROR_MESSAGE,
+  MODULE2_SAFE_DENIAL_PATH,
+  MODULE2_WAITING_MESSAGE,
+  interpretModule2EntryAccess,
+  resolveAnalysisPhaseRedirect,
+  resolveModule2WaitingExhausted,
+  shouldRecheckModule2Entry,
+} from "@/lib/module2/module2EntryGate";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
 /**
- * Module 2 has multiple subroutes (/, /tcharts, /form, /source, /letter, /success).
- * /analysis remains as a compatibility redirect to /tcharts.
- * Gate by module family: allow any path under /modules/2 when current_module >= 2;
- * otherwise send the student to the Module 2 root.
- *
- * Analysis routes also require the rhetorical-situation lesson (or grandfathering).
+ * Module 2 family gate.
+ * Never redirects `/modules/2` → `/modules/2`.
+ * Distinguishes checking / allowed / waiting_for_progress / denied / error.
  */
 export default function ModuleTwoLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [allowed, setAllowed] = useState(null);
+  const [gateState, setGateState] = useState(MODULE2_ENTRY_GATE_STATES.CHECKING);
+  const [gateMessage, setGateMessage] = useState("");
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.email) {
-      setAllowed(null);
+      setGateState(MODULE2_ENTRY_GATE_STATES.CHECKING);
       return;
     }
     if (!pathname?.startsWith("/modules/2")) {
-      setAllowed(true);
+      setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
       return;
     }
+
     let cancelled = false;
-    (async () => {
-      try {
-        const { data, error } = await getStudentAssignment({
-          userEmail: session.user.email,
-          assignmentName: ASSIGNMENT_NAME,
-        });
-        if (cancelled) return;
-        if (error) {
-          setAllowed(false);
-          return;
-        }
-        const current =
+    let recheckTimer = null;
+
+    async function readCurrentModule() {
+      const { data, error } = await getStudentAssignment({
+        userEmail: session.user.email,
+        assignmentName: ASSIGNMENT_NAME,
+      });
+      if (error) {
+        return { fetchError: true, currentModule: 0 };
+      }
+      return {
+        fetchError: false,
+        currentModule:
           data && typeof data.current_module === "number"
             ? data.current_module
-            : 0;
-        const moduleOk = isPathAllowedForModule(pathname, current);
+            : 0,
+      };
+    }
+
+    async function evaluateAnalysisPhase() {
+      const statusRes = await fetch("/api/module2/rhetorical-situation-status");
+      if (cancelled) return;
+
+      if (!statusRes.ok) {
+        const res = await fetch("/api/module2/sources");
+        const sourceData = res.ok ? await res.json() : null;
+        const sourcesOk = isModule2SourcePreparationComplete(sourceData);
+        const access = getModule2AnalysisAccessDecision({
+          sourcesReady: sourcesOk,
+          lessonSatisfied:
+            sourcesOk && readRhetoricalSituationDevBypassFlag(),
+        });
+        if (!access.allowed) {
+          const target = resolveAnalysisPhaseRedirect({
+            pathname,
+            proposedRedirect: access.redirectTo || "/modules/2",
+          });
+          if (target) {
+            router.replace(target);
+            setGateState(MODULE2_ENTRY_GATE_STATES.DENIED);
+            setGateMessage(access.message || MODULE2_DENIED_MESSAGE);
+            return;
+          }
+          // Already on the corrective destination — render it.
+          setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+          return;
+        }
+        setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+        return;
+      }
+
+      const statusData = await statusRes.json();
+      const lessonSatisfied =
+        Boolean(statusData.lessonComplete) ||
+        readRhetoricalSituationDevBypassFlag();
+      const access = getModule2AnalysisAccessDecision({
+        sourcesReady: Boolean(statusData.sourcesReady),
+        lessonSatisfied,
+      });
+
+      if (!access.allowed) {
+        const target = resolveAnalysisPhaseRedirect({
+          pathname,
+          proposedRedirect: access.redirectTo || "/modules/2",
+        });
+        if (target) {
+          router.replace(target);
+          setGateState(MODULE2_ENTRY_GATE_STATES.DENIED);
+          setGateMessage(access.message || MODULE2_DENIED_MESSAGE);
+          return;
+        }
+        setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+        return;
+      }
+
+      setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+    }
+
+    async function runGate(attempt = 0) {
+      try {
+        setGateState(
+          attempt === 0
+            ? MODULE2_ENTRY_GATE_STATES.CHECKING
+            : MODULE2_ENTRY_GATE_STATES.WAITING_FOR_PROGRESS
+        );
+        if (attempt > 0) {
+          setGateMessage(MODULE2_WAITING_MESSAGE);
+        }
+
+        const { fetchError, currentModule } = await readCurrentModule();
+        if (cancelled) return;
+
+        const entry = interpretModule2EntryAccess({
+          currentModule,
+          minModule: 2,
+          fetchError,
+        });
+
+        if (entry.state === MODULE2_ENTRY_GATE_STATES.ERROR) {
+          setGateState(MODULE2_ENTRY_GATE_STATES.ERROR);
+          setGateMessage(entry.message || MODULE2_GATE_ERROR_MESSAGE);
+          return;
+        }
+
+        if (entry.state === MODULE2_ENTRY_GATE_STATES.WAITING_FOR_PROGRESS) {
+          if (
+            shouldRecheckModule2Entry({
+              state: entry.state,
+              attempt: attempt + 1,
+              maxAttempts: MODULE2_ENTRY_RECHECK.maxAttempts,
+            })
+          ) {
+            setGateState(MODULE2_ENTRY_GATE_STATES.WAITING_FOR_PROGRESS);
+            setGateMessage(MODULE2_WAITING_MESSAGE);
+            recheckTimer = setTimeout(() => {
+              if (!cancelled) runGate(attempt + 1);
+            }, MODULE2_ENTRY_RECHECK.intervalMs);
+            return;
+          }
+
+          const denied = resolveModule2WaitingExhausted({ pathname });
+          setGateState(denied.state);
+          setGateMessage(denied.message);
+          if (denied.redirectTo) {
+            router.replace(denied.redirectTo);
+          }
+          return;
+        }
+
+        // Family access allowed — optionally enforce analysis-phase readiness.
+        const moduleOk = isPathAllowedForModule(pathname, currentModule);
         if (!moduleOk) {
-          setAllowed(false);
-          router.replace("/modules/2");
+          const denied = resolveModule2WaitingExhausted({ pathname });
+          setGateState(denied.state);
+          setGateMessage(denied.message);
+          if (denied.redirectTo) {
+            router.replace(denied.redirectTo);
+          }
           return;
         }
 
         if (isModule2AnalysisPhasePath(pathname)) {
-          const statusRes = await fetch(
-            "/api/module2/rhetorical-situation-status"
-          );
-          if (cancelled) return;
-
-          if (!statusRes.ok) {
-            // Cannot verify lesson readiness — do not open analysis on failure.
-            const res = await fetch("/api/module2/sources");
-            const sourceData = res.ok ? await res.json() : null;
-            const sourcesOk = isModule2SourcePreparationComplete(sourceData);
-            const access = getModule2AnalysisAccessDecision({
-              sourcesReady: sourcesOk,
-              lessonSatisfied:
-                sourcesOk && readRhetoricalSituationDevBypassFlag(),
-            });
-            setAllowed(access.allowed);
-            if (!access.allowed) {
-              router.replace(access.redirectTo || "/modules/2");
-            }
-            return;
-          }
-
-          const statusData = await statusRes.json();
-          const lessonSatisfied =
-            Boolean(statusData.lessonComplete) ||
-            readRhetoricalSituationDevBypassFlag();
-          const access = getModule2AnalysisAccessDecision({
-            sourcesReady: Boolean(statusData.sourcesReady),
-            lessonSatisfied,
-          });
-
-          if (!access.allowed) {
-            setAllowed(false);
-            router.replace(access.redirectTo || "/modules/2");
-            return;
-          }
-
-          setAllowed(true);
+          await evaluateAnalysisPhase();
           return;
         }
 
-        setAllowed(true);
+        setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+        setGateMessage("");
       } catch {
-        if (!cancelled) setAllowed(false);
+        if (!cancelled) {
+          setGateState(MODULE2_ENTRY_GATE_STATES.ERROR);
+          setGateMessage(MODULE2_GATE_ERROR_MESSAGE);
+        }
       }
-    })();
+    }
+
+    runGate(0);
+
     return () => {
       cancelled = true;
+      if (recheckTimer) clearTimeout(recheckTimer);
     };
-  }, [pathname, session?.user?.email, status, router]);
+  }, [pathname, session?.user?.email, status, router, retryToken]);
 
   if (status === "loading") {
     return (
@@ -143,18 +246,87 @@ export default function ModuleTwoLayout({ children }) {
     );
   }
 
-  if (pathname?.startsWith("/modules/2") && allowed === null) {
+  if (
+    pathname?.startsWith("/modules/2") &&
+    gateState === MODULE2_ENTRY_GATE_STATES.CHECKING
+  ) {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-        <p className="text-sm text-theme-dark/80">Loading…</p>
+        <p className="text-sm text-theme-dark/80" data-testid="module2-gate-checking">
+          Loading…
+        </p>
       </div>
     );
   }
 
-  if (pathname?.startsWith("/modules/2") && allowed === false) {
+  if (
+    pathname?.startsWith("/modules/2") &&
+    gateState === MODULE2_ENTRY_GATE_STATES.WAITING_FOR_PROGRESS
+  ) {
     return (
       <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-        <p className="text-sm text-theme-dark/80">Taking you to the next step…</p>
+        <Panel className="max-w-md w-full space-y-3 text-center">
+          <p
+            className="text-sm text-theme-dark/80"
+            data-testid="module2-gate-waiting"
+            aria-live="polite"
+          >
+            {gateMessage || MODULE2_WAITING_MESSAGE}
+          </p>
+        </Panel>
+      </div>
+    );
+  }
+
+  if (
+    pathname?.startsWith("/modules/2") &&
+    gateState === MODULE2_ENTRY_GATE_STATES.ERROR
+  ) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
+        <Panel className="max-w-md w-full space-y-4 text-center">
+          <p
+            role="alert"
+            className="text-sm text-theme-red"
+            data-testid="module2-gate-error"
+          >
+            {gateMessage || MODULE2_GATE_ERROR_MESSAGE}
+          </p>
+          <button
+            type="button"
+            data-testid="module2-gate-retry"
+            className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+            onClick={() => setRetryToken((n) => n + 1)}
+          >
+            Retry
+          </button>
+        </Panel>
+      </div>
+    );
+  }
+
+  if (
+    pathname?.startsWith("/modules/2") &&
+    gateState === MODULE2_ENTRY_GATE_STATES.DENIED
+  ) {
+    return (
+      <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
+        <Panel className="max-w-md w-full space-y-4 text-center">
+          <p
+            role="alert"
+            className="text-sm text-theme-dark"
+            data-testid="module2-gate-denied"
+          >
+            {gateMessage || MODULE2_DENIED_MESSAGE}
+          </p>
+          <Link
+            href={MODULE2_SAFE_DENIAL_PATH}
+            className="inline-block bg-theme-blue text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
+            data-testid="module2-gate-return-success"
+          >
+            Return to Module 1 success
+          </Link>
+        </Panel>
       </div>
     );
   }

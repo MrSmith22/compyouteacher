@@ -142,7 +142,9 @@ export default function ModuleTwoMeetSituationsStep({
     setSavingCompletion(true);
     setCompletionError("");
     try {
-      const result = await onLessonComplete?.();
+      const result = await onLessonComplete?.({
+        answers: lessonState.answers || {},
+      });
       if (result === false) {
         setCompletionError(
           "We couldn’t save your progress. Please try again. If this keeps happening, ask your teacher for help."

@@ -321,7 +321,7 @@ export default function ModuleTwoTCharts() {
       setToast("Saved to your evidence library.");
       setTimeout(() => setToast(""), 1200);
       if (isLastAppeal) {
-        setTimeout(() => router.push("/modules/2/success"), 500);
+        setTimeout(() => router.push("/modules/2/matrix"), 500);
         return;
       }
       setActiveAppeal(nextAppeal);

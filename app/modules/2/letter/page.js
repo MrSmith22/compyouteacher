@@ -273,6 +273,24 @@ export default function ModuleTwoChooseLetter() {
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">
+      <div
+        className="max-w-4xl mx-auto mb-4 rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-3 text-sm text-theme-dark"
+        role="status"
+        data-testid="legacy-apa-route-banner"
+      >
+        <p className="font-semibold text-theme-orange">Legacy APA source-writing route</p>
+        <p className="mt-1">
+          The primary Module 2 path saves sources and gathers evidence in the
+          main wizard and T-charts. This page is kept for compatibility and does
+          not interrupt your main analysis process.
+        </p>
+        <a
+          href="/modules/2"
+          className="mt-2 inline-block font-semibold text-theme-blue underline"
+        >
+          Return to the main Module 2 path
+        </a>
+      </div>
       <form
         onSubmit={handleSave}
         className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 space-y-6"

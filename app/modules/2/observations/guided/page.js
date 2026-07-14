@@ -547,6 +547,26 @@ export default function GuidedObservationsPage() {
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark p-6">
       <div className="max-w-3xl mx-auto space-y-6">
+        <div
+          className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-3 text-sm text-theme-dark"
+          role="status"
+          data-testid="legacy-guided-route-banner"
+        >
+          <p className="font-semibold text-theme-orange">
+            Legacy guided observations
+          </p>
+          <p className="mt-1">
+            Guided observations remain readable evidence for older work. The
+            primary Module 2 evidence path is T-charts. Saved guided rows are
+            not deleted.
+          </p>
+          <a
+            href="/modules/2/tcharts"
+            className="mt-2 inline-block font-semibold text-theme-blue underline"
+          >
+            Go to the primary evidence path (T-charts)
+          </a>
+        </div>
         <div className="space-y-2 text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/70">
             Guided observation {currentIndex + 1} of {TOTAL}
