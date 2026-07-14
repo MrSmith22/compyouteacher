@@ -279,6 +279,8 @@ export default function ModuleSixStepFrame({
   supportingResources = null,
   hideSupporting = false,
   supportingPlacement = "before",
+  /** When true, detailed success criteria render near the forward action instead of disclosures. */
+  deferSuccessCriteria = false,
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
   const exampleBlock = normalizeExample(example);
@@ -288,10 +290,9 @@ export default function ModuleSixStepFrame({
   const visiblePurpose = pickVisiblePurpose(whyLines);
   const visibleFinished = pickVisibleFinished(successItems);
   const whyForDisclosure = remainingContractLines(whyLines, visiblePurpose);
-  const successForDisclosure = remainingContractLines(
-    successItems,
-    visibleFinished
-  );
+  const successForDisclosure = deferSuccessCriteria
+    ? []
+    : remainingContractLines(successItems, visibleFinished);
   const actionFirst = !!jobRightNow?.steps?.length;
   const howSummary = String(
     howToSucceed || (!actionFirst ? coachingMessage : "") || ""

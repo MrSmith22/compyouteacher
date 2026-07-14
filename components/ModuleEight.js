@@ -38,6 +38,7 @@ import {
   HIERARCHY_FOCUS_RING_CLASS,
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
+import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
 import {
   getSectionCountFromOutline,
@@ -1101,6 +1102,17 @@ export default function ModuleEight() {
               Continue
             </button>
           </div>
+        ) : null}
+
+        {currentStep.type === MODULE8_STEP_TYPES.CREATE_DOC && !locked ? (
+          <SuccessCriteriaPanel
+            mode="gate"
+            items={[
+              "Your Google Doc is verified this session with your newest finished essay.",
+            ]}
+            lead="You’re ready when…"
+            note="Keep going unlocks after verification succeeds. Update or recovery actions stay available if the Doc needs repair."
+          />
         ) : null}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-4">

@@ -27,6 +27,7 @@ import ModuleSevenReadAloudSecondaryTeaching from "@/components/module7/ModuleSe
 import ModuleSevenStrategyCard from "@/components/module7/ModuleSevenStrategyCard";
 import EssayProseView from "@/components/module7/EssayProseView";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
+import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
 import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
   HIERARCHY_ACTION_FINAL_CLASS,
@@ -823,6 +824,7 @@ export default function ModuleSeven() {
         }
         sidebar={referenceShelf}
         hideSupporting={isReadAloudStep}
+        deferSuccessCriteria
       >
         {!isReadAloudStep ? (
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
@@ -1007,6 +1009,18 @@ export default function ModuleSeven() {
               </button>
             ) : null}
           </div>
+        ) : null}
+
+        {!locked ? (
+          <SuccessCriteriaPanel
+            items={presentation.successLooksLike}
+            lead="You’re ready when…"
+            note={
+              isReadAloudStep
+                ? "Keep going stays locked until a recording exists and you name one observation."
+                : "These are self-checks for clearer communication. Saving and finishing still use the same Module 7 rules as before."
+            }
+          />
         ) : null}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-4">

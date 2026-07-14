@@ -81,7 +81,10 @@ export function getModule6ReviewPresentation() {
       "You are not grading style here—only confirming every required section has prose.",
     ],
     successLooksLike: [
-      "Every section (introduction, body paragraphs, and conclusion) has writing.",
+      "Introduction has prose.",
+      "Every required body paragraph has prose.",
+      "Conclusion has prose.",
+      "Any empty or too-short section was reopened and written before finishing.",
     ],
     coachingMessage:
       "Scan each section. Use Edit to return to a section that needs more writing.",
@@ -121,7 +124,8 @@ export function getModule6StepPresentation(step, outline) {
       },
       successLooksLike: [
         "I know which outline section I am writing right now.",
-        "I am using my thesis and notes—not inventing a new argument.",
+        "I am using my thesis and outline notes—not inventing a new argument.",
+        "This section has complete sentences ready to keep going.",
       ],
       coachingMessage:
         "Follow Your job right now. Tap Need Help if you need your thesis or outline.",
@@ -168,7 +172,7 @@ export function getModule6StepPresentation(step, outline) {
       },
       successLooksLike: [
         "A reader would know what this essay is about from my first sentences.",
-        "I gave enough background before my thesis.",
+        "I gave background a reader needs before my thesis.",
         "My introduction ends with the thesis I already planned—not a new idea.",
         "I can point to where I am leading my reader.",
       ],
@@ -322,7 +326,7 @@ export function getModule6StepPresentation(step, outline) {
       "I restated my thesis in fresh words (not copied word-for-word).",
       "I briefly reminded the reader of my strongest points.",
       "I ended with one clear final thought—not a new body paragraph.",
-      "My conclusion feels short and finished.",
+      "My conclusion stays a short closing (no new main claim).",
     ],
     coachingMessage:
       "Follow Your job right now. Keep it short. Need Help has your thesis (blue) and conclusion notes (green).",

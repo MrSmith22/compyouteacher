@@ -32,8 +32,8 @@ export function getModule7StepPresentation(step, outline) {
           "You are listening for clarity—not starting a new draft.",
         ],
         successLooksLike: [
-          "You recorded and listened to the essay at least once.",
-          "You noticed at least one place that could be clearer for a reader.",
+          "A recording of your read-aloud exists.",
+          "You named one place you noticed while listening (required to keep going).",
           "You are ready to revise one section at a time.",
         ],
         example: "",
@@ -59,9 +59,9 @@ export function getModule7StepPresentation(step, outline) {
           "Your original draft was complete work—you strengthened how the ideas land.",
         ],
         successLooksLike: [
-          "You can follow the thesis through the essay more easily.",
-          "You treat the first draft as complete work you made stronger.",
-          "You are ready to finish revising and move toward submission prep.",
+          "You can point to where the thesis appears and returns in the essay.",
+          "You treat the first draft as complete work you made clearer.",
+          "You are ready to finish revising and move to submission prep.",
         ],
         coachingMessage:
           "Confirm the essay communicates more clearly. If one spot still confuses a reader, go back to that section.",
@@ -139,7 +139,7 @@ export function getModule7StepPresentation(step, outline) {
         ],
         successLooksLike: [
           `You used this screen’s strategy: ${strategy.title}.`,
-          "This section connects more clearly for a reader.",
+          "This section’s point and evidence are clearer for a reader to follow.",
           "You improved one communication move in this section only.",
         ],
         coachingMessage: `${strategy.teach} Keep this section as your only working set.`,

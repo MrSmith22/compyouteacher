@@ -20,6 +20,7 @@ import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
 import InfoCallout from "@/components/ui/InfoCallout";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
+import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
 import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
   HIERARCHY_ACTION_FINAL_CLASS,
@@ -882,6 +883,7 @@ export default function ModuleSix() {
           jobRightNow={presentation.jobRightNow}
           supportingResources={supportingResources}
           sidebar={referenceShelf}
+          deferSuccessCriteria
         >
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
             <p className="text-[11px] leading-relaxed text-text-muted">
@@ -1026,6 +1028,16 @@ export default function ModuleSix() {
                 </button>
               </div>
             ) : null}
+
+            <SuccessCriteriaPanel
+              items={presentation.successLooksLike}
+              lead="You’re ready when…"
+              note={
+                isReviewStage
+                  ? "These are self-checks. The app still requires every section to have prose before your draft can finish."
+                  : "These are self-checks for your writing. Keep going still uses the same section-readiness rules as before."
+              }
+            />
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>

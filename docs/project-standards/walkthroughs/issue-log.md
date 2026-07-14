@@ -88,7 +88,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Needs Verification |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Needs Verification |
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Needs Verification |
-| WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Open |
+| WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Needs Verification |
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Open |
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Open |
 | WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Open |
@@ -1532,7 +1532,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Task screens across Modules 6–9
 - **Priority:** High
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Students often wonder whether they did enough to continue. Most screens lack explicit “You’re ready to continue when…” checklists.
 
@@ -1546,11 +1546,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Audit Continue screens in Modules 6–9.
 2. Confirm each has visible success criteria.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/shared/SuccessCriteriaPanel.jsx`; `components/ModuleSix.js`; `components/ModuleSeven.js`; `components/ModuleEight.js`; `components/module9/ModuleNineApaLesson.jsx`; `tests/wp051-visible-success-criteria.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 6–9 pass only. Added `SuccessCriteriaPanel` (“Before you continue”) after active work / before forward actions for Module 6 drafting/review and Module 7 read-aloud/revision/final-review using `successLooksLike` (review expanded to four observable prose checks; read-aloud aligned to recording + named observation gate). Module 8 Create clarifies the single verified-Doc gate; Format/Ready keep existing APA + confidence checklists without duplication. Module 9 APA micro-practice shows one feedback condition; Steps 3–4 keep existing checklists. WP-048 one-line finished cue retained; detailed panel deferred out of disclosures via `deferSuccessCriteria`. No new progression gates. Status **Needs Verification** (app-wide issue).
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

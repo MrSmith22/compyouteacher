@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from "react";
 import ModuleNineApaVisual from "@/components/module9/ModuleNineApaVisual";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
+import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
 import {
   MODULE9_APA_CONCEPTS,
   MODULE9_APA_ENTRY,
@@ -221,6 +222,12 @@ export default function ModuleNineApaLesson({
             learn from it—even if your first try was not the target answer.
           </p>
         )}
+
+        <SuccessCriteriaPanel
+          mode="micro"
+          items={["You chose an answer and read its teaching feedback."]}
+          lead="You’re ready when…"
+        />
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-3">
           <button
