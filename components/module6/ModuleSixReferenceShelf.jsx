@@ -143,9 +143,10 @@ export default function ModuleSixReferenceShelf({
     >
       <WorkingNotebookCurrentPage page={notebookPage} />
       <details
-        className="rounded-xl border border-border-soft/70 bg-surface-soft/30"
+        className="rounded-xl border border-role-reference/30 bg-role-reference/[0.06]"
         data-testid="module6-more-saved-work"
         data-hierarchy-level="reference"
+        data-instructional-color-role="reference"
       >
         <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
           <span>More saved work</span>

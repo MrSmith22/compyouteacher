@@ -1,3 +1,8 @@
+import {
+  HIERARCHY_ACTION_PRIMARY_CLASS,
+  HIERARCHY_FOCUS_RING_CLASS,
+} from "@/lib/ui/hierarchyContract";
+
 export default function ModuleSevenReadAloud({
   recording,
   audioURL,
@@ -14,7 +19,11 @@ export default function ModuleSevenReadAloud({
   const listenItems = Array.isArray(checklist) ? checklist.filter(Boolean) : [];
 
   const controls = (
-    <div className="space-y-4 text-left" data-testid="module7-read-aloud-recorder">
+    <div
+      className="space-y-4 text-left"
+      data-testid="module7-read-aloud-recorder"
+      data-instructional-color-role="instruction"
+    >
       {prominent ? (
         <div className="space-y-1">
           <p className="text-sm font-semibold text-text-primary">Record and play back</p>
@@ -35,9 +44,11 @@ export default function ModuleSevenReadAloud({
             type="button"
             onClick={onStart}
             disabled={locked}
+            aria-label="Start read-aloud recording"
             className={[
-              "rounded-lg bg-theme-red font-semibold text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark",
-              prominent ? "min-h-[44px] px-6 py-3 text-base" : "min-h-[44px] px-4 py-2 text-sm",
+              HIERARCHY_ACTION_PRIMARY_CLASS,
+              HIERARCHY_FOCUS_RING_CLASS,
+              prominent ? "px-6 py-3 text-base" : "",
             ].join(" ")}
           >
             Start read-aloud
@@ -46,9 +57,12 @@ export default function ModuleSevenReadAloud({
           <button
             type="button"
             onClick={onStop}
+            aria-label="Stop recording"
             className={[
-              "rounded-lg bg-yellow-500 font-semibold text-white shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark",
-              prominent ? "min-h-[44px] px-6 py-3 text-base" : "min-h-[44px] px-4 py-2 text-sm",
+              // Action/status in-progress emphasis — not evidence gold or revision role.
+              "min-h-[44px] rounded-lg bg-theme-orange px-5 py-2.5 text-sm font-semibold text-white shadow-soft",
+              HIERARCHY_FOCUS_RING_CLASS,
+              prominent ? "px-6 py-3 text-base" : "",
             ].join(" ")}
           >
             Stop recording

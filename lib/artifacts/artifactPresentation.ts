@@ -22,6 +22,11 @@ export type ArtifactPresentation = {
   softSurfaceClassName: string;
 };
 
+/**
+ * Shared artifact identity presentation.
+ * WP-061: evidence → role-evidence (gold); draft → role-writing (purple).
+ * Keys/labels/descriptions unchanged. Other identities retained.
+ */
 export const artifactPresentationRegistry: Record<
   ArtifactPresentationKey,
   ArtifactPresentation
@@ -41,12 +46,13 @@ export const artifactPresentationRegistry: Record<
     key: "evidence",
     label: "Evidence",
     icon: "quote",
-    colorToken: "theme-green",
+    colorToken: "role-evidence",
     description: "Quotes, observations, and supporting details",
-    chipClassName: "bg-theme-green/10 text-theme-green border-theme-green/15",
-    badgeClassName: "bg-theme-green/10 text-theme-green",
-    accentClassName: "text-theme-green",
-    softSurfaceClassName: "bg-theme-green/5 border-theme-green/15",
+    chipClassName:
+      "bg-role-evidence/10 text-role-evidence border-role-evidence/20",
+    badgeClassName: "bg-role-evidence/10 text-role-evidence",
+    accentClassName: "text-role-evidence",
+    softSurfaceClassName: "bg-role-evidence/5 border-role-evidence/20",
   },
   evidence_cluster: {
     key: "evidence_cluster",
@@ -131,12 +137,12 @@ export const artifactPresentationRegistry: Record<
     key: "draft",
     label: "Draft",
     icon: "draft",
-    colorToken: "theme-blue",
+    colorToken: "role-writing",
     description: "Draft writing and section development",
-    chipClassName: "bg-theme-blue/10 text-theme-blue border-theme-blue/15",
-    badgeClassName: "bg-theme-blue/10 text-theme-blue",
-    accentClassName: "text-theme-blue",
-    softSurfaceClassName: "bg-theme-blue/5 border-theme-blue/15",
+    chipClassName: "bg-role-writing/10 text-role-writing border-role-writing/20",
+    badgeClassName: "bg-role-writing/10 text-role-writing",
+    accentClassName: "text-role-writing",
+    softSurfaceClassName: "bg-role-writing/5 border-role-writing/20",
   },
 };
 

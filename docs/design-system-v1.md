@@ -72,23 +72,58 @@ Future work should prefer semantic usage over raw palette references when possib
 
 ### Status and action colors
 
-- **Primary action**: `theme-blue`
+These remain a separate system from instructional roles.
+
+- **Primary action**: `theme-blue` (`HIERARCHY_ACTION_PRIMARY_CLASS`)
 - **Progress / success / confirmation**: `theme-green`
-- **Instructional warning / in-progress emphasis**: `theme-orange`
+- **Final / high-stakes action**: `theme-orange` (`HIERARCHY_ACTION_FINAL_CLASS`)
+- **In-progress / warning emphasis**: `theme-orange` with a text label
 - **Destructive / critical**: `theme-red`
+
+Action and status colors must not be re-read as instructional roles:
+
+- Primary action blue does **not** make a button an instruction card
+- Success green does **not** make a message “student thinking”
+- Final-action orange does **not** make a button a revision surface
+- Errors remain red
+
+### Instructional role colors (WP-061)
+
+Authoritative instructional-role table for Modules 6–9 (first application pass):
+
+| Role | Meaning | Color | Token |
+| --- | --- | --- | --- |
+| Instruction | Teacher coaching and directions | Blue | `role-instruction` `#1B406D` |
+| Student thinking | Student-created ideas/responses | Green | `role-thinking` `#0A4F47` |
+| Evidence | Quotes and supporting details | Yellow/gold | `role-evidence` `#7A5C00` |
+| Writing | Drafting and prose | Purple | `role-writing` `#5C3D6E` |
+| Revision | Strengthening existing writing | Orange | `role-revision` `#B45309` |
+| Reference | Optional/saved support | Gray | `role-reference` `#6B7280` |
+
+Rules:
+
+- Instructional colors use soft tints and labelled surfaces (`data-instructional-color-role` and/or visible headings)
+- Color never replaces text labels, chips, or accessible names
+- Soft surfaces use low-opacity tints; borders stay subtle
+- Role text colors are chosen for WCAG AA against white
+- Pure contract: `lib/ui/instructionalColorContract.js`
 
 ### Artifact colors
 
 These are the V1 semantic artifact color assignments. They use the existing muted palette and should be applied consistently across modules and the teacher dashboard.
 
-- **Sources**: `theme-blue`
-- **Evidence**: `theme-green`
-- **Evidence Clusters**: `theme-dark-blue`
-- **Patterns**: `theme-orange`
-- **Ideas**: `theme-deep-green`
-- **Claims**: `theme-blue`
-- **Thesis**: `theme-dark`
-- **Proof Plan**: `theme-orange`
+Artifact identity and instructional surface role are related but not identical.
+
+- **Sources**: `theme-blue` (retained)
+- **Evidence**: `role-evidence` (WP-061 — gold; keys/labels unchanged)
+- **Evidence Clusters**: `theme-dark-blue` (retained)
+- **Patterns**: `theme-orange` (retained artifact identity; not revision role)
+- **Ideas**: `theme-deep-green` (retained)
+- **Claims**: `theme-blue` (retained)
+- **Thesis**: `theme-dark` (retained)
+- **Proof Plan**: `theme-orange` (retained)
+- **Outline**: `theme-dark` (retained)
+- **Draft**: `role-writing` (WP-061 — purple writing identity)
 
 These colors should usually appear as:
 
@@ -98,7 +133,7 @@ These colors should usually appear as:
 - artifact count pills
 - icon accents
 
-They should not turn the interface into a bright color map. Color is an identity aid, not a decoration layer.
+They should not turn the interface into a bright color map. Color is an identity aid, not a decoration layer. Every artifact chip remains text-labelled.
 
 ## 4. Typography
 

@@ -4,6 +4,8 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
     "./lib/ui/**/*.{js,ts,jsx,tsx}",
+    // WP-061 — static role-* classes in shared artifact presentation registry
+    "./lib/artifacts/artifactPresentation.ts",
   ],
   theme: {
     extend: {
@@ -20,12 +22,20 @@ module.exports = {
         "theme-deep-green": "#0A4F47",
         "theme-muted": "#6B7280",
 
-        // Semantic Roles (NEW)
-        "surface": "#FFFFFF",
+        // Surface / text semantics
+        surface: "#FFFFFF",
         "surface-soft": "#F9FAFB",
         "border-soft": "#E5E7EB",
         "text-primary": "#282A30",
         "text-muted": "#6B7280",
+
+        // WP-061 — instructional role semantics (M6–9 pilot)
+        "role-instruction": "#1B406D",
+        "role-thinking": "#0A4F47",
+        "role-evidence": "#7A5C00",
+        "role-writing": "#5C3D6E",
+        "role-revision": "#B45309",
+        "role-reference": "#6B7280",
       },
 
       boxShadow: {

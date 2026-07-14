@@ -17,9 +17,10 @@ export default function WorkingNotebookCurrentPage({ page = null }) {
       data-testid="working-notebook-current-page"
       data-notebook-step={String(page.stepType || "")}
       data-current-artifacts={kinds}
-      className="rounded-xl border border-border-soft/70 bg-white/80 px-3.5 py-3 text-left shadow-soft"
+      data-instructional-color-role="student-thinking"
+      className="rounded-xl border border-role-thinking/25 bg-role-thinking/[0.05] px-3.5 py-3 text-left shadow-soft"
     >
-      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-role-thinking">
         Working notebook
       </p>
       <p className="mt-1 text-sm font-semibold leading-snug text-text-primary break-words">

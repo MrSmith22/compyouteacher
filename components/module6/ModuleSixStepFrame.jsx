@@ -125,6 +125,7 @@ function JobRightNowCard({ jobRightNow }) {
       className={HIERARCHY_INSTRUCTION_CLASS}
       data-testid="screen-contract-how"
       data-hierarchy-level={HIERARCHY_LEVELS.instruction}
+      data-instructional-color-role="instruction"
     >
       <p className={HIERARCHY_INSTRUCTION_LABEL_CLASS}>Your job right now</p>
       {jobRightNow.lead ? (
@@ -327,9 +328,10 @@ export default function ModuleSixStepFrame({
           {actionFirst ? (
             <section
               id={MODULE6_NEED_HELP_ID}
-              className="scroll-mt-24 space-y-4 rounded-xl border border-border-soft/70 bg-surface-soft/30 px-4 py-4 md:px-5"
+              className="scroll-mt-24 space-y-4 rounded-xl border border-role-reference/30 bg-role-reference/[0.06] px-4 py-4 md:px-5"
               aria-labelledby="module-6-need-help-heading"
               data-hierarchy-level={HIERARCHY_LEVELS.reference}
+              data-instructional-color-role="reference"
             >
               <div className="space-y-1 text-left">
                 <p

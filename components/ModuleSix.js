@@ -27,10 +27,13 @@ import {
   HIERARCHY_ACTION_PRIMARY_CLASS,
   HIERARCHY_ACTION_SECONDARY_CLASS,
   HIERARCHY_FOCUS_RING_CLASS,
-  HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import { getModule6ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import { RHYTHM_WITHIN_SURFACE_CLASS } from "@/lib/ui/instructionalRhythmContract";
+import {
+  ROLE_WRITING_TEXTAREA_CLASS,
+  ROLE_WRITING_WORK_SURFACE_CLASS,
+} from "@/lib/ui/instructionalColorContract";
 import {
   getWritingSectionLabel,
   getModule6StepPresentation,
@@ -73,8 +76,7 @@ import {
   deriveModule6FullText,
 } from "@/lib/module6/draftPersistenceHelpers";
 
-const DRAFT_TEXTAREA_CLASS =
-  "min-h-[min(420px,52vh)] w-full max-w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 disabled:cursor-not-allowed disabled:opacity-60";
+const DRAFT_TEXTAREA_CLASS = ROLE_WRITING_TEXTAREA_CLASS;
 
 export default function ModuleSix() {
   const { data: session } = useSession();
@@ -942,7 +944,7 @@ export default function ModuleSix() {
 
           {isReviewStage ? (
             <WorkingSetSection
-              className={HIERARCHY_WORK_SURFACE_CLASS}
+              className={ROLE_WRITING_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
               description={presentation.workingSetDescription}
             >
@@ -952,6 +954,7 @@ export default function ModuleSix() {
                 tabIndex={-1}
                 data-rhythm-contract="within-surface"
                 data-testid="module6-review-section-list"
+                data-instructional-color-role="writing"
               >
                 {reviewBlocks.map(({ step, text, ready, words }) => (
                   <div
@@ -993,14 +996,19 @@ export default function ModuleSix() {
             </WorkingSetSection>
           ) : (
             <WorkingSetSection
-              className={HIERARCHY_WORK_SURFACE_CLASS}
+              className={ROLE_WRITING_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
               description={
                 presentation.workingSetDescription ||
                 "Write this section first. Then continue."
               }
             >
-              <div className="space-y-3 text-left" ref={deskFocusRef} tabIndex={-1}>
+              <div
+                className="space-y-3 text-left"
+                ref={deskFocusRef}
+                tabIndex={-1}
+                data-instructional-color-role="writing"
+              >
                 <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
                 <textarea
                   spellCheck

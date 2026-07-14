@@ -34,10 +34,16 @@ import {
   HIERARCHY_ACTION_FINAL_CLASS,
   HIERARCHY_ACTION_PRIMARY_CLASS,
   HIERARCHY_ACTION_SECONDARY_CLASS,
-  HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import { getModule7ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import { RHYTHM_PAGE_CLASS } from "@/lib/ui/instructionalRhythmContract";
+import {
+  ROLE_REVISION_TEXTAREA_CLASS,
+  ROLE_REVISION_WORK_SURFACE_CLASS,
+  ROLE_WRITING_ESSAY_COMPACT_CLASS,
+  ROLE_WRITING_PROSE_CLASS,
+  ROLE_WRITING_WORK_SURFACE_CLASS,
+} from "@/lib/ui/instructionalColorContract";
 import {
   alignSectionsToOutline,
   getSectionCountFromOutline,
@@ -71,14 +77,11 @@ const FINAL_REVIEW_STEP = {
   type: MODULE7_STEP_TYPES.FINAL_REVIEW,
 };
 
-const FULL_DRAFT_READ_CLASS =
-  "max-h-[min(480px,60vh)] overflow-y-auto rounded-xl border-2 border-theme-dark/15 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft";
+const FULL_DRAFT_READ_CLASS = ROLE_WRITING_PROSE_CLASS;
 
-const READ_ALOUD_ESSAY_CLASS =
-  "max-h-[min(180px,28vh)] overflow-y-auto rounded-xl border-2 border-theme-dark/15 bg-white px-4 py-3 text-base leading-7 text-text-primary shadow-soft md:max-h-[min(240px,30vh)]";
+const READ_ALOUD_ESSAY_CLASS = ROLE_WRITING_ESSAY_COMPACT_CLASS;
 
-const REVISION_TEXTAREA_CLASS =
-  "min-h-[min(320px,48vh)] w-full resize-y rounded-xl border-2 border-theme-dark/20 bg-white px-4 py-4 text-base leading-7 text-text-primary shadow-soft focus:border-theme-blue/50 focus:outline-none focus:ring-2 focus:ring-theme-blue/20 disabled:cursor-not-allowed disabled:opacity-60";
+const REVISION_TEXTAREA_CLASS = ROLE_REVISION_TEXTAREA_CLASS;
 
 const ACTION_BUTTON_FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark";
@@ -903,13 +906,14 @@ export default function ModuleSeven() {
 
             <div data-rhythm-chunk="essay">
               <WorkingSetSection
-                className={HIERARCHY_WORK_SURFACE_CLASS}
+                className={ROLE_WRITING_WORK_SURFACE_CLASS}
                 label={presentation.workingSetLabel}
                 description={presentation.workingSetDescription}
               >
                 <div
                   className={READ_ALOUD_ESSAY_CLASS}
                   data-testid="module7-current-essay"
+                  data-instructional-color-role="writing"
                 >
                   <EssayProseView
                     sectionSteps={sectionSteps}
@@ -981,12 +985,19 @@ export default function ModuleSeven() {
 
             <div data-rhythm-chunk="textarea">
             <WorkingSetSection
-              className={HIERARCHY_WORK_SURFACE_CLASS}
+              className={
+                isFinalReviewStep
+                  ? ROLE_WRITING_WORK_SURFACE_CLASS
+                  : ROLE_REVISION_WORK_SURFACE_CLASS
+              }
               label={presentation.workingSetLabel}
               description={presentation.workingSetDescription}
             >
               {isFinalReviewStep ? (
-                <div className="space-y-3 text-left">
+                <div
+                  className="space-y-3 text-left"
+                  data-instructional-color-role="writing"
+                >
                   <div className={FULL_DRAFT_READ_CLASS}>
                     <EssayProseView
                       sectionSteps={sectionSteps}
@@ -1004,7 +1015,10 @@ export default function ModuleSeven() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3 text-left">
+                <div
+                  className="space-y-3 text-left"
+                  data-instructional-color-role="revision"
+                >
                   <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
                   {sectionIsEmpty ? (
                     <p className="text-xs leading-relaxed text-text-muted">

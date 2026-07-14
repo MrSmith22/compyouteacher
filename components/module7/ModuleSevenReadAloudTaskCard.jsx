@@ -25,6 +25,7 @@ export default function ModuleSevenReadAloudTaskCard() {
       aria-label="Your revision strategy"
       data-testid="module7-read-aloud-task"
       data-hierarchy-level={HIERARCHY_LEVELS.instruction}
+      data-instructional-color-role="instruction"
     >
       <p className={HIERARCHY_INSTRUCTION_LABEL_CLASS}>Your revision strategy</p>
       <h2 className={HIERARCHY_INSTRUCTION_LEAD_CLASS}>Listen like a reader</h2>

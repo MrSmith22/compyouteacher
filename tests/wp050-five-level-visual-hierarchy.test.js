@@ -208,10 +208,10 @@ describe("WP-050 five-level visual hierarchy (Modules 6–9)", () => {
     assert.ok(HIERARCHY_TASK_CLASS.includes("font-bold"));
     assert.ok(HIERARCHY_OBJECTIVE_CLASS.includes("text-text-muted"));
     assert.ok(!HIERARCHY_OBJECTIVE_CLASS.includes("md:text-base"));
-    assert.ok(HIERARCHY_INSTRUCTION_CLASS.includes("border-border-soft"));
+    assert.ok(HIERARCHY_INSTRUCTION_CLASS.includes("role-instruction"));
     assert.ok(!HIERARCHY_INSTRUCTION_CLASS.includes("border-2"));
     assert.ok(!HIERARCHY_INSTRUCTION_CLASS.includes("shadow-soft"));
-    assert.ok(HIERARCHY_DESK_CLASS.includes("bg-surface-soft/30"));
+    assert.ok(HIERARCHY_DESK_CLASS.includes("role-thinking"));
     assert.ok(!HIERARCHY_DESK_CLASS.includes("shadow-soft"));
     assert.ok(HIERARCHY_WORK_SURFACE_CLASS.includes("border-2"));
     assert.ok(HIERARCHY_WORK_SURFACE_CLASS.includes("shadow-md"));
@@ -257,8 +257,16 @@ describe("WP-050 five-level visual hierarchy (Modules 6–9)", () => {
     const m6 = readSrc("components/ModuleSix.js");
     const m7 = readSrc("components/ModuleSeven.js");
     const m8 = readSrc("components/ModuleEight.js");
-    assert.ok(m6.includes("HIERARCHY_WORK_SURFACE_CLASS"));
-    assert.ok(m7.includes("HIERARCHY_WORK_SURFACE_CLASS"));
+    // WP-061: Modules 6–7 may use role-specific writing/revision work surfaces.
+    assert.ok(
+      m6.includes("HIERARCHY_WORK_SURFACE_CLASS") ||
+        m6.includes("ROLE_WRITING_WORK_SURFACE_CLASS")
+    );
+    assert.ok(
+      m7.includes("HIERARCHY_WORK_SURFACE_CLASS") ||
+        m7.includes("ROLE_WRITING_WORK_SURFACE_CLASS") ||
+        m7.includes("ROLE_REVISION_WORK_SURFACE_CLASS")
+    );
     assert.ok(m8.includes("HIERARCHY_WORK_SURFACE_CLASS"));
   });
 

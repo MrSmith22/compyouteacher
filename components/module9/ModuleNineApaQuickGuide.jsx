@@ -21,8 +21,9 @@ export default function ModuleNineApaQuickGuide({
 
   return (
     <aside
-      className="overflow-x-hidden rounded-xl border border-theme-blue/25 bg-theme-blue/[0.04] px-4 py-3 shadow-soft"
+      className="overflow-x-hidden rounded-xl border border-role-reference/30 bg-role-reference/[0.06] px-4 py-3 shadow-soft"
       data-testid="module9-apa-quick-guide"
+      data-instructional-color-role="reference"
       aria-label="APA Quick Guide"
     >
       <ModuleNineDisclosure

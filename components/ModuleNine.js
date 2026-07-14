@@ -56,10 +56,8 @@ import {
 import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
 import { MODULE9_SCREEN_CONTRACT } from "@/lib/module9/module9ScreenContract";
 import {
-  RHYTHM_INSTRUCTION_CARD_CLASS,
   RHYTHM_MOBILE_SAFE_CLASS,
   RHYTHM_PAGE_CLASS,
-  RHYTHM_PROSE_CLASS,
 } from "@/lib/ui/instructionalRhythmContract";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
@@ -972,9 +970,10 @@ export default function ModuleNine() {
               </p>
               <ModuleNineApaQuickGuide compact />
               <div
-                className="space-y-2"
+                className="space-y-2 rounded-lg border border-role-thinking/20 bg-role-thinking/[0.04] px-3 py-3"
                 data-rhythm-chunk="format-checklist"
                 data-testid="module9-format-checklist-work"
+                data-instructional-color-role="student-thinking"
               >
                 {CHECKLIST_ITEMS.map((label, i) => (
                   <label
@@ -1083,9 +1082,10 @@ export default function ModuleNine() {
               <ModuleNineApaQuickGuide compact />
 
               <div
-                className={`${RHYTHM_INSTRUCTION_CARD_CLASS} space-y-3 ${RHYTHM_PROSE_CLASS}`}
+                className="space-y-3 rounded-lg border border-role-instruction/25 bg-role-instruction/[0.05] px-4 py-3 text-left text-sm text-text-primary md:px-5 md:py-4 max-w-3xl leading-relaxed"
                 data-testid="module9-pdf-download-instructions"
                 data-rhythm-chunk="download"
+                data-instructional-color-role="instruction"
               >
                 <h3 className="text-base font-semibold text-text-primary">
                   Download your Google Doc as a PDF
@@ -1117,9 +1117,10 @@ export default function ModuleNine() {
               </div>
 
               <div
-                className="space-y-3 rounded-lg border border-theme-orange/25 bg-theme-orange/[0.05] px-4 py-3 text-sm text-text-primary md:px-5 md:py-4"
+                className="space-y-3 rounded-lg border border-role-instruction/25 bg-role-instruction/[0.05] px-4 py-3 text-sm text-text-primary md:px-5 md:py-4"
                 data-testid="module9-pdf-upload-coaching"
                 data-rhythm-chunk="upload-coaching"
+                data-instructional-color-role="instruction"
               >
                 <h3 className="text-base font-semibold text-text-primary">
                   Upload your PDF

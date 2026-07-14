@@ -25,9 +25,10 @@ export default function TaskRelevantArtifacts({
       data-testid="task-relevant-artifacts"
       data-hierarchy-level={HIERARCHY_LEVELS.work}
       data-hierarchy-emphasis="support"
+      data-instructional-color-role="student-thinking"
       aria-label={heading}
     >
-      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-role-thinking">
         {heading}
       </p>
       <div className="mt-2.5 space-y-2">

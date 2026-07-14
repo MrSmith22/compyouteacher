@@ -21,16 +21,16 @@ function FormattingVsRewriting() {
   return (
     <PaperShell label="Ideas stay the same while APA appearance changes">
       <div className="grid grid-cols-2 gap-px bg-border-soft">
-        <div className="bg-theme-green/10 px-2 py-3 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-theme-green">
+        <div className="bg-role-thinking/10 px-2 py-3 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-role-thinking">
             Ideas
           </p>
           <p className="mt-2 text-[11px] leading-snug text-text-primary">
             Your finished essay stays.
           </p>
         </div>
-        <div className="bg-theme-blue/10 px-2 py-3 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-theme-blue">
+        <div className="bg-role-instruction/10 px-2 py-3 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-role-instruction">
             Appearance
           </p>
           <p className="mt-2 text-[11px] leading-snug text-text-primary">
@@ -47,10 +47,10 @@ function PageSetup() {
     <PaperShell label="Times New Roman 12, double spacing, one-inch margins">
       <div className="relative bg-white p-4">
         <div
-          className="pointer-events-none absolute inset-2 border border-dashed border-theme-orange/70"
+          className="pointer-events-none absolute inset-2 border border-dashed border-role-instruction/60"
           aria-hidden="true"
         />
-        <p className="text-center text-[10px] font-semibold text-theme-orange">
+        <p className="text-center text-[10px] font-semibold text-role-instruction">
           1&quot; margin
         </p>
         <div className="mt-3 space-y-2 px-1 font-[Times_New_Roman,Times,serif] text-[11px] leading-[1.9] text-text-primary">

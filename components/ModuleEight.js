@@ -73,7 +73,7 @@ const CHECKLIST_ITEMS = [
 ];
 
 const FINISHED_ESSAY_PREVIEW_CLASS =
-  "max-h-[min(280px,40vh)] overflow-y-auto rounded-xl border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-sm leading-7 text-text-primary";
+  "max-h-[min(280px,40vh)] overflow-y-auto rounded-xl border border-role-reference/30 bg-role-reference/[0.06] px-4 py-3 text-sm leading-7 text-text-primary";
 
 function PreparationProgressPanel({
   hasGoogleDoc,
@@ -697,20 +697,24 @@ export default function ModuleEight() {
   );
 
   const finishedEssayPreview = (
-    <InstructionalDisclosure
-      title={`More saved work — finished essay (${wordCount} words)`}
-    >      <div className={FINISHED_ESSAY_PREVIEW_CLASS}>
-        <EssayProseView
-          sectionSteps={sectionSteps}
-          sections={sections}
-          blockClassName="mb-4 last:mb-0"
-        />
-      </div>
-      <p className="text-[11px] leading-relaxed text-text-muted">
-        Your finished essay stays here (reference only). Your Google Doc is the
-        paper you will format and turn in.
-      </p>
-    </InstructionalDisclosure>
+    <div data-instructional-color-role="reference">
+      <InstructionalDisclosure
+        title={`More saved work — finished essay (${wordCount} words)`}
+        className="border-role-reference/30 bg-role-reference/[0.04]"
+      >
+        <div className={FINISHED_ESSAY_PREVIEW_CLASS}>
+          <EssayProseView
+            sectionSteps={sectionSteps}
+            sections={sections}
+            blockClassName="mb-4 last:mb-0"
+          />
+        </div>
+        <p className="text-[11px] leading-relaxed text-text-muted">
+          Your finished essay stays here (reference only). Your Google Doc is the
+          paper you will format and turn in.
+        </p>
+      </InstructionalDisclosure>
+    </div>
   );
 
   return (
@@ -731,13 +735,17 @@ export default function ModuleEight() {
           data-testid="module8-prepare-cluster"
         >
           <div
-            className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-left md:px-5 md:py-4"
+            className="rounded-lg border border-role-instruction/25 bg-role-instruction/[0.05] px-4 py-3 text-left md:px-5 md:py-4"
             data-hierarchy-level="instruction"
             data-testid="module8-submission-doc-framing"
             data-build-forward-module="8"
             data-rhythm-chunk="framing"
+            data-instructional-color-role="instruction"
           >
-            <p className="text-sm font-semibold text-text-primary">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-role-instruction">
+              Instruction
+            </p>
+            <p className="mt-1 text-sm font-semibold text-text-primary">
               Prepare Your Essay for Submission
             </p>
             <p className="mt-2 text-sm leading-relaxed text-text-primary">
@@ -904,13 +912,14 @@ export default function ModuleEight() {
 
               {/* Stage 2 — What you will change */}
               <section
-                className="rounded-lg border border-border-soft/60 bg-surface-soft/30 px-4 py-3"
+                className="rounded-lg border border-role-instruction/25 bg-role-instruction/[0.05] px-4 py-3"
                 data-testid="module8-format-what-you-change"
+                data-instructional-color-role="instruction"
                 aria-labelledby="module8-format-change-heading"
               >
                 <h3
                   id="module8-format-change-heading"
-                  className="text-sm font-semibold text-text-primary"
+                  className="text-sm font-semibold text-role-instruction"
                 >
                   What you will change
                 </h3>
@@ -1073,14 +1082,18 @@ export default function ModuleEight() {
               </div>
 
               <section
-                className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3"
+                className="rounded-lg border border-role-thinking/25 bg-role-thinking/[0.05] px-4 py-3"
                 data-testid="module8-ready-confidence-checklist"
                 data-rhythm-chunk="ready-confidence"
+                data-instructional-color-role="student-thinking"
                 aria-labelledby="module8-ready-confidence-heading"
               >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-role-thinking">
+                  Your thinking
+                </p>
                 <h3
                   id="module8-ready-confidence-heading"
-                  className="text-sm font-semibold text-text-primary"
+                  className="mt-1 text-sm font-semibold text-text-primary"
                 >
                   Before continuing
                 </h3>

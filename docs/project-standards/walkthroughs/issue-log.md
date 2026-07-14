@@ -98,7 +98,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Needs Verification |
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Needs Verification |
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Needs Verification |
-| WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
+| WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Needs Verification |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
@@ -1846,11 +1846,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-061 — Instructional color semantics not applied application-wide
 
-- **Module:** App-wide
+- **Module:** App-wide (pilot: Modules 6–9)
 - **Screen or area:** All instructional screens
 - **Priority:** Medium
 - **Category:** Visual Design
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Color is discussed throughout the walkthrough but not applied consistently. Students should eventually recognize blue = instruction, green = student thinking, yellow = evidence, purple = writing, orange = revision, gray = reference.
 
@@ -1864,9 +1864,15 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Compare pages against semantic color table.
 2. Confirm consistent role-to-color mapping.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `tailwind.config.js`, `lib/ui/instructionalColorContract.js`, `lib/ui/hierarchyContract.js`, `lib/artifacts/artifactPresentation.ts`, `docs/design-system-v1.md`, Modules 6–9 shared instructional surfaces, `tests/wp061-instructional-color-semantics.test.js`
 
 **Resolution notes:**
+- Semantic roles: instruction (`#1B406D`), student-thinking (`#0A4F47`), evidence (`#7A5C00`), writing (`#5C3D6E`), revision (`#B45309`), reference (`#6B7280`). Soft tint surfaces + `data-instructional-color-role`.
+- Action/status stay separate: primary blue, success green, final/in-progress orange, error red. Stop-recording uses labelled `theme-orange` (not evidence gold); Start uses primary action blue. Removed raw `yellow-500`.
+- Artifact registry: evidence→`role-evidence`, draft→`role-writing` (labels/keys/descriptions unchanged). Patterns/claims/thesis/etc. retained. Artifact identity ≠ instructional surface role.
+- Application matrix covers M6 drafting/notebook/reference, M7 read-aloud/observation/revision, M8 preparation/confidence, M9 APA teaching/Quick Guide/upload. Role text colors meet WCAG AA vs white (lighter `theme-gold` rejected for normal evidence text).
+- Status remains Needs Verification (app-wide; M6–9 pilot; browser bounded).
+- Browser: no listener on port 3000 during verification; role-colored states **not reached live**.
 
 **Resolved in commit:**
 

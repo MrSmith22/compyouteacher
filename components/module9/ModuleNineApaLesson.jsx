@@ -119,12 +119,13 @@ export default function ModuleNineApaLesson({
       />
 
       <section
-        className="space-y-4 rounded-xl border-2 border-theme-orange/35 bg-theme-orange/[0.06] px-4 py-5 shadow-soft md:px-6"
+        className="space-y-4 rounded-xl border border-role-instruction/30 bg-role-instruction/[0.05] px-4 py-5 shadow-soft md:px-6"
+        data-instructional-color-role="instruction"
         data-testid="module9-apa-concept"
         data-concept-id={concept.id}
       >
         <p
-          className="text-[11px] font-semibold uppercase tracking-[0.16em] text-theme-orange"
+          className="text-[11px] font-semibold uppercase tracking-[0.16em] text-role-instruction"
           data-testid="module9-apa-progress"
         >
           {progressLabel}
@@ -172,6 +173,7 @@ export default function ModuleNineApaLesson({
           className="space-y-2"
           data-testid="module9-apa-try-it"
           data-rhythm-chunk="apa-practice"
+          data-instructional-color-role="student-thinking"
         >
           <legend className="text-base font-bold text-text-primary">
             Try it
@@ -194,7 +196,7 @@ export default function ModuleNineApaLesson({
                     "flex min-h-[44px] cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 text-sm leading-snug transition",
                     "focus-within:outline-none focus-within:ring-2 focus-within:ring-theme-dark focus-within:ring-offset-2",
                     checked
-                      ? "border-theme-blue bg-white shadow-soft ring-1 ring-theme-blue/25"
+                      ? "border-role-thinking bg-white shadow-soft ring-1 ring-role-thinking/25"
                       : "border-border-soft bg-white/80 hover:bg-white",
                   ].join(" ")}
                 >
@@ -203,13 +205,13 @@ export default function ModuleNineApaLesson({
                     name={`module9-apa-${concept.id}`}
                     value={option.id}
                     checked={checked}
-                    className="mt-1 h-4 w-4 shrink-0 accent-theme-blue"
+                    className="mt-1 h-4 w-4 shrink-0 accent-role-thinking"
                     onChange={() => onSelect(option.id)}
                   />
                   <span className="flex-1 text-text-primary">
                     {option.label}
                     {showState ? (
-                      <span className="mt-0.5 block text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                      <span className="mt-0.5 block text-[11px] font-semibold uppercase tracking-wide text-role-thinking">
                         {option.correct ? "Matches the target" : "Needs a closer look"}
                       </span>
                     ) : null}

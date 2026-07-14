@@ -192,7 +192,8 @@ describe("WP-060 instructional rhythm (Modules 6–9)", () => {
     assert.match(m9, /module9-format-checklist-work/);
     assert.match(m9, /data-rhythm-chunk="format-checklist"/);
     assert.match(m9, /RHYTHM_PAGE_CLASS/);
-    assert.match(m9, /RHYTHM_INSTRUCTION_CARD_CLASS/);
+    // WP-061: download chunk uses instruction-role surface (card padding retained).
+    assert.match(m9, /role-instruction|RHYTHM_INSTRUCTION_CARD_CLASS/);
     assert.match(m9, /module9-upload-working-set/);
     assert.match(m9, /data-rhythm-chunk="download"/);
     assert.match(m9, /data-rhythm-chunk="upload-coaching"/);

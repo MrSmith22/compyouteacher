@@ -3,6 +3,7 @@
 /**
  * WP-020 — short strategy card before the Module 7 section working set.
  * Secondary explanations live in disclosures so the desk stays primary.
+ * WP-061 — revision-role orange (not instruction blue).
  */
 
 import ModuleSevenDisclosure from "@/components/module7/ModuleSevenDisclosure";
@@ -13,6 +14,9 @@ import {
   MODULE7_COMPARE_STAGE_LABEL,
   MODULE7_REVISION_CYCLE_LABEL,
 } from "@/lib/module7/module7ReadAloudObservation";
+import { INSTRUCTIONAL_COLOR_ROLES } from "@/lib/ui/instructionalColorContract";
+
+const REVISION = INSTRUCTIONAL_COLOR_ROLES.revision;
 
 export default function ModuleSevenStrategyCard({
   strategy,
@@ -41,13 +45,12 @@ export default function ModuleSevenStrategyCard({
     >
       {entry ? (
         <section
-          className="rounded-xl border-2 border-theme-green/30 bg-theme-green/5 px-4 py-4 shadow-soft"
+          className={REVISION.softSurfaceClass}
           aria-label="Module 7 revision entry"
           data-testid="module7-entry-teaching"
+          data-instructional-color-role="revision"
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-green">
-            Start Module 7
-          </p>
+          <p className={REVISION.labelClass}>Start Module 7</p>
           <h2 className="mt-1 text-lg font-bold leading-snug text-text-primary md:text-xl">
             {entry.title}
           </h2>
@@ -82,15 +85,16 @@ export default function ModuleSevenStrategyCard({
 
           {primary ? (
         <section
-          className="rounded-xl border border-border-soft/80 bg-surface-soft/50 px-4 py-4 text-left"
+          className={REVISION.softSurfaceClass}
           aria-label={`Revision strategy: ${primary.title}`}
           data-testid="module7-strategy-card"
           data-strategy-id={primary.id}
           data-strategy-focus={primary.focusId || ""}
           data-hierarchy-level="instruction"
+          data-instructional-color-role="revision"
         >
           <p
-            className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted"
+            className={REVISION.labelClass}
             data-testid="module7-revision-stage-label"
           >
             {stageLabel}
@@ -130,7 +134,7 @@ export default function ModuleSevenStrategyCard({
             </div>
           ) : null}
           {primary.deeperExplanation || primary.example?.sample ? (
-            <div className="mt-3">
+            <div className="mt-3" data-instructional-color-role="reference">
               <ModuleSevenDisclosure title="See an example">
                 {primary.deeperExplanation ? (
                   <p className="text-sm leading-relaxed text-text-muted">

@@ -8,8 +8,9 @@
 export default function ModuleNinePdfDownloadVisual({ className = "" }) {
   return (
     <figure
-      className={`overflow-x-hidden rounded-lg border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-3 sm:px-4 ${className}`}
+      className={`overflow-x-hidden rounded-lg border border-role-instruction/25 bg-role-instruction/[0.04] px-3 py-3 sm:px-4 ${className}`}
       data-testid="module9-pdf-download-visual"
+      data-instructional-color-role="instruction"
       aria-labelledby="module9-pdf-download-visual-caption"
     >
       <div
@@ -26,7 +27,7 @@ export default function ModuleNinePdfDownloadVisual({ className = "" }) {
             className="mt-1 flex flex-wrap gap-1 text-[10px] font-semibold text-text-primary"
             aria-hidden="true"
           >
-            <span className="rounded bg-theme-blue/15 px-1.5 py-0.5 text-theme-blue">
+            <span className="rounded bg-role-instruction/15 px-1.5 py-0.5 text-role-instruction">
               File
             </span>
             <span className="px-1 py-0.5 text-text-muted">Edit</span>
@@ -42,7 +43,7 @@ export default function ModuleNinePdfDownloadVisual({ className = "" }) {
           >
             <li className="px-2 py-1 text-text-muted">New</li>
             <li className="px-2 py-1 text-text-muted">Open</li>
-            <li className="flex items-center justify-between gap-1 bg-theme-blue/15 px-2 py-1 font-semibold text-theme-blue">
+            <li className="flex items-center justify-between gap-1 bg-role-instruction/15 px-2 py-1 font-semibold text-role-instruction">
               <span>Download</span>
               <span aria-hidden="true">▸</span>
             </li>
@@ -51,11 +52,11 @@ export default function ModuleNinePdfDownloadVisual({ className = "" }) {
 
           {/* Download submenu */}
           <ul
-            className="min-w-0 flex-1 rounded border border-theme-orange/40 bg-white py-1 text-[11px] leading-snug text-text-primary shadow-soft"
+            className="min-w-0 flex-1 rounded border border-role-instruction/30 bg-white py-1 text-[11px] leading-snug text-text-primary shadow-soft"
             aria-label="Download submenu"
           >
             <li className="px-2 py-1 text-text-muted">Microsoft Word (.docx)</li>
-            <li className="bg-theme-orange/15 px-2 py-1.5 font-semibold text-theme-orange">
+            <li className="bg-role-instruction/15 px-2 py-1.5 font-semibold text-role-instruction">
               PDF Document (.pdf)
             </li>
             <li className="px-2 py-1 text-text-muted">Plain Text (.txt)</li>
