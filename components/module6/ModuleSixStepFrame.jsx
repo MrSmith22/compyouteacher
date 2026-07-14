@@ -20,6 +20,11 @@ import {
   HIERARCHY_REFERENCE_CLASS,
   HIERARCHY_TASK_CLASS,
 } from "@/lib/ui/hierarchyContract";
+import {
+  RHYTHM_MAJOR_SECTION_CLASS,
+  RHYTHM_PAGE_CLASS,
+  RHYTHM_PROSE_CLASS,
+} from "@/lib/ui/instructionalRhythmContract";
 
 export const MODULE6_NEED_HELP_ID = "module-6-need-help";
 
@@ -270,7 +275,11 @@ export default function ModuleSixStepFrame({
       </WorkspaceSidebar>
 
       <WorkspaceCenter className="min-w-0">
-        <div className="space-y-6 md:space-y-8">
+        <div
+          className={RHYTHM_PAGE_CLASS}
+          data-rhythm-contract="page"
+          data-testid="module-six-step-frame-rhythm"
+        >
           {psychologicalModule != null ? (
             <ModuleModeCue module={psychologicalModule} />
           ) : null}
@@ -285,12 +294,14 @@ export default function ModuleSixStepFrame({
             >
               {question}
             </h1>
-            <ScreenContractCues
-              purpose={visiblePurpose}
-              how={howSummary}
-              finished={visibleFinished}
-              showHow={!actionFirst}
-            />
+            <div className={RHYTHM_PROSE_CLASS}>
+              <ScreenContractCues
+                purpose={visiblePurpose}
+                how={howSummary}
+                finished={visibleFinished}
+                showHow={!actionFirst}
+              />
+            </div>
             {actionFirst ? (
               <div className="pt-1">
                 <NeedHelpJumpLink />
@@ -303,9 +314,10 @@ export default function ModuleSixStepFrame({
           {supportingBefore}
 
           <div
-            className="space-y-6 md:space-y-7"
+            className={RHYTHM_MAJOR_SECTION_CLASS}
             data-hierarchy-level={HIERARCHY_LEVELS.work}
             data-hierarchy-emphasis="active"
+            data-rhythm-contract="major-section"
           >
             {children}
           </div>

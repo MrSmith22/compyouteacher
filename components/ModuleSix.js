@@ -30,6 +30,7 @@ import {
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import { getModule6ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
+import { RHYTHM_WITHIN_SURFACE_CLASS } from "@/lib/ui/instructionalRhythmContract";
 import {
   getWritingSectionLabel,
   getModule6StepPresentation,
@@ -945,7 +946,13 @@ export default function ModuleSix() {
               label={presentation.workingSetLabel}
               description={presentation.workingSetDescription}
             >
-              <div className="space-y-3 text-left" ref={deskFocusRef} tabIndex={-1}>
+              <div
+                className={`${RHYTHM_WITHIN_SURFACE_CLASS} text-left`}
+                ref={deskFocusRef}
+                tabIndex={-1}
+                data-rhythm-contract="within-surface"
+                data-testid="module6-review-section-list"
+              >
                 {reviewBlocks.map(({ step, text, ready, words }) => (
                   <div
                     key={step.id}

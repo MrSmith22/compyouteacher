@@ -97,7 +97,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Needs Verification |
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Needs Verification |
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Needs Verification |
-| WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Open |
+| WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Needs Verification |
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Open |
@@ -1812,11 +1812,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-060 — Dense pages lack whitespace and instructional card chunking
 
-- **Module:** App-wide
+- **Module:** App-wide (pilot: Modules 6–9)
 - **Screen or area:** Pages with long vertical forms
 - **Priority:** Low
 - **Category:** Visual Design
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Many pages feel crowded despite relatively little information. Long uninterrupted vertical forms reduce readability.
 
@@ -1830,9 +1830,15 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Review crowded pages identified in walkthrough.
 2. Confirm card chunking and increased whitespace.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/instructionalRhythmContract.js`, `components/module6/ModuleSixStepFrame.jsx`, `components/ModuleSix.js`, `components/ModuleSeven.js`, `components/ModuleEight.js`, `components/ModuleNine.js`, `components/module9/ModuleNineApaLesson.jsx`, `tests/wp060-instructional-rhythm.test.js`
 
 **Resolution notes:**
+- Post–WP-054 audit (`WP060_RHYTHM_AUDIT_MATRIX`): ranked densest states are M9 Upload, M7 Read aloud (post), M9 APA, M8 Format, M8 Create, M6 Review, M6 drafting, M7 Read aloud (pre), M7 revision, M9 Format. Additional audited: M8 Ready, M7 Final review, M9 Doc.
+- Shared presentation-only tokens: `RHYTHM_PAGE_CLASS`, `RHYTHM_MAJOR_SECTION_CLASS`, `RHYTHM_WITHIN_SURFACE_CLASS`, instructional/work card padding, action zone, readable prose (`max-w-3xl` + `leading-relaxed`), mobile-safe overflow.
+- Changed: M9 Upload (page rhythm + download card), M7 Read aloud stack spacing + essay/recording/observation chunks, M8 prepare/format/ready zone separation, M6 review list spacing, M6 frame token standardization, M9 APA lesson rhythm markers. Already compliant / markers-only: M6 drafting, M7 revision/final review, M9 Format/Doc.
+- Did **not** hide required WP-054 content; did not introduce `InstructionalChunk`; nested surfaces capped at two meaningful levels.
+- Status remains Needs Verification (app-wide issue; Modules 6–9 pilot; browser coverage bounded).
+- Browser: no listener on port 3000 during verification; dense states **not reached live**.
 
 **Resolved in commit:**
 

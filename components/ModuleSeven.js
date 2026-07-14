@@ -37,6 +37,7 @@ import {
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import { getModule7ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
+import { RHYTHM_PAGE_CLASS } from "@/lib/ui/instructionalRhythmContract";
 import {
   alignSectionsToOutline,
   getSectionCountFromOutline,
@@ -894,59 +895,66 @@ export default function ModuleSeven() {
 
         {isReadAloudStep ? (
           <div
-            className="space-y-5 text-left"
+            className={`${RHYTHM_PAGE_CLASS} text-left`}
             data-testid="module7-read-aloud-primary"
+            data-rhythm-contract="page"
           >
             <ModuleSevenReadAloudTaskCard />
 
-            <WorkingSetSection
-              className={HIERARCHY_WORK_SURFACE_CLASS}
-              label={presentation.workingSetLabel}
-              description={presentation.workingSetDescription}
-            >
-              <div
-                className={READ_ALOUD_ESSAY_CLASS}
-                data-testid="module7-current-essay"
+            <div data-rhythm-chunk="essay">
+              <WorkingSetSection
+                className={HIERARCHY_WORK_SURFACE_CLASS}
+                label={presentation.workingSetLabel}
+                description={presentation.workingSetDescription}
               >
-                <EssayProseView
-                  sectionSteps={sectionSteps}
-                  sections={sections}
-                  emptyFallback={
-                    <p className="text-sm leading-relaxed text-text-muted">
-                      Your draft from Module 6 will appear here. Return to Module 6 if
-                      you need to finish your first draft.
-                    </p>
-                  }
-                />
-              </div>
-            </WorkingSetSection>
+                <div
+                  className={READ_ALOUD_ESSAY_CLASS}
+                  data-testid="module7-current-essay"
+                >
+                  <EssayProseView
+                    sectionSteps={sectionSteps}
+                    sections={sections}
+                    emptyFallback={
+                      <p className="text-sm leading-relaxed text-text-muted">
+                        Your draft from Module 6 will appear here. Return to Module 6 if
+                        you need to finish your first draft.
+                      </p>
+                    }
+                  />
+                </div>
+              </WorkingSetSection>
+            </div>
 
-            <ModuleSevenReadAloud
-              prominent
-              recording={recording}
-              audioURL={audioURL}
-              devices={devices}
-              selectedDeviceId={selectedDeviceId}
-              amp={amp}
-              locked={locked}
-              checklist={presentation.strategy?.checklist || []}
-              onDeviceChange={(e) => {
-                setSelectedDeviceId(e.target.value);
-                localStorage.setItem("chosenMicId", e.target.value);
-              }}
-              onStart={startRecording}
-              onStop={stopRecording}
-            />
+            <div data-rhythm-chunk="recording">
+              <ModuleSevenReadAloud
+                prominent
+                recording={recording}
+                audioURL={audioURL}
+                devices={devices}
+                selectedDeviceId={selectedDeviceId}
+                amp={amp}
+                locked={locked}
+                checklist={presentation.strategy?.checklist || []}
+                onDeviceChange={(e) => {
+                  setSelectedDeviceId(e.target.value);
+                  localStorage.setItem("chosenMicId", e.target.value);
+                }}
+                onStart={startRecording}
+                onStop={stopRecording}
+              />
+            </div>
 
             {audioURL ? (
-              <ModuleSevenReadAloudObservation
-                observation={readAloudObservation}
-                disabled={locked}
-                onChange={(next) => {
-                  setReadAloudObservation(next);
-                  setRevisionNotice(null);
-                }}
-              />
+              <div data-rhythm-chunk="observation">
+                <ModuleSevenReadAloudObservation
+                  observation={readAloudObservation}
+                  disabled={locked}
+                  onChange={(next) => {
+                    setReadAloudObservation(next);
+                    setRevisionNotice(null);
+                  }}
+                />
+              </div>
             ) : null}
 
             <ModuleSevenReadAloudSecondaryTeaching
@@ -955,18 +963,23 @@ export default function ModuleSeven() {
           </div>
         ) : (
           <>
-            <ModuleSevenStrategyCard
-              strategy={presentation.strategy}
-              showEntryTeaching={false}
-              entryTeaching={null}
-              revisionStage={isFinalReviewStep ? "compare" : "change"}
-            />
+            <div data-rhythm-chunk="strategy">
+              <ModuleSevenStrategyCard
+                strategy={presentation.strategy}
+                showEntryTeaching={false}
+                entryTeaching={null}
+                revisionStage={isFinalReviewStep ? "compare" : "change"}
+              />
+            </div>
 
-            <TaskRelevantArtifacts
-              items={deskArtifacts.items}
-              heading="Notebook page open on your desk"
-            />
+            <div data-rhythm-chunk="artifacts">
+              <TaskRelevantArtifacts
+                items={deskArtifacts.items}
+                heading="Notebook page open on your desk"
+              />
+            </div>
 
+            <div data-rhythm-chunk="textarea">
             <WorkingSetSection
               className={HIERARCHY_WORK_SURFACE_CLASS}
               label={presentation.workingSetLabel}
@@ -1027,6 +1040,7 @@ export default function ModuleSeven() {
                 </div>
               )}
             </WorkingSetSection>
+            </div>
           </>
         )}
 
@@ -1062,18 +1076,23 @@ export default function ModuleSeven() {
         ) : null}
 
         {!locked ? (
-          <SuccessCriteriaPanel
-            items={presentation.successLooksLike}
-            lead="You’re ready when…"
-            note={
-              isReadAloudStep
-                ? "Keep going stays locked until a recording exists and you name one observation."
-                : "These are self-checks for clearer communication. Saving and finishing still use the same Module 7 rules as before."
-            }
-          />
+          <div data-rhythm-chunk="criteria">
+            <SuccessCriteriaPanel
+              items={presentation.successLooksLike}
+              lead="You’re ready when…"
+              note={
+                isReadAloudStep
+                  ? "Keep going stays locked until a recording exists and you name one observation."
+                  : "These are self-checks for clearer communication. Saving and finishing still use the same Module 7 rules as before."
+              }
+            />
+          </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-4">
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-4"
+          data-rhythm-chunk="actions"
+        >
           <div>
             {!isFirstStep ? (
               <button

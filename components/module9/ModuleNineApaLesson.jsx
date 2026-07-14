@@ -15,6 +15,10 @@ import {
   retreatApaConcept,
   summarizeApaLesson,
 } from "@/lib/module9/module9ApaLearning";
+import {
+  RHYTHM_PAGE_CLASS,
+  RHYTHM_PROSE_CLASS,
+} from "@/lib/ui/instructionalRhythmContract";
 
 const FOCUS_RING =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2";
@@ -92,7 +96,11 @@ export default function ModuleNineApaLesson({
   };
 
   return (
-    <div className="space-y-4 overflow-x-hidden" data-testid="module9-apa-lesson">
+    <div
+      className={`${RHYTHM_PAGE_CLASS} overflow-x-hidden`}
+      data-testid="module9-apa-lesson"
+      data-rhythm-contract="page"
+    >
       <section className="rounded-xl border border-border-soft bg-white px-4 py-4 shadow-soft md:px-6">
         <h2 className="text-xl font-bold text-text-primary md:text-2xl">
           {MODULE9_APA_ENTRY.title}
@@ -130,7 +138,11 @@ export default function ModuleNineApaLesson({
           {concept.title}
         </h3>
 
-        <div className="space-y-2" data-testid="module9-apa-teaching">
+        <div
+          className={`space-y-2 ${RHYTHM_PROSE_CLASS}`}
+          data-testid="module9-apa-teaching"
+          data-rhythm-chunk="apa-teaching"
+        >
           <p className="text-sm leading-relaxed text-text-primary">
             <span className="font-semibold">What to do: </span>
             {concept.whatToDo}
@@ -148,13 +160,19 @@ export default function ModuleNineApaLesson({
           </p>
         </div>
 
-        <ModuleNineApaVisual
-          visualId={concept.visualId}
-          caption={concept.visualCaption}
-          alt={concept.visualAlt}
-        />
+        <div data-rhythm-chunk="apa-visual">
+          <ModuleNineApaVisual
+            visualId={concept.visualId}
+            caption={concept.visualCaption}
+            alt={concept.visualAlt}
+          />
+        </div>
 
-        <fieldset className="space-y-2" data-testid="module9-apa-try-it">
+        <fieldset
+          className="space-y-2"
+          data-testid="module9-apa-try-it"
+          data-rhythm-chunk="apa-practice"
+        >
           <legend className="text-base font-bold text-text-primary">
             Try it
           </legend>
@@ -209,6 +227,7 @@ export default function ModuleNineApaLesson({
             aria-live="polite"
             className="rounded-lg border border-border-soft bg-white px-3 py-3 text-sm leading-relaxed text-text-primary"
             data-testid="module9-apa-feedback"
+            data-rhythm-chunk="apa-feedback"
             data-feedback-correct={evaluation.correct ? "true" : "false"}
           >
             <p className="font-semibold">
@@ -223,13 +242,18 @@ export default function ModuleNineApaLesson({
           </p>
         )}
 
-        <SuccessCriteriaPanel
-          mode="micro"
-          items={["You chose an answer and read its teaching feedback."]}
-          lead="You’re ready when…"
-        />
+        <div data-rhythm-chunk="apa-criteria">
+          <SuccessCriteriaPanel
+            mode="micro"
+            items={["You chose an answer and read its teaching feedback."]}
+            lead="You’re ready when…"
+          />
+        </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-3">
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-3"
+          data-rhythm-chunk="apa-actions"
+        >
           <button
             type="button"
             onClick={onBack}

@@ -55,6 +55,12 @@ import {
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
 import { MODULE9_SCREEN_CONTRACT } from "@/lib/module9/module9ScreenContract";
+import {
+  RHYTHM_INSTRUCTION_CARD_CLASS,
+  RHYTHM_MOBILE_SAFE_CLASS,
+  RHYTHM_PAGE_CLASS,
+  RHYTHM_PROSE_CLASS,
+} from "@/lib/ui/instructionalRhythmContract";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const CHECKLIST_ITEMS = getModule9FormattingChecklistItems();
@@ -813,6 +819,7 @@ export default function ModuleNine() {
                     )}
               </p>
             ) : (
+              <div data-rhythm-chunk="doc-recovery">
               <SubmissionDocRecoveryPanel
                 module={9}
                 verificationStatus={verificationStatus}
@@ -855,6 +862,7 @@ export default function ModuleNine() {
                   })
                 }
               />
+              </div>
             )}
 
             {docHydrated &&
@@ -862,7 +870,7 @@ export default function ModuleNine() {
               SUBMISSION_DOC_VERIFICATION_STATUS.CHECKING &&
             exportUrl &&
             docReady ? (
-              <div className="space-y-3">
+              <div className="space-y-3" data-rhythm-chunk="doc-reference">
                 <p
                   className="text-sm text-text-primary"
                   data-testid="module9-do-not-rewrite-coaching"
@@ -929,6 +937,7 @@ export default function ModuleNine() {
               className="space-y-4 rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8 md:py-6"
               data-hierarchy-level={HIERARCHY_LEVELS.work}
               data-hierarchy-emphasis="active"
+              data-testid="module9-format-working-set"
             >
               <h2
                 className={HIERARCHY_TASK_CLASS}
@@ -962,7 +971,11 @@ export default function ModuleNine() {
                 before you download the PDF.
               </p>
               <ModuleNineApaQuickGuide compact />
-              <div className="space-y-2">
+              <div
+                className="space-y-2"
+                data-rhythm-chunk="format-checklist"
+                data-testid="module9-format-checklist-work"
+              >
                 {CHECKLIST_ITEMS.map((label, i) => (
                   <label
                     key={label}
@@ -1035,9 +1048,11 @@ export default function ModuleNine() {
           !alreadySubmitted && (
             <section
               ref={step4Ref}
-              className="space-y-4 rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8 md:py-6"
+              className={`${RHYTHM_PAGE_CLASS} ${RHYTHM_MOBILE_SAFE_CLASS} rounded-xl border border-border-soft/70 bg-white px-6 py-5 md:px-8 md:py-6`}
               data-hierarchy-level={HIERARCHY_LEVELS.work}
               data-hierarchy-emphasis="active"
+              data-rhythm-contract="page"
+              data-testid="module9-upload-working-set"
             >
               <h2
                 className={HIERARCHY_TASK_CLASS}
@@ -1068,8 +1083,9 @@ export default function ModuleNine() {
               <ModuleNineApaQuickGuide compact />
 
               <div
-                className="space-y-3 text-sm text-text-primary"
+                className={`${RHYTHM_INSTRUCTION_CARD_CLASS} space-y-3 ${RHYTHM_PROSE_CLASS}`}
                 data-testid="module9-pdf-download-instructions"
+                data-rhythm-chunk="download"
               >
                 <h3 className="text-base font-semibold text-text-primary">
                   Download your Google Doc as a PDF
@@ -1101,8 +1117,9 @@ export default function ModuleNine() {
               </div>
 
               <div
-                className="space-y-3 rounded-lg border border-theme-orange/25 bg-theme-orange/[0.05] px-4 py-3 text-sm text-text-primary"
+                className="space-y-3 rounded-lg border border-theme-orange/25 bg-theme-orange/[0.05] px-4 py-3 text-sm text-text-primary md:px-5 md:py-4"
                 data-testid="module9-pdf-upload-coaching"
+                data-rhythm-chunk="upload-coaching"
               >
                 <h3 className="text-base font-semibold text-text-primary">
                   Upload your PDF
@@ -1156,13 +1173,15 @@ export default function ModuleNine() {
                 </p>
               </div>
 
-              <input
-                type="file"
-                accept=".pdf,application/pdf"
-                onChange={handleFileSelect}
-                className="mb-2 min-h-[44px] text-sm"
-                data-testid="module9-pdf-file-input"
-              />
+              <div data-rhythm-chunk="file-select">
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleFileSelect}
+                  className="mb-2 min-h-[44px] text-sm"
+                  data-testid="module9-pdf-file-input"
+                />
+              </div>
 
               {uploadError && (
                 <div
@@ -1178,12 +1197,17 @@ export default function ModuleNine() {
                 <div
                   className="rounded-lg border border-theme-blue/20 bg-theme-blue/[0.04] px-4 py-3 text-sm text-text-primary"
                   data-testid="module9-pdf-selected"
+                  data-rhythm-chunk="selected-file"
                 >
                   Selected: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(1)}{" "}
                   MB)
                 </div>
               ) : (
-                <p className="text-sm text-text-muted" data-testid="module9-pdf-selected-empty">
+                <p
+                  className="text-sm text-text-muted"
+                  data-testid="module9-pdf-selected-empty"
+                  data-rhythm-chunk="selected-file"
+                >
                   Select a PDF above before confirming the checklist.
                 </p>
               )}
@@ -1191,6 +1215,7 @@ export default function ModuleNine() {
               <div
                 className="space-y-3 rounded-lg border border-theme-blue/30 bg-theme-blue/[0.05] px-4 py-4"
                 data-testid="module9-final-upload-checklist"
+                data-rhythm-chunk="final-checklist"
               >
                 <h3 className="text-base font-semibold text-text-primary">
                   Confirm this PDF before you upload
@@ -1234,6 +1259,7 @@ export default function ModuleNine() {
                 } ${FOCUS_RING}`}
                 data-testid="module9-upload-final-pdf"
                 data-hierarchy-action="final"
+                data-rhythm-chunk="upload-action"
               >
                 {uploading ? "Uploading…" : "Upload Final PDF"}
               </button>

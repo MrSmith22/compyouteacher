@@ -44,6 +44,10 @@ import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
 import { getModule8ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
+  RHYTHM_ACTION_ZONE_CLASS,
+  RHYTHM_WITHIN_SURFACE_CLASS,
+} from "@/lib/ui/instructionalRhythmContract";
+import {
   getSectionCountFromOutline,
   splitDraftIntoSections,
 } from "@/components/module7/module7DraftSections";
@@ -721,12 +725,17 @@ export default function ModuleEight() {
         sidebar={referenceShelf}
         psychologicalModule={8}
       >
-        <div className="space-y-3">
+        <div
+          className={RHYTHM_WITHIN_SURFACE_CLASS}
+          data-rhythm-contract="within-surface"
+          data-testid="module8-prepare-cluster"
+        >
           <div
-            className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-left"
+            className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-left md:px-5 md:py-4"
             data-hierarchy-level="instruction"
             data-testid="module8-submission-doc-framing"
             data-build-forward-module="8"
+            data-rhythm-chunk="framing"
           >
             <p className="text-sm font-semibold text-text-primary">
               Prepare Your Essay for Submission
@@ -799,13 +808,17 @@ export default function ModuleEight() {
           />
         ) : null}
 
+        <div data-rhythm-chunk="doc-work">
         <WorkingSetSection
           className={HIERARCHY_WORK_SURFACE_CLASS}
           label={presentation.workingSetLabel}
           description={presentation.workingSetDescription}
         >
           {currentStep.type === MODULE8_STEP_TYPES.CREATE_DOC ? (
-            <div className="space-y-4 text-left">
+            <div
+              className={`${RHYTHM_WITHIN_SURFACE_CLASS} text-left`}
+              data-testid="module8-create-working-set"
+            >
               {finishedEssayPreview}
 
               {verificationStatus ===
@@ -864,7 +877,12 @@ export default function ModuleEight() {
           ) : null}
 
           {currentStep.type === MODULE8_STEP_TYPES.FORMAT ? (
-            <div className="space-y-4 text-left" data-testid="module8-format-working-set">
+            <div
+              className={`${RHYTHM_WITHIN_SURFACE_CLASS} text-left`}
+              data-testid="module8-format-working-set"
+              data-rhythm-contract="within-surface"
+            >
+              <div data-rhythm-chunk="format-explanation" className="space-y-4">
               <InstructionalDisclosure
                 title="More about APA formatting"
                 data-testid="module8-format-what-apa-does"
@@ -932,10 +950,12 @@ export default function ModuleEight() {
                   </p>
                 )}
               </section>
+              </div>
 
               {/* Stage 3 — Formatting checklist (same persisted checklist) */}
               <section
                 data-testid="module8-format-checklist"
+                data-rhythm-chunk="format-checklist"
                 aria-labelledby="module8-format-checklist-heading"
               >
                 <h3
@@ -984,6 +1004,10 @@ export default function ModuleEight() {
               </section>
 
               {/* Stage 4 — Continue cue (footer Keep going stays the gated control) */}
+              <div
+                className={RHYTHM_ACTION_ZONE_CLASS}
+                data-rhythm-chunk="format-actions"
+              >
               <section
                 className="rounded-lg border border-border-soft/50 bg-white px-4 py-3"
                 data-testid="module8-format-continue-cue"
@@ -1016,16 +1040,22 @@ export default function ModuleEight() {
                   Update Google Doc
                 </button>
               </div>
+              </div>
             </div>
           ) : null}
 
           {currentStep.type === MODULE8_STEP_TYPES.READY ? (
-            <div className="space-y-4 text-left" data-testid="module8-ready-working-set">
+            <div
+              className={`${RHYTHM_WITHIN_SURFACE_CLASS} text-left`}
+              data-testid="module8-ready-working-set"
+              data-rhythm-contract="within-surface"
+            >
+              <div data-rhythm-chunk="ready-status">
               <p className="text-sm leading-relaxed text-text-muted">
                 You finished writing in Module 7. This step closes your preparation—not
                 another writing assignment.
               </p>
-              <ul className="space-y-2 text-sm text-text-primary">
+              <ul className="mt-2 space-y-2 text-sm text-text-primary">
                 <li
                   className={
                     docVerifiedThisSession && submissionDocUrl
@@ -1040,10 +1070,12 @@ export default function ModuleEight() {
                   {checklistComplete ? "✓" : "○"} APA formatting complete
                 </li>
               </ul>
+              </div>
 
               <section
                 className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3"
                 data-testid="module8-ready-confidence-checklist"
+                data-rhythm-chunk="ready-confidence"
                 aria-labelledby="module8-ready-confidence-heading"
               >
                 <h3
@@ -1091,6 +1123,10 @@ export default function ModuleEight() {
 
               {/* WP-036 — Escape hatches: secondary only; Finish stays sole primary */}
               <div
+                className={RHYTHM_ACTION_ZONE_CLASS}
+                data-rhythm-chunk="ready-escape"
+              >
+              <div
                 className="flex flex-wrap gap-2"
                 data-testid="module8-ready-escape-hatches"
               >
@@ -1123,9 +1159,11 @@ export default function ModuleEight() {
                       : "Check every item under Before continuing, then finish preparing."}
                 </p>
               ) : null}
+              </div>
             </div>
           ) : null}
         </WorkingSetSection>
+        </div>
 
         {locked ? (
           <div className="space-y-2 rounded-lg border border-theme-green/30 bg-theme-green/5 px-4 py-3 text-sm text-theme-green">
@@ -1156,7 +1194,10 @@ export default function ModuleEight() {
           />
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft/60 pt-4">
+        <div
+          className={`${RHYTHM_ACTION_ZONE_CLASS} flex flex-wrap items-center justify-between gap-3`}
+          data-rhythm-chunk="ready-finish"
+        >
           <div>
             {!isFirstStep && !locked ? (
               <button
