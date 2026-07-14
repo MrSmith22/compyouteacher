@@ -63,11 +63,5 @@ describe("WP-044 Module 9 upload step-by-step coaching", () => {
     assert.ok(m9.includes("onChange={handleFileSelect}"));
     assert.ok(m9.includes("onClick={handleUploadPDF}"));
     assert.ok(m9.includes("disabled={!canUpload}"));
-
-    // WP-045 / WP-046 out of scope
-    assert.equal(
-      /accidentally upload the wrong PDF/i.test(m9),
-      false
-    );
   });
 });

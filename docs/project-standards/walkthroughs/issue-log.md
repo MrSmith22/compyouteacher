@@ -82,7 +82,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-042 | Module 9 export button uses technical “Export” language | 9 | Medium | Copy / Voice | Resolved |
 | WP-043 | Module 9 lacks visual screenshots for APA and PDF steps | 9 | High | Instructional / Visual Design | Resolved |
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Resolved |
-| WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Open |
+| WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Resolved |
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Open |
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Open |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Open |
@@ -1362,7 +1362,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** PDF upload screen
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Students worry about uploading the wrong PDF before the deadline. The application does not address this fear.
 
@@ -1376,11 +1376,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open upload screen.
 2. Confirm wrong-PDF reassurance is visible.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/ModuleNine.js`; `tests/module9-wp045-wrong-pdf-reassurance.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Copy-only reassurance (`module9-wrong-pdf-reassurance`) placed immediately before the file control / Upload Final PDF actions. Wording was reconciled with actual submission policy: `final-pdf` uses `replaceExisting: false` and returns HTTP 409 “Final PDF already submitted,” and Module 9 success already tells students to contact their teacher before changing or resubmitting. Therefore the UI does **not** use the Master Spec / issue-log sentence that a student can “simply upload the correct one” after submission. Supported path: reselect with the file control before upload; after upload, contact the teacher. No API, storage, replacement, progression, checklist, or success-page changes.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

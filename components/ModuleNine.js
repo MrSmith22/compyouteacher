@@ -990,6 +990,20 @@ export default function ModuleNine() {
                 <p>• Choose the PDF you just downloaded—not a Word file or a screenshot</p>
               </div>
 
+              <div
+                className="mb-3 space-y-1 rounded-lg border border-theme-dark/15 bg-surface-soft px-4 py-3 text-sm leading-relaxed text-text-primary"
+                data-testid="module9-wrong-pdf-reassurance"
+              >
+                <p>
+                  Chose the wrong PDF? Use the file control again and select the
+                  correct one before you upload.
+                </p>
+                <p className="text-text-muted">
+                  After your PDF is uploaded, contact your teacher before trying to
+                  resubmit.
+                </p>
+              </div>
+
               <input
                 type="file"
                 accept=".pdf,application/pdf"
