@@ -116,8 +116,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-076 | Build the Introduction page around the reader, not the writing | 6 | High | Instructional | Needs Verification |
 | WP-077 | Make supporting resources impossible to miss on Module 6 drafting pages | 6 | High | Instructional / UX | Needs Verification |
 | WP-078 | Module 1 prompt page lacks clear first-task hierarchy | 1 | High | Instructional / UX | Resolved |
+| WP-079 | Validate and refine the rhetorical-matrix essay-direction engine | 2–6 | High | Instructional / Architecture | Needs Verification |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-079.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-080.*
 
 ---
 
@@ -2401,4 +2402,42 @@ Browser (this pass): port 3000 was not listening — no new live session. Status
 
 ---
 
-*Last updated: July 10, 2026 — WP-078 Resolved (Module 1 prompt first-task hierarchy / M1.1).*
+### WP-079 — Validate and refine the rhetorical-matrix essay-direction engine
+
+- **Module:** 2–6 (Module 2 matrix core; Modules 3–6 consumers)
+- **Screen or area:** `/modules/2/matrix` derived directions; Module 3 handoff; Module 4–5 personalization
+- **Priority:** High
+- **Category:** Instructional / Architecture
+- **Status:** Needs Verification
+
+**Walkthrough observation / audit finding:** The six-cell rating instrument was sound, but essay-direction generation was an opportunistic observation bag (largest contrast, high/high, low/low, single-work dominants) with top-3 truncation that hid equal ties and used rule-ish labels. Students need a finite, rational universe of comparative essay **directions** — not matrix observations presented as topics and not prewritten theses.
+
+**Why it matters educationally:** The matrix should help students judge appeal centrality, see what the ratings suggest, and choose a comparison to investigate. It must not manufacture false certainty, write the claim/thesis, or hide equally supported alternatives.
+
+**Why it matters technically or operationally:** Candidate generation must be separate from ranking. Downstream Modules 3–5 consume `kind` + provenance; Module 6 inherits via outline/plans only.
+
+**Recommended smallest reasonable fix:** Keep 0–10 centrality ratings (no separate ranking input). Introduce a canonical frame contract (3 same-appeal + 6 cross-dominant + custom), eligibility/scoring, student-facing direction labels, selectable supporting choices, and truthful weak-signal/zero handling.
+
+**Verification steps:**
+1. Same-appeal contrast matrix → contrast direction ranked with ratings + both-works evidence.
+2. Different-dominant matrix → cross-appeal direction without thesis prose.
+3. Completed 2×3 review + interpretation blurb readable on 390×844 and 1440×900.
+4. Direction selection + custom direction; supporting options selectable.
+5. Edit-after-selection marks review without rewriting Module 3 prose.
+6. Module 3 handoff shows selection + provenance.
+
+**Related files:** `lib/module2/matrixEssayDirectionContract.js`; `lib/module2/matrixDerivationHelpers.js`; `lib/module2/matrixOrchestrationHelpers.js`; `components/module2/ModuleTwoRhetoricalMatrix.jsx`; `lib/module3/moduleThreeMatrixHandoffHelpers.js`; `tests/wp079-matrix-essay-direction-engine.test.js`
+
+**Resolution notes:** (July 14, 2026) Automated acceptance landed:
+
+- **Rating decision:** Keep single 0–10 centrality scale; rankings derived; zero preserved; coaching softened against false precision.
+- **Topic taxonomy:** 3 same-appeal frames + 6 ordered distinct cross-dominant pairs + student-created (9 canonical + custom). Similarity/contrast are relationships inside Family 1, not duplicate base topics. Same-dominant pairs stay in Family 1 (no duplicate cross card).
+- **Derivation:** `buildEssayDirectionRecommendations` evaluates eligibility (both-works evidence / explicit zero), scores deterministically, caps primary at 3 while keeping tied co-equals visible and supporting **selectable**. `low_low` / single-work dominants demoted to matrix notes. Labels are direction frames (no `high/high`, `largest_contrast` UI strings).
+- **Downstream map:** M3 direct selection+provenance; M4 advisory kind/evidence; M5 overridable order guidance; **M6 inherited only** via outline/paragraph plans (no new matrix panel).
+- **Browser:** Port 3000 not listening — required live scenarios **not reached** this pass. Status **Needs Verification** until Jason runs the WP-079 matrix script (contrast, different-dominant, review, selection, custom, edit-after-selection, Module 3 handoff) at 390×844 and 1440×900.
+
+**Resolved in commit:**
+
+---
+
+*Last updated: July 14, 2026 — WP-079 Needs Verification (matrix essay-direction engine automated; browser pending).*

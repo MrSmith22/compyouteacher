@@ -128,8 +128,8 @@ export default function ModuleTwoRhetoricalMatrix() {
   const cell = bundle.cells[cellIndex];
   const derived = useMemo(() => derivePatternOptions(bundle), [bundle]);
   const recommendations = useMemo(
-    () => selectPrimaryPatternRecommendations(derived),
-    [derived]
+    () => selectPrimaryPatternRecommendations(derived, bundle),
+    [derived, bundle]
   );
 
   const presentation = useMemo(
@@ -753,10 +753,10 @@ export default function ModuleTwoRhetoricalMatrix() {
                 </h1>
                 <p className="mt-2 text-sm text-text-muted">
                   You will give each appeal a provisional score from 0 to 10.
-                  The score measures how central the appeal is to persuading
-                  that work’s audience—not frequency, writing quality, or an
-                  objective measurement. Scores are editable. You will connect
-                  evidence to each judgment.
+                  Treat nearby scores (such as 7 vs 8) as roughly the same
+                  strength—not precise lab measurements. The score captures how
+                  central the appeal is for that audience, with evidence—not
+                  frequency or writing quality. Scores stay editable.
                 </p>
                 <ul className="mt-4 space-y-1 text-sm text-text-primary">
                   {RATING_ANCHORS.map((a) => (
@@ -1084,10 +1084,36 @@ export default function ModuleTwoRhetoricalMatrix() {
                   Which direction should your essay explore?
                 </h2>
                 <p className="mt-2 text-sm text-text-muted">
-                  Up to three recommended comparative directions. Advisory — you
-                  may choose another pattern.
+                  Ratings express a reasoned judgment (0–10), not a precise
+                  scientific score. You decide the direction — the app does
+                  not write your claim or thesis.
                 </p>
-                <ul className="mt-4 space-y-2" data-testid="matrix-primary-options">
+                {recommendations.interpretation ? (
+                  <p
+                    className="mt-3 rounded border border-border-soft bg-surface-soft/50 px-3 py-2 text-sm text-text-primary"
+                    data-testid="matrix-ratings-interpretation"
+                    role="status"
+                  >
+                    <span className="font-semibold">What your ratings suggest: </span>
+                    {recommendations.interpretation}
+                  </p>
+                ) : null}
+                {recommendations.flags?.weakSignal ? (
+                  <p className="mt-2 text-sm text-text-muted" role="status">
+                    No strong automatic recommendation — choose carefully or
+                    write your own direction.
+                  </p>
+                ) : null}
+                <p className="mt-2 text-sm text-text-muted">
+                  Up to three primary essay directions. Open additional supported
+                  directions if you want another choice.
+                </p>
+                <ul
+                  className="mt-4 space-y-2"
+                  data-testid="matrix-primary-options"
+                  role="radiogroup"
+                  aria-label="Primary essay directions"
+                >
                   {recommendations.primary.map((opt) => {
                     const readable = buildReadableProvenance(opt, evidence);
                     return (
@@ -1101,6 +1127,12 @@ export default function ModuleTwoRhetoricalMatrix() {
                           />
                           <span>
                             <span className="font-semibold">{opt.label}</span>
+                            {opt.tiedWith?.length > 1 ? (
+                              <span className="mt-1 block text-xs text-theme-orange">
+                                Tied with another equally supported direction —
+                                either choice is fair.
+                              </span>
+                            ) : null}
                             <span className="mt-1 block text-text-muted">
                               {readable.readable.why}
                             </span>
@@ -1161,14 +1193,38 @@ export default function ModuleTwoRhetoricalMatrix() {
                     className="mt-4 rounded border border-border-soft bg-surface-soft/40 px-3 py-2"
                     open={supportingOpen}
                     onToggle={(e) => setSupportingOpen(e.target.open)}
+                    data-testid="matrix-supporting-directions"
                   >
                     <summary className="cursor-pointer text-sm font-medium text-text-muted">
-                      Other things your matrix shows
+                      Additional supported directions and matrix notes
                     </summary>
-                    <ul className="mt-2 space-y-1 text-xs text-text-muted">
+                    <ul
+                      className="mt-2 space-y-2"
+                      role="radiogroup"
+                      aria-label="Additional essay directions"
+                    >
                       {recommendations.supporting.map((opt) => (
                         <li key={opt.id}>
-                          {opt.label}: {opt.why}
+                          <label className="flex min-h-[44px] cursor-pointer gap-2 rounded border border-border-soft/80 bg-white px-3 py-2 text-sm">
+                            <input
+                              type="radio"
+                              name="pattern"
+                              checked={selectedOptionId === opt.id}
+                              onChange={() => setSelectedOptionId(opt.id)}
+                            />
+                            <span>
+                              <span className="font-semibold">{opt.label}</span>
+                              <span className="mt-1 block text-xs text-text-muted">
+                                {opt.why}
+                              </span>
+                              {opt.observationOnly ? (
+                                <span className="mt-1 block text-xs text-text-muted">
+                                  Observation note — usually not a full essay
+                                  direction by itself.
+                                </span>
+                              ) : null}
+                            </span>
+                          </label>
                         </li>
                       ))}
                     </ul>

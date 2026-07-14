@@ -98,7 +98,8 @@ describe("CP-D Module 3 matrix handoff adapter", () => {
       evidenceRecords,
     });
     const ranked = orch.selectPrimaryPatternRecommendations(
-      derived.derivePatternOptions(bundle)
+      derived.derivePatternOptions(bundle),
+      bundle
     );
     assert.ok(presentation.primaryOptions.length <= 3);
     assert.equal(presentation.primaryOptions.length, ranked.primary.length);
