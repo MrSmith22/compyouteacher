@@ -39,6 +39,7 @@ import {
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
+import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
 import {
   getSectionCountFromOutline,
@@ -672,22 +673,20 @@ export default function ModuleEight() {
   );
 
   const finishedEssayPreview = (
-    <details className="rounded-lg border border-border-soft/60 bg-surface-soft/20 px-3 py-2">
-      <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-        Your finished essay ({wordCount} words) — reference only
-      </summary>
-      <div className={`mt-3 ${FINISHED_ESSAY_PREVIEW_CLASS}`}>
+    <InstructionalDisclosure
+      title={`More saved work — finished essay (${wordCount} words)`}
+    >      <div className={FINISHED_ESSAY_PREVIEW_CLASS}>
         <EssayProseView
           sectionSteps={sectionSteps}
           sections={sections}
           blockClassName="mb-4 last:mb-0"
         />
       </div>
-      <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
+      <p className="text-[11px] leading-relaxed text-text-muted">
         Your finished essay stays here (reference only). Your Google Doc is the
         paper you will format and turn in.
       </p>
-    </details>
+    </InstructionalDisclosure>
   );
 
   return (
@@ -711,16 +710,8 @@ export default function ModuleEight() {
               Prepare Your Essay for Submission
             </p>
             <p className="mt-2 text-sm leading-relaxed text-text-primary">
-              Your writing is complete.
+              Your writing is complete. You are preparing the paper—not rewriting it.
             </p>
-            <ul className="mt-2 space-y-1 text-sm leading-relaxed text-text-muted">
-              <li>You are no longer improving your ideas.</li>
-              <li>You are preparing the paper your teacher will read.</li>
-              <li>
-                Your finished essay stays here. Your Google Doc is what you will
-                format and turn in.
-              </li>
-            </ul>
             {/* WP-037 — Persistent reassurance on every Module 8 step */}
             <div
               className="mt-3 border-t border-theme-blue/15 pt-3"
@@ -735,19 +726,36 @@ export default function ModuleEight() {
                 <li>You can return and update your Google Doc.</li>
               </ul>
             </div>
+            <div className="mt-3">
+              <InstructionalDisclosure title="More about preparing your paper">
+                <ul className="space-y-1 text-sm leading-relaxed text-text-muted">
+                  <li>You are no longer improving your ideas.</li>
+                  <li>You are preparing the paper your teacher will read.</li>
+                  <li>
+                    Your finished essay stays here. Your Google Doc is what you will
+                    format and turn in.
+                  </li>
+                </ul>
+              </InstructionalDisclosure>
+            </div>
           </div>
 
-          <PreparationProgressPanel
-            hasGoogleDoc={docVerifiedThisSession && !!submissionDocUrl}
-            checklistComplete={checklistComplete}
-            isReadyStep={currentStep.type === MODULE8_STEP_TYPES.READY}
-            preparationComplete={
-              docVerifiedThisSession &&
-              !!submissionDocUrl &&
-              checklistComplete &&
-              (locked || isLastStep)
-            }
-          />
+          <InstructionalDisclosure
+            title="Preparation progress"
+            data-testid="module8-preparation-progress-disclosure"
+          >
+            <PreparationProgressPanel
+              hasGoogleDoc={docVerifiedThisSession && !!submissionDocUrl}
+              checklistComplete={checklistComplete}
+              isReadyStep={currentStep.type === MODULE8_STEP_TYPES.READY}
+              preparationComplete={
+                docVerifiedThisSession &&
+                !!submissionDocUrl &&
+                checklistComplete &&
+                (locked || isLastStep)
+              }
+            />
+          </InstructionalDisclosure>
 
           <p className="text-[11px] leading-relaxed text-text-muted/80">
             Step {currentStepIndex + 1} of {MODULE8_WORKSPACE_STEPS.length}
@@ -826,24 +834,24 @@ export default function ModuleEight() {
 
           {currentStep.type === MODULE8_STEP_TYPES.FORMAT ? (
             <div className="space-y-4 text-left" data-testid="module8-format-working-set">
-              {/* Stage 1 — What APA formatting does */}
-              <section
-                className="rounded-lg border border-theme-blue/20 bg-theme-blue/5 px-4 py-3"
+              <InstructionalDisclosure
+                title="More about APA formatting"
                 data-testid="module8-format-what-apa-does"
-                aria-labelledby="module8-format-apa-does-heading"
               >
-                <h3
-                  id="module8-format-apa-does-heading"
-                  className="text-sm font-semibold text-text-primary"
-                >
-                  What APA formatting does
-                </h3>
-                <ul className="mt-2 space-y-1 text-sm leading-relaxed text-text-muted">
-                  {MODULE8_FORMAT_APA_DOES.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </section>
+                <section aria-labelledby="module8-format-apa-does-heading">
+                  <h3
+                    id="module8-format-apa-does-heading"
+                    className="text-sm font-semibold text-text-primary"
+                  >
+                    What APA formatting does
+                  </h3>
+                  <ul className="mt-2 space-y-1 text-sm leading-relaxed text-text-muted">
+                    {MODULE8_FORMAT_APA_DOES.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </section>
+              </InstructionalDisclosure>
 
               {/* Stage 2 — What you will change */}
               <section
@@ -1041,11 +1049,13 @@ export default function ModuleEight() {
                 </div>
               </section>
 
-              <div className="rounded-lg bg-surface-soft/40 px-4 py-3">
-                <p className="text-sm font-medium text-text-primary">Reflection</p>
-                <p className="mt-1 text-sm leading-relaxed text-text-muted">
-                  What is one formatting choice you made that helps your reader?
-                </p>
+              <div className="mt-1">
+                <InstructionalDisclosure title="Reflection (optional)">
+                  <p className="text-sm font-medium text-text-primary">Reflection</p>
+                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                    What is one formatting choice you made that helps your reader?
+                  </p>
+                </InstructionalDisclosure>
               </div>
 
               {/* WP-036 — Escape hatches: secondary only; Finish stays sole primary */}

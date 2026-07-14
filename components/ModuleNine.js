@@ -30,6 +30,7 @@ import { openExternalResource } from "@/lib/ui/openExternalResource";
 import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
 import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
+import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import {
   MODULE9_APA_ENTRY,
   MODULE9_APA_JOURNEY,
@@ -1005,26 +1006,28 @@ export default function ModuleNine() {
                 </h3>
                 <p>Follow these steps to turn your Google Doc into a PDF:</p>
                 <ModuleNinePdfDownloadVisual />
-                <ol className="list-inside list-decimal space-y-2">
-                  <li>Open your Google Doc.</li>
-                  <li>
-                    Click <strong>File</strong> at the top of the page.
-                  </li>
-                  <li>
-                    Click <strong>Download</strong>.
-                  </li>
-                  <li>
-                    Click <strong>PDF Document (.pdf)</strong>.
-                  </li>
-                  <li>
-                    Save the PDF somewhere easy to find, such as your{" "}
-                    <strong>Downloads</strong> folder or your <strong>Desktop</strong>.
-                  </li>
-                </ol>
-                <p>
-                  When the PDF has finished downloading, come back to this page and
-                  upload that PDF. This is the version your teacher will grade.
-                </p>
+                <InstructionalDisclosure title="More download steps">
+                  <ol className="list-inside list-decimal space-y-2">
+                    <li>Open your Google Doc.</li>
+                    <li>
+                      Click <strong>File</strong> at the top of the page.
+                    </li>
+                    <li>
+                      Click <strong>Download</strong>.
+                    </li>
+                    <li>
+                      Click <strong>PDF Document (.pdf)</strong>.
+                    </li>
+                    <li>
+                      Save the PDF somewhere easy to find, such as your{" "}
+                      <strong>Downloads</strong> folder or your <strong>Desktop</strong>.
+                    </li>
+                  </ol>
+                  <p className="mt-2">
+                    When the PDF has finished downloading, come back to this page and
+                    upload that PDF. This is the version your teacher will grade.
+                  </p>
+                </InstructionalDisclosure>
               </div>
 
               <div
@@ -1037,33 +1040,37 @@ export default function ModuleNine() {
                 <p className="text-sm leading-relaxed text-text-muted">
                   After the PDF is saved on your device, upload it here.
                 </p>
-                <ol className="list-decimal space-y-2 pl-5 leading-relaxed">
-                  <li>
-                    Choose the file control below (your browser may label it Choose
-                    File or Browse).
-                  </li>
-                  <li>
-                    Locate the PDF in Downloads, Desktop, or the folder where you
-                    saved it.
-                  </li>
-                  <li>
-                    Select the newest PDF, then choose Open.
-                  </li>
-                  <li>
-                    Check the Selected filename on this page, then choose{" "}
-                    <strong>Upload Final PDF</strong>.
-                  </li>
-                  <li>
-                    Wait for the successful upload confirmation.
-                  </li>
-                </ol>
+                <InstructionalDisclosure title="More upload steps">
+                  <ol className="list-decimal space-y-2 pl-5 leading-relaxed">
+                    <li>
+                      Choose the file control below (your browser may label it Choose
+                      File or Browse).
+                    </li>
+                    <li>
+                      Locate the PDF in Downloads, Desktop, or the folder where you
+                      saved it.
+                    </li>
+                    <li>
+                      Select the newest PDF, then choose Open.
+                    </li>
+                    <li>
+                      Check the Selected filename on this page, then choose{" "}
+                      <strong>Upload Final PDF</strong>.
+                    </li>
+                    <li>
+                      Wait for the successful upload confirmation.
+                    </li>
+                  </ol>
+                </InstructionalDisclosure>
               </div>
 
-              <div className="mb-3 space-y-1 rounded-lg border border-border-soft bg-surface-soft px-4 py-3 text-xs">
-                <p className="font-semibold">Before you upload:</p>
-                <p>• Make sure your file name ends with .pdf</p>
-                <p>• Choose the PDF you just downloaded—not a Word file or a screenshot</p>
-              </div>
+              <InstructionalDisclosure title="File tips before you choose">
+                <div className="space-y-1 text-xs">
+                  <p className="font-semibold">Before you upload:</p>
+                  <p>• Make sure your file name ends with .pdf</p>
+                  <p>• Choose the PDF you just downloaded—not a Word file or a screenshot</p>
+                </div>
+              </InstructionalDisclosure>
 
               <div
                 className="mb-3 space-y-1 rounded-lg border border-theme-dark/15 bg-surface-soft px-4 py-3 text-sm leading-relaxed text-text-primary"

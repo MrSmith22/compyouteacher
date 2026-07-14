@@ -207,10 +207,15 @@ describe("WP-006 Module 9 APA learning", () => {
     assert.ok(lesson.includes('role="radiogroup"'));
     assert.ok(lesson.includes("headingRef"));
     assert.ok(lesson.includes("prefers-reduced-motion"));
-    const disclosure = readSrc("../components/module9/ModuleNineDisclosure.jsx");
+    const disclosure = readSrc("../components/shared/InstructionalDisclosure.jsx");
     assert.ok(disclosure.includes("aria-expanded"));
     assert.ok(disclosure.includes("min-h-[44px]"));
-    assert.ok(disclosure.includes("focus-visible:ring-2"));
+    assert.ok(
+      disclosure.includes("focus-visible:ring-2") ||
+        disclosure.includes("HIERARCHY_FOCUS_RING_CLASS")
+    );
+    const alias = readSrc("../components/module9/ModuleNineDisclosure.jsx");
+    assert.ok(alias.includes("InstructionalDisclosure"));
   });
 
   it("18. Responsive layout contract covers 320–1440", () => {

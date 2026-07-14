@@ -91,7 +91,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Needs Verification |
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Needs Verification |
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Needs Verification |
-| WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Open |
+| WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Needs Verification |
 | WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Open |
 | WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Open |
 | WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Open |
@@ -1616,7 +1616,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Dense task screens (revision, formatting, quiz)
 - **Priority:** Medium
 - **Category:** UX / Cognitive Load
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Many pages reveal everything at once instead of progressively disclosing coaching → relevant artifacts → task → textbox.
 
@@ -1630,11 +1630,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Identify pages with more than four simultaneous content layers.
 2. Confirm progressive reveal is implemented.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/progressiveDisclosureContract.js`; `components/shared/InstructionalDisclosure.jsx`; Module 6–9 frame/strategy/format/upload surfaces; `docs/design-system-v1.md`; `tests/wp054-progressive-disclosure-density.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 6–9 pilot. Density matrix in `progressiveDisclosureContract.js`. Shared `InstructionalDisclosure` (M7/M9 aliases). Remediated dense states: M7 intro/body/conclusion/final revision (tips/examples disclosed), M8 Create/Format/Ready (extended framing, APA-does, progress, reflection disclosed), M9 upload (detailed download/upload steps + file tips disclosed). Always visible retained: WP-048 cues, desk artifacts, success criteria, checklists, Doc recovery, PDF visual/input/filename/final checklist/Upload, reassurance. Status **Needs Verification** (app-wide; browser bounded).
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

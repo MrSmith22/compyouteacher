@@ -292,6 +292,29 @@ The design system must preserve readability and navigability.
   - Do not style ordinary instructional text as links
   - Do not convert reference resources into JavaScript buttons
 
+### Progressive disclosure (WP-054)
+
+Progressive disclosure reduces simultaneous instructional layers without hiding requirements.
+
+**Always visible**
+- current task
+- essential orientation (purpose / how / finished cues)
+- current work surface (textarea, checklist, recording, file input, answer choices)
+- completion criteria that gate or define readiness
+- active errors, gates, and verification status
+- primary forward action
+- safety-critical submission wording and selected filename
+
+**Disclose on demand**
+- examples
+- extended explanations beyond the visible purpose line
+- full reference shelves / optional APA guide sections
+- inactive troubleshooting
+- alternative recovery actions when the main path is healthy
+- optional reflection prompts
+
+A student must be able to start required work without opening multiple disclosures first.
+
 ## 11. Motion
 
 Motion should remain subtle and instructional.

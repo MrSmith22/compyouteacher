@@ -3,6 +3,7 @@ import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import ScreenContractCues from "@/components/shared/ScreenContractCues";
+import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import {
   pickVisibleFinished,
   pickVisiblePurpose,
@@ -172,88 +173,37 @@ function SupportingDetails({ whyLines, exampleBlock, successItems }) {
       data-hierarchy-level={HIERARCHY_LEVELS.reference}
     >
       {hasWhy ? (
-        <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
-          <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-            <span
-              aria-hidden="true"
-              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-soft bg-white text-xs font-bold"
-            >
-              +
-            </span>
-            <span className="flex-1 text-left">More about why this matters</span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-              Show
-            </span>
-            <span aria-hidden="true" className="text-text-muted">
-              ▾
-            </span>
-          </summary>
-          <div className="space-y-2 border-t border-border-soft/50 px-4 py-3">
-            {whyLines.map((line) => (
-              <p key={line} className="text-sm leading-relaxed text-text-muted">
-                {line}
-              </p>
-            ))}
-          </div>
-        </details>
+        <InstructionalDisclosure title="More about why this matters">
+          {whyLines.map((line) => (
+            <p key={line} className="text-sm leading-relaxed text-text-muted">
+              {line}
+            </p>
+          ))}
+        </InstructionalDisclosure>
       ) : null}
 
       {hasExample ? (
-        <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
-          <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-            <span
-              aria-hidden="true"
-              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-soft bg-white text-xs font-bold"
-            >
-              +
-            </span>
-            <span className="flex-1 text-left">An example (and why it works)</span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-              Show
-            </span>
-            <span aria-hidden="true" className="text-text-muted">
-              ▾
-            </span>
-          </summary>
-          <div className="space-y-2 border-t border-border-soft/50 px-4 py-3">
-            <p className="text-sm leading-relaxed text-text-primary whitespace-pre-wrap">
-              {exampleBlock.sample}
+        <InstructionalDisclosure title="See an example">
+          <p className="text-sm leading-relaxed text-text-primary whitespace-pre-wrap">
+            {exampleBlock.sample}
+          </p>
+          {exampleBlock.whyItWorks ? (
+            <p className="text-sm leading-relaxed text-text-muted">
+              <span className="font-medium text-text-primary">Why this works: </span>
+              {exampleBlock.whyItWorks}
             </p>
-            {exampleBlock.whyItWorks ? (
-              <p className="text-sm leading-relaxed text-text-muted">
-                <span className="font-medium text-text-primary">Why this works: </span>
-                {exampleBlock.whyItWorks}
-              </p>
-            ) : null}
-          </div>
-        </details>
+          ) : null}
+        </InstructionalDisclosure>
       ) : null}
 
       {hasSuccess ? (
-        <details className="rounded-lg border border-border-soft/60 bg-surface-soft/40 open:border-theme-blue/25">
-          <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-soft/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-            <span
-              aria-hidden="true"
-              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-soft bg-white text-xs font-bold"
-            >
-              +
-            </span>
-            <span className="flex-1 text-left">More self-check details</span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-              Show
-            </span>
-            <span aria-hidden="true" className="text-text-muted">
-              ▾
-            </span>
-          </summary>
-          <div className="border-t border-border-soft/50 px-4 py-3">
-            <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
-              {successItems.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </details>
+        <InstructionalDisclosure title="More self-check details">
+          <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted marker:text-text-muted/60">
+            {successItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </InstructionalDisclosure>
       ) : null}
     </div>
   );

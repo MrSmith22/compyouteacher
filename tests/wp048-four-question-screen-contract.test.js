@@ -325,8 +325,8 @@ describe("WP-048 four-question screen contract (Modules 6–9)", () => {
     }
 
     const frame = readSrc("components/module6/ModuleSixStepFrame.jsx");
-    assert.ok(frame.includes("<details"));
-    assert.ok(frame.includes("An example (and why it works)"));
+    assert.ok(frame.includes("InstructionalDisclosure"));
+    assert.ok(frame.includes("See an example") || frame.includes("An example (and why it works)"));
   });
 
   it("Module 9 keeps WP-047 sequence and WP-038–046 protections with explicit contract cues", () => {

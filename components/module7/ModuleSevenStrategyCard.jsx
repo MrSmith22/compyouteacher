@@ -113,20 +113,25 @@ export default function ModuleSevenStrategyCard({
             <li>{primary.improvePrompt}</li>
           </ol>
           {Array.isArray(primary.checklist) && primary.checklist.length > 0 ? (
-            <div className="mt-3 rounded-lg border border-border-soft/50 bg-white/70 px-3 py-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-                {primary.id === "final-review" ? "Confirm" : "Keep in mind"}
-              </p>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-muted">
-                {primary.checklist.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+            <div className="mt-3">
+              <ModuleSevenDisclosure
+                title={
+                  primary.id === "final-review"
+                    ? "More confirm tips (optional)"
+                    : "Keep in mind tips (optional)"
+                }
+              >
+                <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-muted">
+                  {primary.checklist.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </ModuleSevenDisclosure>
             </div>
           ) : null}
           {primary.deeperExplanation || primary.example?.sample ? (
             <div className="mt-3">
-              <ModuleSevenDisclosure title="Example and tips (optional)">
+              <ModuleSevenDisclosure title="See an example">
                 {primary.deeperExplanation ? (
                   <p className="text-sm leading-relaxed text-text-muted">
                     {primary.deeperExplanation}

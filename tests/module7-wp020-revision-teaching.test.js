@@ -311,13 +311,16 @@ describe("WP-020 Module 7 revision teaching", () => {
   });
 
   it("W13. Disclosures retain affordances; no empty disclosures; optional teaching below", () => {
-    const disclosure = readSrc("../components/module7/ModuleSevenDisclosure.jsx");
+    const disclosure = readSrc("../components/shared/InstructionalDisclosure.jsx");
     assert.ok(disclosure.includes("aria-expanded"));
     assert.ok(disclosure.includes("min-h-[44px]"));
-    assert.ok(disclosure.includes("focus-visible:ring-2"));
+    assert.ok(disclosure.includes("focus-visible:ring-2") || disclosure.includes("HIERARCHY_FOCUS_RING_CLASS"));
     assert.ok(disclosure.includes('open ? "Hide" : "Show"'));
     assert.ok(disclosure.includes('open ? "−" : "+"'));
     assert.ok(disclosure.includes("if (!hasContent) return null"));
+
+    const alias = readSrc("../components/module7/ModuleSevenDisclosure.jsx");
+    assert.ok(alias.includes("InstructionalDisclosure"));
 
     const secondary = readSrc(
       "../components/module7/ModuleSevenReadAloudSecondaryTeaching.jsx"
