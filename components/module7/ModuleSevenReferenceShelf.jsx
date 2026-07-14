@@ -1,6 +1,8 @@
 import Card from "@/components/ui/Card";
 import ArtifactChip from "@/components/ui/ArtifactChip";
+import WorkingNotebookCurrentPage from "@/components/shared/WorkingNotebookCurrentPage";
 import { romanNumeral } from "@/components/module6/module6StepPresentation";
+import { buildWorkingNotebookCurrentPage } from "@/lib/ui/workingNotebook";
 
 function ShelfSection({ title, artifactType = null, children, emptyText = "Not yet." }) {
   return (
@@ -153,13 +155,30 @@ export default function ModuleSevenReferenceShelf({
   activeStep = null,
   activeBadge = "revising now",
   highlightWholeDraft = false,
+  deskItems = [],
+  stepType = "",
+  sectionLabel = "",
 }) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
   const activeBodyIndex =
     !highlightWholeDraft && activeStep?.type === "body" ? activeStep.bodyIndex : -1;
+  const resolvedStepType =
+    String(stepType || "").trim() || String(activeStep?.type || "").trim();
+  const notebookPage = buildWorkingNotebookCurrentPage({
+    module: 7,
+    stepType: resolvedStepType,
+    sectionLabel,
+    items: deskItems,
+  });
 
   return (
-    <aside className="space-y-3 text-left">
+    <aside
+      className="space-y-3 text-left"
+      aria-label="Working notebook"
+      data-testid="working-notebook"
+      data-notebook-module="7"
+    >
+      <WorkingNotebookCurrentPage page={notebookPage} />
       <details
         className="rounded-xl border border-border-soft/70 bg-surface-soft/30"
         data-testid="module7-more-saved-work"

@@ -805,6 +805,13 @@ export default function ModuleSeven() {
     paragraphPlans,
     assignmentQuestion,
   });
+  const notebookSectionLabel = isReadAloudStep
+    ? "Full draft · read aloud"
+    : isFinalReviewStep
+      ? "Full essay review"
+      : sectionLabel
+        ? `${sectionLabel} · revising now`
+        : "";
 
   const referenceShelf = (
     <ModuleSevenReferenceShelf
@@ -818,6 +825,9 @@ export default function ModuleSeven() {
       sections={sections}
       activeStep={isReadAloudStep || isFinalReviewStep ? null : currentRevisionStep}
       highlightWholeDraft={isReadAloudStep || isFinalReviewStep}
+      deskItems={deskArtifacts.items}
+      stepType={deskStepType}
+      sectionLabel={notebookSectionLabel}
     />
   );
 
@@ -952,7 +962,10 @@ export default function ModuleSeven() {
               revisionStage={isFinalReviewStep ? "compare" : "change"}
             />
 
-            <TaskRelevantArtifacts items={deskArtifacts.items} />
+            <TaskRelevantArtifacts
+              items={deskArtifacts.items}
+              heading="Notebook page open on your desk"
+            />
 
             <WorkingSetSection
               className={HIERARCHY_WORK_SURFACE_CLASS}

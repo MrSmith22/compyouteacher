@@ -780,10 +780,9 @@ export default function ModuleSix() {
   const isFirstStage = uiStageIndex === 0;
   const sectionLabel = getWritingSectionLabel(currentStep);
 
+  const deskStepType = isReviewStage ? "review" : currentStep?.type || "";
   const deskArtifacts = selectTaskRelevantArtifacts({
-    stepType: isReviewStage
-      ? "review"
-      : currentStep?.type || "",
+    stepType: deskStepType,
     bodyIndex:
       typeof currentStep?.bodyIndex === "number" ? currentStep.bodyIndex : -1,
     thesis: thesisText,
@@ -791,6 +790,9 @@ export default function ModuleSix() {
     paragraphPlans,
     assignmentQuestion,
   });
+  const notebookSectionLabel = isReviewStage
+    ? "Whole-draft review"
+    : sectionLabel;
 
   const referenceShelf = (
     <ModuleSixReferenceShelf
@@ -801,6 +803,9 @@ export default function ModuleSix() {
       paragraphPlans={paragraphPlans}
       observations={observations}
       activeStep={currentStep}
+      deskItems={deskArtifacts.items}
+      stepType={deskStepType}
+      sectionLabel={notebookSectionLabel}
     />
   );
 
@@ -920,7 +925,10 @@ export default function ModuleSix() {
             )}
           </div>
 
-          <TaskRelevantArtifacts items={deskArtifacts.items} />
+          <TaskRelevantArtifacts
+            items={deskArtifacts.items}
+            heading="Notebook page open on your desk"
+          />
 
           {progressCelebration?.message ? (
             <ProgressCelebrationBridge

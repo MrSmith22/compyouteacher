@@ -1,6 +1,8 @@
 import Card from "@/components/ui/Card";
 import ArtifactChip from "@/components/ui/ArtifactChip";
+import WorkingNotebookCurrentPage from "@/components/shared/WorkingNotebookCurrentPage";
 import { romanNumeral } from "@/components/module6/module6StepPresentation";
+import { buildWorkingNotebookCurrentPage } from "@/lib/ui/workingNotebook";
 
 function ShelfSection({ title, artifactType = null, children, emptyText = "Not yet." }) {
   return (
@@ -113,17 +115,37 @@ export default function ModuleSixReferenceShelf({
   paragraphPlans = [],
   observations = [],
   activeStep = null,
+  deskItems = [],
+  stepType = "",
+  sectionLabel = "",
 }) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
   const activeBodyIndex =
     activeStep?.type === "body" ? activeStep.bodyIndex : -1;
+  const resolvedStepType =
+    String(stepType || "").trim() ||
+    (activeStep?.type === "review"
+      ? "review"
+      : String(activeStep?.type || "").trim());
+  const notebookPage = buildWorkingNotebookCurrentPage({
+    module: 6,
+    stepType: resolvedStepType,
+    sectionLabel,
+    items: deskItems,
+  });
 
   return (
-    <aside className="space-y-3 text-left">
+    <aside
+      className="space-y-3 text-left"
+      aria-label="Working notebook"
+      data-testid="working-notebook"
+      data-notebook-module="6"
+    >
+      <WorkingNotebookCurrentPage page={notebookPage} />
       <details
         className="rounded-xl border border-border-soft/70 bg-surface-soft/30"
-                  data-testid="module6-more-saved-work"
-                  data-hierarchy-level="reference"
+        data-testid="module6-more-saved-work"
+        data-hierarchy-level="reference"
       >
         <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
           <span>More saved work</span>

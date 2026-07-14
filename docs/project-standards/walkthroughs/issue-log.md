@@ -96,7 +96,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Needs Verification |
 | WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Needs Verification |
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Needs Verification |
-| WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Open |
+| WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Needs Verification |
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Open |
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Open |
@@ -1778,11 +1778,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-059 — Sidebar functions as storage instead of working notebook
 
-- **Module:** App-wide
+- **Module:** App-wide (pilot: Modules 6–7)
 - **Screen or area:** Sidebar across drafting and revision modules
 - **Priority:** Medium
 - **Category:** UX
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** The sidebar was originally treated as storage. The walkthrough established it should be an instructional notebook with the current task expanded and everything else collapsed.
 
@@ -1796,9 +1796,15 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open drafting and revision pages.
 2. Confirm sidebar defaults to current-task view.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/workingNotebook.js`, `components/shared/WorkingNotebookCurrentPage.jsx`, `components/module6/ModuleSixReferenceShelf.jsx`, `components/module7/ModuleSevenReferenceShelf.jsx`, `components/ModuleSix.js`, `components/ModuleSeven.js`, `tests/wp059-working-notebook-sidebar.test.js`
 
 **Resolution notes:**
+- Surface audit (`WP059_SIDEBAR_SURFACE_AUDIT`): M6–7 working-notebook pilot; M4–5 planning/reference; M8 preparation reference; M9 quick guide.
+- Contract: always-visible current-page index (labels from `selectTaskRelevantArtifacts`) + desk shows full notes (`Notebook page open on your desk`) + collapsed `More saved work` archive.
+- Module 6 matrix: Intro / Body N / Conclusion / Whole-draft review. Module 7 matrix: Read aloud (full-draft context, not empty) / section revision / Final review.
+- Artifact precedence unchanged (WP-049 selector reused; no second matcher). Student text not duplicated in the index.
+- Status remains Needs Verification (app-wide; M6–7 scope; browser bounded).
+- Browser: no listener on port 3000 during verification; notebook states **not reached live**.
 
 **Resolved in commit:**
 
