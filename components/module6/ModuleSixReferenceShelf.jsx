@@ -120,158 +120,173 @@ export default function ModuleSixReferenceShelf({
 
   return (
     <aside className="space-y-3 text-left">
-      <div>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
-          On the shelf
-        </p>
-        <p className="mt-1 text-[11px] leading-relaxed text-text-muted/80">
-          Your thesis and the outline section marked “drafting now” are your guides.
-          Open the rest when you need a reminder.
-        </p>
-      </div>
+      <details
+        className="rounded-xl border border-border-soft/70 bg-surface-soft/30"
+        data-testid="module6-more-saved-work"
+      >
+        <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-dark focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+          <span>More saved work</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
+            Show
+          </span>
+        </summary>
+        <div className="space-y-3 border-t border-border-soft/60 px-4 pb-4 pt-3">
+          <p className="text-[11px] leading-relaxed text-text-muted/80">
+            Full thesis, outline, plans, and evidence stay here for reference.
+            Open this shelf only when you need a reminder beyond your desk.
+          </p>
 
-      <Card padding="sm" elevation="soft" surface="soft" className="space-y-3">
-        <ShelfSection
-          title="Your thesis (already written)"
-          artifactType="thesis"
-          emptyText="Your thesis will appear here."
-        >
-          {thesis ? (
-            <p className="whitespace-pre-wrap text-sm font-medium text-text-primary">
-              {thesis}
-            </p>
-          ) : null}
-        </ShelfSection>
+          <Card padding="sm" elevation="soft" surface="soft" className="space-y-3">
+            <ShelfSection
+              title="Your thesis (already written)"
+              artifactType="thesis"
+              emptyText="Your thesis will appear here."
+            >
+              {thesis ? (
+                <p className="whitespace-pre-wrap text-sm font-medium text-text-primary">
+                  {thesis}
+                </p>
+              ) : null}
+            </ShelfSection>
 
-        <ShelfSection title="Outline" artifactType="outline" emptyText="Your outline will appear here.">
-          <div className="space-y-2">
-            {activeStep?.type === "intro" ? (
-              <OutlineSectionPreview
-                label={`${romanNumeral(0)}. Introduction`}
-                isActive
-              />
-            ) : null}
-            {activeBodyIndex >= 0 ? (
-              <OutlineSectionPreview
-                label={`${romanNumeral(activeBodyIndex + 1)}. ${
-                  body[activeBodyIndex]?.job ||
-                  body[activeBodyIndex]?.bucket ||
-                  body[activeBodyIndex]?.point ||
-                  "Body paragraph"
-                }`}
-                points={
-                  Array.isArray(body[activeBodyIndex]?.points)
-                    ? body[activeBodyIndex].points
-                    : []
-                }
-                isActive
-              />
-            ) : null}
-            {activeStep?.type === "conclusion" ? (
-              <OutlineSectionPreview
-                label={`${romanNumeral(body.length + 1)}. Conclusion`}
-                isActive
-              />
-            ) : null}
-            {activeStep?.type === "review" ? (
-              <p className="text-xs text-text-muted">
-                Whole-draft review — open other sections below if you need a reminder.
-              </p>
-            ) : null}
-
-            <details className="rounded-lg border border-border-soft/50 bg-surface-soft/30 px-3 py-2">
-              <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
-                Other outline sections
-              </summary>
-              <div className="mt-2 space-y-2">
-                {activeStep?.type !== "intro" ? (
+            <ShelfSection
+              title="Outline"
+              artifactType="outline"
+              emptyText="Your outline will appear here."
+            >
+              <div className="space-y-2">
+                {activeStep?.type === "intro" ? (
                   <OutlineSectionPreview
                     label={`${romanNumeral(0)}. Introduction`}
-                    isActive={false}
+                    isActive
                   />
                 ) : null}
-                {body.map((card, index) =>
-                  index === activeBodyIndex ? null : (
-                    <OutlineSectionPreview
-                      key={`outline-${index}`}
-                      label={`${romanNumeral(index + 1)}. ${
-                        card.job || card.bucket || card.point || "Body paragraph"
-                      }`}
-                      points={Array.isArray(card.points) ? card.points : []}
-                      isActive={false}
-                    />
-                  )
-                )}
-                {activeStep?.type !== "conclusion" ? (
+                {activeBodyIndex >= 0 ? (
+                  <OutlineSectionPreview
+                    label={`${romanNumeral(activeBodyIndex + 1)}. ${
+                      body[activeBodyIndex]?.job ||
+                      body[activeBodyIndex]?.bucket ||
+                      body[activeBodyIndex]?.point ||
+                      "Body paragraph"
+                    }`}
+                    points={
+                      Array.isArray(body[activeBodyIndex]?.points)
+                        ? body[activeBodyIndex].points
+                        : []
+                    }
+                    isActive
+                  />
+                ) : null}
+                {activeStep?.type === "conclusion" ? (
                   <OutlineSectionPreview
                     label={`${romanNumeral(body.length + 1)}. Conclusion`}
-                    isActive={false}
+                    isActive
                   />
                 ) : null}
+                {activeStep?.type === "review" ? (
+                  <p className="text-xs text-text-muted">
+                    Whole-draft review — open other sections below if you need a
+                    reminder.
+                  </p>
+                ) : null}
+
+                <details className="rounded-lg border border-border-soft/50 bg-surface-soft/30 px-3 py-2">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
+                    Other outline sections
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    {activeStep?.type !== "intro" ? (
+                      <OutlineSectionPreview
+                        label={`${romanNumeral(0)}. Introduction`}
+                        isActive={false}
+                      />
+                    ) : null}
+                    {body.map((card, index) =>
+                      index === activeBodyIndex ? null : (
+                        <OutlineSectionPreview
+                          key={`outline-${index}`}
+                          label={`${romanNumeral(index + 1)}. ${
+                            card.job || card.bucket || card.point || "Body paragraph"
+                          }`}
+                          points={Array.isArray(card.points) ? card.points : []}
+                          isActive={false}
+                        />
+                      )
+                    )}
+                    {activeStep?.type !== "conclusion" ? (
+                      <OutlineSectionPreview
+                        label={`${romanNumeral(body.length + 1)}. Conclusion`}
+                        isActive={false}
+                      />
+                    ) : null}
+                  </div>
+                </details>
               </div>
-            </details>
-          </div>
-        </ShelfSection>
+            </ShelfSection>
 
-        <CollapsibleShelfSection
-          title="Assignment question"
-          emptyText="Your assignment question will appear here."
-        >
-          {assignmentQuestion ? (
-            <p className="text-sm leading-relaxed text-text-primary">{assignmentQuestion}</p>
-          ) : null}
-        </CollapsibleShelfSection>
+            <CollapsibleShelfSection
+              title="Assignment question"
+              emptyText="Your assignment question will appear here."
+            >
+              {assignmentQuestion ? (
+                <p className="text-sm leading-relaxed text-text-primary">
+                  {assignmentQuestion}
+                </p>
+              ) : null}
+            </CollapsibleShelfSection>
 
-        <CollapsibleShelfSection
-          title="Proof plan"
-          emptyText="Proof directions from Module 3 will appear here when you have them."
-        >
-          {proofPlan.length > 0 ? (
-            <ol className="list-decimal list-inside space-y-1 text-sm text-text-primary">
-              {proofPlan.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ol>
-          ) : null}
-        </CollapsibleShelfSection>
+            <CollapsibleShelfSection
+              title="Proof plan"
+              emptyText="Proof directions from Module 3 will appear here when you have them."
+            >
+              {proofPlan.length > 0 ? (
+                <ol className="list-decimal list-inside space-y-1 text-sm text-text-primary">
+                  {proofPlan.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ol>
+              ) : null}
+            </CollapsibleShelfSection>
 
-        {paragraphPlans.length > 0 ? (
-          <CollapsibleShelfSection
-            title="Paragraph plans"
-            emptyText="Paragraph plans from Module 4 will appear here."
-          >
-            <div className="space-y-2">
-              {paragraphPlans.map((plan, index) => (
-                <ParagraphPlanPreview
-                  key={`plan-${index}`}
-                  index={index}
-                  plan={plan}
-                  isActive={index === activeBodyIndex}
-                />
-              ))}
-            </div>
-          </CollapsibleShelfSection>
-        ) : null}
+            {paragraphPlans.length > 0 ? (
+              <CollapsibleShelfSection
+                title="Paragraph plans"
+                emptyText="Paragraph plans from Module 4 will appear here."
+              >
+                <div className="space-y-2">
+                  {paragraphPlans.map((plan, index) => (
+                    <ParagraphPlanPreview
+                      key={`plan-${index}`}
+                      index={index}
+                      plan={plan}
+                      isActive={index === activeBodyIndex}
+                    />
+                  ))}
+                </div>
+              </CollapsibleShelfSection>
+            ) : null}
 
-        <CollapsibleShelfSection
-          title="Evidence"
-          emptyText="Your evidence notes will appear here."
-        >
-          {observations.length > 0 ? (
-            <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-text-muted">
-              {observations.map((entry) => (
-                <li key={entry.id} className="border-b border-border-soft/50 pb-1">
-                  <span className="font-medium text-text-primary">
-                    {String(entry.category || "").toUpperCase()}
-                  </span>
-                  {` — `}
-                  {entry.observation || entry.speech_note || entry.letter_note}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </CollapsibleShelfSection>
-      </Card>
+            <CollapsibleShelfSection
+              title="Evidence"
+              emptyText="Your evidence notes will appear here."
+            >
+              {observations.length > 0 ? (
+                <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-text-muted">
+                  {observations.map((entry) => (
+                    <li key={entry.id} className="border-b border-border-soft/50 pb-1">
+                      <span className="font-medium text-text-primary">
+                        {String(entry.category || "").toUpperCase()}
+                      </span>
+                      {` — `}
+                      {entry.observation || entry.speech_note || entry.letter_note}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </CollapsibleShelfSection>
+          </Card>
+        </div>
+      </details>
     </aside>
   );
 }

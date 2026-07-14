@@ -26,6 +26,8 @@ import ModuleSevenReadAloudObservation from "@/components/module7/ModuleSevenRea
 import ModuleSevenReadAloudSecondaryTeaching from "@/components/module7/ModuleSevenReadAloudSecondaryTeaching";
 import ModuleSevenStrategyCard from "@/components/module7/ModuleSevenStrategyCard";
 import EssayProseView from "@/components/module7/EssayProseView";
+import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
+import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
   alignSectionsToOutline,
   getSectionCountFromOutline,
@@ -765,6 +767,23 @@ export default function ModuleSeven() {
   const readAloudReady = readAloudGate.ok;
   const canKeepGoing = !isReadAloudStep || readAloudReady;
 
+  const deskStepType = isReadAloudStep
+    ? "read-aloud"
+    : isFinalReviewStep
+      ? "final-review"
+      : currentRevisionStep?.type || "";
+  const deskArtifacts = selectTaskRelevantArtifacts({
+    stepType: deskStepType,
+    bodyIndex:
+      typeof currentRevisionStep?.bodyIndex === "number"
+        ? currentRevisionStep.bodyIndex
+        : -1,
+    thesis: thesisText,
+    outline,
+    paragraphPlans,
+    assignmentQuestion,
+  });
+
   const referenceShelf = (
     <ModuleSevenReferenceShelf
       assignmentQuestion={assignmentQuestion}
@@ -887,6 +906,8 @@ export default function ModuleSeven() {
               entryTeaching={null}
               revisionStage={isFinalReviewStep ? "compare" : "change"}
             />
+
+            <TaskRelevantArtifacts items={deskArtifacts.items} />
 
             <WorkingSetSection
               className="[&>div:last-child]:border-theme-blue/20 [&>div:last-child]:shadow-md"

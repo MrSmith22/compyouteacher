@@ -19,6 +19,8 @@ import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
 import InfoCallout from "@/components/ui/InfoCallout";
+import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
+import { selectTaskRelevantArtifacts } from "@/lib/module6/taskRelevantArtifacts";
 import {
   getWritingSectionLabel,
   getModule6StepPresentation,
@@ -755,32 +757,17 @@ export default function ModuleSix() {
   const isFirstStage = uiStageIndex === 0;
   const sectionLabel = getWritingSectionLabel(currentStep);
 
-  const activeOutlinePoints =
-    currentStep.type === SECTION_TYPES.BODY &&
-    Array.isArray(outline?.body?.[currentStep.bodyIndex]?.points)
-      ? outline.body[currentStep.bodyIndex].points
-          .map((point) => String(point || "").trim())
-          .filter(Boolean)
-      : [];
-
-  const activeEvidence =
-    currentStep.type === SECTION_TYPES.BODY &&
-    Array.isArray(outline?.body?.[currentStep.bodyIndex]?.evidence)
-      ? outline.body[currentStep.bodyIndex].evidence
-      : [];
-
-  const activeReasoning =
-    currentStep.type === SECTION_TYPES.BODY
-      ? String(outline?.body?.[currentStep.bodyIndex]?.reasoning || "").trim()
-      : "";
-
-  const conclusionPlanLines = [];
-  if (currentStep.type === SECTION_TYPES.CONCLUSION && outline?.conclusion) {
-    const summary = String(outline.conclusion.summary || "").trim();
-    const finalThought = String(outline.conclusion.finalThought || "").trim();
-    if (summary) conclusionPlanLines.push(`Restate / summarize: ${summary}`);
-    if (finalThought) conclusionPlanLines.push(`Final thought: ${finalThought}`);
-  }
+  const deskArtifacts = selectTaskRelevantArtifacts({
+    stepType: isReviewStage
+      ? "review"
+      : currentStep?.type || "",
+    bodyIndex:
+      typeof currentStep?.bodyIndex === "number" ? currentStep.bodyIndex : -1,
+    thesis: thesisText,
+    outline,
+    paragraphPlans,
+    assignmentQuestion,
+  });
 
   const referenceShelf = (
     <ModuleSixReferenceShelf
@@ -821,74 +808,10 @@ export default function ModuleSix() {
         </div>
       ) : null}
 
-      <div
-        id="module-6-thesis-card"
-        className="rounded-xl border-2 border-theme-blue/40 bg-theme-blue/5 px-4 py-3 shadow-soft"
-      >
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-blue">
-          {presentation.thesisCardTitle || "Your thesis (already written)"}
-        </p>
-        {thesisText ? (
-          <p className="mt-2 text-sm font-medium leading-relaxed text-text-primary whitespace-pre-wrap">
-            {thesisText}
-          </p>
-        ) : (
-          <p className="mt-2 text-sm leading-relaxed text-text-muted">
-            Your thesis will appear here once it is saved from planning.
-          </p>
-        )}
-      </div>
-
-      {activeOutlinePoints.length > 0 ||
-      activeEvidence.length > 0 ||
-      activeReasoning ||
-      conclusionPlanLines.length > 0 ||
-      presentation.outlineHelpNote ? (
-        <div
-          id="module-6-outline-card"
-          className="rounded-xl border-2 border-theme-green/40 bg-theme-green/5 px-4 py-3 shadow-soft"
-        >
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-green">
-            {presentation.outlineHelpTitle || "Outline notes for this section"}
-          </p>
-          {presentation.outlineHelpNote ? (
-            <p className="mt-2 text-sm leading-relaxed text-text-muted">
-              {presentation.outlineHelpNote}
-            </p>
-          ) : null}
-          {activeOutlinePoints.length > 0 ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
-              {activeOutlinePoints.map((point) => (
-                <li key={point}>{point}</li>
-              ))}
-            </ul>
-          ) : null}
-          {activeEvidence.length > 0 ? (
-            <ul className="mt-2 space-y-2 text-sm text-text-primary">
-              {activeEvidence.map((ev, i) => (
-                <li key={`ev-${i}`} className="break-words">
-                  {ev.quote ? <span className="italic">“{ev.quote}”</span> : null}
-                  {ev.observation ? (
-                    <span className="block text-text-muted">{ev.observation}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {activeReasoning ? (
-            <p className="mt-2 text-sm text-text-primary break-words">
-              Reasoning: {activeReasoning}
-            </p>
-          ) : null}
-          {conclusionPlanLines.length > 0 ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-text-primary">
-              {conclusionPlanLines.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-      ) : null}
+      <p className="text-sm leading-relaxed text-text-muted">
+        Task-relevant notes are on your desk above the writing box. Open More
+        saved work in the shelf for the full thesis, outline, and evidence.
+      </p>
     </div>
   );
 
@@ -969,6 +892,8 @@ export default function ModuleSix() {
               </p>
             )}
           </div>
+
+          <TaskRelevantArtifacts items={deskArtifacts.items} />
 
           {isReviewStage ? (
             <WorkingSetSection

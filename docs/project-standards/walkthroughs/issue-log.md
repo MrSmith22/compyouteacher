@@ -86,7 +86,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Resolved |
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Needs Verification |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Needs Verification |
-| WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Open |
+| WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Needs Verification |
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Open |
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Open |
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Open |
@@ -1476,7 +1476,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Drafting and revision workspaces with sidebars
 - **Priority:** High
 - **Category:** UX / Cognitive Load
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Students must search for quotations, thesis, paragraph plan, and conclusion plan in the sidebar. The application already knows this information but does not bring it into the working area.
 
@@ -1490,11 +1490,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Open drafting/revision pages without opening the sidebar.
 2. Confirm all task-relevant artifacts are visible in the working area.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `components/shared/TaskRelevantArtifacts.jsx`; `lib/module6/taskRelevantArtifacts.js`; `components/ModuleSix.js`; `components/ModuleSeven.js`; `components/module6/ModuleSixReferenceShelf.jsx`; `components/module7/ModuleSevenReferenceShelf.jsx`; `tests/wp049-task-relevant-artifact-pull-forward.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 6–7 first pass only—not app-wide complete. Added pure `selectTaskRelevantArtifacts` + `TaskRelevantArtifacts` desk before drafting/revision textareas. Pull-forward precedence: thesis from outline/thesisText; body claim/evidence/reasoning from the active `outline.body[bodyIndex]` (paragraph-plan ordinal or explicit index only when stored); conclusion notes from `outline.conclusion`; review/final-review = compact thesis only; read-aloud = no desk wall. Full shelves demoted to collapsed **More saved work**. Need Help no longer duplicates thesis/outline cards already on the desk. Status remains **Needs Verification** because the issue is app-wide and Modules outside 6–7 were not audited.
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 
