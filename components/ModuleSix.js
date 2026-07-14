@@ -18,7 +18,6 @@ import ModuleSixStepFrame from "@/components/module6/ModuleSixStepFrame";
 import ModulePageShell from "@/components/layout/ModulePageShell";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleSixReferenceShelf from "@/components/module6/ModuleSixReferenceShelf";
-import InfoCallout from "@/components/ui/InfoCallout";
 import TaskRelevantArtifacts from "@/components/shared/TaskRelevantArtifacts";
 import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
 import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
@@ -807,15 +806,6 @@ export default function ModuleSix() {
 
   const supportingResources = (
     <div className="space-y-3 text-left">
-      {isFirstStage && !locked ? (
-        <InfoCallout title="You are not starting over.">
-          <p>
-            You already figured out what you want to say. Now you help your reader
-            understand it—one section at a time.
-          </p>
-        </InfoCallout>
-      ) : null}
-
       {currentStep.type === SECTION_TYPES.BODY && presentation.organizationalJob ? (
         <div className="rounded-xl border-2 border-theme-orange/35 bg-theme-orange/5 px-4 py-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-theme-orange">
@@ -907,6 +897,17 @@ export default function ModuleSix() {
               {proseStageCount ? ` · ${proseStageCount} writing sections` : ""}.
               One section at a time.
             </p>
+            {isFirstStage && !locked ? (
+              <p
+                className="mt-1 text-[11px] leading-relaxed text-text-muted/90"
+                data-testid="module6-build-forward-framing"
+                data-build-forward-module="6"
+              >
+                You are not starting over. You already figured out what you want
+                to say. Now you help your reader understand it—one section at a
+                time.
+              </p>
+            ) : null}
             {!locked ? (
               <p className="text-[11px] leading-relaxed text-text-muted/80" aria-live="off">
                 Your draft saves as you type.

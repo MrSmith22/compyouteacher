@@ -847,7 +847,11 @@ export default function ModuleSeven() {
               Module 7 · {stepKind} · step {currentStepIndex + 1} of {totalSteps}
               {isFinalReviewStep ? "" : ". Same essay—one section at a time."}
             </p>
-            <p className="text-[11px] leading-relaxed text-text-muted/80">
+            <p
+              className="text-[11px] leading-relaxed text-text-muted/80"
+              data-testid="module7-revision-build-forward-framing"
+              data-build-forward-module="7"
+            >
               {presentation.strengthFrame ||
                 "Your draft is complete. Now you are making it stronger."}
             </p>
@@ -856,6 +860,14 @@ export default function ModuleSeven() {
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
             <p className="text-[11px] leading-relaxed text-text-muted">
               Module 7 · Read aloud · step 1 of {totalSteps}
+            </p>
+            <p
+              className="mt-1 text-[11px] leading-relaxed text-text-muted/90"
+              data-testid="module7-build-forward-framing"
+              data-build-forward-module="7"
+            >
+              Your Module 6 draft is already on your desk. You are listening for
+              what to strengthen—not starting a new draft.
             </p>
           </div>
         )}

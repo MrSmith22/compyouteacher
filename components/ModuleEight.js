@@ -725,6 +725,7 @@ export default function ModuleEight() {
             className="rounded-lg border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-left"
             data-hierarchy-level="instruction"
             data-testid="module8-submission-doc-framing"
+            data-build-forward-module="8"
           >
             <p className="text-sm font-semibold text-text-primary">
               Prepare Your Essay for Submission

@@ -839,7 +839,11 @@ export default function ModuleFive() {
             {thesis || originalThesis || "Your Module 3 thesis will appear here."}
           </p>
         </div>
-        <p className="text-sm text-theme-dark/85">
+        <p
+          className="text-sm text-theme-dark/85"
+          data-testid="module5-build-forward-framing"
+          data-build-forward-module="5"
+        >
           These cards are paragraph plans you already completed. You will arrange
           and review them—not recreate them.
         </p>

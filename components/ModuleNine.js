@@ -723,11 +723,16 @@ export default function ModuleNine() {
               >
                 {MODULE9_SCREEN_CONTRACT[1].task}
               </h2>
-              <ScreenContractCues
-                purpose={MODULE9_SCREEN_CONTRACT[1].purpose}
-                how={MODULE9_SCREEN_CONTRACT[1].how}
-                finished={MODULE9_SCREEN_CONTRACT[1].finished}
-              />
+              <div
+                data-testid="module9-build-forward-step-1"
+                data-build-forward-module="9"
+              >
+                <ScreenContractCues
+                  purpose={MODULE9_SCREEN_CONTRACT[1].purpose}
+                  how={MODULE9_SCREEN_CONTRACT[1].how}
+                  finished={MODULE9_SCREEN_CONTRACT[1].finished}
+                />
+              </div>
             </header>
             <div data-hierarchy-level={HIERARCHY_LEVELS.work} data-hierarchy-emphasis="active">
             <ModuleNineApaLesson
@@ -755,11 +760,16 @@ export default function ModuleNine() {
             >
               Open the paper you prepared{docReady ? " ✓" : ""}
             </h2>
-            <ScreenContractCues
-              purpose={MODULE9_SCREEN_CONTRACT[2].purpose}
-              how={MODULE9_SCREEN_CONTRACT[2].how}
-              finished={MODULE9_SCREEN_CONTRACT[2].finished}
-            />
+            <div
+              data-testid="module9-build-forward-step-2"
+              data-build-forward-module="9"
+            >
+              <ScreenContractCues
+                purpose={MODULE9_SCREEN_CONTRACT[2].purpose}
+                how={MODULE9_SCREEN_CONTRACT[2].how}
+                finished={MODULE9_SCREEN_CONTRACT[2].finished}
+              />
+            </div>
             {progressCelebration?.message &&
             progressCelebration.toStep === "google-doc" ? (
               <ProgressCelebrationBridge
@@ -926,11 +936,16 @@ export default function ModuleNine() {
                 Format your paper with the APA guide
                 {checklistComplete ? " ✓" : ""}
               </h2>
-              <ScreenContractCues
-                purpose={MODULE9_SCREEN_CONTRACT[3].purpose}
-                how={MODULE9_SCREEN_CONTRACT[3].how}
-                finished={MODULE9_SCREEN_CONTRACT[3].finished}
-              />
+              <div
+                data-testid="module9-build-forward-step-3"
+                data-build-forward-module="9"
+              >
+                <ScreenContractCues
+                  purpose={MODULE9_SCREEN_CONTRACT[3].purpose}
+                  how={MODULE9_SCREEN_CONTRACT[3].how}
+                  finished={MODULE9_SCREEN_CONTRACT[3].finished}
+                />
+              </div>
               {progressCelebration?.message &&
               progressCelebration.toStep === "formatting-checklist" ? (
                 <ProgressCelebrationBridge
@@ -1029,11 +1044,16 @@ export default function ModuleNine() {
               >
                 Download, check, and submit your PDF
               </h2>
-              <ScreenContractCues
-                purpose={MODULE9_SCREEN_CONTRACT[4].purpose}
-                how={MODULE9_SCREEN_CONTRACT[4].how}
-                finished={MODULE9_SCREEN_CONTRACT[4].finished}
-              />
+              <div
+                data-testid="module9-build-forward-step-4"
+                data-build-forward-module="9"
+              >
+                <ScreenContractCues
+                  purpose={MODULE9_SCREEN_CONTRACT[4].purpose}
+                  how={MODULE9_SCREEN_CONTRACT[4].how}
+                  finished={MODULE9_SCREEN_CONTRACT[4].finished}
+                />
+              </div>
               {progressCelebration?.message &&
               progressCelebration.toStep === "download-upload" ? (
                 <ProgressCelebrationBridge

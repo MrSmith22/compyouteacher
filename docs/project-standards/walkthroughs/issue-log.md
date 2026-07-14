@@ -94,7 +94,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Needs Verification |
 | WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Needs Verification |
 | WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Needs Verification |
-| WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Open |
+| WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Needs Verification |
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Open |
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Open |
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Open |
@@ -1709,11 +1709,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-057 — “Never start from scratch” messaging missing after Module 2
 
-- **Module:** App-wide (Modules 6–9 most acute)
+- **Module:** App-wide (Modules 4–9 audited; Module 3 excluded; most acute 6–9)
 - **Screen or area:** Drafting, revision, formatting, and submission screens
 - **Priority:** Medium
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** After Module 2, students should almost never feel they are beginning from nothing. The walkthrough showed this philosophy is not reinforced consistently in later modules.
 
@@ -1727,9 +1727,15 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Sample later-module screens for scratch-framing vs build-framing language.
 2. Confirm build-framing dominates.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/buildForwardContract.js`, `components/ModuleFive.js`, `components/ModuleSix.js`, `components/ModuleSeven.js`, `components/ModuleEight.js`, `components/ModuleNine.js`, `lib/module9/module9ScreenContract.js`, `tests/wp057-never-start-from-scratch.test.js`
 
 **Resolution notes:**
+- Modules 4–9 build-forward audit matrix in `WP057_BUILD_FORWARD_AUDIT` / `tests/wp057-never-start-from-scratch.test.js`.
+- Reused existing language: Module 4 success “not starting over,” Module 5 “plans you already completed,” Module 6 first-stage wording, Module 7 strength frame, Module 8 `module8-submission-doc-framing`, Module 9 Steps 1–2 screen contract.
+- Smallest repairs: promote Module 6 first-stage framing into always-visible progress strip (removed Need Help-only InfoCallout duplicate); add Module 7 read-aloud always-visible line; refine Module 9 Steps 3–4 purpose for prior-artifact continuity; add stable build-forward test hooks (no second slogan panels).
+- Distinct from WP-056 celebrations (completed step → next job).
+- Status remains Needs Verification (app-wide; Module 3 excluded; browser bounded).
+- Browser: no listener on port 3000 during verification; build-forward states **not reached live**.
 
 **Resolved in commit:**
 
