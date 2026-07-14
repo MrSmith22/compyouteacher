@@ -1,5 +1,9 @@
 import { DEFAULT_ASSIGNMENT_NAME } from "@/lib/assignments";
+import { CANONICAL_ACTIVE_ASSIGNMENT_STATUS } from "@/lib/assignments/assignmentActivityStatus";
 import { supabase } from "../../supabaseClient";
+import { advanceModuleProgressionWithStore } from "@/lib/module1/advanceModuleProgression";
+import { createSupabaseAssignmentProgressStore } from "@/lib/module1/assignmentProgressStore";
+
 const MAX_MODULE = 10;
 
 /**
@@ -58,7 +62,7 @@ export async function ensureStudentAssignmentRow({
       user_email: userEmail,
       assignment_name: assignmentName,
       current_module: clampedModule,
-      status: "in_progress",
+      status: CANONICAL_ACTIVE_ASSIGNMENT_STATUS,
       started_at: now,
       updated_at: now,
     })
@@ -138,7 +142,7 @@ export async function upsertResumePath({
       assignment_name: assignmentName,
       resume_path: resumePath,
       current_module: nextModule,
-      status: "in_progress",
+      status: CANONICAL_ACTIVE_ASSIGNMENT_STATUS,
       updated_at: now,
     },
     { onConflict: "user_email,assignment_name" }
@@ -147,7 +151,13 @@ export async function upsertResumePath({
 
 /**
  * Advance student_assignments.current_module to at least (completedModuleNumber + 1)
- * when the assignment exists and status is in_progress. Never regress (e.g. revisiting an old success page).
+ * using compare-and-set (never an unconditional upsert after a stale read).
+ *
+ * Concurrent jump/reset/status changes cannot move the student backward.
+ * Returns structured `{ ok, reason, alreadyAdvanced?, currentModule?, error? }`.
+ *
+ * Prefer `/api/module1/complete` from the browser so the service-role client
+ * performs the mutation under a trusted session.
  */
 export async function advanceCurrentModuleOnSuccess({
   userEmail,
@@ -157,33 +167,25 @@ export async function advanceCurrentModuleOnSuccess({
   userEmail: string;
   assignmentName?: string;
   completedModuleNumber: number;
-}) {
-  const { data, error } = await getStudentAssignment({
+}): Promise<{
+  ok: boolean;
+  reason?: string;
+  alreadyAdvanced?: boolean;
+  currentModule?: number;
+  error?: unknown;
+  attempts?: number;
+}> {
+  // Browser/anon path retained for non-Module-1 callers. Module 1 success uses
+  // /api/module1/complete (service role) so RLS cannot block the CAS update.
+  const store = createSupabaseAssignmentProgressStore({
+    supabase,
     userEmail,
     assignmentName,
   });
-  if (error || !data) return;
-  if (data.status !== "in_progress") return;
 
-  const current =
-    typeof data.current_module === "number" ? data.current_module : 1;
-  const nextModule = Math.min(
-    Math.max(current, completedModuleNumber + 1),
-    MAX_MODULE
-  );
-  if (nextModule <= current) return;
-
-  const now = new Date().toISOString();
-  return supabase
-    .from("student_assignments")
-    .upsert(
-      {
-        user_email: userEmail,
-        assignment_name: assignmentName,
-        current_module: nextModule,
-        status: "in_progress",
-        updated_at: now,
-      },
-      { onConflict: "user_email,assignment_name" }
-    );
+  return advanceModuleProgressionWithStore({
+    completedModuleNumber,
+    maxModule: MAX_MODULE,
+    store,
+  });
 }

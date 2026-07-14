@@ -44,7 +44,7 @@ export default function ModulesPage() {
               user_email: email,
               assignment_name: MLK_ASSIGNMENT_NAME,
               current_module: 1,
-              status: "in progress",
+              status: "in_progress",
             });
 
           if (insertError) {
@@ -58,7 +58,7 @@ export default function ModulesPage() {
             .from("student_assignments")
             .update({
               current_module: 1,
-              status: "in progress",
+              status: "in_progress",
             })
             .eq("id", existing.id);
 

@@ -8,7 +8,6 @@ import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
 import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
-import { supabase } from "@/lib/supabaseClient";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { logActivity } from "@/lib/logActivity";
 import {
@@ -18,7 +17,6 @@ import {
 import {
   advanceQuizIndex,
   allQuizItemsAnswered,
-  buildQuizPersistencePayload,
   canAdvanceQuizItem,
   canSubmitQuiz,
   getActiveQuiz,
@@ -81,6 +79,8 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
     normalizeQuizAnswers([], quiz.length)
   );
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizSaving, setQuizSaving] = useState(false);
+  const [quizSaveError, setQuizSaveError] = useState("");
   const [itemFeedback, setItemFeedback] = useState(null);
   const [sayAnotherWayOpen, setSayAnotherWayOpen] = useState(false);
   const [draftReady, setDraftReady] = useState(false);
@@ -240,68 +240,90 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   };
 
   const handleSubmitQuiz = async () => {
-    if (quizSubmitted) return;
+    if (quizSubmitted || quizSaving) return;
     if (!allQuizItemsAnswered(userAnswers)) {
-      alert("Answer every quiz question before submitting.");
+      setQuizSaveError("Answer every quiz question before submitting.");
       return;
     }
     if (!session?.user?.email) {
-      alert("You must be signed in to submit the quiz.");
+      setQuizSaveError("You must be signed in to submit the quiz.");
       return;
     }
 
-    setQuizSubmitted(true);
-    const { correct, total, percent } = getScoreData();
     const userEmail = session.user.email;
-    const persistence = buildQuizPersistencePayload({
-      userEmail,
-      answers: userAnswers,
-      quiz,
-      quizVersion: QUIZ_CONTENT_VERSION,
-    });
+    setQuizSaving(true);
+    setQuizSaveError("");
 
     try {
-      const { error } = await supabase.from("module1_quiz_results").insert({
-        user_email: persistence.user_email,
-        score: persistence.score,
-        total: persistence.total,
-        answers: persistence.answers,
+      const response = await fetch("/api/module1/quiz-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answers: userAnswers,
+          // Client score is ignored by the server; included only as a non-authority field.
+          score: 9999,
+        }),
       });
-      if (error) console.error("Error saving Module 1 quiz result:", error);
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
+
+      if (!response.ok || !payload?.ok) {
+        setQuizSaving(false);
+        setQuizSaveError(
+          payload?.error?.message ||
+            "Could not save your quiz. Your answers are still here — try again."
+        );
+        return;
+      }
+
+      const percent =
+        typeof payload.percent === "number"
+          ? payload.percent
+          : Math.round(
+              (Number(payload.score) / Number(payload.total || quiz.length)) *
+                100
+            );
+
+      try {
+        await logActivity(userEmail, "quiz_submitted", 1, {
+          quiz: "rhetoric_module1",
+          quiz_version: payload.quizVersion ?? QUIZ_CONTENT_VERSION,
+          correct: payload.score,
+          total: payload.total,
+          percent,
+          attemptId: payload.attemptId ?? null,
+        });
+      } catch (err) {
+        console.error("Error logging quiz_submitted for Module 1:", err);
+      }
+
+      try {
+        await logActivity(userEmail, "module_completed", 1, {
+          quiz: "rhetoric_module1",
+          quiz_version: payload.quizVersion ?? QUIZ_CONTENT_VERSION,
+          correct: payload.score,
+          total: payload.total,
+          percent,
+        });
+      } catch (err) {
+        console.error("Error logging module_completed for Module 1:", err);
+      }
+
+      clearModule1Step2Draft(userEmail);
+      setQuizSubmitted(true);
+      setQuizSaving(false);
+      router.push(`/modules/1/success?score=${percent}`);
     } catch (err) {
       console.error("Unexpected error saving Module 1 quiz result:", err);
+      setQuizSaving(false);
+      setQuizSaveError(
+        "Could not save your quiz. Your answers are still here — try again."
+      );
     }
-
-    try {
-      await logActivity(userEmail, "quiz_submitted", 1, {
-        quiz: "rhetoric_module1",
-        quiz_version: QUIZ_CONTENT_VERSION,
-        correct,
-        total,
-        percent,
-        answers: userAnswers,
-      });
-    } catch (err) {
-      console.error("Error logging quiz_submitted for Module 1:", err);
-    }
-
-    try {
-      await logActivity(userEmail, "module_completed", 1, {
-        quiz: "rhetoric_module1",
-        quiz_version: QUIZ_CONTENT_VERSION,
-        correct,
-        total,
-        percent,
-      });
-    } catch (err) {
-      console.error("Error logging module_completed for Module 1:", err);
-    }
-
-    clearModule1Step2Draft(userEmail);
-
-    setTimeout(() => {
-      router.push(`/modules/1/success?score=${percent}`);
-    }, 1000);
   };
 
   const term = presentation.activeTerm;
@@ -572,13 +594,16 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
                     <button
                       type="button"
                       onClick={handleSubmitQuiz}
-                      disabled={!canFinalize}
+                      disabled={!canFinalize || quizSaving}
                       aria-label="Submit vocabulary quiz"
+                      data-testid="module1-quiz-submit"
                       className={`min-h-[44px] w-full sm:w-auto px-4 py-2 rounded text-white focus:outline-none focus:ring-2 focus:ring-theme-blue/40 ${
-                        !canFinalize ? "bg-gray-400" : "bg-theme-blue"
+                        !canFinalize || quizSaving
+                          ? "bg-gray-400"
+                          : "bg-theme-blue"
                       }`}
                     >
-                      Finish
+                      {quizSaving ? "Saving your quiz…" : "Finish"}
                     </button>
                   )
                 )
@@ -607,6 +632,33 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
               >
                 Answer every quiz question before submitting.
               </p>
+            ) : null}
+
+            {stage === STEP2_STAGES.QUIZ && quizSaving ? (
+              <p
+                className="text-sm text-text-muted"
+                aria-live="polite"
+                data-testid="module1-quiz-saving"
+              >
+                Saving your quiz…
+              </p>
+            ) : null}
+
+            {stage === STEP2_STAGES.QUIZ && quizSaveError ? (
+              <div className="space-y-2" data-testid="module1-quiz-save-error">
+                <p role="alert" className="text-sm text-red-600">
+                  {quizSaveError}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSubmitQuiz}
+                  disabled={quizSaving || !canFinalize}
+                  data-testid="module1-quiz-retry"
+                  className="min-h-[44px] px-4 py-2 rounded bg-theme-blue text-white disabled:bg-gray-400"
+                >
+                  Try saving again
+                </button>
+              </div>
             ) : null}
           </div>
         </WorkspaceCenter>
