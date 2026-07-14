@@ -140,7 +140,14 @@ export default function ModuleFourSuccessClient({ summary }) {
 
   if (stage === SUCCESS_STAGE_CELEBRATE) {
     workspace = (
-      <div className="space-y-5">
+      <div
+        className="space-y-5"
+        data-testid="module-role-transition"
+        data-from-module="4"
+        data-to-module="5"
+        data-presentation="reuse"
+        aria-label="Module role transition"
+      >
         <p className="text-base leading-relaxed text-theme-dark md:text-lg">
           {summary?.accomplishment}
         </p>

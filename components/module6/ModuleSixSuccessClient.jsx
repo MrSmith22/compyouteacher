@@ -143,7 +143,14 @@ export default function ModuleSixSuccessClient() {
         </header>
 
         {stage === MODULE6_SUCCESS_STAGES.CELEBRATE ? (
-          <section className="space-y-4" aria-label="What you accomplished">
+          <section
+            className="space-y-4"
+            aria-label="What you accomplished"
+            data-testid="module-role-transition"
+            data-from-module="6"
+            data-to-module="7"
+            data-presentation="reuse"
+          >
             <p className="text-base leading-relaxed md:text-lg">{summary.accomplishment}</p>
             <p className="text-sm text-text-muted">
               {summary.sectionCount} draft section

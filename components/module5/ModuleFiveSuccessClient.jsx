@@ -138,7 +138,14 @@ export default function ModuleFiveSuccessClient() {
         </header>
 
         {stage === MODULE5_SUCCESS_STAGES.CELEBRATE ? (
-          <section className="space-y-4" aria-label="What you accomplished">
+          <section
+            className="space-y-4"
+            aria-label="What you accomplished"
+            data-testid="module-role-transition"
+            data-from-module="5"
+            data-to-module="6"
+            data-presentation="reuse"
+          >
             <p className="text-base leading-relaxed md:text-lg">{summary.accomplishment}</p>
             <div className="rounded-xl border border-theme-blue/25 bg-white px-4 py-3 shadow-soft">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-theme-blue">

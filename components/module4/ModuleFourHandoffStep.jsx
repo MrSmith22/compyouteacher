@@ -290,7 +290,14 @@ export default function ModuleFourHandoffStep({
 
   if (stage === HANDOFF_STAGE_ARGUMENT) {
     workspace = (
-      <div className="space-y-4">
+      <div
+        className="space-y-4"
+        data-testid="module-role-transition"
+        data-from-module="3"
+        data-to-module="4"
+        data-presentation="reuse"
+        aria-label="Module role transition"
+      >
         <JobCard title="Bring your Module 3 argument into Module 4.">
           Check that your thesis, proof plan, pattern, and evidence foundation are here.
         </JobCard>

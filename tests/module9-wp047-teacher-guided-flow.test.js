@@ -120,10 +120,12 @@ describe("WP-047 Module 9 teacher-guided flow", () => {
 
   it("keeps celebratory teacherly success-page language", () => {
     const success = readSrc("app/modules/9/success/page.js");
-    assert.ok(/submitted successfully/i.test(success));
-    assert.ok(/Great work/i.test(success));
-    assert.ok(/Writing Processor complete/i.test(success));
-    assert.ok(/Be proud of the work you/i.test(success));
+    const model = readSrc("lib/transitions/moduleRoleTransitions.js");
+    assert.ok(/submitted successfully/i.test(model));
+    assert.ok(/Great work/i.test(model));
+    assert.ok(/Writing Processor complete/i.test(model));
+    assert.ok(/Be proud of the work you/i.test(model));
     assert.ok(/Contact your teacher before you try to change or resubmit/i.test(success));
+    assert.ok(success.includes("ModuleRoleTransitionCard"));
   });
 });

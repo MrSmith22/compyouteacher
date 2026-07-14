@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import ModuleRoleTransitionCard from "@/components/transitions/ModuleRoleTransitionCard";
+import { getModuleRoleTransition } from "@/lib/transitions/moduleRoleTransitions";
 import { logActivity } from "@/lib/logActivity";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 import {
   getExportedDocLink,
   getStudentExport,
 } from "@/lib/supabase/helpers/studentExports";
+import { HIERARCHY_ACTION_PRIMARY_CLASS, HIERARCHY_FOCUS_RING_CLASS } from "@/lib/ui/hierarchyContract";
+
+const TRANSITION = getModuleRoleTransition(9, null);
 
 export default function ModuleNineSuccessPage() {
   const { data: session } = useSession();
@@ -52,18 +57,7 @@ export default function ModuleNineSuccessPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-theme-light px-4 py-10">
       <div className="w-full max-w-xl space-y-8 rounded-2xl border border-theme-green/25 bg-white px-6 py-8 shadow-soft md:px-10 md:py-10">
-        <header className="space-y-3 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme-green">
-            Writing Processor complete
-          </p>
-          <h1 className="text-3xl font-bold leading-tight text-theme-dark md:text-4xl">
-            Your essay was submitted successfully.
-          </h1>
-          <p className="mx-auto max-w-md text-base leading-relaxed text-text-primary">
-            Great work. Your teacher now has the PDF you uploaded. You do not need to
-            submit anything else for this assignment.
-          </p>
-        </header>
+        <ModuleRoleTransitionCard transition={TRANSITION} />
 
         <section className="space-y-3 rounded-xl border border-border-soft/70 bg-surface-soft/40 px-5 py-4 text-left">
           <h2 className="text-sm font-semibold text-text-primary">
@@ -131,18 +125,13 @@ export default function ModuleNineSuccessPage() {
           </p>
         </section>
 
-        <div className="space-y-4 border-t border-border-soft/60 pt-6 text-center">
-          <p className="text-base font-medium leading-relaxed text-theme-dark">
-            You finished the Writing Processor—from reading and planning all the way to
-            a submitted essay. That is a real accomplishment. Be proud of the work you
-            put in.
-          </p>
+        <div className="space-y-3 border-t border-border-soft/60 pt-6 text-left">
           <button
             type="button"
             onClick={() => router.push("/dashboard")}
-            className="rounded-lg bg-theme-dark px-6 py-3 text-sm font-semibold text-white shadow-soft hover:brightness-110"
+            className={`inline-flex items-center justify-center ${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS} bg-theme-dark`}
           >
-            Back to Dashboard
+            {TRANSITION.actionLabel}
           </button>
           <p className="text-xs text-text-muted">
             Returns you to your class dashboard. Your submission stays saved.

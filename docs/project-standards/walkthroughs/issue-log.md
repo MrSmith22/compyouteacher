@@ -89,7 +89,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Needs Verification |
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Needs Verification |
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Needs Verification |
-| WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Open |
+| WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Needs Verification |
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Open |
 | WP-054 | Progressive disclosure not applied on dense screens | App-wide | Medium | UX / Cognitive Load | Open |
 | WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Open |
@@ -1560,7 +1560,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Module entry and completion screens
 - **Priority:** High
 - **Category:** Navigation / Flow
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Module transitions function mechanically but do not help students feel themselves changing roles (discovery → organization → planning → writing → revision → preparation → submission).
 
@@ -1574,11 +1574,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Walk Modules 3–9 boundaries.
 2. Confirm each boundary names what was accomplished and what role comes next.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/transitions/moduleRoleTransitions.js`; `components/transitions/ModuleRoleTransitionCard.jsx`; Module 4 handoff + Module 4–6 success clients; `app/modules/{7,8,9}/success/page.js`; `tests/wp052-module-role-transitions.test.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 2026) Modules 3–9 boundary pass. Shared transition model covers 3→4 … 8→9 plus Module 9 terminal celebration. **Reused** (no duplicate card): Module 4 handoff (3→4 destination-side), Module 4–6 staged success—wired to model copy + `data-testid="module-role-transition"`. **Card surfaces:** Module 7/8/9 success. Module 8 success no longer says “demonstrate” APA; states writing is finished and Module 9 is review/download/submit. Module 9 celebrates the transferable sequence (observing/analyzing → submitting). Module 3 files and paused architecture docs untouched. Status **Needs Verification** (app-wide; Module 3 source success path intentional untouched; browser coverage bounded).
 
-**Resolved in commit:**
+**Resolved in commit:** (this commit)
 
 ---
 

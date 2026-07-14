@@ -4,7 +4,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import ModuleRoleTransitionCard from "@/components/transitions/ModuleRoleTransitionCard";
+import { getModuleRoleTransition } from "@/lib/transitions/moduleRoleTransitions";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
+import { HIERARCHY_ACTION_PRIMARY_CLASS, HIERARCHY_FOCUS_RING_CLASS } from "@/lib/ui/hierarchyContract";
+
+const TRANSITION = getModuleRoleTransition(7, 8);
 
 export default function ModuleSevenSuccess() {
   const { data: session } = useSession();
@@ -27,42 +32,29 @@ export default function ModuleSevenSuccess() {
   }, [session?.user?.email]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <h1 className="text-3xl font-extrabold text-theme-green">
-          Module 7 complete!
-        </h1>
-
-        <p className="text-lg text-theme-dark">
-          You finished writing your essay—reading it aloud, revising every section,
-          and polishing your wording. Your writing is complete.
-        </p>
-
-        <p className="text-sm text-theme-dark/80">
-          In Module 8, you will prepare your essay for submission—creating your
-          Google Doc and formatting your paper for your reader.
-        </p>
-
-        {!ready ? (
-          <p className="text-sm text-gray-600">Saving your progress…</p>
-        ) : null}
-
-        {ready ? (
-          <Link
-            href="/modules/8"
-            className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
-          >
-            Continue to Module 8 — prepare your essay for submission
-          </Link>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
-          >
-            Continue to Module 8 — prepare your essay for submission
-          </button>
-        )}
+    <div className="flex min-h-screen items-center justify-center bg-theme-light px-4 py-10">
+      <div className="w-full max-w-xl rounded-2xl border border-border-soft/70 bg-white px-6 py-8 shadow-soft md:px-10">
+        <ModuleRoleTransitionCard
+          transition={TRANSITION}
+          status={!ready ? "Saving your progress…" : null}
+        >
+          {ready ? (
+            <Link
+              href="/modules/8"
+              className={`inline-flex items-center justify-center ${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+            >
+              {TRANSITION.actionLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-lg bg-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600"
+            >
+              {TRANSITION.actionLabel}
+            </button>
+          )}
+        </ModuleRoleTransitionCard>
       </div>
     </div>
   );
