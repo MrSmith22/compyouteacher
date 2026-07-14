@@ -11,13 +11,15 @@ export type ClaimWriteInput = {
   supportRationale?: string;
   clusterId?: string | null;
   patternId?: string | null;
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 };
 
 function isEmptyClaim(claim: Module3ClaimRow) {
   return !claim.workingClaim.trim() && !claim.supportRationale.trim();
 }
 
-function buildClaimRow(
+export function buildClaimRow(
   input: ClaimWriteInput,
   existing: Module3ClaimRow | null
 ): Module3ClaimRow {
@@ -31,13 +33,26 @@ function buildClaimRow(
       ? input.supportRationale.trim()
       : (existing?.supportRationale ?? "");
 
-  return {
+  const row: Module3ClaimRow = {
     workingClaim,
     supportRationale,
     clusterId: mergeOptionalRef(input.clusterId, existing?.clusterId ?? null),
     patternId: mergeOptionalRef(input.patternId, existing?.patternId ?? null),
     ...timestamps,
   };
+
+  if (input.matrixProvenance !== undefined) {
+    row.matrixProvenance = input.matrixProvenance;
+  } else if (existing?.matrixProvenance) {
+    row.matrixProvenance = existing.matrixProvenance;
+  }
+  if (input.matrixReview !== undefined) {
+    row.matrixReview = input.matrixReview;
+  } else if (existing?.matrixReview) {
+    row.matrixReview = existing.matrixReview;
+  }
+
+  return row;
 }
 
 export async function upsertClaimForUser(input: ClaimWriteInput) {

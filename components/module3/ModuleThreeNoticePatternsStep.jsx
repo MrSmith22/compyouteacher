@@ -22,6 +22,7 @@ import {
   PATTERNS_COMPASS_FRAMING_LINE,
 } from "@/lib/module3/promptCompassHelpers";
 import RhetoricalSituationGuide from "@/components/shared/RhetoricalSituationGuide";
+import ModuleThreeMatrixPatternPanel from "@/components/module3/ModuleThreeMatrixPatternPanel";
 
 const ANSWER_TEXTAREA_CLASS =
   "min-h-[120px] w-full rounded-xl border-2 border-theme-dark/20 bg-white p-4 text-base leading-relaxed text-text-primary shadow-sm placeholder:text-text-muted/60 focus:border-theme-dark/35 focus:outline-none focus:ring-4 focus:ring-theme-dark/[0.06]";
@@ -151,9 +152,32 @@ export default function ModuleThreeNoticePatternsStep({
   assignmentSources = null,
   progressCompleted = [],
   progressNext = "",
+  matrixPresentation = null,
+  matrixHandoffLoading = false,
+  matrixAdoptBusy = false,
+  matrixAdoptError = "",
+  onMatrixCarryForward,
+  onMatrixChooseOption,
+  onMatrixRetainExisting,
+  onMatrixCustomSubmit,
+  matrixDirectionAdopted = false,
+  matrixEvidenceCandidates = [],
+  matrixReviewBanner = null,
 }) {
   const [connectionChoice, setConnectionChoice] = useState("");
   const [strategyChoice, setStrategyChoice] = useState("");
+
+  const useMatrixPath =
+    matrixPresentation &&
+    !matrixPresentation.useLegacyPatternPath &&
+    (matrixPresentation.mode === "prefer_matrix_selection" ||
+      matrixPresentation.mode === "matrix_review_required" ||
+      matrixPresentation.mode === "existing_module3_with_matrix");
+
+  const showLegacyInvention =
+    !useMatrixPath ||
+    (matrixDirectionAdopted &&
+      matrixPresentation?.mode !== "matrix_review_required");
 
   const firstNotice = patternNotices[0] || null;
   const secondNotice = patternNotices[1] || null;
@@ -201,6 +225,22 @@ export default function ModuleThreeNoticePatternsStep({
 
   const groupName = selectedCluster?.name || "Your group";
 
+  if (matrixHandoffLoading) {
+    return (
+      <WorkspaceColumns className="gap-6 xl:gap-10">
+        <WorkspaceCenter>
+          <p
+            role="status"
+            className="rounded-xl border border-border-soft/70 bg-surface-soft/50 px-4 py-6 text-sm text-text-muted"
+            data-testid="matrix-pattern-loading"
+          >
+            Loading your Module 2 direction…
+          </p>
+        </WorkspaceCenter>
+      </WorkspaceColumns>
+    );
+  }
+
   return (
     <WorkspaceColumns className="gap-6 xl:gap-10">
       <WorkspaceSidebar className="opacity-90">
@@ -209,8 +249,9 @@ export default function ModuleThreeNoticePatternsStep({
             Where you are
           </p>
           <p className="text-sm leading-relaxed text-text-muted">
-            You already made a group. Now look inside it and notice what connects the
-            quotations.
+            {useMatrixPath
+              ? "You already analyzed both works in Module 2. Carry that direction forward."
+              : "You already made a group. Now look inside it and notice what connects the quotations."}
           </p>
           {progressCompleted.length > 0 ? (
             <ul className="space-y-2">
@@ -238,6 +279,24 @@ export default function ModuleThreeNoticePatternsStep({
 
       <WorkspaceCenter>
         <div className="space-y-8 md:space-y-10">
+          {matrixReviewBanner}
+          {useMatrixPath && !matrixDirectionAdopted ? (
+            <ModuleThreeMatrixPatternPanel
+              presentation={matrixPresentation}
+              selectedPatternId={selectedPatternId}
+              patternNotices={patternNotices}
+              adoptBusy={matrixAdoptBusy}
+              adoptError={matrixAdoptError}
+              onCarryForward={onMatrixCarryForward}
+              onChooseOption={onMatrixChooseOption}
+              onRetainExisting={onMatrixRetainExisting}
+              onCustomSubmit={onMatrixCustomSubmit}
+              evidenceCandidates={matrixEvidenceCandidates}
+            />
+          ) : null}
+
+          {showLegacyInvention ? (
+            <>
           <header className="space-y-3 py-1 text-left md:py-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
               Start here
@@ -594,6 +653,8 @@ export default function ModuleThreeNoticePatternsStep({
               </p>
             </div>
           </details>
+            </>
+          ) : null}
         </div>
       </WorkspaceCenter>
 
@@ -604,8 +665,9 @@ export default function ModuleThreeNoticePatternsStep({
               From your teacher
             </p>
             <p className="text-sm leading-relaxed text-text-primary">
-              A pattern is something you notice across the whole group—not just a topic word.
-              Keep your language simple and honest.
+              {useMatrixPath
+                ? "Your matrix direction is a possible path—not the only correct answer. You can keep it, switch, or write your own."
+                : "A pattern is something you notice across the whole group—not just a topic word. Keep your language simple and honest."}
             </p>
           </div>
           <div className="space-y-2 border-t border-border-soft/60 pt-4">

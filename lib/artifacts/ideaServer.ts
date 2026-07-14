@@ -15,6 +15,8 @@ export type IdeaWriteInput = {
   clusterId?: string | null;
   patternId?: string | null;
   evidenceMap?: Module3EvidenceMap | null;
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 };
 
 function isEmptyIdea(idea: Module3IdeaRow) {
@@ -40,7 +42,7 @@ export function buildIdeaRow(
     input.evidenceMap === undefined ? undefined : input.evidenceMap
   );
 
-  return {
+  const row: Module3IdeaRow = {
     statement,
     whyMatters,
     clusterId: mergeOptionalRef(input.clusterId, existing?.clusterId ?? null),
@@ -48,6 +50,19 @@ export function buildIdeaRow(
     evidenceMap,
     ...timestamps,
   };
+
+  if (input.matrixProvenance !== undefined) {
+    row.matrixProvenance = input.matrixProvenance;
+  } else if (existing?.matrixProvenance) {
+    row.matrixProvenance = existing.matrixProvenance;
+  }
+  if (input.matrixReview !== undefined) {
+    row.matrixReview = input.matrixReview;
+  } else if (existing?.matrixReview) {
+    row.matrixReview = existing.matrixReview;
+  }
+
+  return row;
 }
 
 export async function upsertIdeaForUser(input: IdeaWriteInput) {

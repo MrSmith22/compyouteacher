@@ -81,6 +81,12 @@ export async function upsertPatternArtifact(input: PatternWriteInput) {
       text: input.text,
       evidenceIds: input.evidenceIds,
       isSelected: Boolean(input.isSelected),
+      ...(input.matrixProvenance !== undefined
+        ? { matrixProvenance: input.matrixProvenance }
+        : {}),
+      ...(input.matrixReview !== undefined
+        ? { matrixReview: input.matrixReview }
+        : {}),
     }),
   });
 
@@ -141,6 +147,8 @@ export async function upsertIdeaArtifact(input: IdeaWriteInput) {
   if (input.statement !== undefined) body.statement = input.statement;
   if (input.whyMatters !== undefined) body.whyMatters = input.whyMatters;
   if (input.evidenceMap !== undefined) body.evidenceMap = input.evidenceMap;
+  if (input.matrixProvenance !== undefined) body.matrixProvenance = input.matrixProvenance;
+  if (input.matrixReview !== undefined) body.matrixReview = input.matrixReview;
 
   const res = await fetch(IDEA_API_PATH, {
     method: "POST",
@@ -182,6 +190,8 @@ export async function upsertClaimArtifact(input: ClaimWriteInput) {
 
   if (input.workingClaim !== undefined) body.workingClaim = input.workingClaim;
   if (input.supportRationale !== undefined) body.supportRationale = input.supportRationale;
+  if (input.matrixProvenance !== undefined) body.matrixProvenance = input.matrixProvenance;
+  if (input.matrixReview !== undefined) body.matrixReview = input.matrixReview;
 
   const res = await fetch(CLAIM_API_PATH, {
     method: "POST",
@@ -223,6 +233,8 @@ export async function upsertThesisArtifact(input: ThesisWriteInput) {
 
   if (input.thesis !== undefined) body.thesis = input.thesis;
   if (input.proofPlan !== undefined) body.proofPlan = input.proofPlan;
+  if (input.matrixProvenance !== undefined) body.matrixProvenance = input.matrixProvenance;
+  if (input.matrixReview !== undefined) body.matrixReview = input.matrixReview;
 
   const res = await fetch(THESIS_API_PATH, {
     method: "POST",

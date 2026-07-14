@@ -665,7 +665,7 @@ describe("CP-D upstream signature + review across artifacts", () => {
 });
 
 describe("CP-D production wiring (source assertions)", () => {
-  it("17. review banner + alert + confirm are rendered by production components", () => {
+  it("17. review banner + status + confirm are rendered by production components", () => {
     const banner = fs.readFileSync(
       path.join(
         __dirname,
@@ -673,6 +673,9 @@ describe("CP-D production wiring (source assertions)", () => {
       ),
       "utf8"
     );
+    // Review announcement uses status/polite; save errors stay role="alert".
+    assert.match(banner, /role="status"/);
+    assert.match(banner, /aria-live="polite"/);
     assert.match(banner, /role="alert"/);
     assert.match(banner, /MATRIX_REVIEW_CONFIRM_LABEL|This still says what I mean/);
     assert.match(banner, /matrix-review-confirm/);
@@ -687,11 +690,19 @@ describe("CP-D production wiring (source assertions)", () => {
     assert.match(form, /ModuleThreeMatrixReviewBanner/);
     assert.match(form, /activeAdoptedDirection/);
     assert.match(form, /canCompleteCustomMatrixDirection/);
+    assert.match(form, /resolveQualifyingEvidenceIds/);
+    assert.match(form, /matrixEvidenceRecords/);
+    assert.match(form, /readAdditiveMatrixFields/);
+    assert.match(form, /matrixDirectionAdopted/);
+    assert.match(form, /matrixHandoffLoading/);
+    assert.match(form, /matrixPresentation/);
     assert.match(form, /ideaWriteControllerRef/);
     assert.match(form, /claimWriteControllerRef/);
     assert.match(form, /thesisWriteControllerRef/);
     assert.match(form, /matrixProvenance/);
     assert.match(form, /matrixReview/);
+    // Pattern hydrate must keep additive CP-D fields (not strip to text/ids only).
+    assert.match(form, /readAdditiveMatrixFields\(payload\)/);
 
     const panel = fs.readFileSync(
       path.join(
@@ -771,5 +782,34 @@ describe("CP-D JSX parses", () => {
       const src = fs.readFileSync(path.join(__dirname, rel), "utf8");
       parser.parse(src, { sourceType: "module", plugins: ["jsx"] });
     }
+  });
+});
+
+describe("CP-D additive matrix field helpers", () => {
+  it("omitted fields preserve existing; explicit null clears", async () => {
+    const fields = await import("../lib/module3/matrixArtifactFields.js");
+    const existing = {
+      matrixProvenance: { selectedPatternOptionId: "opt-a" },
+      matrixReview: { needsReview: false, reviewedSignature: "sig-1" },
+    };
+    const omitted = fields.mergeAdditiveMatrixFields({}, existing);
+    assert.deepEqual(omitted.matrixProvenance, existing.matrixProvenance);
+    assert.deepEqual(omitted.matrixReview, existing.matrixReview);
+
+    const cleared = fields.mergeAdditiveMatrixFields(
+      { matrixProvenance: null, matrixReview: null },
+      existing
+    );
+    assert.equal(cleared.matrixProvenance, null);
+    assert.equal(cleared.matrixReview, null);
+
+    const read = fields.readAdditiveMatrixFields({
+      matrixProvenance: { selectedPatternOptionId: "opt-b" },
+      matrixReview: { needsReview: true },
+      text: "ignored",
+    });
+    assert.equal(read.matrixProvenance.selectedPatternOptionId, "opt-b");
+    assert.equal(read.matrixReview.needsReview, true);
+    assert.equal(read.text, undefined);
   });
 });

@@ -13,6 +13,8 @@ export type Module3ClaimRow = {
   patternId?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 };
 
 function asClaim(value: unknown): Module3ClaimRow | null {
@@ -30,6 +32,16 @@ function asClaim(value: unknown): Module3ClaimRow | null {
     workingClaim,
     supportRationale,
     ...readRowRefIds(record),
+    ...(record.matrixProvenance &&
+    typeof record.matrixProvenance === "object" &&
+    !Array.isArray(record.matrixProvenance)
+      ? { matrixProvenance: record.matrixProvenance as Record<string, unknown> }
+      : {}),
+    ...(record.matrixReview &&
+    typeof record.matrixReview === "object" &&
+    !Array.isArray(record.matrixReview)
+      ? { matrixReview: record.matrixReview as Record<string, unknown> }
+      : {}),
   };
 }
 

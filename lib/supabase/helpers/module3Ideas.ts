@@ -27,6 +27,8 @@ export type Module3IdeaRow = {
   evidenceMap?: Module3EvidenceMap;
   createdAt?: string | null;
   updatedAt?: string | null;
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 };
 
 export {
@@ -54,6 +56,16 @@ function asIdea(value: unknown): Module3IdeaRow | null {
     whyMatters,
     evidenceMap,
     ...readRowRefIds(record),
+    ...(record.matrixProvenance &&
+    typeof record.matrixProvenance === "object" &&
+    !Array.isArray(record.matrixProvenance)
+      ? { matrixProvenance: record.matrixProvenance as Record<string, unknown> }
+      : {}),
+    ...(record.matrixReview &&
+    typeof record.matrixReview === "object" &&
+    !Array.isArray(record.matrixReview)
+      ? { matrixReview: record.matrixReview as Record<string, unknown> }
+      : {}),
   };
 }
 

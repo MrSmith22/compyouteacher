@@ -54,6 +54,12 @@ export async function POST(req) {
       clusterId,
       patternId,
       evidenceMap,
+      ...(body?.matrixProvenance !== undefined
+        ? { matrixProvenance: body.matrixProvenance }
+        : {}),
+      ...(body?.matrixReview !== undefined
+        ? { matrixReview: body.matrixReview }
+        : {}),
     });
 
     if (!result.ok) return failedResultResponse(result);

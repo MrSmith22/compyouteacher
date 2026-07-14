@@ -24,6 +24,7 @@ import {
   IDEA_COMPASS_FRAMING_LINE,
 } from "@/lib/module3/promptCompassHelpers";
 import { getQuotationSituationFooter } from "@/lib/shared/rhetoricalSituationHelpers";
+import ModuleThreeMatrixProvenanceCard from "@/components/module3/ModuleThreeMatrixProvenanceCard";
 
 const ANSWER_TEXTAREA_CLASS =
   "min-h-[140px] w-full rounded-xl border-2 border-theme-dark/20 bg-white p-4 text-base leading-relaxed text-text-primary shadow-sm placeholder:text-text-muted/60 focus:border-theme-dark/35 focus:outline-none focus:ring-4 focus:ring-theme-dark/[0.06]";
@@ -48,6 +49,9 @@ export default function ModuleThreeExploreIdeaStep({
   otherPatterns = [],
   assignmentPrompt = "",
   assignmentSources = null,
+  matrixFraming = null,
+  matrixProvenance = null,
+  matrixReviewBanner = null,
 }) {
   const phase = getExploreIdeaPhase({
     statement: ideaStatement,
@@ -103,10 +107,28 @@ export default function ModuleThreeExploreIdeaStep({
             <h1 className="max-w-3xl text-[1.75rem] font-bold leading-[1.12] tracking-tight text-text-primary md:text-[2.35rem] md:leading-[1.1]">
               What might this pattern mean?
             </h1>
+            {matrixFraming?.selectedLine ? (
+              <p className="text-sm font-medium text-text-primary">
+                {matrixFraming.selectedLine}
+              </p>
+            ) : null}
             <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
-              You noticed something across these quotations. Now you will make your first
-              guess about what that pattern might mean.
+              {matrixFraming?.framingQuestion ||
+                "You noticed something across these quotations. Now you will make your first guess about what that pattern might mean."}
             </p>
+            {matrixProvenance ? (
+              <ModuleThreeMatrixProvenanceCard
+                compact
+                selectedLabel={matrixProvenance.selectedLabel}
+                becauseYouExplanation={matrixProvenance.becauseYouExplanation}
+                ratingLines={matrixProvenance.ratingLines}
+                evidenceLines={matrixProvenance.evidenceLines}
+                audiencePurposeReasoning={
+                  matrixProvenance.audiencePurposeReasoning
+                }
+              />
+            ) : null}
+            {matrixReviewBanner}
             <div className="max-w-2xl rounded-xl border border-border-soft/70 bg-surface-soft/40 px-4 py-3 text-sm leading-relaxed text-text-primary">
               <p>
                 <span className="font-semibold">Pattern:</span> what you noticed.

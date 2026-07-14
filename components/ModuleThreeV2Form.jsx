@@ -6,7 +6,31 @@ import { useSession } from "next-auth/react";
 import Button from "@/components/ui/Button";
 import InfoCallout from "@/components/ui/InfoCallout";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
-import { parseModule2Observation } from "@/lib/parseModule2Observation";
+import { normalizeEvidenceForModule3 } from "@/lib/module2/normalizeEvidenceReader";
+import {
+  buildModuleThreeMatrixHandoffPresentation,
+  buildCustomMatrixOption,
+  buildActiveAdoptedDirection,
+  canContinueFromMatrixPattern,
+  canCompleteCustomMatrixDirection,
+  createSerializedWriteController,
+  materializeMatrixPatternArtifact,
+  matrixPatternArtifactId,
+  resolveClaimInternalStage,
+  resolveThesisInternalStage,
+  resolveQualifyingEvidenceIds,
+  restoreActiveDirectionFromSavedPattern,
+  evaluateAllDownstreamArtifactsForUpstreamChange,
+  evaluateDownstreamMatrixReview,
+  confirmMatrixReview,
+  resolveCurrentUpstreamSignature,
+  createMatrixReviewState,
+  CLAIM_INTERNAL_STAGES,
+  THESIS_INTERNAL_STAGES,
+  MATRIX_REVIEW_MESSAGE,
+} from "@/lib/module3/moduleThreeMatrixHandoffHelpers";
+import { readAdditiveMatrixFields } from "@/lib/module3/matrixArtifactFields";
+import ModuleThreeMatrixReviewBanner from "@/components/module3/ModuleThreeMatrixReviewBanner";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import ModuleThreeEvidenceCard from "@/components/module3/ModuleThreeEvidenceCard";
 import ModuleThreeProgress from "@/components/module3/ModuleThreeProgress";
@@ -64,7 +88,12 @@ import {
 } from "@/lib/module3/connectEvidenceHelpers";
 import {
   canContinueFromEvaluate,
+  getArtifactChainReadinessLabel,
+  getBothWorksEvidenceStatus,
   getEvaluateFormContinueHint,
+  getEvaluateReadyMessage,
+  getGatherFocusModel,
+  relationLabelForStored,
 } from "@/lib/module3/evaluateStrengthHelpers";
 import ModuleThreeArtifactChain from "@/components/module3/ModuleThreeArtifactChain";
 import ModuleThreeBuildArgumentStep from "@/components/module3/ModuleThreeBuildArgumentStep";
@@ -168,50 +197,6 @@ function sourceTitleForType(sourceType) {
 
 function sourceLabelForType(sourceType) {
   return SOURCE_LABELS[sourceType] || "Source";
-}
-
-function normalizeGuidedEvidence(rows) {
-  return (rows || []).map((row) => ({
-    id: `guided:${row.id}`,
-    sourceType: row.source_type || row.source_id || "speech",
-    sourceLabel: sourceLabelForType(row.source_type || row.source_id || "speech"),
-    sourceTitle:
-      row.source_title || sourceTitleForType(row.source_type || row.source_id || "speech"),
-    originLabel: "Guided observation",
-    quote: safeText(row.quote),
-    observation: safeText(row.student_observation),
-    audienceEffect: safeText(row.audience_effect),
-    purposeConnection: safeText(row.purpose_connection),
-    essentialQuestionConnection: safeText(row.essential_question_connection),
-    tags: [
-      safeText(row.rhetorical_strategy),
-      safeText(row.observation_stage),
-      row.teacher_guided ? "teacher-guided" : "",
-    ].filter(Boolean),
-    updatedAt: row.updated_at || row.created_at || "",
-  }));
-}
-
-function normalizeTchartEvidence(rows) {
-  return (rows || []).map((row) => {
-    const parsed = parseModule2Observation(row?.observation);
-    const sourceType = row?.type || "speech";
-
-    return {
-      id: `tchart:${sourceType}:${row?.category || "note"}`,
-      sourceType,
-      sourceLabel: sourceLabelForType(sourceType),
-      sourceTitle: sourceTitleForType(sourceType),
-      originLabel: "Module 2 T-chart",
-      quote: safeText(row?.quote),
-      observation: safeText(parsed.main || row?.observation),
-      audienceEffect: safeText(parsed.audience),
-      purposeConnection: safeText(parsed.purpose),
-      essentialQuestionConnection: "",
-      tags: [safeText(row?.category), "t-chart"].filter(Boolean),
-      updatedAt: row?.updated_at || row?.created_at || "",
-    };
-  });
 }
 
 function evidenceSummaryLine(evidence) {
@@ -477,6 +462,8 @@ export default function ModuleThreeV2Form({
           id,
           text: typeof payload?.text === "string" ? payload.text : "",
           evidenceIds: Array.isArray(payload?.evidenceIds) ? payload.evidenceIds : [],
+          // Additive CP-D fields must survive hydrate for review + restore.
+          ...readAdditiveMatrixFields(payload),
         };
       })
       .filter(Boolean);
@@ -513,6 +500,79 @@ export default function ModuleThreeV2Form({
   const [gapNote, setGapNote] = useState("");
   const [pathDecision, setPathDecision] = useState("");
   const [strengtheningNotes, setStrengtheningNotes] = useState({});
+  const [matrixHandoff, setMatrixHandoff] = useState(null);
+  const [matrixPresentation, setMatrixPresentation] = useState(null);
+  const [matrixHandoffLoading, setMatrixHandoffLoading] = useState(true);
+  const [matrixAdoptBusy, setMatrixAdoptBusy] = useState(false);
+  const [matrixAdoptError, setMatrixAdoptError] = useState("");
+  const [matrixDirectionAdopted, setMatrixDirectionAdopted] = useState(false);
+  const [matrixBundleRaw, setMatrixBundleRaw] = useState(null);
+  // Evidence rows from the Module 2 artifact-bundle (usable before shelf hydrate).
+  const [matrixEvidenceRecords, setMatrixEvidenceRecords] = useState([]);
+  const [activeAdoptedDirection, setActiveAdoptedDirection] = useState(null);
+  const [artifactReviewFlags, setArtifactReviewFlags] = useState({
+    pattern: false,
+    idea: false,
+    claim: false,
+    thesis: false,
+  });
+  const [reviewConfirmBusy, setReviewConfirmBusy] = useState(false);
+  const [reviewConfirmError, setReviewConfirmError] = useState("");
+  const [ideaMatrixMeta, setIdeaMatrixMeta] = useState(() => {
+    const artifact = initialCanvasArtifacts?.ideaArtifact;
+    const payload = artifact?.payload || artifact || {};
+    return {
+      matrixProvenance: payload.matrixProvenance || null,
+      matrixReview: payload.matrixReview || null,
+    };
+  });
+  const [claimMatrixMeta, setClaimMatrixMeta] = useState(() => {
+    const artifact = initialCanvasArtifacts?.claimArtifact;
+    const payload = artifact?.payload || artifact || {};
+    return {
+      matrixProvenance: payload.matrixProvenance || null,
+      matrixReview: payload.matrixReview || null,
+    };
+  });
+  const [thesisMatrixMeta, setThesisMatrixMeta] = useState(() => {
+    const artifact = initialCanvasArtifacts?.thesisArtifact;
+    const payload = artifact?.payload || artifact || {};
+    return {
+      matrixProvenance: payload.matrixProvenance || null,
+      matrixReview: payload.matrixReview || null,
+    };
+  });
+  const patternWriteControllerRef = useRef(createSerializedWriteController());
+  const ideaWriteControllerRef = useRef(createSerializedWriteController());
+  const claimWriteControllerRef = useRef(createSerializedWriteController());
+  const thesisWriteControllerRef = useRef(createSerializedWriteController());
+  const [claimInternalStage, setClaimInternalStage] = useState(() =>
+    resolveClaimInternalStage({
+      workingClaim: (() => {
+        const artifact = initialCanvasArtifacts?.claimArtifact;
+        if (!artifact) return "";
+        const payload = artifact?.payload || artifact;
+        return typeof payload?.workingClaim === "string" ? payload.workingClaim : "";
+      })(),
+    })
+  );
+  const [thesisInternalStage, setThesisInternalStage] = useState(() =>
+    resolveThesisInternalStage({
+      thesisStatement: (() => {
+        const artifact = initialCanvasArtifacts?.thesisArtifact;
+        if (!artifact) return "";
+        const payload = artifact?.payload || artifact;
+        return typeof payload?.thesis === "string" ? payload.thesis : "";
+      })(),
+      proofPlan: (() => {
+        const artifact = initialCanvasArtifacts?.thesisArtifact;
+        if (!artifact) return ["", "", ""];
+        const payload = artifact?.payload || artifact;
+        const persisted = Array.isArray(payload?.proofPlan) ? payload.proofPlan : [];
+        return persisted;
+      })(),
+    })
+  );
 
   const [workingClaim, setWorkingClaim] = useState(() => {
     const artifact = initialCanvasArtifacts?.claimArtifact;
@@ -544,6 +604,232 @@ export default function ModuleThreeV2Form({
     return normalized.slice(0, 3);
   });
   const thesisPersistTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !userEmail) return;
+    let cancelled = false;
+    async function loadMatrixHandoff() {
+      setMatrixHandoffLoading(true);
+      try {
+        const res = await fetch("/api/module2/artifact-bundle?evidence=1");
+        const json = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!res.ok) {
+          setMatrixBundleRaw(null);
+          setMatrixEvidenceRecords([]);
+          setMatrixPresentation(
+            buildModuleThreeMatrixHandoffPresentation({
+              matrixBundle: null,
+              evidenceRecords: [],
+            })
+          );
+          setMatrixHandoff({ mode: "legacy_pattern_path" });
+          return;
+        }
+        const bundle = json?.matrixBundle || null;
+        setMatrixBundleRaw(bundle);
+        const evidenceRecords = Array.isArray(json?.evidence)
+          ? json.evidence
+          : [];
+        setMatrixEvidenceRecords(evidenceRecords);
+        const presentation = buildModuleThreeMatrixHandoffPresentation({
+          matrixBundle: bundle,
+          evidenceRecords,
+          existingModule3: {
+            patterns: patternNotices,
+            selectedPatternId,
+            ideaStatement,
+            workingClaim,
+            thesisStatement,
+            proofPlan,
+          },
+        });
+        setMatrixPresentation(presentation);
+        setMatrixHandoff({
+          mode: presentation.mode,
+          selectedPattern: presentation.selectedPattern,
+          cta: presentation.cta,
+          remaining: presentation.reviewReason,
+        });
+
+        const selectedNotice =
+          patternNotices.find((p) => p.id === selectedPatternId) ||
+          patternNotices.find((p) => p.matrixProvenance?.selectedPatternOptionId);
+
+        const restored = restoreActiveDirectionFromSavedPattern({
+          pattern: selectedNotice,
+          evidenceRecords,
+        });
+        if (restored) {
+          setActiveAdoptedDirection(restored);
+          setMatrixDirectionAdopted(true);
+        } else {
+          const expectedId = presentation.selectedPattern?.optionId
+            ? matrixPatternArtifactId(presentation.selectedPattern.optionId)
+            : "";
+          if (
+            expectedId &&
+            (selectedPatternId === expectedId ||
+              patternNotices.some((p) => p.id === expectedId))
+          ) {
+            setMatrixDirectionAdopted(true);
+            if (presentation.selectedPattern) {
+              setActiveAdoptedDirection(
+                buildActiveAdoptedDirection({
+                  option: {
+                    ...presentation.selectedPattern,
+                    provenance: {
+                      ratings: presentation.selectedPattern.ratings || {},
+                      evidenceIds: presentation.selectedPattern.evidenceIds || [],
+                      appeals: presentation.selectedPattern.appeals || [],
+                    },
+                  },
+                  evidenceRecords,
+                  audiencePurposeReasoning:
+                    presentation.audiencePurposeReasoning || "",
+                })
+              );
+            }
+          }
+        }
+
+        const currentSig = resolveCurrentUpstreamSignature({
+          matrixBundle: bundle,
+          directionOptionId:
+            restored?.optionId ||
+            selectedNotice?.matrixProvenance?.selectedPatternOptionId ||
+            presentation.selectedPattern?.optionId ||
+            null,
+          directionKind:
+            restored?.kind ||
+            selectedNotice?.matrixProvenance?.selectedPatternKind ||
+            presentation.selectedPattern?.kind ||
+            null,
+          directionLabel:
+            restored?.label ||
+            selectedNotice?.matrixProvenance?.selectedPatternLabel ||
+            selectedNotice?.text ||
+            "",
+          directionEvidenceIds:
+            restored?.evidenceIds ||
+            selectedNotice?.matrixProvenance?.evidenceIds ||
+            selectedNotice?.evidenceIds ||
+            [],
+          audiencePurposeReasoning: presentation.audiencePurposeReasoning || "",
+        }) || presentation.signature;
+
+        if (currentSig) {
+          const evalAll = evaluateAllDownstreamArtifactsForUpstreamChange({
+            currentSignature: currentSig,
+            pattern: selectedNotice,
+            idea: {
+              matrixProvenance: ideaMatrixMeta.matrixProvenance,
+              matrixReview: ideaMatrixMeta.matrixReview,
+            },
+            claim: {
+              matrixProvenance: claimMatrixMeta.matrixProvenance,
+              matrixReview: claimMatrixMeta.matrixReview,
+            },
+            thesis: {
+              matrixProvenance: thesisMatrixMeta.matrixProvenance,
+              matrixReview: thesisMatrixMeta.matrixReview,
+            },
+          });
+          const nextFlags = {
+            pattern: Boolean(
+              evalAll.artifacts.pattern.needsReview ||
+                selectedNotice?.matrixReview?.needsReview
+            ),
+            idea: Boolean(
+              evalAll.artifacts.idea.needsReview ||
+                ideaMatrixMeta.matrixReview?.needsReview
+            ),
+            claim: Boolean(
+              evalAll.artifacts.claim.needsReview ||
+                claimMatrixMeta.matrixReview?.needsReview
+            ),
+            thesis: Boolean(
+              evalAll.artifacts.thesis.needsReview ||
+                thesisMatrixMeta.matrixReview?.needsReview
+            ),
+          };
+          setArtifactReviewFlags(nextFlags);
+
+          if (evalAll.artifacts.idea.needsReview) {
+            setIdeaMatrixMeta((prev) => ({
+              ...prev,
+              matrixReview: createMatrixReviewState({
+                needsReview: true,
+                reasonCodes: ["upstream_matrix_signature_changed"],
+                reviewedSignature: prev.matrixReview?.reviewedSignature || null,
+                reviewedAt: prev.matrixReview?.reviewedAt || null,
+              }),
+            }));
+          }
+          if (evalAll.artifacts.claim.needsReview) {
+            setClaimMatrixMeta((prev) => ({
+              ...prev,
+              matrixReview: createMatrixReviewState({
+                needsReview: true,
+                reasonCodes: ["upstream_matrix_signature_changed"],
+                reviewedSignature: prev.matrixReview?.reviewedSignature || null,
+                reviewedAt: prev.matrixReview?.reviewedAt || null,
+              }),
+            }));
+          }
+          if (evalAll.artifacts.thesis.needsReview) {
+            setThesisMatrixMeta((prev) => ({
+              ...prev,
+              matrixReview: createMatrixReviewState({
+                needsReview: true,
+                reasonCodes: ["upstream_matrix_signature_changed"],
+                reviewedSignature: prev.matrixReview?.reviewedSignature || null,
+                reviewedAt: prev.matrixReview?.reviewedAt || null,
+              }),
+            }));
+          }
+          if (evalAll.artifacts.pattern.needsReview && selectedNotice) {
+            setPatternNotices((prev) =>
+              prev.map((p) =>
+                p.id === selectedNotice.id
+                  ? {
+                      ...p,
+                      matrixReview: createMatrixReviewState({
+                        needsReview: true,
+                        reasonCodes: ["upstream_matrix_signature_changed"],
+                        reviewedSignature:
+                          p.matrixReview?.reviewedSignature || null,
+                        reviewedAt: p.matrixReview?.reviewedAt || null,
+                      }),
+                    }
+                  : p
+              )
+            );
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setMatrixBundleRaw(null);
+          setMatrixEvidenceRecords([]);
+          setMatrixPresentation(
+            buildModuleThreeMatrixHandoffPresentation({
+              matrixBundle: null,
+              evidenceRecords: [],
+            })
+          );
+          setMatrixHandoff({ mode: "legacy_pattern_path" });
+        }
+      } finally {
+        if (!cancelled) setMatrixHandoffLoading(false);
+      }
+    }
+    loadMatrixHandoff();
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally hydrate once after auth — do not re-run on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userEmail]);
 
   useEffect(() => {
     if (status === "loading") {
@@ -588,10 +874,10 @@ export default function ModuleThreeV2Form({
             ? tchartResult.data
             : [];
 
-        const combinedEvidence = [
-          ...normalizeGuidedEvidence(guidedRows),
-          ...normalizeTchartEvidence(tchartRows),
-        ];
+        const combinedEvidence = normalizeEvidenceForModule3(
+          { guidedRows, tchartRows },
+          { sourceTitleForType, sourceLabelForType }
+        );
 
         if (!cancelled) {
           setEvidenceItems(combinedEvidence);
@@ -772,6 +1058,35 @@ export default function ModuleThreeV2Form({
     );
   }, [evidenceConnections, selectedClusterEvidence]);
 
+  const bothWorksEvidence = useMemo(
+    () =>
+      getBothWorksEvidenceStatus({
+        selectedClusterEvidence,
+        evidenceConnections,
+      }),
+    [evidenceConnections, selectedClusterEvidence]
+  );
+
+  const gatherFocus = useMemo(
+    () =>
+      getGatherFocusModel({
+        gapNote,
+        selectedClusterEvidence,
+        evidenceConnections,
+        ideaStatement,
+      }),
+    [evidenceConnections, gapNote, ideaStatement, selectedClusterEvidence]
+  );
+
+  useEffect(() => {
+    if (currentStep !== STEP_IDS.GATHER) {
+      return;
+    }
+    if (gatherFocus.defaultSourceFilter) {
+      setSourceFilter(gatherFocus.defaultSourceFilter);
+    }
+  }, [currentStep, gatherFocus.defaultSourceFilter]);
+
   const connectWorking = useMemo(
     () =>
       getConnectWorkingEvidence({
@@ -946,14 +1261,35 @@ export default function ModuleThreeV2Form({
           evidenceCount: evidenceItems.length,
           selectedCluster,
         });
-      case STEP_IDS.PATTERNS:
+      case STEP_IDS.PATTERNS: {
+        if (artifactReviewFlags.pattern) return false;
+        // Do not apply legacy continue rules while the matrix handoff is unresolved.
+        if (matrixHandoffLoading) return false;
+        const matrixReady =
+          matrixPresentation &&
+          !matrixPresentation.useLegacyPatternPath &&
+          matrixPresentation.mode !== "matrix_review_required";
+        if (matrixReady && matrixDirectionAdopted) {
+          return canContinueFromMatrixPattern({
+            selectedPattern,
+            quoteMinimum: 1,
+          });
+        }
+        if (matrixReady && !matrixDirectionAdopted) {
+          return false;
+        }
+        if (matrixPresentation?.mode === "matrix_review_required") {
+          return false;
+        }
         return canContinueFromPatterns({
           filledObservationCount: filledPatternNotices.length,
           selectedPattern,
           groupEvidenceIds: selectedCluster?.evidenceIds || [],
           quoteMinimum: 2,
         });
+      }
       case STEP_IDS.IDEA:
+        if (artifactReviewFlags.idea) return false;
         return canContinueFromExploreIdea({
           statement: ideaStatement,
           whyMatters: ideaWhyMatters,
@@ -967,10 +1303,15 @@ export default function ModuleThreeV2Form({
           evidenceStrength,
           gapNote,
           pathDecision,
+          bothWorksReady: bothWorksEvidence.bothWorksReady,
         });
       case STEP_IDS.GATHER:
+        if (gatherFocus.mode === "revise_explanation") {
+          return false;
+        }
         return strengthenedEvidence.length >= 1;
       case STEP_IDS.CLAIM:
+        if (artifactReviewFlags.claim) return false;
         return canContinueFromClaim({
           workingClaim,
           existingSupportRationale: supportRationale,
@@ -978,6 +1319,7 @@ export default function ModuleThreeV2Form({
           evidenceConnections,
         });
       case STEP_IDS.THESIS:
+        if (artifactReviewFlags.thesis) return false;
         return canContinueFromThesis({
           thesisStatement,
           proofPlan,
@@ -986,6 +1328,11 @@ export default function ModuleThreeV2Form({
         return false;
     }
   }, [
+    artifactReviewFlags.claim,
+    artifactReviewFlags.idea,
+    artifactReviewFlags.pattern,
+    artifactReviewFlags.thesis,
+    bothWorksEvidence.bothWorksReady,
     connectedEvidence.length,
     currentStep,
     evidenceClusters.length,
@@ -994,8 +1341,12 @@ export default function ModuleThreeV2Form({
     evidenceStrength,
     filledPatternNotices.length,
     gapNote,
+    gatherFocus.mode,
     ideaStatement,
     ideaWhyMatters,
+    matrixDirectionAdopted,
+    matrixHandoffLoading,
+    matrixPresentation,
     pathDecision,
     proofPlan,
     selectedCluster,
@@ -1025,6 +1376,11 @@ export default function ModuleThreeV2Form({
       }
       if (currentStep === STEP_IDS.CONNECT) {
         return getConnectReadyMessage();
+      }
+      if (currentStep === STEP_IDS.EVALUATE) {
+        return getEvaluateReadyMessage({
+          bothWorksReady: bothWorksEvidence.bothWorksReady,
+        });
       }
       return "";
     }
@@ -1078,8 +1434,13 @@ export default function ModuleThreeV2Form({
           evidenceStrength,
           gapNote,
           pathDecision,
+          bothWorksReady: bothWorksEvidence.bothWorksReady,
+          missingSource: bothWorksEvidence.missingSource,
         });
       case STEP_IDS.GATHER:
+        if (gatherFocus.mode === "revise_explanation") {
+          return "Use Back to return to Connect and revise your explanation.";
+        }
         return "Choose a quote and write how it helps fill the gap you noticed.";
       case STEP_IDS.CLAIM:
         return getClaimContinueHint({
@@ -1097,6 +1458,8 @@ export default function ModuleThreeV2Form({
         return "";
     }
   }, [
+    bothWorksEvidence.bothWorksReady,
+    bothWorksEvidence.missingSource,
     canGoNext,
     connectWorking.workingEvidence,
     currentStep,
@@ -1106,6 +1469,7 @@ export default function ModuleThreeV2Form({
     evidenceStrength,
     filledPatternNotices.length,
     gapNote,
+    gatherFocus.mode,
     ideaStatement,
     ideaWhyMatters,
     pathDecision,
@@ -1132,6 +1496,20 @@ export default function ModuleThreeV2Form({
   }
 
   function goBack() {
+    if (
+      currentStep === STEP_IDS.CLAIM &&
+      claimInternalStage === CLAIM_INTERNAL_STAGES.WRITE
+    ) {
+      setClaimInternalStage(CLAIM_INTERNAL_STAGES.REVIEW);
+      return;
+    }
+    if (
+      currentStep === STEP_IDS.THESIS &&
+      thesisInternalStage === THESIS_INTERNAL_STAGES.PROOF
+    ) {
+      setThesisInternalStage(THESIS_INTERNAL_STAGES.WRITE);
+      return;
+    }
     const previousStep = visibleSteps[currentStepIndex - 1];
     if (previousStep) {
       setCurrentStep(previousStep.id);
@@ -1177,20 +1555,324 @@ export default function ModuleThreeV2Form({
   async function persistPattern(next) {
     if (!userEmail) return true;
 
-    const result = await upsertPatternArtifact({
-      id: next.id,
-      userEmail,
-      text: safeText(next.text),
-      evidenceIds: Array.isArray(next.evidenceIds) ? next.evidenceIds : [],
-      isSelected: selectedPatternId === next.id,
-    });
+    const result = await patternWriteControllerRef.current.enqueue(async () =>
+      upsertPatternArtifact({
+        id: next.id,
+        userEmail,
+        text: safeText(next.text),
+        evidenceIds: Array.isArray(next.evidenceIds) ? next.evidenceIds : [],
+        isSelected: selectedPatternId === next.id || Boolean(next.forceSelected),
+        ...(next.matrixProvenance !== undefined
+          ? { matrixProvenance: next.matrixProvenance }
+          : {}),
+        ...(next.matrixReview !== undefined
+          ? { matrixReview: next.matrixReview }
+          : {}),
+      })
+    );
 
-    if (!result.ok) {
-      setPersistError(result.error?.message || "Could not save your pattern.");
+    if (!result?.ok) {
+      setPersistError(result?.error?.message || "Could not save your pattern.");
       return false;
     }
 
     setPersistError("");
+    return true;
+  }
+
+  async function adoptMatrixDirection(optionLike, explicitEvidenceIds = null) {
+    if (!optionLike) return false;
+    setMatrixAdoptBusy(true);
+    setMatrixAdoptError("");
+    // Prefer shelf evidence when ready; otherwise use Module 2 bundle evidence.
+    const evidenceRecords =
+      Array.isArray(evidenceItems) && evidenceItems.length > 0
+        ? evidenceItems
+        : matrixEvidenceRecords;
+    const option = {
+      optionId: optionLike.optionId || optionLike.id,
+      id: optionLike.optionId || optionLike.id,
+      kind: optionLike.kind,
+      label: optionLike.label,
+      provenance: optionLike.provenance || {
+        ratings: optionLike.ratings || {},
+        evidenceIds:
+          explicitEvidenceIds ||
+          optionLike.evidenceIds ||
+          [],
+        appeals: optionLike.appeals || [],
+      },
+    };
+    if (explicitEvidenceIds) {
+      option.provenance = {
+        ...option.provenance,
+        evidenceIds: explicitEvidenceIds,
+      };
+    }
+
+    if (!Array.isArray(evidenceRecords) || evidenceRecords.length === 0) {
+      setMatrixAdoptError(
+        "Your evidence is still loading. Wait a moment, then try again."
+      );
+      setMatrixAdoptBusy(false);
+      return false;
+    }
+
+    if (
+      option.kind === "student_created" &&
+      !canCompleteCustomMatrixDirection({
+        customLabel: option.label,
+        evidenceIds: option.provenance.evidenceIds,
+        evidenceRecords,
+      })
+    ) {
+      setMatrixAdoptError(
+        "Connect at least one qualifying quotation before saving this custom direction."
+      );
+      setMatrixAdoptBusy(false);
+      return false;
+    }
+
+    const qualifyingIds = resolveQualifyingEvidenceIds(
+      option.provenance.evidenceIds || [],
+      evidenceRecords
+    );
+    if (qualifyingIds.length < 1) {
+      setMatrixAdoptError(
+        "Connect at least one qualifying quotation from your saved evidence before carrying this forward."
+      );
+      setMatrixAdoptBusy(false);
+      return false;
+    }
+
+    const active = buildActiveAdoptedDirection({
+      option,
+      evidenceRecords,
+      audiencePurposeReasoning:
+        matrixPresentation?.audiencePurposeReasoning || "",
+    });
+
+    const { pattern, created } = materializeMatrixPatternArtifact({
+      option: {
+        ...option,
+        provenance: {
+          ...(option.provenance || {}),
+          evidenceIds: active?.evidenceIds || qualifyingIds,
+        },
+      },
+      evidenceRecords,
+      audiencePurposeReasoning:
+        matrixPresentation?.audiencePurposeReasoning || "",
+      existingPatterns: patternNotices,
+    });
+
+    const nextNotices = created
+      ? [...patternNotices.filter((p) => p.id !== pattern.id), pattern]
+      : patternNotices.map((p) => (p.id === pattern.id ? { ...p, ...pattern } : p));
+
+    setPatternNotices(nextNotices);
+    setSelectedPatternId(pattern.id);
+    setActiveAdoptedDirection(active);
+
+    const saved = await persistPattern({ ...pattern, forceSelected: true });
+    if (!saved) {
+      setMatrixAdoptError("Could not save this direction. Stay here and try again.");
+      setMatrixAdoptBusy(false);
+      return false;
+    }
+
+    if (userEmail) {
+      const selectResult = await selectPatternArtifact({
+        userEmail,
+        patternId: pattern.id,
+      });
+      if (!selectResult.ok) {
+        setMatrixAdoptError(
+          selectResult.error?.message || "Could not select this direction."
+        );
+        setMatrixAdoptBusy(false);
+        return false;
+      }
+    }
+
+    // Stamp provenance onto later artifacts without rewriting text.
+    if (active?.matrixProvenance) {
+      setIdeaMatrixMeta((prev) => ({
+        matrixProvenance: active.matrixProvenance,
+        matrixReview: prev.matrixReview?.needsReview
+          ? prev.matrixReview
+          : confirmMatrixReview({ currentSignature: active.signature }),
+      }));
+      setClaimMatrixMeta((prev) => ({
+        matrixProvenance: active.matrixProvenance,
+        matrixReview: prev.matrixReview?.needsReview
+          ? prev.matrixReview
+          : confirmMatrixReview({ currentSignature: active.signature }),
+      }));
+      setThesisMatrixMeta((prev) => ({
+        matrixProvenance: active.matrixProvenance,
+        matrixReview: prev.matrixReview?.needsReview
+          ? prev.matrixReview
+          : confirmMatrixReview({ currentSignature: active.signature }),
+      }));
+    }
+
+    setMatrixDirectionAdopted(true);
+    setMatrixAdoptBusy(false);
+    return true;
+  }
+
+  async function handleMatrixCarryForward(selected) {
+    return adoptMatrixDirection(selected);
+  }
+
+  async function handleMatrixChooseOption(option) {
+    return adoptMatrixDirection(option);
+  }
+
+  async function handleMatrixCustomSubmit(label, evidenceIds = []) {
+    const custom = buildCustomMatrixOption(label);
+    return adoptMatrixDirection(custom, evidenceIds);
+  }
+
+  function handleMatrixRetainExisting() {
+    setMatrixDirectionAdopted(true);
+    setMatrixAdoptError("");
+  }
+
+  async function confirmArtifactReview(artifactKey) {
+    setReviewConfirmBusy(true);
+    setReviewConfirmError("");
+    const signature =
+      resolveCurrentUpstreamSignature({
+        matrixBundle: matrixBundleRaw,
+        directionOptionId: activeAdoptedDirection?.optionId || null,
+        directionKind: activeAdoptedDirection?.kind || null,
+        directionLabel: activeAdoptedDirection?.label || "",
+        directionEvidenceIds: activeAdoptedDirection?.evidenceIds || [],
+        audiencePurposeReasoning:
+          activeAdoptedDirection?.audiencePurposeReasoning ||
+          matrixPresentation?.audiencePurposeReasoning ||
+          "",
+      }) ||
+      activeAdoptedDirection?.signature ||
+      matrixPresentation?.signature ||
+      null;
+    if (!signature) {
+      setReviewConfirmError("Could not confirm review without a matrix signature.");
+      setReviewConfirmBusy(false);
+      return false;
+    }
+    const nextReview = confirmMatrixReview({ currentSignature: signature });
+    const provenance =
+      activeAdoptedDirection?.matrixProvenance ||
+      (artifactKey === "idea"
+        ? ideaMatrixMeta.matrixProvenance
+        : artifactKey === "claim"
+          ? claimMatrixMeta.matrixProvenance
+          : artifactKey === "thesis"
+            ? thesisMatrixMeta.matrixProvenance
+            : patternNotices.find((p) => p.id === selectedPatternId)
+                ?.matrixProvenance) ||
+      null;
+
+    let ok = false;
+    if (artifactKey === "pattern") {
+      const notice = patternNotices.find((p) => p.id === selectedPatternId);
+      if (!notice) {
+        setReviewConfirmError("No selected pattern to confirm.");
+        setReviewConfirmBusy(false);
+        return false;
+      }
+      ok = await persistPattern({
+        ...notice,
+        matrixProvenance: provenance || notice.matrixProvenance,
+        matrixReview: nextReview,
+        forceSelected: true,
+      });
+      if (ok) {
+        setPatternNotices((prev) =>
+          prev.map((p) =>
+            p.id === notice.id
+              ? {
+                  ...p,
+                  matrixProvenance: provenance || notice.matrixProvenance,
+                  matrixReview: nextReview,
+                }
+              : p
+          )
+        );
+      }
+    } else if (artifactKey === "idea") {
+      const result = await ideaWriteControllerRef.current.enqueue(async () =>
+        upsertIdeaArtifact({
+          userEmail,
+          statement: ideaStatement,
+          whyMatters: ideaWhyMatters,
+          clusterId: selectedClusterId || null,
+          patternId: selectedPatternId || null,
+          evidenceMap: evidenceConnections || {},
+          matrixProvenance: provenance,
+          matrixReview: nextReview,
+        })
+      );
+      ok = Boolean(result?.ok);
+      if (ok) {
+        setIdeaMatrixMeta({
+          matrixProvenance: provenance,
+          matrixReview: nextReview,
+        });
+      }
+    } else if (artifactKey === "claim") {
+      const result = await claimWriteControllerRef.current.enqueue(async () =>
+        upsertClaimArtifact({
+          userEmail,
+          workingClaim,
+          supportRationale,
+          clusterId: selectedClusterId || null,
+          patternId: selectedPatternId || null,
+          matrixProvenance: provenance,
+          matrixReview: nextReview,
+        })
+      );
+      ok = Boolean(result?.ok);
+      if (ok) {
+        setClaimMatrixMeta({
+          matrixProvenance: provenance,
+          matrixReview: nextReview,
+        });
+      }
+    } else if (artifactKey === "thesis") {
+      const result = await thesisWriteControllerRef.current.enqueue(async () =>
+        upsertThesisArtifact({
+          userEmail,
+          thesis: thesisStatement,
+          proofPlan,
+          clusterId: selectedClusterId || null,
+          patternId: selectedPatternId || null,
+          matrixProvenance: provenance,
+          matrixReview: nextReview,
+        })
+      );
+      ok = Boolean(result?.ok);
+      if (ok) {
+        setThesisMatrixMeta({
+          matrixProvenance: provenance,
+          matrixReview: nextReview,
+        });
+      }
+    }
+
+    if (!ok) {
+      setReviewConfirmError(
+        "Could not save your confirmation. Stay here and try again."
+      );
+      setReviewConfirmBusy(false);
+      return false;
+    }
+
+    setArtifactReviewFlags((prev) => ({ ...prev, [artifactKey]: false }));
+    setReviewConfirmBusy(false);
     return true;
   }
 
@@ -1244,22 +1926,37 @@ export default function ModuleThreeV2Form({
       clearTimeout(ideaPersistTimerRef.current);
     }
 
-    ideaPersistTimerRef.current = setTimeout(async () => {
-      const result = await upsertIdeaArtifact({
-        userEmail,
-        statement,
-        whyMatters,
-        clusterId: clusterId || null,
-        patternId: patternId || null,
-        evidenceMap: evidenceMap ?? {},
+    const provenance =
+      activeAdoptedDirection?.matrixProvenance || ideaMatrixMeta.matrixProvenance;
+    const review = ideaMatrixMeta.matrixReview;
+
+    ideaPersistTimerRef.current = setTimeout(() => {
+      ideaWriteControllerRef.current.enqueue(async ({ isLatest }) => {
+        if (!isLatest()) return { ok: true, superseded: true };
+        const result = await upsertIdeaArtifact({
+          userEmail,
+          statement,
+          whyMatters,
+          clusterId: clusterId || null,
+          patternId: patternId || null,
+          evidenceMap: evidenceMap ?? {},
+          ...(provenance ? { matrixProvenance: provenance } : {}),
+          ...(review ? { matrixReview: review } : {}),
+        });
+        if (!isLatest()) return { ok: true, superseded: true };
+        if (!result.ok) {
+          setPersistError(result.error?.message || "Could not save your idea.");
+          return { ok: false };
+        }
+        setPersistError("");
+        if (provenance) {
+          setIdeaMatrixMeta((prev) => ({
+            matrixProvenance: provenance,
+            matrixReview: prev.matrixReview || review,
+          }));
+        }
+        return { ok: true };
       });
-
-      if (!result.ok) {
-        setPersistError(result.error?.message || "Could not save your idea.");
-        return;
-      }
-
-      setPersistError("");
     }, 500);
   }
 
@@ -1270,21 +1967,36 @@ export default function ModuleThreeV2Form({
       clearTimeout(claimPersistTimerRef.current);
     }
 
-    claimPersistTimerRef.current = setTimeout(async () => {
-      const result = await upsertClaimArtifact({
-        userEmail,
-        workingClaim: workingClaimText,
-        supportRationale: rationale,
-        clusterId: clusterId || null,
-        patternId: patternId || null,
+    const provenance =
+      activeAdoptedDirection?.matrixProvenance || claimMatrixMeta.matrixProvenance;
+    const review = claimMatrixMeta.matrixReview;
+
+    claimPersistTimerRef.current = setTimeout(() => {
+      claimWriteControllerRef.current.enqueue(async ({ isLatest }) => {
+        if (!isLatest()) return { ok: true, superseded: true };
+        const result = await upsertClaimArtifact({
+          userEmail,
+          workingClaim: workingClaimText,
+          supportRationale: rationale,
+          clusterId: clusterId || null,
+          patternId: patternId || null,
+          ...(provenance ? { matrixProvenance: provenance } : {}),
+          ...(review ? { matrixReview: review } : {}),
+        });
+        if (!isLatest()) return { ok: true, superseded: true };
+        if (!result.ok) {
+          setPersistError(result.error?.message || "Could not save your claim.");
+          return { ok: false };
+        }
+        setPersistError("");
+        if (provenance) {
+          setClaimMatrixMeta((prev) => ({
+            matrixProvenance: provenance,
+            matrixReview: prev.matrixReview || review,
+          }));
+        }
+        return { ok: true };
       });
-
-      if (!result.ok) {
-        setPersistError(result.error?.message || "Could not save your claim.");
-        return;
-      }
-
-      setPersistError("");
     }, 500);
   }
 
@@ -1326,21 +2038,36 @@ export default function ModuleThreeV2Form({
       clearTimeout(thesisPersistTimerRef.current);
     }
 
-    thesisPersistTimerRef.current = setTimeout(async () => {
-      const result = await upsertThesisArtifact({
-        userEmail,
-        thesis,
-        proofPlan: Array.isArray(proofPlanLines) ? proofPlanLines : [],
-        clusterId: clusterId || null,
-        patternId: patternId || null,
+    const provenance =
+      activeAdoptedDirection?.matrixProvenance || thesisMatrixMeta.matrixProvenance;
+    const review = thesisMatrixMeta.matrixReview;
+
+    thesisPersistTimerRef.current = setTimeout(() => {
+      thesisWriteControllerRef.current.enqueue(async ({ isLatest }) => {
+        if (!isLatest()) return { ok: true, superseded: true };
+        const result = await upsertThesisArtifact({
+          userEmail,
+          thesis,
+          proofPlan: Array.isArray(proofPlanLines) ? proofPlanLines : [],
+          clusterId: clusterId || null,
+          patternId: patternId || null,
+          ...(provenance ? { matrixProvenance: provenance } : {}),
+          ...(review ? { matrixReview: review } : {}),
+        });
+        if (!isLatest()) return { ok: true, superseded: true };
+        if (!result.ok) {
+          setPersistError(result.error?.message || "Could not save your thesis.");
+          return { ok: false };
+        }
+        setPersistError("");
+        if (provenance) {
+          setThesisMatrixMeta((prev) => ({
+            matrixProvenance: provenance,
+            matrixReview: prev.matrixReview || review,
+          }));
+        }
+        return { ok: true };
       });
-
-      if (!result.ok) {
-        setPersistError(result.error?.message || "Could not save your thesis.");
-        return;
-      }
-
-      setPersistError("");
     }, 500);
   }
 
@@ -1352,16 +2079,25 @@ export default function ModuleThreeV2Form({
 
     if (!userEmail) return true;
 
-    const result = await upsertThesisArtifact({
-      userEmail,
-      thesis: thesisStatement,
-      proofPlan: Array.isArray(proofPlan) ? proofPlan : [],
-      clusterId: selectedClusterId || null,
-      patternId: selectedPatternId || null,
+    const provenance =
+      activeAdoptedDirection?.matrixProvenance || thesisMatrixMeta.matrixProvenance;
+    const review = thesisMatrixMeta.matrixReview;
+
+    const result = await thesisWriteControllerRef.current.enqueue(async ({ isLatest }) => {
+      if (!isLatest()) return { ok: true, superseded: true };
+      return upsertThesisArtifact({
+        userEmail,
+        thesis: thesisStatement,
+        proofPlan: Array.isArray(proofPlan) ? proofPlan : [],
+        clusterId: selectedClusterId || null,
+        patternId: selectedPatternId || null,
+        ...(provenance ? { matrixProvenance: provenance } : {}),
+        ...(review ? { matrixReview: review } : {}),
+      });
     });
 
-    if (!result.ok) {
-      setPersistError(result.error?.message || "Could not save your thesis.");
+    if (!result?.ok) {
+      setPersistError(result?.error?.message || "Could not save your thesis.");
       return false;
     }
 
@@ -1371,6 +2107,7 @@ export default function ModuleThreeV2Form({
 
   async function completeModule() {
     if (!canGoNext) return;
+    if (artifactReviewFlags.thesis) return;
     if (!userEmail) return;
 
     const saved = await flushThesisSave();
@@ -1720,26 +2457,19 @@ export default function ModuleThreeV2Form({
       STEP_IDS.GATHER,
     ],
   });
-  const evaluateReady = canContinueFromEvaluate({
-    evidenceStrength,
-    gapNote,
-    pathDecision,
-  });
   const chainConnectionLabel =
     connectedEvidence.length > 0 || currentStep === STEP_IDS.CONNECT
       ? `${connectedEvidence.length} of ${CONNECT_MINIMUM} explained`
       : "";
-  let chainReadinessLabel = "";
-  if (currentStep === STEP_IDS.GATHER) {
-    chainReadinessLabel = "Gathering more evidence";
-  } else if (evaluateReady) {
-    chainReadinessLabel =
-      pathDecision === "gather_more_evidence"
-        ? "Filling an evidence gap"
-        : "Ready to continue";
-  } else if (currentStep === STEP_IDS.EVALUATE) {
-    chainReadinessLabel = "Checking support";
-  }
+  const chainReadinessLabel = getArtifactChainReadinessLabel({
+    currentStep,
+    bothWorksReady: bothWorksEvidence.bothWorksReady,
+    evidenceStrength,
+    pathDecision,
+    gapNote,
+    selectedClusterEvidence,
+    evidenceConnections,
+  });
   const artifactChain = (
     <ModuleThreeArtifactChain
       groupName={selectedCluster?.name || ""}
@@ -1832,6 +2562,31 @@ export default function ModuleThreeV2Form({
         }}
         progressCompleted={canvasState.progressStory?.completed || []}
         progressNext={canvasState.progressStory?.next || ""}
+        matrixPresentation={matrixPresentation}
+        matrixHandoffLoading={matrixHandoffLoading}
+        matrixAdoptBusy={matrixAdoptBusy}
+        matrixAdoptError={matrixAdoptError}
+        onMatrixCarryForward={handleMatrixCarryForward}
+        onMatrixChooseOption={handleMatrixChooseOption}
+        onMatrixRetainExisting={handleMatrixRetainExisting}
+        onMatrixCustomSubmit={handleMatrixCustomSubmit}
+        matrixDirectionAdopted={matrixDirectionAdopted}
+        matrixEvidenceCandidates={
+          (matrixPresentation?.readableEvidenceProvenance || []).length
+            ? matrixPresentation.readableEvidenceProvenance
+            : evidenceItems.map((item) => ({
+                evidenceId: item.id,
+                visibleLabel: `${item.sourceLabel || "Source"} · ${item.appeal || item.strategy || ""} — “${String(item.quote || item.quotation || "Saved evidence").slice(0, 60)}”`,
+              }))
+        }
+        matrixReviewBanner={
+          <ModuleThreeMatrixReviewBanner
+            visible={artifactReviewFlags.pattern}
+            busy={reviewConfirmBusy}
+            error={reviewConfirmError}
+            onConfirm={() => confirmArtifactReview("pattern")}
+          />
+        }
       />
     );
   }
@@ -1873,6 +2628,41 @@ export default function ModuleThreeV2Form({
         otherPatterns={otherPatterns}
         assignmentPrompt={ASSIGNMENT.task.prompt}
         assignmentSources={ASSIGNMENT.sourceIntelligence.sources}
+        matrixFraming={
+          activeAdoptedDirection?.ideaFraming ||
+          matrixPresentation?.ideaFraming ||
+          null
+        }
+        matrixProvenance={
+          activeAdoptedDirection
+            ? {
+                selectedLabel: activeAdoptedDirection.label,
+                becauseYouExplanation:
+                  activeAdoptedDirection.becauseYouExplanation,
+                ratingLines: activeAdoptedDirection.readableRatingLines,
+                evidenceLines: activeAdoptedDirection.readableEvidenceLines,
+                audiencePurposeReasoning:
+                  activeAdoptedDirection.audiencePurposeReasoning,
+              }
+            : matrixPresentation && !matrixPresentation.useLegacyPatternPath
+              ? {
+                  selectedLabel: matrixPresentation.selectedPattern?.label || "",
+                  becauseYouExplanation: matrixPresentation.becauseYouExplanation,
+                  ratingLines: matrixPresentation.readableRatingLines,
+                  evidenceLines: matrixPresentation.readableEvidenceProvenance,
+                  audiencePurposeReasoning:
+                    matrixPresentation.audiencePurposeReasoning,
+                }
+              : null
+        }
+        matrixReviewBanner={
+          <ModuleThreeMatrixReviewBanner
+            visible={artifactReviewFlags.idea}
+            busy={reviewConfirmBusy}
+            error={reviewConfirmError}
+            onConfirm={() => confirmArtifactReview("idea")}
+          />
+        }
       />
     );
   }
@@ -1917,146 +2707,272 @@ export default function ModuleThreeV2Form({
         }}
         progressCompleted={canvasState.progressStory?.completed || []}
         progressNext={canvasState.progressStory?.next || ""}
+        assignmentPrompt={ASSIGNMENT.task.prompt}
+        assignmentSources={ASSIGNMENT.sourceIntelligence.sources}
       />
     );
   }
 
   if (currentStep === STEP_IDS.GATHER) {
+    const otherConnection = gatherFocus.existingOtherConnection;
+    const otherConnectionData = otherConnection
+      ? evidenceConnections[otherConnection.id]
+      : null;
+    const shelfEvidence = evidenceItems.filter((evidence) => {
+      if (workingEvidenceIds.includes(evidence.id)) {
+        return false;
+      }
+      if (
+        gatherFocus.defaultSourceFilter &&
+        gatherFocus.defaultSourceFilter !== "all" &&
+        sourceFilter !== "all" &&
+        evidence.sourceType !== sourceFilter
+      ) {
+        return false;
+      }
+      return true;
+    });
+
     stepContent = (
       <ModuleThreeStepFrame
-        question="What kind of quote is still missing?"
+        question={gatherFocus.heading}
         whyMatters={[
+          gatherFocus.coaching,
           "You are going back on purpose — not to collect random quotes, but to fill a specific gap.",
-          "Strong arguments need the right support, not just more of it.",
         ]}
-        successLooksLike={[
-          "You found quotes that address your gap.",
-          "You explained how each new quote helps.",
-          "Your support feels stronger than before.",
-        ]}
-        coachingMessage="Don't grab random quotes. Look for ones that answer the exact weakness you noticed."
-        nextStepText="When your support feels ready, you will ask what point your quotes help you prove."
+        successLooksLike={
+          gatherFocus.mode === "revise_explanation"
+            ? [
+                "You returned to Connect and pointed to specific words in your note.",
+                "Your explanation no longer only retells the quotation.",
+                "Your support feels clearer than before.",
+              ]
+            : [
+                "You found a quotation that addresses your gap.",
+                "You explained how the new quotation helps.",
+                "Your support feels stronger than before.",
+              ]
+        }
+        coachingMessage={gatherFocus.coaching}
+        nextStepText={
+          gatherFocus.mode === "revise_explanation"
+            ? "Use Back to return to Connect Evidence and revise the thin explanation."
+            : "When your support feels ready, you will ask what point your quotes help you prove."
+        }
         sidebar={thinkingCanvasPane}
       >
         <div className="space-y-8">
-          <WorkingSetSection
-            label="Quotes filling the gap"
-            description="On your desk — explain how each one helps."
-          >
-            <div className="space-y-1 text-left">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
-                My work on the desk
-              </p>
-              <p className="text-sm leading-relaxed text-text-muted">
-                Pick quotes that fix the exact weakness you noticed. Then explain how each one helps.
+          <div className="rounded-xl border-2 border-theme-orange/35 bg-theme-orange/10 px-4 py-4 text-left">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-orange">
+              Why you are here
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-text-primary">
+              {gatherFocus.gapNote || gapNote || "Fill the gap you noticed."}
+            </p>
+            {gatherFocus.ideaStatement ? (
+              <div className="mt-3 border-t border-theme-orange/20 pt-3">
+                <p className="text-xs text-text-muted">Your developing idea</p>
+                <p className="mt-1 text-sm font-medium text-text-primary">
+                  {gatherFocus.ideaStatement}
+                </p>
+              </div>
+            ) : null}
+            {otherConnection ? (
+              <div className="mt-3 border-t border-theme-orange/20 pt-3">
+                <p className="text-xs text-text-muted">
+                  Existing{" "}
+                  {otherConnection.sourceLabel || otherConnection.sourceType}{" "}
+                  connection
+                </p>
+                <p className="mt-1 text-sm italic text-text-primary">
+                  &ldquo;{otherConnection.quote}&rdquo;
+                </p>
+                {otherConnectionData?.relation ? (
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-theme-blue">
+                    {relationLabelForStored(otherConnectionData.relation)}
+                  </p>
+                ) : null}
+                {otherConnectionData?.note ? (
+                  <p className="mt-1 text-sm text-text-muted">
+                    {otherConnectionData.note}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          {gatherFocus.mode === "revise_explanation" ? (
+            <div
+              role="status"
+              className="rounded-xl border border-theme-blue/25 bg-theme-blue/[0.05] px-4 py-4 text-sm leading-relaxed text-text-primary"
+            >
+              <p className="font-semibold">Revise — do not hunt for a new quotation yet.</p>
+              <p className="mt-2 text-text-muted">
+                Use <span className="font-medium text-text-primary">Back</span> to
+                return to Connect Evidence. Open the thin connection and point to a
+                specific word or detail that helps your idea.
               </p>
             </div>
+          ) : (
+            <>
+              <WorkingSetSection
+                label="Quotes filling the gap"
+                description="On your desk — explain how each one helps."
+              >
+                <div className="space-y-1 text-left">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                    My work on the desk
+                  </p>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    Pick quotes that fix the exact weakness you noticed. Then explain
+                    how each one helps.
+                  </p>
+                </div>
 
-            {evidenceItems.filter((evidence) =>
-              workingEvidenceIds.includes(evidence.id)
-            ).length === 0 ? (
-              <p className="text-sm text-text-muted">
-                Pick quotes from the shelf below. They will land here.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {evidenceItems
-                  .filter((evidence) => workingEvidenceIds.includes(evidence.id))
-                  .map((evidence) => (
-                    <div key={`gather-working-${evidence.id}`} className="space-y-3">
+                {evidenceItems.filter((evidence) =>
+                  workingEvidenceIds.includes(evidence.id)
+                ).length === 0 ? (
+                  <p className="text-sm text-text-muted">
+                    Pick quotes from the shelf below. They will land here.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {evidenceItems
+                      .filter((evidence) =>
+                        workingEvidenceIds.includes(evidence.id)
+                      )
+                      .map((evidence) => (
+                        <div
+                          key={`gather-working-${evidence.id}`}
+                          className="space-y-3"
+                        >
+                          <ModuleThreeEvidenceCard
+                            evidence={evidence}
+                            selected
+                            onToggleSelected={toggleWorkingEvidence}
+                            marker={evidenceMarkers[evidence.id] || ""}
+                            showArtifactLabel={false}
+                            compact
+                          />
+
+                          {selectedCluster ? (
+                            <label className="flex items-center gap-2 text-sm text-text-primary">
+                              <input
+                                type="checkbox"
+                                checked={selectedCluster.evidenceIds.includes(
+                                  evidence.id
+                                )}
+                                onChange={() =>
+                                  setEvidenceClusters((previous) =>
+                                    previous.map((cluster) => {
+                                      if (cluster.id !== selectedCluster.id) {
+                                        return cluster;
+                                      }
+
+                                      const nextEvidenceIds =
+                                        cluster.evidenceIds.includes(evidence.id)
+                                          ? cluster.evidenceIds.filter(
+                                              (id) => id !== evidence.id
+                                            )
+                                          : [...cluster.evidenceIds, evidence.id];
+
+                                      return {
+                                        ...cluster,
+                                        evidenceIds: nextEvidenceIds,
+                                      };
+                                    })
+                                  )
+                                }
+                              />
+                              Include in my group
+                            </label>
+                          ) : null}
+
+                          <label className="block text-left">
+                            <span className="mb-2 block text-base font-medium text-text-primary">
+                              How does this quote fill the gap?
+                            </span>
+                            <textarea
+                              value={strengtheningNotes[evidence.id] || ""}
+                              onChange={(event) =>
+                                updateStrengtheningNote(
+                                  evidence.id,
+                                  event.target.value
+                                )
+                              }
+                              placeholder="Explain how this quote strengthens your idea"
+                              className={ANSWER_TEXTAREA_CLASS}
+                            />
+                          </label>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </WorkingSetSection>
+
+              {gatherFocus.showSourceShelf ? (
+                <ReferenceSection
+                  label="All your quotes"
+                  description="On the shelf — your idea, your gap, and quotes to choose from."
+                >
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+                      Show
+                    </p>
+                    {[
+                      {
+                        id: gatherFocus.defaultSourceFilter,
+                        label:
+                          gatherFocus.missingSource === "letter"
+                            ? "Letter first"
+                            : gatherFocus.missingSource === "speech"
+                              ? "Speech first"
+                              : "Focused",
+                      },
+                      { id: "all", label: "All sources" },
+                    ]
+                      .filter(
+                        (option, index, list) =>
+                          option.id &&
+                          list.findIndex((item) => item.id === option.id) === index
+                      )
+                      .map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setSourceFilter(option.id)}
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                            sourceFilter === option.id
+                              ? "border-theme-blue/40 bg-theme-blue/10 text-theme-blue"
+                              : "border-border-soft bg-white text-text-muted"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                  </div>
+
+                  <div className="space-y-3">
+                    {shelfEvidence.map((evidence) => (
                       <ModuleThreeEvidenceCard
+                        key={`gather-ref-${evidence.id}`}
                         evidence={evidence}
-                        selected
+                        selected={false}
                         onToggleSelected={toggleWorkingEvidence}
                         marker={evidenceMarkers[evidence.id] || ""}
+                        onMarkerChange={updateEvidenceMarker}
                         showArtifactLabel={false}
-                        compact
-                      />
-
-                      {selectedCluster ? (
-                        <label className="flex items-center gap-2 text-sm text-text-primary">
-                          <input
-                            type="checkbox"
-                            checked={selectedCluster.evidenceIds.includes(evidence.id)}
-                            onChange={() =>
-                              setEvidenceClusters((previous) =>
-                                previous.map((cluster) => {
-                                  if (cluster.id !== selectedCluster.id) {
-                                    return cluster;
-                                  }
-
-                                  const nextEvidenceIds = cluster.evidenceIds.includes(
-                                    evidence.id
-                                  )
-                                    ? cluster.evidenceIds.filter((id) => id !== evidence.id)
-                                    : [...cluster.evidenceIds, evidence.id];
-
-                                  return {
-                                    ...cluster,
-                                    evidenceIds: nextEvidenceIds,
-                                  };
-                                })
-                              )
-                            }
-                          />
-                          Include in my group
-                        </label>
-                      ) : null}
-
-                      <label className="block text-left">
-                        <span className="mb-2 block text-base font-medium text-text-primary">
-                          How does this quote fill the gap?
-                        </span>
-                        <textarea
-                          value={strengtheningNotes[evidence.id] || ""}
-                          onChange={(event) =>
-                            updateStrengtheningNote(evidence.id, event.target.value)
-                          }
-                          placeholder="Explain how this quote strengthens your idea"
-                          className={ANSWER_TEXTAREA_CLASS}
-                        />
-                      </label>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </WorkingSetSection>
-
-          <ReferenceSection
-            label="All your quotes"
-            description="On the shelf — your idea, your gap, and quotes to choose from."
-          >
-            <div className="mb-4 grid gap-3 md:grid-cols-2">
-              <div>
-                <p className="text-xs text-text-muted">Your idea</p>
-                <p className="mt-0.5 text-sm text-text-primary">{ideaStatement}</p>
-              </div>
-              <div>
-                <p className="text-xs text-text-muted">The gap you noticed</p>
-                <p className="mt-0.5 text-sm text-text-primary">{gapNote}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {evidenceItems
-                .filter((evidence) => !workingEvidenceIds.includes(evidence.id))
-                .map((evidence) => (
-                  <ModuleThreeEvidenceCard
-                    key={`gather-ref-${evidence.id}`}
-                    evidence={evidence}
-                    selected={false}
-                    onToggleSelected={toggleWorkingEvidence}
-                    marker={evidenceMarkers[evidence.id] || ""}
-                    onMarkerChange={updateEvidenceMarker}
-                    showArtifactLabel={false}
-                  >
-                    <p className="text-xs text-text-muted">
-                      Add to your desk if it helps fill the gap.
-                    </p>
-                  </ModuleThreeEvidenceCard>
-                ))}
-            </div>
-          </ReferenceSection>
+                      >
+                        <p className="text-xs text-text-muted">
+                          Add to your desk if it helps fill the gap.
+                        </p>
+                      </ModuleThreeEvidenceCard>
+                    ))}
+                  </div>
+                </ReferenceSection>
+              ) : null}
+            </>
+          )}
         </div>
       </ModuleThreeStepFrame>
     );
@@ -2077,6 +2993,39 @@ export default function ModuleThreeV2Form({
         onWorkingClaimChange={persistWorkingClaim}
         progressCompleted={canvasState.progressStory?.completed || []}
         progressNext={canvasState.progressStory?.next || ""}
+        claimInternalStage={claimInternalStage}
+        onAdvanceClaimStage={(stage) => setClaimInternalStage(stage)}
+        matrixClaimPrompt={
+          activeAdoptedDirection?.claimPrompt ||
+          matrixPresentation?.claimPrompt ||
+          ""
+        }
+        matrixClaimStarters={
+          activeAdoptedDirection?.claimStarters ||
+          matrixPresentation?.claimStarters ||
+          null
+        }
+        matrixProvenance={
+          activeAdoptedDirection
+            ? {
+                selectedLabel: activeAdoptedDirection.label,
+                becauseYouExplanation:
+                  activeAdoptedDirection.becauseYouExplanation,
+                ratingLines: activeAdoptedDirection.readableRatingLines,
+                evidenceLines: activeAdoptedDirection.readableEvidenceLines,
+                audiencePurposeReasoning:
+                  activeAdoptedDirection.audiencePurposeReasoning,
+              }
+            : null
+        }
+        matrixReviewBanner={
+          <ModuleThreeMatrixReviewBanner
+            visible={artifactReviewFlags.claim}
+            busy={reviewConfirmBusy}
+            error={reviewConfirmError}
+            onConfirm={() => confirmArtifactReview("claim")}
+          />
+        }
       />
     );
   }
@@ -2107,6 +3056,34 @@ export default function ModuleThreeV2Form({
         onProofPlanChange={updateProofPlan}
         progressCompleted={canvasState.progressStory?.completed || []}
         progressNext={canvasState.progressStory?.next || ""}
+        thesisInternalStage={thesisInternalStage}
+        onAdvanceThesisStage={(stage) => setThesisInternalStage(stage)}
+        matrixThesisPrompt={
+          activeAdoptedDirection?.thesisPrompt ||
+          matrixPresentation?.thesisPrompt ||
+          ""
+        }
+        matrixProvenance={
+          activeAdoptedDirection
+            ? {
+                selectedLabel: activeAdoptedDirection.label,
+                becauseYouExplanation:
+                  activeAdoptedDirection.becauseYouExplanation,
+                ratingLines: activeAdoptedDirection.readableRatingLines,
+                evidenceLines: activeAdoptedDirection.readableEvidenceLines,
+                audiencePurposeReasoning:
+                  activeAdoptedDirection.audiencePurposeReasoning,
+              }
+            : null
+        }
+        matrixReviewBanner={
+          <ModuleThreeMatrixReviewBanner
+            visible={artifactReviewFlags.thesis}
+            busy={reviewConfirmBusy}
+            error={reviewConfirmError}
+            onConfirm={() => confirmArtifactReview("thesis")}
+          />
+        }
       />
     );
   }
@@ -2118,6 +3095,8 @@ export default function ModuleThreeV2Form({
         currentStepId={currentStep}
         onStepChange={setCurrentStep}
       />
+
+      {/* Matrix review CTA lives on the pattern step — not a global banner on every screen. */}
 
       {loadError ? (
         <InfoCallout tone="warning" title="We could not load all of your evidence">

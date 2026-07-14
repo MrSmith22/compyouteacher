@@ -24,11 +24,18 @@ export default function ModuleThreeStepFrame({
   sidebar = null,
   coachingMessage = "",
   nextStepText = "",
+  minimalChrome = false,
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
   const successItems = Array.isArray(successLooksLike)
     ? successLooksLike.filter(Boolean)
     : [];
+
+  if (minimalChrome) {
+    return (
+      <div className="mx-auto w-full max-w-3xl text-left">{children}</div>
+    );
+  }
 
   return (
     <WorkspaceColumns className="gap-6 xl:gap-10">

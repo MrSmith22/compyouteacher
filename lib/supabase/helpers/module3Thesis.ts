@@ -14,6 +14,8 @@ export type Module3ThesisRow = {
   patternId?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 };
 
 type Module3ResponsesRow = {
@@ -36,6 +38,16 @@ function asThesis(value: unknown): Module3ThesisRow | null {
     thesis,
     proofPlan,
     ...readRowRefIds(record),
+    ...(record.matrixProvenance &&
+    typeof record.matrixProvenance === "object" &&
+    !Array.isArray(record.matrixProvenance)
+      ? { matrixProvenance: record.matrixProvenance as Record<string, unknown> }
+      : {}),
+    ...(record.matrixReview &&
+    typeof record.matrixReview === "object" &&
+    !Array.isArray(record.matrixReview)
+      ? { matrixReview: record.matrixReview as Record<string, unknown> }
+      : {}),
   };
 }
 

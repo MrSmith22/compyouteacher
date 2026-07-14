@@ -16,13 +16,15 @@ export type ThesisWriteInput = {
   proofPlan?: string[];
   clusterId?: string | null;
   patternId?: string | null;
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 };
 
 function isEmpty(thesis: Module3ThesisRow) {
   return !thesis.thesis.trim() && (thesis.proofPlan?.length ?? 0) === 0;
 }
 
-function buildThesisRow(
+export function buildThesisRow(
   input: ThesisWriteInput,
   existing: Module3ThesisRow | null
 ): Module3ThesisRow {
@@ -36,13 +38,26 @@ function buildThesisRow(
       ? normalizeProofPlan(input.proofPlan)
       : existing?.proofPlan ?? [];
 
-  return {
+  const row: Module3ThesisRow = {
     thesis,
     proofPlan,
     clusterId: mergeOptionalRef(input.clusterId, existing?.clusterId ?? null),
     patternId: mergeOptionalRef(input.patternId, existing?.patternId ?? null),
     ...timestamps,
   };
+
+  if (input.matrixProvenance !== undefined) {
+    row.matrixProvenance = input.matrixProvenance;
+  } else if (existing?.matrixProvenance) {
+    row.matrixProvenance = existing.matrixProvenance;
+  }
+  if (input.matrixReview !== undefined) {
+    row.matrixReview = input.matrixReview;
+  } else if (existing?.matrixReview) {
+    row.matrixReview = existing.matrixReview;
+  }
+
+  return row;
 }
 
 export async function upsertThesisForUser(input: ThesisWriteInput) {

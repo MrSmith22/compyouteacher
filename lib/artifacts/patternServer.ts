@@ -12,6 +12,8 @@ export type PatternWriteInput = {
   text: string;
   evidenceIds: string[];
   isSelected?: boolean;
+  matrixProvenance?: Module3PatternRow["matrixProvenance"];
+  matrixReview?: Module3PatternRow["matrixReview"];
 };
 
 function mergePattern(existing: Module3PatternRow[], input: PatternWriteInput) {
@@ -23,6 +25,12 @@ function mergePattern(existing: Module3PatternRow[], input: PatternWriteInput) {
       text: input.text,
       evidenceIds: uniqueOrdered(input.evidenceIds),
       updatedAt: timestamp,
+      ...(input.matrixProvenance !== undefined
+        ? { matrixProvenance: input.matrixProvenance }
+        : {}),
+      ...(input.matrixReview !== undefined
+        ? { matrixReview: input.matrixReview }
+        : {}),
     };
   });
 
@@ -34,6 +42,12 @@ function mergePattern(existing: Module3PatternRow[], input: PatternWriteInput) {
       evidenceIds: uniqueOrdered(input.evidenceIds),
       createdAt: timestamp,
       updatedAt: timestamp,
+      ...(input.matrixProvenance !== undefined
+        ? { matrixProvenance: input.matrixProvenance }
+        : {}),
+      ...(input.matrixReview !== undefined
+        ? { matrixReview: input.matrixReview }
+        : {}),
     });
   }
 
