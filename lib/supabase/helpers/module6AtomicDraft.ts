@@ -36,8 +36,8 @@ export async function atomicWriteModule6DraftAdmin({
   userEmail,
   action,
   sections,
-  draftMeta?: Record<string, unknown> | null;
-  expectedRevision: number;
+  draftMeta,
+  expectedRevision,
 }: {
   userEmail: string;
   action: string;
