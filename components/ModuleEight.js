@@ -719,6 +719,7 @@ export default function ModuleEight() {
         nextStepText={presentation.nextStepText}
         howToSucceed={presentation.howToSucceed || ""}
         sidebar={referenceShelf}
+        psychologicalModule={8}
       >
         <div className="space-y-3">
           <div

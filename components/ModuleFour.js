@@ -87,6 +87,7 @@ import { upsertParagraphPlanArtifact } from "@/lib/artifacts/writeArtifacts";
 import Link from "next/link";
 import ModuleThreeStepFrame from "@/components/module3/ModuleThreeStepFrame";
 import { WorkingSetSection } from "@/components/module3/ModuleThreeDeskFrame";
+import ModuleModeCue from "@/components/shared/ModuleModeCue";
 import ModuleFourReferenceShelf from "@/components/module4/ModuleFourReferenceShelf";
 import ModuleFourParagraphPlanArtifact from "@/components/module4/ModuleFourParagraphPlanArtifact";
 import ModuleFourFinalReviewStep from "@/components/module4/ModuleFourFinalReviewStep";
@@ -2924,7 +2925,8 @@ export default function ModuleFour({
         : "Keep going";
 
   return (
-    <div className="w-full pb-10">
+    <div className="w-full space-y-4 pb-10">
+      <ModuleModeCue module={4} />
       {chrome.useGuidedHandoffShell ? (
         main
       ) : (

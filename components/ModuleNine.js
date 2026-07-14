@@ -32,6 +32,7 @@ import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuid
 import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
 import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
+import ModuleModeCue from "@/components/shared/ModuleModeCue";
 import { getModule9ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
   MODULE9_APA_ENTRY,
@@ -631,6 +632,7 @@ export default function ModuleNine() {
           className="space-y-3 rounded-xl border border-border-soft/70 bg-surface-soft/40 px-6 py-4 md:px-8 md:py-5"
           data-hierarchy-level={HIERARCHY_LEVELS.reference}
         >
+          <ModuleModeCue module={9} />
           <h1 className={HIERARCHY_MODULE_CHROME_CLASS}>
             Module 9: APA Format and Final Submission
           </h1>

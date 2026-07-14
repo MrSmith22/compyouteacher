@@ -6,6 +6,8 @@
  * Tablet / mobile (<lg): single column; guidance stacks below the workspace.
  */
 
+import ModuleModeCue from "@/components/shared/ModuleModeCue";
+
 function normalizeWhyMatters(whyMatters) {
   if (Array.isArray(whyMatters)) {
     return whyMatters.filter(Boolean);
@@ -23,6 +25,7 @@ export default function ModuleFiveStepFrame({
   children,
   coachingMessage = "",
   nextStepText = "",
+  psychologicalModule = 5,
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
   const successItems = Array.isArray(successLooksLike)
@@ -49,6 +52,10 @@ export default function ModuleFiveStepFrame({
           data-module5-main-workspace="true"
           data-cpf-main-max="820"
         >
+          {psychologicalModule != null ? (
+            <ModuleModeCue module={psychologicalModule} />
+          ) : null}
+
           <header className="space-y-3 py-1 text-left md:py-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
               Question

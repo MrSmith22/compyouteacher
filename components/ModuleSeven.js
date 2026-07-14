@@ -840,6 +840,7 @@ export default function ModuleSeven() {
         sidebar={referenceShelf}
         hideSupporting={isReadAloudStep}
         deferSuccessCriteria
+        psychologicalModule={7}
       >
         {!isReadAloudStep ? (
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">

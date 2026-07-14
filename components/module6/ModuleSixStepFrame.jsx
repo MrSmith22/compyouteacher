@@ -4,6 +4,7 @@ import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import ScreenContractCues from "@/components/shared/ScreenContractCues";
 import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
+import ModuleModeCue from "@/components/shared/ModuleModeCue";
 import {
   pickVisibleFinished,
   pickVisiblePurpose,
@@ -231,6 +232,8 @@ export default function ModuleSixStepFrame({
   supportingPlacement = "before",
   /** When true, detailed success criteria render near the forward action instead of disclosures. */
   deferSuccessCriteria = false,
+  /** WP-058 — module number for psychological mode cue (6–8 shared frame). */
+  psychologicalModule = null,
 }) {
   const whyLines = normalizeWhyMatters(whyMatters);
   const exampleBlock = normalizeExample(example);
@@ -268,6 +271,9 @@ export default function ModuleSixStepFrame({
 
       <WorkspaceCenter className="min-w-0">
         <div className="space-y-6 md:space-y-8">
+          {psychologicalModule != null ? (
+            <ModuleModeCue module={psychologicalModule} />
+          ) : null}
           <header className="space-y-3 py-1 text-left md:py-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
               Start here

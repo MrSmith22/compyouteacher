@@ -95,7 +95,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-055 | Feedback uses Correct/Incorrect without teaching | App-wide | Medium | Instructional | Needs Verification |
 | WP-056 | Insufficient mid-module progress celebration | App-wide | Medium | Instructional | Needs Verification |
 | WP-057 | “Never start from scratch” messaging missing after Module 2 | App-wide | Medium | Instructional | Needs Verification |
-| WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Open |
+| WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Needs Verification |
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Open |
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Open |
 | WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Open |
@@ -1743,11 +1743,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 ### WP-058 — Modules lack distinct psychological feel across the journey
 
-- **Module:** App-wide
+- **Module:** App-wide (Modules 4–9 integrated; Module 3 model-only)
 - **Screen or area:** Module entry experiences
 - **Priority:** Medium
 - **Category:** Instructional / UX
-- **Status:** Open
+- **Status:** Needs Verification
 
 **Walkthrough observation:** Modules should feel psychologically different (discovery, organization, planning, writing, revision, preparation, submission) even if visual skin stays consistent. Currently transitions do not create these distinct modes.
 
@@ -1761,9 +1761,16 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Enter each module fresh.
 2. Confirm mode label and coaching match the intended psychological stage.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/modulePsychologicalModes.js`, `components/shared/ModuleModeCue.jsx`, `components/ModuleFour.js`, `components/module5/ModuleFiveStepFrame.jsx`, `components/module6/ModuleSixStepFrame.jsx`, `components/ModuleSix.js`, `components/ModuleSeven.js`, `components/ModuleEight.js`, `components/ModuleNine.js`, `tests/wp058-module-psychological-modes.test.js`
 
 **Resolution notes:**
+- Mode matrix: Discovery (3) → Organization (4) → Planning (5) → Writing (6) → Revision (7) → Preparation (8) → Submission (9).
+- Compact `module-mode-cue` always visible above the task/chrome; objective-level hierarchy; noninteractive; not a live region; not inside disclosures.
+- Placement: ModuleFour workspace; ModuleFiveStepFrame; ModuleSixStepFrame via `psychologicalModule` for M6–8; ModuleNine journey header.
+- Module 3 defined in pure model only; no Module 3 product edits.
+- No contradictory entry-copy rewrites required after audit; cue kept distinct from WP-052/056/057 panels.
+- Status remains Needs Verification (app-wide; Module 3 deferred; browser bounded).
+- Browser: no listener on port 3000 during verification; modes **not reached live**.
 
 **Resolved in commit:**
 

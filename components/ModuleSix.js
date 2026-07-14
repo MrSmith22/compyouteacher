@@ -890,6 +890,7 @@ export default function ModuleSix() {
           supportingResources={supportingResources}
           sidebar={referenceShelf}
           deferSuccessCriteria
+          psychologicalModule={6}
         >
           <div className="rounded-lg bg-surface-soft/30 px-3 py-2 text-left">
             <p className="text-[11px] leading-relaxed text-text-muted">
