@@ -236,6 +236,12 @@ export async function getIdeaArtifact(
     clusterId: res.idea.clusterId ?? null,
     patternId: res.idea.patternId ?? null,
     evidenceMap: res.idea.evidenceMap ?? {},
+    // Pass through CP-D additive fields so a resumed Module 3 can detect
+    // upstream matrix changes on the idea stage without rewriting text.
+    ...(res.idea.matrixProvenance
+      ? { matrixProvenance: res.idea.matrixProvenance }
+      : {}),
+    ...(res.idea.matrixReview ? { matrixReview: res.idea.matrixReview } : {}),
   };
 }
 
@@ -264,6 +270,12 @@ export async function getClaimArtifact(
     supportRationale: res.claim.supportRationale,
     clusterId: res.claim.clusterId ?? null,
     patternId: res.claim.patternId ?? null,
+    // Pass through CP-D additive fields so a resumed Module 3 can detect
+    // upstream matrix changes on the claim stage without rewriting text.
+    ...(res.claim.matrixProvenance
+      ? { matrixProvenance: res.claim.matrixProvenance }
+      : {}),
+    ...(res.claim.matrixReview ? { matrixReview: res.claim.matrixReview } : {}),
   };
 }
 
@@ -349,6 +361,14 @@ export async function getThesisArtifact(
       thesis: v2Res.thesis.thesis,
       proofPlan: Array.isArray(v2Res.thesis.proofPlan) ? v2Res.thesis.proofPlan : [],
       structureChoice: null,
+      // Pass through CP-D additive fields so a resumed Module 3 can detect
+      // upstream matrix changes on the thesis stage without rewriting text.
+      ...(v2Res.thesis.matrixProvenance
+        ? { matrixProvenance: v2Res.thesis.matrixProvenance }
+        : {}),
+      ...(v2Res.thesis.matrixReview
+        ? { matrixReview: v2Res.thesis.matrixReview }
+        : {}),
     };
   }
 

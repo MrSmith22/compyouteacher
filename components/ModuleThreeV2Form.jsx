@@ -735,27 +735,58 @@ export default function ModuleThreeV2Form({
               matrixReview: thesisMatrixMeta.matrixReview,
             },
           });
+          // Legacy/seed Module 3 work can carry no matrix signature at all. When
+          // the current matrix selection differs from that existing work
+          // (EXISTING_WORK mode), the student must still get the review/adopt
+          // experience on the stage they resume — even without a stored
+          // signature to diff. A stored reviewedSignature matching the current
+          // signature clears it (the established confirmation path).
+          const modeIsExistingWork =
+            presentation.mode === "existing_module3_with_matrix";
+          const reviewedForCurrent = (meta) =>
+            meta?.matrixReview?.reviewedSignature === currentSig;
+          const existingWorkReview = (meta, hasText) =>
+            modeIsExistingWork &&
+            Boolean(hasText) &&
+            !reviewedForCurrent(meta);
+
+          const ideaNeedsReview = Boolean(
+            evalAll.artifacts.idea.needsReview ||
+              ideaMatrixMeta.matrixReview?.needsReview ||
+              existingWorkReview(
+                ideaMatrixMeta,
+                String(ideaStatement || "").trim()
+              )
+          );
+          const claimNeedsReview = Boolean(
+            evalAll.artifacts.claim.needsReview ||
+              claimMatrixMeta.matrixReview?.needsReview ||
+              existingWorkReview(
+                claimMatrixMeta,
+                String(workingClaim || "").trim()
+              )
+          );
+          const thesisNeedsReview = Boolean(
+            evalAll.artifacts.thesis.needsReview ||
+              thesisMatrixMeta.matrixReview?.needsReview ||
+              existingWorkReview(
+                thesisMatrixMeta,
+                String(thesisStatement || "").trim()
+              )
+          );
+
           const nextFlags = {
             pattern: Boolean(
               evalAll.artifacts.pattern.needsReview ||
                 selectedNotice?.matrixReview?.needsReview
             ),
-            idea: Boolean(
-              evalAll.artifacts.idea.needsReview ||
-                ideaMatrixMeta.matrixReview?.needsReview
-            ),
-            claim: Boolean(
-              evalAll.artifacts.claim.needsReview ||
-                claimMatrixMeta.matrixReview?.needsReview
-            ),
-            thesis: Boolean(
-              evalAll.artifacts.thesis.needsReview ||
-                thesisMatrixMeta.matrixReview?.needsReview
-            ),
+            idea: ideaNeedsReview,
+            claim: claimNeedsReview,
+            thesis: thesisNeedsReview,
           };
           setArtifactReviewFlags(nextFlags);
 
-          if (evalAll.artifacts.idea.needsReview) {
+          if (ideaNeedsReview) {
             setIdeaMatrixMeta((prev) => ({
               ...prev,
               matrixReview: createMatrixReviewState({
@@ -766,7 +797,7 @@ export default function ModuleThreeV2Form({
               }),
             }));
           }
-          if (evalAll.artifacts.claim.needsReview) {
+          if (claimNeedsReview) {
             setClaimMatrixMeta((prev) => ({
               ...prev,
               matrixReview: createMatrixReviewState({
@@ -777,7 +808,7 @@ export default function ModuleThreeV2Form({
               }),
             }));
           }
-          if (evalAll.artifacts.thesis.needsReview) {
+          if (thesisNeedsReview) {
             setThesisMatrixMeta((prev) => ({
               ...prev,
               matrixReview: createMatrixReviewState({

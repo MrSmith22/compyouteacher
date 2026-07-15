@@ -108,6 +108,9 @@ export interface IdeaArtifact extends ArtifactBase<"idea"> {
       note: string;
     }
   >;
+  /** Additive CP-D matrix provenance — legacy ideas omit this. */
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 }
 
 export interface ClaimArtifact extends ArtifactBase<"claim"> {
@@ -116,6 +119,9 @@ export interface ClaimArtifact extends ArtifactBase<"claim"> {
   supportRationale: string;
   clusterId: string | null;
   patternId: string | null;
+  /** Additive CP-D matrix provenance — legacy claims omit this. */
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 }
 
 export interface SourceContextArtifact extends ArtifactBase<"source_context"> {
@@ -134,6 +140,9 @@ export interface ThesisArtifact extends ArtifactBase<"thesis"> {
   thesis: string;
   proofPlan: string[];
   structureChoice: string | null;
+  /** Additive CP-D matrix provenance — legacy theses omit this. */
+  matrixProvenance?: Record<string, unknown> | null;
+  matrixReview?: Record<string, unknown> | null;
 }
 
 export interface ParagraphPlanArtifact

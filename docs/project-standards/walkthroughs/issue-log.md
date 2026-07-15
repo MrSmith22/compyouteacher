@@ -116,7 +116,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-076 | Build the Introduction page around the reader, not the writing | 6 | High | Instructional | Needs Verification |
 | WP-077 | Make supporting resources impossible to miss on Module 6 drafting pages | 6 | High | Instructional / UX | Needs Verification |
 | WP-078 | Module 1 prompt page lacks clear first-task hierarchy | 1 | High | Instructional / UX | Resolved |
-| WP-079 | Validate and refine the rhetorical-matrix essay-direction engine | 2–6 | High | Instructional / Architecture | Needs Verification |
+| WP-079 | Validate and refine the rhetorical-matrix essay-direction engine | 2–6 | High | Instructional / Architecture | Resolved |
 
 *Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-080.*
 
@@ -2408,7 +2408,7 @@ Browser (this pass): port 3000 was not listening — no new live session. Status
 - **Screen or area:** `/modules/2/matrix` derived directions; Module 3 handoff; Module 4–5 personalization
 - **Priority:** High
 - **Category:** Instructional / Architecture
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation / audit finding:** The six-cell rating instrument was sound, but essay-direction generation was an opportunistic observation bag (largest contrast, high/high, low/low, single-work dominants) with top-3 truncation that hid equal ties and used rule-ish labels. Students need a finite, rational universe of comparative essay **directions** — not matrix observations presented as topics and not prewritten theses.
 
@@ -2434,10 +2434,21 @@ Browser (this pass): port 3000 was not listening — no new live session. Status
 - **Topic taxonomy:** 3 same-appeal frames + 6 ordered distinct cross-dominant pairs + student-created (9 canonical + custom). Similarity/contrast are relationships inside Family 1, not duplicate base topics. Same-dominant pairs stay in Family 1 (no duplicate cross card).
 - **Derivation:** `buildEssayDirectionRecommendations` evaluates eligibility (both-works evidence / explicit zero), scores deterministically, caps primary at 3 while keeping tied co-equals visible and supporting **selectable**. `low_low` / single-work dominants demoted to matrix notes. Labels are direction frames (no `high/high`, `largest_contrast` UI strings).
 - **Downstream map:** M3 direct selection+provenance; M4 advisory kind/evidence; M5 overridable order guidance; **M6 inherited only** via outline/paragraph plans (no new matrix panel).
-- **Browser:** Port 3000 not listening — required live scenarios **not reached** this pass. Status **Needs Verification** until Jason runs the WP-079 matrix script (contrast, different-dominant, review, selection, custom, edit-after-selection, Module 3 handoff) at 390×844 and 1440×900.
+- **Browser (July 14, 2026):** Module 2 matrix acceptance passed at 390×844 and 1440×900 (six cells, same-appeal + different-dominant recommendations, "What your ratings suggest", custom direction, selection, edit-after-selection invalidation, no horizontal overflow).
 
-**Resolved in commit:**
+**Module 3 handoff resume fix (July 14, 2026):** A completed-Module-3 student resuming at a later stage (e.g. Thesis) saw no matrix-change review after the Module 2 matrix/direction changed. Two root causes:
+
+1. **Read path dropped provenance.** `getIdeaArtifact`/`getClaimArtifact`/`getThesisArtifact` in `lib/artifacts/readArtifacts.ts` stripped the persisted `matrixProvenance`/`matrixReview` (only the pattern artifact carried them). The SSR-hydrated form therefore had `null` downstream provenance, so `evaluateDownstreamMatrixReview` had no saved signature to diff and never flagged review. Fixed by passing both additive fields through the three read adapters (and declaring them on `IdeaArtifact`/`ClaimArtifact`/`ThesisArtifact`).
+2. **Legacy/seed work had no signature at all.** When existing Module 3 work predates matrix provenance and the current matrix selection differs (`existing_module3_with_matrix` mode), there is no stored signature to diff. The hydration effect now also flags the resumed downstream stage for review in that mode (cleared once a `reviewedSignature` matching the current signature is stored via the established confirm path), reusing `createMatrixReviewState`/`confirmMatrixReview`/`ModuleThreeMatrixReviewBanner` — no competing handoff.
+
+Existing idea/claim/thesis prose is never rewritten; advancement is gated until the student confirms; confirmation stores the current signature through `confirmArtifactReview`; unchanged/reviewed signatures show no false warning; fresh Module 3 users still get the normal direct handoff.
+
+- **Browser (July 14, 2026, resume scenario):** On a completed-Module-3 account resuming at Thesis with a changed matrix signature, verified at **390×844** and **1440×900**: the review banner ("Your Module 2 analysis changed…") shows on the Thesis stage, existing thesis/idea/claim prose is preserved, the Continue button is gated, confirming clears the banner and ungates, the reviewed signature persists, and reload shows no false warning. No horizontal overflow.
+- **Related files (resume fix):** `lib/artifacts/readArtifacts.ts`; `lib/artifacts/types.ts`; `components/ModuleThreeV2Form.jsx`; `tests/wp079-module3-resume-matrix-review.test.js`
+- **Tests:** Focused Module 2/3 WP-079 + CP-D suites green; full `tests/*.test.js` green (1176 tests).
+
+**Resolved in commit:** `3f4484a` (matrix essay-direction engine) and the "Restore Module 3 matrix-change review on resumed later stages" commit on `observation-engine-redesign` (Module 3 handoff resume review).
 
 ---
 
-*Last updated: July 14, 2026 — WP-079 Needs Verification (matrix essay-direction engine automated; browser pending).*
+*Last updated: July 14, 2026 — WP-079 Resolved (matrix essay-direction engine + Module 3 handoff resume review verified at 390×844 and 1440×900).*
