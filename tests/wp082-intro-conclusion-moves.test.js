@@ -72,14 +72,21 @@ describe("WP-082 intro/conclusion move libraries", () => {
     );
   });
 
-  it("gates intro/conclusion by type behind the development gate", () => {
+  it("gates intro/conclusion by type behind the writing-spine rollout mode", () => {
+    const {
+      getEffectiveWritingSpineMode,
+    } = require("../lib/assignments/writingSpineModeCache.js");
+    const {
+      isRebuiltWritingSpine,
+    } = require("../lib/assignments/writingSpineRollout.js");
+    const rebuilt = isRebuiltWritingSpine(getEffectiveWritingSpineMode());
     assert.equal(
       isIntroConclusionVerticalSliceStep({ type: "intro" }),
-      process.env.NODE_ENV === "development"
+      rebuilt
     );
     assert.equal(
       isIntroConclusionVerticalSliceStep({ type: "conclusion" }),
-      process.env.NODE_ENV === "development"
+      rebuilt
     );
     assert.equal(
       isIntroConclusionVerticalSliceStep({ type: "body", bodyIndex: 0 }),

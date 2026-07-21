@@ -14,7 +14,7 @@ import {
 import { selectCurrentQuizResult } from "@/lib/module1/module1CompletionReadiness";
 import { logAdvancementDiagnostic } from "@/lib/module1/advanceModuleProgression";
 
-export const QUIZ_SUBMIT_REASONS = Object.freeze({
+const QUIZ_SUBMIT_REASONS = Object.freeze({
   SAVED: "saved",
   ALREADY_SAVED: "already_saved",
   PARTIAL_ANSWERS: "partial_answers",

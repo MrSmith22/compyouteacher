@@ -1323,6 +1323,12 @@ export default function ModuleSix() {
                         includeTransition,
                         evidenceCount,
                         moveOrder,
+                        legacyProse:
+                          sections[
+                            typeof currentStep?.draftIndex === "number"
+                              ? currentStep.draftIndex
+                              : 0
+                          ] || "",
                       }
                     )}
                     deskArtifacts={{

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
@@ -116,7 +116,7 @@ const SPEECH_SAVE_CALLOUT = getSaveStageContextCallout(SPEECH_SOURCE);
 const LETTER_SAVE_CALLOUT = getSaveStageContextCallout(LETTER_SOURCE);
 const SITUATION_COMPARISON = mlkAssignmentDefinition.situationComparison || null;
 
-export default function ModuleTwoSourcePage() {
+function ModuleTwoSourcePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -1862,5 +1862,19 @@ export default function ModuleTwoSourcePage() {
       )}
 
     </ModulePageShell>
+  );
+}
+
+export default function ModuleTwoSourcePageRoute() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
+          <p className="text-sm text-theme-dark/80">Loading Module 2…</p>
+        </div>
+      }
+    >
+      <ModuleTwoSourcePage />
+    </Suspense>
   );
 }

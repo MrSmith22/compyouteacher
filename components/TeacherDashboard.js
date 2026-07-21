@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import TeacherWordCountSettings from "@/components/teacher/TeacherWordCountSettings";
+import TeacherWritingSpineRollout from "@/components/teacher/TeacherWritingSpineRollout";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const gradingStatusOptions = [
@@ -647,6 +648,7 @@ useEffect(() => {
       </header>
 
       <TeacherWordCountSettings />
+      <TeacherWritingSpineRollout />
 
       {/* Phase 1: Student Progress Overview */}
       <section className="space-y-2">

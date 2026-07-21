@@ -82,8 +82,10 @@ export default function DevResetStudentButton() {
     }
   }
 
-  const hasDeleted = (r: ResetApiResult): r is ResetApiResult & { deleted: DeletedCounts } =>
-    r.deleted != null;
+  const hasDeleted = (
+    r: ResetApiResult | { error: string }
+  ): r is ResetApiResult & { deleted: DeletedCounts } =>
+    !("error" in r) && r.deleted != null;
 
   return (
     <div className="mt-2 flex flex-col gap-2">

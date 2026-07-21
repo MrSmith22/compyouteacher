@@ -3,6 +3,7 @@
 import ReadingLayout from "@/components/layout/ReadingLayout";
 import WorkspaceLayout from "@/components/layout/WorkspaceLayout";
 import { LAYOUT_MODES, resolveLayoutMode } from "@/components/layout/layoutModes";
+import WritingSpineProvider from "@/components/assignments/WritingSpineProvider";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -20,9 +21,11 @@ export default function AppLayoutShell({ children }) {
     layoutMode === LAYOUT_MODES.WORKSPACE ? WorkspaceLayout : ReadingLayout;
 
   return (
-    <Layout>
-      {children}
-      {DeveloperTestingPanel ? <DeveloperTestingPanel /> : null}
-    </Layout>
+    <WritingSpineProvider>
+      <Layout>
+        {children}
+        {DeveloperTestingPanel ? <DeveloperTestingPanel /> : null}
+      </Layout>
+    </WritingSpineProvider>
   );
 }

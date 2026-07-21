@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -58,7 +58,7 @@ async function requestModule1Completion() {
  * Module 1 success: save advancement via authenticated API before enabling Module 2.
  * Reload is idempotent (already-advanced counts as success).
  */
-export default function Module1Success() {
+function Module1SuccessContent() {
   const { data: session, status } = useSession();
   const params = useSearchParams();
   const scoreParam = params.get("score");
@@ -224,5 +224,19 @@ export default function Module1Success() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Module1Success() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
+          <p className="text-sm text-theme-dark/80">{MODULE1_SAVING_MESSAGE}</p>
+        </div>
+      }
+    >
+      <Module1SuccessContent />
+    </Suspense>
   );
 }

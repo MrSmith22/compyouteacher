@@ -122,6 +122,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-082 | Introduction and Conclusion vertical slices (section-specific moves + diagnostics) | 4–7 | Critical | Instructional / Architecture | Resolved |
 | WP-083 | All required body paragraphs (generalize WP-081 to every required body) | 4–7 | Critical | Instructional / Architecture | Resolved |
 | WP-084 | Whole-essay review and configurable teacher word-count expectation | 6–8 | Critical | Instructional / Architecture | Resolved |
+| WP-085 | Production promotion of Modules 4–7 writing spine | 4–8 | Critical | Architecture / Ops | In Progress |
 
 *Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-083.*
 
@@ -2672,3 +2673,25 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 **Database-backed settings verification** (July 21, 2026, after remote `assignment_settings` migration + RLS): Teacher PATCH `advisory_minimum` 300 returned `source: "database"`; teacher GET and student GET both `source: "database"`; fresh teacher/student sessions re-read the same row; invalid range rejected with prior 300 preserved; direct table row matched (`word_count_mode=advisory_minimum`, `word_count_min=300`, `updated_by=dev-teacher@localhost`); local `.dev-assignment-settings.json` fallback not used. Helper tightened so file fallback applies only when the table is missing.
 
 **Resolved in commit:** (pending commit)
+
+---
+
+### WP-085 — Production promotion of Modules 4–7 writing spine
+
+**Status:** In Progress  
+**Priority:** Critical  
+**Category:** Architecture / Ops  
+**Module:** 4–8  
+**Related:** WP-081–084; Prompt 06; Phase 2 exit
+
+**Walkthrough observation:** Rebuilt Modules 4–7 only run when `NODE_ENV === "development"`. Production builds silently select the legacy workflow.
+
+**Student-facing impact:** Promoted students would not receive the accepted writing spine; returning students risk blank or split-brain UX.
+
+**Why it matters technically or operationally:** Need one authoritative rollout mode, legacy adapters, migration/preflight, rollback that preserves rebuilt data, and production-build acceptance without leaking dev tooling.
+
+**Recommended smallest reasonable fix:** `writing_spine_mode` on `assignment_settings` + resolver + env emergency override; replace instructional NODE_ENV gates; legacy adapters; preflight + runbook; production-build tests and browser acceptance.
+
+**Gate:** Instructional gates use rollout mode (not NODE_ENV). Developer panel/seeds/dev auth remain NODE_ENV-protected.
+
+---

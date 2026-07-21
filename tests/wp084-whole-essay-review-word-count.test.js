@@ -256,11 +256,17 @@ describe("WP-084 whole-essay review engine", () => {
     assert.equal(countEssayWords(resolved.text), countEssayWords(m7Final));
   });
 
-  it("keeps the whole-essay gate development-only", () => {
+  it("keeps the whole-essay gate on the writing-spine rollout mode", () => {
+    const {
+      getEffectiveWritingSpineMode,
+    } = require("../lib/assignments/writingSpineModeCache.js");
+    const {
+      isRebuiltWritingSpine,
+    } = require("../lib/assignments/writingSpineRollout.js");
     assert.equal(typeof isWholeEssayReviewEnabled(), "boolean");
     assert.equal(
       isWholeEssayReviewEnabled(),
-      process.env.NODE_ENV === "development"
+      isRebuiltWritingSpine(getEffectiveWritingSpineMode())
     );
   });
 });

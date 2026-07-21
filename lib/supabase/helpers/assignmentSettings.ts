@@ -90,7 +90,7 @@ function isMissingTableError(message: string) {
  * @param {string} [assignmentId]
  */
 export async function getAssignmentWordCountSettings(
-  assignmentId = DEFAULT_ASSIGNMENT_ID
+  assignmentId: string = DEFAULT_ASSIGNMENT_ID
 ) {
   try {
     const supabase = getSupabaseAdmin();
@@ -106,6 +106,17 @@ export async function getAssignmentWordCountSettings(
       console.warn("assignment_settings read failed:", error.message);
       // File fallback only when the table is missing — not when a row is absent.
       if (isMissingTableError(error.message)) {
+        if (process.env.NODE_ENV === "production") {
+          return {
+            ok: false as const,
+            settings: {
+              ...DEFAULT_WORD_COUNT_SETTINGS,
+              assignmentId,
+            },
+            source: "schema_missing",
+            warning: error.message,
+          };
+        }
         const fallback = readDevFallback(assignmentId);
         if (fallback) {
           return {

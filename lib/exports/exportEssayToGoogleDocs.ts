@@ -255,8 +255,11 @@ async function resolveDeps(deps: ExportEssayToGoogleDocsDeps = {}) {
     !deps.getWebViewLink;
   const needsStore = !deps.getExportedDocRow || !deps.upsertExportedDoc;
 
-  const googleDefaults = needsGoogle ? await createDefaultGoogleDeps() : {};
-  const storeDefaults = needsStore ? createDefaultStoreDeps() : {};
+  const googleDefaults = needsGoogle
+    ? await createDefaultGoogleDeps()
+    : ({} as Partial<Awaited<ReturnType<typeof createDefaultGoogleDeps>>>);
+  const storeDefaults: Partial<ReturnType<typeof createDefaultStoreDeps>> =
+    needsStore ? createDefaultStoreDeps() : {};
 
   return {
     getExportedDocRow:

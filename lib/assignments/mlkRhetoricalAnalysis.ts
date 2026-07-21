@@ -244,7 +244,6 @@ export const mlkRhetoricalAnalysisAssignment: MlkRhetoricalAnalysisAssignment = 
     {
       id: "letter-pathos",
       sourceId: "letter",
-      rhetoricalStrategy: "pathos",
       quotedPassage:
         "But when you have seen vicious mobs lynch your mothers and fathers at will and drown your sisters and brothers at whim; when you have seen hate-filled policemen curse, kick and even kill your black brothers and sisters...",
       observationQuestion:
@@ -254,7 +253,6 @@ export const mlkRhetoricalAnalysisAssignment: MlkRhetoricalAnalysisAssignment = 
     {
       id: "letter-logos",
       sourceId: "letter",
-      rhetoricalStrategy: "logos",
       quotedPassage:
         "An unjust law is a human law that is not rooted in eternal law and natural law. Any law that uplifts human personality is just. Any law that degrades human personality is unjust.",
       observationQuestion:
