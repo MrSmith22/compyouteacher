@@ -57,23 +57,21 @@ describe("module4 Checkpoint 3 — paragraph point vs job", () => {
   });
 
   it("2–3. point and job step questions use approved wording", () => {
-    assert.equal(pointStepQuestion(1), "What point will Paragraph 1 prove?");
+    assert.equal(pointStepQuestion(1), "What point will Body Paragraph 1 prove?");
     assert.equal(
       jobStepQuestion(1),
-      "How will Paragraph 1 do its part in the essay?"
+      "How will Body Paragraph 1 do its part in the essay?"
     );
     const presentationSource = fs.readFileSync(
       path.join(__dirname, "../components/module4/module4StepPresentation.js"),
       "utf8"
     );
     assert.ok(
-      presentationSource.includes(
-        "What point will Paragraph ${n} prove?"
-      )
+      presentationSource.includes("What point will ${sectionLabel} prove?")
     );
     assert.ok(
       presentationSource.includes(
-        "How will Paragraph ${n} do its part in the essay?"
+        "How will ${sectionLabel} do its part in the essay?"
       )
     );
     assert.equal(STEP_B1_SCAFFOLD, 4);

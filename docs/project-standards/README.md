@@ -77,7 +77,15 @@ When a document is promoted into `docs/project-standards/`, update this index an
 
 | Document | Role |
 |----------|------|
+| [`walkthroughs/complete-walkthrough-revision-strategy-2026-07-20.md`](./walkthroughs/complete-walkthrough-revision-strategy-2026-07-20.md) | **Canonical current revision strategy** from the completed Modules 1–9 student walkthrough — target learning process, cross-app contracts, module specifications, priorities, and acceptance framework. |
 | [`walkthroughs/issue-log.md`](./walkthroughs/issue-log.md) | **Living implementation tracker** — concrete bugs, instructional gaps, and recommended fixes discovered during the end-to-end student walkthrough (WP-001, WP-002, …). Update status, resolution notes, and commit references as work is completed. The [Master Design Specification](./master-design-specification-phase-ii.md) remains the governing design document; this log tracks specific implementation work. |
+| [`walkthroughs/master-walkthrough-blueprint.md`](./walkthroughs/master-walkthrough-blueprint.md) | Historical July 14 execution blueprint. Retained for implementation history; defer to the July 20 complete walkthrough strategy when current walkthrough evidence differs. |
+
+## Implementation prompts
+
+| Document | Role |
+|----------|------|
+| [`implementation-prompts/README.md`](./implementation-prompts/README.md) | Numbered Cursor prompt sequence for implementing the July 20 revision strategy in bounded, verifiable increments. |
 
 ---
 

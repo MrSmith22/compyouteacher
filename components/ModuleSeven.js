@@ -69,6 +69,48 @@ import {
   getModule7TotalSteps,
   retreatModule7StepIndex,
 } from "@/lib/module7/module7StepBounds";
+import {
+  resolveModule7ResumeStepIndex,
+  setModule7ResumeInDraftMeta,
+  readModule7WholeEssayRepair,
+} from "@/lib/module7/module7Resume";
+import {
+  isBodyParagraphVerticalSliceStep,
+  isIntroConclusionVerticalSliceStep,
+  isWholeEssayReviewEnabled,
+} from "@/lib/dev/isBodyParagraphVerticalSliceEnabled";
+import { buildWholeEssayReview } from "@/lib/artifacts/wholeEssayReview";
+import WholeEssayReviewPanel from "@/components/module7/WholeEssayReviewPanel";
+import { DEFAULT_ASSIGNMENT_ID } from "@/lib/assignments/identity";
+import { DEFAULT_WORD_COUNT_SETTINGS } from "@/lib/assignments/wordCountSettings";
+import { countEssayWords } from "@/lib/essay/essayWordCount";
+import {
+  diagnoseBodyParagraphRevision,
+  getRevisionFromDraftMeta,
+  setRevisionInDraftMeta,
+  applyRevisionCompareState,
+  ensureRevisionBaseline,
+} from "@/lib/module7/bodyParagraphDiagnostics";
+import {
+  diagnoseIntroductionRevision,
+  getIntroductionRevisionFromDraftMeta,
+  setIntroductionRevisionInDraftMeta,
+  INTRO_REVISION_TARGET_META,
+} from "@/lib/module7/introductionDiagnostics";
+import {
+  diagnoseConclusionRevision,
+  getConclusionRevisionFromDraftMeta,
+  setConclusionRevisionInDraftMeta,
+  CONCLUSION_REVISION_TARGET_META,
+} from "@/lib/module7/conclusionDiagnostics";
+import { buildBodyParagraphSlice } from "@/lib/artifacts/bodyParagraphSliceContract";
+import {
+  buildIntroductionSlice,
+  buildConclusionSlice,
+  compactBodyPurposes,
+} from "@/lib/artifacts/introConclusionSliceContract";
+import BodyParagraphRevisionPanel from "@/components/module7/BodyParagraphRevisionPanel";
+import SectionRevisionPanel from "@/components/module7/SectionRevisionPanel";
 import { logActivity } from "../lib/logActivity";
 
 const READ_ALOUD_STEP = { id: "read-aloud", type: MODULE7_STEP_TYPES.READ_ALOUD };
@@ -119,6 +161,8 @@ export default function ModuleSeven() {
 
   const [sections, setSections] = useState([]);
   const [locked, setLocked] = useState(false);
+  const [draftMeta, setDraftMeta] = useState(null);
+  const [revisionTargetId, setRevisionTargetId] = useState(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [gateBlocked, setGateBlocked] = useState(false);
 
@@ -144,6 +188,13 @@ export default function ModuleSeven() {
   const [revisionNotice, setRevisionNotice] = useState(null);
   /** WP-056 — local transient celebration; never persisted. */
   const [progressCelebration, setProgressCelebration] = useState(null);
+  /** WP-084 — teacher word-count settings + final inspection UI state */
+  const [wordCountSettings, setWordCountSettings] = useState(
+    DEFAULT_WORD_COUNT_SETTINGS
+  );
+  const [wholeEssayActiveCheck, setWholeEssayActiveCheck] = useState(null);
+  const [wholeEssayAdvisoryConfirmed, setWholeEssayAdvisoryConfirmed] =
+    useState(false);
 
   const email = session?.user?.email ?? null;
   const showDevUnlock = process.env.NODE_ENV === "development";
@@ -174,14 +225,28 @@ export default function ModuleSeven() {
 
   const fullText = useMemo(() => joinSections(sections), [sections]);
 
+  const wholeEssayReviewEnabled = isWholeEssayReviewEnabled();
+  const wholeEssayReview = useMemo(() => {
+    if (!wholeEssayReviewEnabled || !isFinalReviewStep) return null;
+    return buildWholeEssayReview({
+      thesis: thesisText,
+      outline,
+      sections,
+      wordCountSettings,
+    });
+  }, [
+    wholeEssayReviewEnabled,
+    isFinalReviewStep,
+    thesisText,
+    outline,
+    sections,
+    wordCountSettings,
+  ]);
+
   const getTextMetrics = (value) => {
     const raw = typeof value === "string" ? value : fullText;
-    const words = raw
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean).length;
     return {
-      wordCount: words,
+      wordCount: countEssayWords(raw),
       charCount: raw.length,
     };
   };
@@ -235,102 +300,121 @@ export default function ModuleSeven() {
 
       const outlineRow = outlineResult.data;
       const hasOutline = !!outlineRow?.outline;
-      const sectionCount = getSectionCountFromOutline(outlineRow?.outline);
+      const loadedOutline = outlineRow?.outline ?? null;
+      const sectionCount = getSectionCountFromOutline(loadedOutline);
 
-      setOutline(outlineRow?.outline ?? null);
-      setThesisText(String(outlineRow?.outline?.thesis || "").trim());
+      setOutline(loadedOutline);
+      setThesisText(String(loadedOutline?.thesis || "").trim());
       setOutlineMissing(!hasOutline);
-      setOutlineLoading(false);
 
       if (!hasOutline) {
+        setOutlineLoading(false);
         return;
       }
 
-      const [m7Result, obsResult, planResult] = await Promise.all([
-        getModule7DraftRow(),
-        getTChartEntriesRows(),
-        getParagraphPlanRow(),
-      ]);
-
-      if (cancelled) return;
-
-      if (!obsResult.ok) {
-        console.error("Error loading observations for Module 7:", obsResult.error);
-      }
-      setObservations(obsResult.data || []);
-
-      if (planResult.ok && Array.isArray(planResult.data?.buckets)) {
-        setParagraphPlans(planResult.data.buckets);
-      }
-
       try {
-        const thesisRes = await fetch("/api/module3/thesis");
-        const thesisJson = await parseApiResponse(thesisRes);
+        const [m7Result, obsResult, planResult] = await Promise.all([
+          getModule7DraftRow(),
+          getTChartEntriesRows(),
+          getParagraphPlanRow(),
+        ]);
+
         if (cancelled) return;
-        const thesisRow = thesisJson?.thesis ?? null;
-        if (thesisRow) {
-          if (!String(outlineRow?.outline?.thesis || "").trim() && thesisRow.thesis) {
-            setThesisText(String(thesisRow.thesis).trim());
-          }
-          if (Array.isArray(thesisRow.proofPlan)) {
-            setProofPlan(
-              thesisRow.proofPlan.map((line) => String(line || "").trim()).filter(Boolean)
-            );
-          }
+
+        if (!obsResult.ok) {
+          console.error("Error loading observations for Module 7:", obsResult.error);
         }
-      } catch (err) {
-        console.error("Error loading thesis for Module 7 reference shelf:", err);
-      }
+        setObservations(obsResult.data || []);
 
-      if (cancelled) return;
-
-      if (!m7Result.ok) {
-        console.error("Module 7 fetch error:", m7Result.error);
-      }
-
-      const m7Data = m7Result.data;
-      let initialSections;
-
-      if (m7Data?.full_text) {
-        initialSections = splitDraftIntoSections(m7Data.full_text, sectionCount);
-        // WP-070: do not re-lock after Unlock to Test (stale/overlapping loads).
-        if (!devUnlockedForTestingRef.current) {
-          setLocked(m7Data.final_ready === true);
+        if (planResult.ok && Array.isArray(planResult.data?.buckets)) {
+          setParagraphPlans(planResult.data.buckets);
         }
-      } else {
-        initialSections = await loadSectionsFromModule6(sectionCount);
+
+        try {
+          const thesisRes = await fetch("/api/module3/thesis");
+          const thesisJson = await parseApiResponse(thesisRes);
+          if (cancelled) return;
+          const thesisRow = thesisJson?.thesis ?? null;
+          if (thesisRow) {
+            if (!String(loadedOutline?.thesis || "").trim() && thesisRow.thesis) {
+              setThesisText(String(thesisRow.thesis).trim());
+            }
+            if (Array.isArray(thesisRow.proofPlan)) {
+              setProofPlan(
+                thesisRow.proofPlan.map((line) => String(line || "").trim()).filter(Boolean)
+              );
+            }
+          }
+        } catch (err) {
+          console.error("Error loading thesis for Module 7 reference shelf:", err);
+        }
+
         if (cancelled) return;
-        if (!devUnlockedForTestingRef.current) {
-          setLocked(false);
+
+        if (!m7Result.ok) {
+          console.error("Module 7 fetch error:", m7Result.error);
         }
-      }
 
-      setSections(initialSections);
+        const m7Data = m7Result.data;
+        let initialSections;
+        let nextMeta =
+          m7Data?.draft_meta && typeof m7Data.draft_meta === "object"
+            ? m7Data.draft_meta
+            : null;
 
-      let publicUrl = null;
-      try {
-        const res = await fetch("/api/readaloud?module=7");
-        const json = await res.json().catch(() => ({}));
-        if (res.ok && json?.ok) {
-          publicUrl = json.publicUrl ?? null;
+        if (m7Data?.full_text) {
+          initialSections = splitDraftIntoSections(m7Data.full_text, sectionCount);
+          // WP-070: do not re-lock after Unlock to Test (stale/overlapping loads).
+          if (!devUnlockedForTestingRef.current) {
+            setLocked(m7Data.final_ready === true);
+          }
+        } else {
+          initialSections = await loadSectionsFromModule6(sectionCount);
+          if (cancelled) return;
+          if (!devUnlockedForTestingRef.current) {
+            setLocked(false);
+          }
         }
-      } catch {
-        // ignore network errors
-      }
 
-      if (cancelled) return;
+        const outlineSteps = buildDraftSectionSteps(loadedOutline);
+        const resumeIndex = resolveModule7ResumeStepIndex(
+          nextMeta,
+          outlineSteps.length
+        );
 
-      setAudioURL(publicUrl);
+        setDraftMeta(nextMeta);
+        setSections(initialSections);
+        setCurrentStepIndex(resumeIndex);
 
-      if (!hasLoggedStartRef.current) {
-        hasLoggedStartRef.current = true;
-        const metrics = getTextMetrics(joinSections(initialSections));
-        logActivity(email, "module_started", {
-          module: 7,
-          from_module6: !m7Data?.full_text,
-          has_audio: !!publicUrl,
-          ...metrics,
-        });
+        let publicUrl = null;
+        try {
+          const res = await fetch("/api/readaloud?module=7");
+          const json = await res.json().catch(() => ({}));
+          if (res.ok && json?.ok) {
+            publicUrl = json.publicUrl ?? null;
+          }
+        } catch {
+          // ignore network errors
+        }
+
+        if (cancelled) return;
+
+        setAudioURL(publicUrl);
+
+        if (!hasLoggedStartRef.current) {
+          hasLoggedStartRef.current = true;
+          const metrics = getTextMetrics(joinSections(initialSections));
+          logActivity(email, "module_started", {
+            module: 7,
+            from_module6: !m7Data?.full_text,
+            has_audio: !!publicUrl,
+            ...metrics,
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setOutlineLoading(false);
+        }
       }
     };
 
@@ -358,6 +442,26 @@ export default function ModuleSeven() {
   }, []);
 
   useEffect(() => {
+    if (!email || !wholeEssayReviewEnabled) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/assignment-settings?assignmentId=${encodeURIComponent(DEFAULT_ASSIGNMENT_ID)}`
+        );
+        const json = await res.json().catch(() => ({}));
+        if (cancelled || !json?.ok || !json.settings) return;
+        setWordCountSettings(json.settings);
+      } catch {
+        // Keep default off — never invent a student-facing requirement.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [email, wholeEssayReviewEnabled]);
+
+  useEffect(() => {
     if (sectionSteps.length === 0) return;
     const nextIndex = clampModule7StepIndex(
       currentStepIndex,
@@ -367,6 +471,54 @@ export default function ModuleSeven() {
       setCurrentStepIndex(nextIndex);
     }
   }, [sectionSteps.length, currentStepIndex]);
+
+  // WP-081 / WP-082: capture Before when untouched section prose first enters revision.
+  useEffect(() => {
+    if (locked) return;
+    if (isBodyParagraphVerticalSliceStep(currentRevisionStep)) {
+      const sourceIndex =
+        typeof currentRevisionStep?.sourceParagraphIndex === "number"
+          ? currentRevisionStep.sourceParagraphIndex
+          : null;
+      const di =
+        typeof currentRevisionStep?.draftIndex === "number"
+          ? currentRevisionStep.draftIndex
+          : null;
+      if (sourceIndex == null || di == null) return;
+      const prose = sections[di] || "";
+      if (!String(prose).trim()) return;
+
+      setDraftMeta((prev) => {
+        const existing = getRevisionFromDraftMeta(prev, sourceIndex);
+        const baseline = ensureRevisionBaseline(existing, { prose });
+        if (!baseline) return prev;
+        return setRevisionInDraftMeta(prev, sourceIndex, baseline);
+      });
+      return;
+    }
+
+    if (!isIntroConclusionVerticalSliceStep(currentRevisionStep)) return;
+    const di =
+      typeof currentRevisionStep?.draftIndex === "number"
+        ? currentRevisionStep.draftIndex
+        : null;
+    if (di == null) return;
+    const prose = sections[di] || "";
+    if (!String(prose).trim()) return;
+    const type = String(currentRevisionStep?.type || "").toLowerCase();
+    const isIntro = type === "intro" || type === "introduction";
+
+    setDraftMeta((prev) => {
+      const existing = isIntro
+        ? getIntroductionRevisionFromDraftMeta(prev)
+        : getConclusionRevisionFromDraftMeta(prev);
+      const baseline = ensureRevisionBaseline(existing, { prose });
+      if (!baseline) return prev;
+      return isIntro
+        ? setIntroductionRevisionInDraftMeta(prev, baseline)
+        : setConclusionRevisionInDraftMeta(prev, baseline);
+    });
+  }, [locked, currentRevisionStep, sections]);
 
   function stopMeter() {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -615,6 +767,100 @@ export default function ModuleSeven() {
     setCurrentStepIndex((index) => (index === 0 ? 1 : index));
   };
 
+  const buildResumeMeta = (meta, stepIndex, revisionStep = null, extra = {}) => {
+    const existingRepair = readModule7WholeEssayRepair(meta);
+    const hasExplicitReturnTo = Object.prototype.hasOwnProperty.call(
+      extra,
+      "returnTo"
+    );
+    const returnTo = hasExplicitReturnTo
+      ? extra.returnTo || null
+      : existingRepair?.returnTo || null;
+    const clearingRepair = hasExplicitReturnTo && !returnTo;
+    return setModule7ResumeInDraftMeta(meta, {
+      currentStepIndex: stepIndex,
+      sectionType:
+        revisionStep?.type ||
+        extra.sectionType ||
+        (!clearingRepair ? existingRepair?.sectionType : null) ||
+        null,
+      draftIndex:
+        typeof revisionStep?.draftIndex === "number"
+          ? revisionStep.draftIndex
+          : typeof extra.draftIndex === "number"
+            ? extra.draftIndex
+            : !clearingRepair && typeof existingRepair?.draftIndex === "number"
+              ? existingRepair.draftIndex
+              : null,
+      returnTo,
+      wholeEssayFindingId: clearingRepair
+        ? null
+        : extra.wholeEssayFindingId ||
+          existingRepair?.wholeEssayFindingId ||
+          null,
+      wholeEssayCheckId: clearingRepair
+        ? null
+        : extra.wholeEssayCheckId || existingRepair?.wholeEssayCheckId || null,
+      revisionTargetId: clearingRepair
+        ? null
+        : extra.revisionTargetId || existingRepair?.revisionTargetId || null,
+    });
+  };
+
+  const startWholeEssayRepair = (finding) => {
+    if (!finding || typeof finding.draftIndex !== "number") return;
+    const toIndex = finding.draftIndex + 1;
+    const step = sectionSteps[finding.draftIndex] || null;
+    setWholeEssayActiveCheck(finding.checkId || null);
+    if (finding.revisionTargetId) {
+      setRevisionTargetId(finding.revisionTargetId);
+    }
+    setCurrentStepIndex(toIndex);
+    const nextMeta = buildResumeMeta(draftMeta, toIndex, step, {
+      returnTo: "final-review",
+      wholeEssayFindingId: finding.id,
+      wholeEssayCheckId: finding.checkId,
+      revisionTargetId: finding.revisionTargetId,
+      draftIndex: finding.draftIndex,
+      sectionType: finding.sectionType,
+    });
+    setDraftMeta(nextMeta);
+    void persistResumeStep(toIndex, step, nextMeta);
+  };
+
+  const returnToWholeEssayReview = () => {
+    const max = getModule7MaxStepIndex(sectionSteps.length);
+    setCurrentStepIndex(max);
+    const nextMeta = buildResumeMeta(draftMeta, max, null, {
+      returnTo: null,
+    });
+    setDraftMeta(nextMeta);
+    void persistResumeStep(max, null, nextMeta);
+  };
+
+  const persistResumeStep = async (
+    stepIndex,
+    revisionStep = null,
+    metaOverride = null
+  ) => {
+    if (!email || locked) return;
+    const text = joinSections(sections);
+    if (!String(text).trim()) return;
+    const baseMeta = metaOverride || draftMeta;
+    const nextMeta = metaOverride
+      ? metaOverride
+      : buildResumeMeta(baseMeta, stepIndex, revisionStep);
+    setDraftMeta(nextMeta);
+    await upsertModule7DraftArtifact({
+      userEmail: email,
+      full_text: text,
+      final_text: null,
+      revised: true,
+      final_ready: false,
+      draft_meta: nextMeta,
+    });
+  };
+
   const saveDraft = async ({ finalized = false } = {}) => {
     if (!email) {
       alert("Sign in to save your revision and continue.");
@@ -622,6 +868,45 @@ export default function ModuleSeven() {
     }
 
     const text = joinSections(sections);
+    let nextMeta = draftMeta;
+
+    if (
+      isBodyParagraphVerticalSliceStep(currentRevisionStep) &&
+      typeof currentRevisionStep?.sourceParagraphIndex === "number"
+    ) {
+      const sourceIndex = currentRevisionStep.sourceParagraphIndex;
+      const prose = sections[currentRevisionStep.draftIndex] || "";
+      const existing = getRevisionFromDraftMeta(draftMeta, sourceIndex);
+      const revisionState = applyRevisionCompareState(existing, {
+        prose,
+        targetId: revisionTargetId,
+        clearerConfirmed: existing?.clearerConfirmed,
+      });
+      nextMeta = setRevisionInDraftMeta(draftMeta, sourceIndex, revisionState);
+    } else if (isIntroConclusionVerticalSliceStep(currentRevisionStep)) {
+      const type = String(currentRevisionStep?.type || "").toLowerCase();
+      const isIntro = type === "intro" || type === "introduction";
+      const prose =
+        sections[
+          typeof currentRevisionStep?.draftIndex === "number"
+            ? currentRevisionStep.draftIndex
+            : 0
+        ] || "";
+      const existing = isIntro
+        ? getIntroductionRevisionFromDraftMeta(draftMeta)
+        : getConclusionRevisionFromDraftMeta(draftMeta);
+      const revisionState = applyRevisionCompareState(existing, {
+        prose,
+        targetId: revisionTargetId,
+        clearerConfirmed: existing?.clearerConfirmed,
+      });
+      nextMeta = isIntro
+        ? setIntroductionRevisionInDraftMeta(draftMeta, revisionState)
+        : setConclusionRevisionInDraftMeta(draftMeta, revisionState);
+    }
+
+    nextMeta = buildResumeMeta(nextMeta, currentStepIndex, currentRevisionStep);
+    setDraftMeta(nextMeta);
 
     const result = await upsertModule7DraftArtifact({
       userEmail: email,
@@ -629,6 +914,7 @@ export default function ModuleSeven() {
       final_text: finalized ? text : null,
       revised: !finalized,
       final_ready: finalized,
+      draft_meta: nextMeta,
     });
 
     if (!result.ok) {
@@ -665,9 +951,22 @@ export default function ModuleSeven() {
 
   const goBack = () => {
     setProgressCelebration(null);
-    setCurrentStepIndex((index) =>
-      retreatModule7StepIndex(index, sectionSteps.length)
+    const repair = readModule7WholeEssayRepair(draftMeta);
+    if (repair?.returnTo === "final-review" && !isFinalReviewStep) {
+      returnToWholeEssayReview();
+      return;
+    }
+    const toIndex = retreatModule7StepIndex(
+      currentStepIndex,
+      sectionSteps.length
     );
+    setCurrentStepIndex(toIndex);
+    const step =
+      toIndex === 0 ||
+      toIndex === getModule7MaxStepIndex(sectionSteps.length)
+        ? null
+        : sectionSteps[toIndex - 1] ?? null;
+    void persistResumeStep(toIndex, step);
   };
 
   const goNext = () => {
@@ -697,6 +996,12 @@ export default function ModuleSeven() {
       );
     }
     setCurrentStepIndex(toIndex);
+    const step =
+      toIndex === 0 ||
+      toIndex === getModule7MaxStepIndex(sectionSteps.length)
+        ? null
+        : sectionSteps[toIndex - 1] ?? null;
+    void persistResumeStep(toIndex, step);
   };
 
   if (!session) {
@@ -817,6 +1122,124 @@ export default function ModuleSeven() {
         ? `${sectionLabel} · revising now`
         : "";
 
+  const bpSliceActive = isBodyParagraphVerticalSliceStep(currentRevisionStep);
+  const introConclusionSliceActive =
+    isIntroConclusionVerticalSliceStep(currentRevisionStep);
+  const bpSourceIndex =
+    typeof currentRevisionStep?.sourceParagraphIndex === "number"
+      ? currentRevisionStep.sourceParagraphIndex
+      : 0;
+  const bpOutlineCard =
+    typeof currentRevisionStep?.bodyIndex === "number"
+      ? outline?.body?.[currentRevisionStep.bodyIndex]
+      : null;
+  const bpOtherProse =
+    typeof currentRevisionStep?.bodyIndex === "number" &&
+    Array.isArray(outline?.body) &&
+    outline.body.length > 1
+      ? outline.body
+          .map((_, i) =>
+            i === currentRevisionStep.bodyIndex ? "" : sections[i + 1] || ""
+          )
+          .filter(Boolean)
+      : [];
+  const bpPriorProse =
+    typeof currentRevisionStep?.draftIndex === "number" &&
+    currentRevisionStep.draftIndex > 0
+      ? sections[currentRevisionStep.draftIndex - 1] || ""
+      : "";
+  const bpDiagnosis = bpSliceActive
+    ? diagnoseBodyParagraphRevision({
+        purpose: bpOutlineCard?.point || bpOutlineCard?.bucket || "",
+        reasoning: bpOutlineCard?.reasoning || "",
+        evidence:
+          Array.isArray(bpOutlineCard?.evidence) && bpOutlineCard.evidence.length
+            ? bpOutlineCard.evidence
+            : Array.isArray(bpOutlineCard?.points)
+              ? bpOutlineCard.points
+                  .filter(Boolean)
+                  .map((p) => ({ quote: String(p), observation: "", sourceId: "" }))
+              : [],
+        assembledProse: sections[draftIndex] || "",
+        thesis: thesisText,
+        otherBodyProse: bpOtherProse,
+        priorParagraphProse: bpPriorProse,
+        readAloudObservation: [
+          readAloudObservation?.stumbling,
+          readAloudObservation?.repetition,
+          readAloudObservation?.transitions,
+          readAloudObservation?.explanation,
+          readAloudObservation?.notes,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        needsTransition:
+          typeof currentRevisionStep?.bodyIndex === "number" &&
+          currentRevisionStep.bodyIndex < (outline?.body?.length || 1) - 1,
+      })
+    : null;
+  const bpRevisionState = bpSliceActive
+    ? getRevisionFromDraftMeta(draftMeta, bpSourceIndex)
+    : null;
+  const bpSliceView = bpSliceActive
+    ? buildBodyParagraphSlice({
+        sourceParagraphIndex: bpSourceIndex,
+        essayOrderIndex: currentRevisionStep?.bodyIndex ?? 0,
+        outlineCard: bpOutlineCard,
+        thesis: thesisText,
+        assembledProse: sections[draftIndex] || "",
+        draftMeta,
+        otherBodyProse: bpOtherProse,
+      })
+    : null;
+
+  const introConclusionType = String(
+    currentRevisionStep?.type || ""
+  ).toLowerCase();
+  const isIntroSlice =
+    introConclusionSliceActive &&
+    (introConclusionType === "intro" ||
+      introConclusionType === "introduction");
+  const isConclusionSlice =
+    introConclusionSliceActive && introConclusionType === "conclusion";
+  const introConclusionProse = sections[draftIndex] || "";
+  const introDiagnosis = isIntroSlice
+    ? diagnoseIntroductionRevision({
+        assembledProse: introConclusionProse,
+        thesis: thesisText,
+        assignmentQuestion,
+      })
+    : null;
+  const conclusionDiagnosis = isConclusionSlice
+    ? diagnoseConclusionRevision({
+        assembledProse: introConclusionProse,
+        thesis: thesisText,
+        bodyPurposes: compactBodyPurposes(outline?.body),
+      })
+    : null;
+  const introRevisionState = isIntroSlice
+    ? getIntroductionRevisionFromDraftMeta(draftMeta)
+    : null;
+  const conclusionRevisionState = isConclusionSlice
+    ? getConclusionRevisionFromDraftMeta(draftMeta)
+    : null;
+  const introSliceView = isIntroSlice
+    ? buildIntroductionSlice({
+        thesis: thesisText,
+        assignmentQuestion,
+        assembledProse: introConclusionProse,
+        draftMeta,
+      })
+    : null;
+  const conclusionSliceView = isConclusionSlice
+    ? buildConclusionSlice({
+        thesis: thesisText,
+        outline,
+        assembledProse: introConclusionProse,
+        draftMeta,
+      })
+    : null;
+
   const referenceShelf = (
     <ModuleSevenReferenceShelf
       assignmentQuestion={assignmentQuestion}
@@ -829,7 +1252,9 @@ export default function ModuleSeven() {
       sections={sections}
       activeStep={isReadAloudStep || isFinalReviewStep ? null : currentRevisionStep}
       highlightWholeDraft={isReadAloudStep || isFinalReviewStep}
-      deskItems={deskArtifacts.items}
+      deskItems={
+        bpSliceActive || introConclusionSliceActive ? [] : deskArtifacts.items
+      }
       stepType={deskStepType}
       sectionLabel={notebookSectionLabel}
     />
@@ -967,21 +1392,197 @@ export default function ModuleSeven() {
           </div>
         ) : (
           <>
-            <div data-rhythm-chunk="strategy">
-              <ModuleSevenStrategyCard
-                strategy={presentation.strategy}
-                showEntryTeaching={false}
-                entryTeaching={null}
-                revisionStage={isFinalReviewStep ? "compare" : "change"}
-              />
-            </div>
+            {bpSliceActive ? (
+              <div data-rhythm-chunk="textarea">
+                <WorkingSetSection
+                  className={ROLE_REVISION_WORK_SURFACE_CLASS}
+                  label={presentation.workingSetLabel}
+                  description={presentation.workingSetDescription}
+                >
+                  <BodyParagraphRevisionPanel
+                    label={sectionLabel}
+                    purpose={bpSliceView?.purpose || ""}
+                    evidenceSummary={(bpSliceView?.evidence || [])
+                      .map((e) => e.quote || e.observation)
+                      .filter(Boolean)
+                      .join(" · ")}
+                    diagnosis={bpDiagnosis}
+                    selectedTargetId={
+                      revisionTargetId || bpDiagnosis?.recommendedTarget?.id
+                    }
+                    priorParagraphProse={bpPriorProse}
+                    value={sections[draftIndex] || ""}
+                    before={bpRevisionState?.before || ""}
+                    after={
+                      sections[draftIndex] || bpRevisionState?.after || ""
+                    }
+                    clearerConfirmed={
+                      typeof bpRevisionState?.clearerConfirmed === "boolean"
+                        ? bpRevisionState.clearerConfirmed
+                        : null
+                    }
+                    disabled={locked}
+                    onChange={(text) => updateSection(draftIndex, text)}
+                    onSelectTarget={(id) => setRevisionTargetId(id)}
+                    onClearerConfirm={(value) => {
+                      const next = setRevisionInDraftMeta(
+                        draftMeta,
+                        bpSourceIndex,
+                        applyRevisionCompareState(
+                          getRevisionFromDraftMeta(draftMeta, bpSourceIndex),
+                          {
+                            prose: sections[draftIndex] || "",
+                            targetId:
+                              revisionTargetId ||
+                              bpDiagnosis?.recommendedTarget?.id,
+                            clearerConfirmed: value,
+                          }
+                        )
+                      );
+                      setDraftMeta(next);
+                    }}
+                  />
+                </WorkingSetSection>
+              </div>
+            ) : introConclusionSliceActive ? (
+              <div data-rhythm-chunk="textarea">
+                <WorkingSetSection
+                  className={ROLE_REVISION_WORK_SURFACE_CLASS}
+                  label={presentation.workingSetLabel}
+                  description={presentation.workingSetDescription}
+                >
+                  <SectionRevisionPanel
+                    label={sectionLabel}
+                    planLines={
+                      isIntroSlice
+                        ? [
+                            {
+                              label: "Section job",
+                              value: "Open the essay and arrive at the thesis",
+                            },
+                            {
+                              label: "Thesis (destination)",
+                              value: introSliceView?.thesis || thesisText,
+                            },
+                          ]
+                        : [
+                            {
+                              label: "Section job",
+                              value:
+                                "Return to the argument and end with purpose",
+                            },
+                            {
+                              label: "Thesis",
+                              value: conclusionSliceView?.thesis || thesisText,
+                            },
+                            {
+                              label: "Body purposes",
+                              value: (
+                                conclusionSliceView?.bodyPurposes || []
+                              ).join(" · "),
+                            },
+                          ]
+                    }
+                    diagnosis={
+                      isIntroSlice ? introDiagnosis : conclusionDiagnosis
+                    }
+                    selectedTargetId={
+                      revisionTargetId ||
+                      (isIntroSlice
+                        ? introDiagnosis?.recommendedTarget?.id
+                        : conclusionDiagnosis?.recommendedTarget?.id)
+                    }
+                    targetMeta={
+                      isIntroSlice
+                        ? INTRO_REVISION_TARGET_META
+                        : CONCLUSION_REVISION_TARGET_META
+                    }
+                    value={sections[draftIndex] || ""}
+                    before={
+                      (isIntroSlice
+                        ? introRevisionState?.before
+                        : conclusionRevisionState?.before) || ""
+                    }
+                    after={
+                      sections[draftIndex] ||
+                      (isIntroSlice
+                        ? introRevisionState?.after
+                        : conclusionRevisionState?.after) ||
+                      ""
+                    }
+                    clearerConfirmed={
+                      (() => {
+                        const state = isIntroSlice
+                          ? introRevisionState
+                          : conclusionRevisionState;
+                        return typeof state?.clearerConfirmed === "boolean"
+                          ? state.clearerConfirmed
+                          : null;
+                      })()
+                    }
+                    disabled={locked}
+                    onChange={(text) => updateSection(draftIndex, text)}
+                    onSelectTarget={(id) => setRevisionTargetId(id)}
+                    onClearerConfirm={(value) => {
+                      const existing = isIntroSlice
+                        ? getIntroductionRevisionFromDraftMeta(draftMeta)
+                        : getConclusionRevisionFromDraftMeta(draftMeta);
+                      const diagnosis = isIntroSlice
+                        ? introDiagnosis
+                        : conclusionDiagnosis;
+                      const revisionState = applyRevisionCompareState(
+                        existing,
+                        {
+                          prose: sections[draftIndex] || "",
+                          targetId:
+                            revisionTargetId ||
+                            diagnosis?.recommendedTarget?.id,
+                          clearerConfirmed: value,
+                        }
+                      );
+                      const next = isIntroSlice
+                        ? setIntroductionRevisionInDraftMeta(
+                            draftMeta,
+                            revisionState
+                          )
+                        : setConclusionRevisionInDraftMeta(
+                            draftMeta,
+                            revisionState
+                          );
+                      setDraftMeta(next);
+                    }}
+                    testIdPrefix={
+                      isIntroSlice ? "intro-revision" : "conclusion-revision"
+                    }
+                    editorLabel={
+                      isIntroSlice
+                        ? "Revise your introduction"
+                        : "Revise your conclusion"
+                    }
+                  />
+                </WorkingSetSection>
+              </div>
+            ) : (
+              <>
+            {!(isFinalReviewStep && wholeEssayReviewEnabled) ? (
+              <div data-rhythm-chunk="strategy">
+                <ModuleSevenStrategyCard
+                  strategy={presentation.strategy}
+                  showEntryTeaching={false}
+                  entryTeaching={null}
+                  revisionStage={isFinalReviewStep ? "compare" : "change"}
+                />
+              </div>
+            ) : null}
 
-            <div data-rhythm-chunk="artifacts">
-              <TaskRelevantArtifacts
-                items={deskArtifacts.items}
-                heading="Notebook page open on your desk"
-              />
-            </div>
+            {!(isFinalReviewStep && wholeEssayReviewEnabled) ? (
+              <div data-rhythm-chunk="artifacts">
+                <TaskRelevantArtifacts
+                  items={deskArtifacts.items}
+                  heading="Notebook page open on your desk"
+                />
+              </div>
+            ) : null}
 
             <div data-rhythm-chunk="textarea">
             <WorkingSetSection
@@ -1009,10 +1610,27 @@ export default function ModuleSeven() {
                       }
                     />
                   </div>
-                  <p className="text-sm leading-relaxed text-text-muted" role="status">
-                    This review does not change your prose. Use Back if you want to
-                    strengthen one more section.
-                  </p>
+                  {wholeEssayReviewEnabled && wholeEssayReview ? (
+                    <WholeEssayReviewPanel
+                      review={wholeEssayReview}
+                      activeCheckId={wholeEssayActiveCheck}
+                      onSelectCheck={setWholeEssayActiveCheck}
+                      onFixFinding={startWholeEssayRepair}
+                      advisoryConfirmed={wholeEssayAdvisoryConfirmed}
+                      onConfirmAdvisory={() =>
+                        setWholeEssayAdvisoryConfirmed(true)
+                      }
+                      disabled={locked}
+                    />
+                  ) : (
+                    <p
+                      className="text-sm leading-relaxed text-text-muted"
+                      role="status"
+                    >
+                      This review does not change your prose. Use Back if you want
+                      to strengthen one more section.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div
@@ -1055,6 +1673,8 @@ export default function ModuleSeven() {
               )}
             </WorkingSetSection>
             </div>
+              </>
+            )}
           </>
         )}
 
@@ -1145,11 +1765,17 @@ export default function ModuleSeven() {
               <button
                 type="button"
                 onClick={() => saveDraft({ finalized: true })}
-                disabled={locked}
+                disabled={
+                  locked ||
+                  Boolean(
+                    wholeEssayReviewEnabled && wholeEssayReview?.blocksCompletion
+                  )
+                }
                 className={`${HIERARCHY_ACTION_FINAL_CLASS} ${ACTION_BUTTON_FOCUS}`}
                 data-hierarchy-action="final"
+                data-testid="module7-finish-revising"
               >
-                Finish revising and continue
+                Finish revising and continue to Module 8
               </button>
             )}
           </div>

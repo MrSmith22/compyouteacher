@@ -72,6 +72,7 @@ describe("WP-046 Module 9 final upload checklist", () => {
     assert.ok(checklistIdx > selectedIdx);
     assert.ok(buttonIdx > checklistIdx);
     assert.ok(m9.includes("Selected: {pdfFile.name}"));
+    assert.ok(m9.includes("formatFileSize(pdfFile.size)"));
   });
 
   it("disables checklist controls until a valid PDF is selected and resets on file change", () => {
@@ -93,8 +94,9 @@ describe("WP-046 Module 9 final upload checklist", () => {
     assert.ok(resets && resets.length >= 4, "reset on clear, reject type, reject size, and valid select");
     assert.ok(selectFn.includes('setPdfFile(null)'));
     assert.ok(selectFn.includes("setPdfFile(file)"));
-    assert.ok(selectFn.includes("MAX_PDF_SIZE_BYTES"));
-    assert.ok(selectFn.includes('endsWith(".pdf")'));
+    assert.ok(selectFn.includes("validateFinalPdfMetadata"));
+    assert.ok(selectFn.includes("validateFinalPdfPayload"));
+    assert.ok(selectFn.includes("readPdfHeaderBytes"));
   });
 
   it("requires final checklist completion in canUpload and handleUploadPDF", () => {

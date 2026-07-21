@@ -56,23 +56,24 @@ export function getModule7StepPresentation(step, outline) {
   if (step?.type === MODULE7_STEP_TYPES.FINAL_REVIEW) {
     return withStrategy(
       {
-        question: "Does your essay communicate more clearly now?",
+        question: "What should you inspect in your revised essay?",
         whyMatters: [
-          "Final review confirms clearer communication for your reader.",
-          "Your original draft was complete work—you strengthened how the ideas land.",
+          "A short inspection helps you catch missing explanation, repetition, or a word-count gap before submission prep.",
+          "You already revised section by section—now check how the whole essay holds together.",
         ],
         successLooksLike: [
-          "You can point to where the thesis appears and returns in the essay.",
-          "You treat the first draft as complete work you made clearer.",
-          "You are ready to finish revising and move to submission prep.",
+          "You can trace the thesis into each body paragraph’s point.",
+          "Quotations are followed by explanation where needed.",
+          "Introduction and conclusion express the same argument in fresh language.",
+          "You know your teacher’s word-count expectation and where the essay stands.",
         ],
         coachingMessage:
-          "Confirm the essay communicates more clearly. If one spot still confuses a reader, go back to that section.",
+          "Inspect one check at a time. If something needs work, open that section, repair it, and return here.",
         nextStepText:
           "When you finish revising, you will prepare this essay for submission in Module 8.",
-        workingSetLabel: "Full essay review",
+        workingSetLabel: "Revised essay + final inspection",
         workingSetDescription:
-          "On your desk: your revised essay as prose. Confirm clearer communication—then continue.",
+          "On your desk: your revised essay as paragraphs, then one inspection finding at a time.",
       },
       step
     );

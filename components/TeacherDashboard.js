@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { logActivity } from "@/lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
+import TeacherWordCountSettings from "@/components/teacher/TeacherWordCountSettings";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const gradingStatusOptions = [
@@ -644,6 +645,8 @@ useEffect(() => {
           View progress, activity logs, quiz scores, and final PDFs for each student.
         </p>
       </header>
+
+      <TeacherWordCountSettings />
 
       {/* Phase 1: Student Progress Overview */}
       <section className="space-y-2">

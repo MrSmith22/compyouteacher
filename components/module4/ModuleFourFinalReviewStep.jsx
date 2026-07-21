@@ -130,6 +130,23 @@ export default function ModuleFourFinalReviewStep({
           Thesis → paragraph jobs and points
         </p>
 
+        {Array.isArray(presentation.essaySectionMap) &&
+        presentation.essaySectionMap.length > 0 ? (
+          <ol
+            className="space-y-2 rounded-lg border border-theme-blue/20 bg-theme-blue/[0.03] px-3 py-3"
+            data-testid="module4-essay-section-map"
+          >
+            {presentation.essaySectionMap.map((section) => (
+              <li key={section.id} className="text-sm">
+                <span className="font-semibold text-theme-dark">
+                  {section.label}:
+                </span>{" "}
+                <span className="text-theme-dark/80">{section.purpose}</span>
+              </li>
+            ))}
+          </ol>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {presentation.compactCards.map((card) => (
             <ModuleFourCompactPlanCard
@@ -145,7 +162,7 @@ export default function ModuleFourFinalReviewStep({
       <div className="space-y-4">
         <p className="text-sm font-semibold text-theme-blue">
           {guidance.planProgressLabel ||
-            `Paragraph ${planIndex + 1} of ${planCount}`}
+            `Body Paragraph ${planIndex + 1} of ${planCount}`}
         </p>
 
         {reviewedCards.length > 0 ? (

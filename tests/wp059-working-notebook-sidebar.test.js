@@ -287,8 +287,12 @@ describe("WP-059 shelf integration and archive", () => {
   it("12+shared wiring: Modules 6–7 pass selectTaskRelevantArtifacts items into shelf", () => {
     const m6 = readSrc("components/ModuleSix.js");
     const m7 = readSrc("components/ModuleSeven.js");
-    assert.match(m6, /deskItems=\{deskArtifacts\.items\}/);
-    assert.match(m7, /deskItems=\{deskArtifacts\.items\}/);
+    // Vertical-slice steps may empty the shelf desk while moves own the desk (WP-081+);
+    // non-slice steps still pass deskArtifacts.items through.
+    assert.match(m6, /deskItems=\{/);
+    assert.match(m6, /deskArtifacts\.items/);
+    assert.match(m7, /deskItems=\{/);
+    assert.match(m7, /deskArtifacts\.items/);
     assert.match(m6, /Notebook page open on your desk/);
     assert.match(m7, /Notebook page open on your desk/);
     assert.match(m6, /selectTaskRelevantArtifacts/);

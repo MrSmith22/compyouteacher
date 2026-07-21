@@ -75,6 +75,39 @@ import {
   wordCount,
   deriveModule6FullText,
 } from "@/lib/module6/draftPersistenceHelpers";
+import {
+  isBodyParagraphVerticalSliceStep,
+  isIntroConclusionVerticalSliceStep,
+  isWholeEssayReviewEnabled,
+} from "@/lib/dev/isBodyParagraphVerticalSliceEnabled";
+import { buildModule6HandoffReview } from "@/lib/artifacts/wholeEssayReview";
+import {
+  getMovesFromDraftMeta,
+  setMovesInDraftMeta,
+  normalizeBodyParagraphMoveState,
+  resolveAssembledBodyParagraphProse,
+  countBodyParagraphEvidence,
+  buildBodyParagraphMoveOrder,
+} from "@/lib/module6/bodyParagraphMoves";
+import {
+  INTRODUCTION_MOVE_META,
+  INTRODUCTION_DESK_FIELD_LABELS,
+  normalizeIntroductionMoveState,
+  resolveAssembledIntroductionProse,
+  getIntroductionMovesFromDraftMeta,
+  setIntroductionMovesInDraftMeta,
+} from "@/lib/module6/introductionMoves";
+import {
+  CONCLUSION_MOVE_META,
+  CONCLUSION_DESK_FIELD_LABELS,
+  normalizeConclusionMoveState,
+  resolveAssembledConclusionProse,
+  getConclusionMovesFromDraftMeta,
+  setConclusionMovesInDraftMeta,
+} from "@/lib/module6/conclusionMoves";
+import { compactBodyPurposes } from "@/lib/artifacts/introConclusionSliceContract";
+import BodyParagraphMoveWorkspace from "@/components/module6/BodyParagraphMoveWorkspace";
+import SectionMoveWorkspace from "@/components/module6/SectionMoveWorkspace";
 
 const DRAFT_TEXTAREA_CLASS = ROLE_WRITING_TEXTAREA_CLASS;
 
@@ -131,11 +164,82 @@ export default function ModuleSix() {
   const currentStep = uiStages[uiStageIndex] ?? uiStages[0] ?? null;
   const isReviewStage = currentStep?.type === MODULE6_DRAFT_STAGE.REVIEW;
 
+  const bpSliceActive = isBodyParagraphVerticalSliceStep(currentStep);
+  const introConclusionSliceActive =
+    isIntroConclusionVerticalSliceStep(currentStep);
+
   const presentation = useMemo(() => {
     if (isReviewStage) {
       return getModule6ReviewPresentation();
     }
-    return getModule6StepPresentation(currentStep, outline);
+    const base = getModule6StepPresentation(currentStep, outline);
+    if (isIntroConclusionVerticalSliceStep(currentStep)) {
+      const isIntro =
+        String(currentStep?.type || "").toLowerCase() === "intro" ||
+        String(currentStep?.type || "").toLowerCase() === "introduction";
+      return {
+        ...base,
+        whyMatters: [
+          isIntro
+            ? "Open the essay one move at a time so your reader arrives at your thesis."
+            : "Close the essay one move at a time so your reader leaves with a clear ending.",
+        ],
+        jobRightNow: {
+          lead: isIntro
+            ? "Build the introduction one sentence move at a time."
+            : "Build the conclusion one sentence move at a time.",
+          steps: [
+            {
+              text: isIntro
+                ? "Step 1 — Give your reader the essential situation (labeled Step 1)."
+                : "Step 1 — Return to your thesis in fresh language (labeled Step 1).",
+            },
+            isIntro
+              ? "Continue through background, bridge, and thesis destination."
+              : "Continue through synthesis, insight, and a purposeful final thought.",
+            "Watch this section grow in the preview under the writing box.",
+          ],
+          closing:
+            "Start with Step 1 in the writing box below — it is labeled Step 1 of your moves.",
+          findHint:
+            "Optional help stays in the shelf. Your desk shows only what this move needs.",
+        },
+        workingSetLabel: isIntro ? "Introduction" : "Conclusion",
+      };
+    }
+    if (!isBodyParagraphVerticalSliceStep(currentStep)) return base;
+    // WP-081: one brief orientation; move workspace owns the active job.
+    return {
+      ...base,
+      whyMatters: [
+        "Draft this paragraph one move at a time. Only the plan for the active move sits on your desk.",
+      ],
+      jobRightNow: {
+        lead: "Build this paragraph one sentence move at a time.",
+        steps: [
+          {
+            text: "Step 1 — State the paragraph’s point in the writing box below (labeled Step 1).",
+          },
+          "Continue through context, evidence, explanation, and thesis connection.",
+          "Watch your paragraph grow in the preview under the writing box.",
+        ],
+        closing:
+          "Start with Step 1 in the writing box below — it is labeled Step 1 of your moves.",
+        findHint:
+          "Optional help stays in the shelf. Your desk shows only what this move needs.",
+      },
+      successLooksLike: [
+        "Step 1 and the later moves each have clear sentences when I need them.",
+        "My paragraph preview reads as one paragraph in my own words.",
+        "I can keep going when this section has enough prose.",
+      ],
+      coachingMessage:
+        "One move at a time. Keep your ideas and wording.",
+      workingSetDescription:
+        "Write the active move. Your paragraph preview updates as you go.",
+      organizationalJob: null,
+      paragraphPoint: null,
+    };
   }, [currentStep, outline, isReviewStage]);
 
   const assignmentQuestion = mlkRhetoricalAnalysisAssignment.essentialQuestion;
@@ -569,6 +673,113 @@ export default function ModuleSix() {
     });
   };
 
+  const updateBodyParagraphMoves = useCallback(
+    (nextMoveState) => {
+      if (locked || !writesAllowed) return;
+      const stepDraftIndex =
+        typeof currentStep?.draftIndex === "number"
+          ? currentStep.draftIndex
+          : null;
+      const sourceIndex =
+        typeof currentStep?.sourceParagraphIndex === "number"
+          ? currentStep.sourceParagraphIndex
+          : 0;
+      const bodyCard =
+        typeof currentStep?.bodyIndex === "number"
+          ? outline?.body?.[currentStep.bodyIndex]
+          : null;
+      const includeTransition =
+        typeof currentStep?.bodyIndex === "number" &&
+        Array.isArray(outline?.body) &&
+        currentStep.bodyIndex < outline.body.length - 1;
+      const evidenceCount = countBodyParagraphEvidence(bodyCard);
+      const moveOrder =
+        Array.isArray(bodyCard?.moveOrder) && bodyCard.moveOrder.length
+          ? bodyCard.moveOrder
+          : buildBodyParagraphMoveOrder({ includeTransition, evidenceCount });
+      const normalized = normalizeBodyParagraphMoveState(nextMoveState, {
+        includeTransition,
+        evidenceCount,
+        moveOrder,
+      });
+      const assembled = resolveAssembledBodyParagraphProse(normalized, {
+        includeTransition,
+        evidenceCount,
+        moveOrder,
+      });
+
+      markDirty();
+      setSectionGateMessage("");
+      setDraftMeta((prev) => {
+        const nextMeta = setMovesInDraftMeta(prev, sourceIndex, normalized, {
+          includeTransition,
+          evidenceCount,
+          moveOrder,
+        });
+        draftSnapshotRef.current = {
+          sections: draftSnapshotRef.current?.sections ?? draft,
+          meta: nextMeta,
+        };
+        return nextMeta;
+      });
+      if (stepDraftIndex != null) {
+        setDraft((prev) => {
+          const copy = [...prev];
+          copy[stepDraftIndex] = assembled;
+          draftSnapshotRef.current = {
+            sections: copy,
+            meta: draftSnapshotRef.current?.meta ?? draftMeta,
+          };
+          return copy;
+        });
+      }
+    },
+    [locked, writesAllowed, currentStep, draft, draftMeta, outline, markDirty]
+  );
+
+  const updateIntroConclusionMoves = useCallback(
+    (nextMoveState) => {
+      if (locked || !writesAllowed) return;
+      const stepDraftIndex =
+        typeof currentStep?.draftIndex === "number"
+          ? currentStep.draftIndex
+          : null;
+      const type = String(currentStep?.type || "").toLowerCase();
+      const isIntro = type === "intro" || type === "introduction";
+      const normalized = isIntro
+        ? normalizeIntroductionMoveState(nextMoveState)
+        : normalizeConclusionMoveState(nextMoveState);
+      const assembled = isIntro
+        ? resolveAssembledIntroductionProse(normalized)
+        : resolveAssembledConclusionProse(normalized);
+
+      markDirty();
+      setSectionGateMessage("");
+      setDraftMeta((prev) => {
+        const nextMeta = isIntro
+          ? setIntroductionMovesInDraftMeta(prev, normalized)
+          : setConclusionMovesInDraftMeta(prev, normalized);
+        draftSnapshotRef.current = {
+          sections: draftSnapshotRef.current?.sections ?? draft,
+          meta: nextMeta,
+        };
+        return nextMeta;
+      });
+      if (stepDraftIndex != null) {
+        setDraft((prev) => {
+          const copy = [...prev];
+          copy[stepDraftIndex] = assembled;
+          draftSnapshotRef.current = {
+            sections: copy,
+            meta: draftSnapshotRef.current?.meta ?? draftMeta,
+          };
+          return copy;
+        });
+      }
+    },
+    [locked, writesAllowed, currentStep, draft, draftMeta, markDirty]
+  );
+
   const goBack = async () => {
     if (uiStageIndex <= 0 || navBusy) return;
     setProgressCelebration(null);
@@ -806,13 +1017,22 @@ export default function ModuleSix() {
       paragraphPlans={paragraphPlans}
       observations={observations}
       activeStep={currentStep}
-      deskItems={deskArtifacts.items}
+      deskItems={
+        bpSliceActive || introConclusionSliceActive ? [] : deskArtifacts.items
+      }
       stepType={deskStepType}
       sectionLabel={notebookSectionLabel}
     />
   );
 
-  const supportingResources = (
+  const supportingResources = bpSliceActive || introConclusionSliceActive ? (
+    <div className="space-y-3 text-left">
+      <p className="text-sm leading-relaxed text-text-muted">
+        Optional help stays in the shelf. Your desk shows only what the active
+        move needs.
+      </p>
+    </div>
+  ) : (
     <div className="space-y-3 text-left">
       {currentStep.type === SECTION_TYPES.BODY && presentation.organizationalJob ? (
         <div className="rounded-xl border-2 border-theme-orange/35 bg-theme-orange/5 px-4 py-3">
@@ -844,6 +1064,16 @@ export default function ModuleSix() {
       const ready = evaluateSectionReadiness(text).ok;
       return { step, text, ready, words: wordCount(text) };
     });
+
+  const module6HandoffReview =
+    isReviewStage && isWholeEssayReviewEnabled()
+      ? buildModule6HandoffReview({
+          thesis: thesisText || outline?.thesis || "",
+          outline,
+          sections: draft,
+          wordCountSettings: { mode: "off" },
+        })
+      : null;
 
   return (
     <ModulePageShell>
@@ -928,11 +1158,12 @@ export default function ModuleSix() {
             )}
           </div>
 
-          <TaskRelevantArtifacts
-            items={deskArtifacts.items}
-            heading="Notebook page open on your desk"
-          />
-
+          {!bpSliceActive && !introConclusionSliceActive ? (
+            <TaskRelevantArtifacts
+              items={deskArtifacts.items}
+              heading="Notebook page open on your desk"
+            />
+          ) : null}
           {progressCelebration?.message ? (
             <ProgressCelebrationBridge
               module={6}
@@ -991,6 +1222,39 @@ export default function ModuleSix() {
                 <p className="text-sm text-text-muted">
                   Total words: {getDraftMetrics().totalWords}
                 </p>
+                <p className="text-sm text-text-muted">
+                  Module 7 will read and revise these paragraphs as wholes. Fix empty
+                  or duplicated sections here before you continue.
+                </p>
+                {module6HandoffReview?.primaryFinding ? (
+                  <div
+                    className="rounded-md border border-theme-orange/40 bg-theme-orange/[0.07] px-3 py-2 text-sm"
+                    data-testid="module6-handoff-finding"
+                  >
+                    <p className="font-semibold text-theme-dark">
+                      {module6HandoffReview.primaryFinding.title}
+                    </p>
+                    <p className="mt-1 text-theme-dark/85">
+                      {module6HandoffReview.primaryFinding.whatToCheck}
+                    </p>
+                    {typeof module6HandoffReview.primaryFinding.draftIndex ===
+                    "number" ? (
+                      <button
+                        type="button"
+                        className="mt-2 min-h-[44px] rounded-md border border-border-soft px-3 text-sm font-semibold"
+                        onClick={() =>
+                          editFromReview(
+                            module6HandoffReview.primaryFinding.draftIndex
+                          )
+                        }
+                      >
+                        Fix{" "}
+                        {module6HandoffReview.primaryFinding.sectionLabel ||
+                          "this section"}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </WorkingSetSection>
           ) : (
@@ -1008,25 +1272,189 @@ export default function ModuleSix() {
                 tabIndex={-1}
                 data-instructional-color-role="writing"
               >
-                <p className="text-sm font-medium text-text-primary">{sectionLabel}</p>
-                <textarea
-                  spellCheck
-                  autoCorrect="on"
-                  autoCapitalize="sentences"
-                  lang="en"
-                  enterKeyHint="enter"
-                  className={DRAFT_TEXTAREA_CLASS}
-                  value={draftIndex != null ? draft[draftIndex] || "" : ""}
-                  onChange={(e) =>
-                    draftIndex != null && updateSection(draftIndex, e.target.value)
-                  }
-                  disabled={locked || !writesAllowed}
-                  placeholder={
-                    currentStep.type === SECTION_TYPES.INTRO
-                      ? "What's the first thing your reader needs to know?"
-                      : "Start writing this section…"
-                  }
-                />
+                {isBodyParagraphVerticalSliceStep(currentStep) ? (
+                  (() => {
+                    const bodyCard =
+                      typeof currentStep?.bodyIndex === "number"
+                        ? outline?.body?.[currentStep.bodyIndex]
+                        : null;
+                    const includeTransition =
+                      typeof currentStep?.bodyIndex === "number" &&
+                      Array.isArray(outline?.body) &&
+                      currentStep.bodyIndex < outline.body.length - 1;
+                    const evidenceCount = countBodyParagraphEvidence(bodyCard);
+                    const moveOrder =
+                      Array.isArray(bodyCard?.moveOrder) &&
+                      bodyCard.moveOrder.length
+                        ? bodyCard.moveOrder
+                        : buildBodyParagraphMoveOrder({
+                            includeTransition,
+                            evidenceCount,
+                          });
+                    const evidenceList = Array.isArray(bodyCard?.evidence)
+                      ? bodyCard.evidence
+                      : [];
+                    const indexedDesk = {};
+                    evidenceList.forEach((item, i) => {
+                      const quote = String(
+                        item?.quote || item?.text || item || ""
+                      ).trim();
+                      const obs = String(
+                        item?.observation || item?.context || ""
+                      ).trim();
+                      if (quote) indexedDesk[`evidence_${i}`] = quote;
+                      if (obs) indexedDesk[`evidenceContext_${i}`] = obs;
+                      const reason = String(
+                        bodyCard?.reasoning || ""
+                      ).trim();
+                      if (reason) indexedDesk[`reasoning_${i}`] = reason;
+                    });
+                    return (
+                  <BodyParagraphMoveWorkspace
+                    label={sectionLabel}
+                    moveState={normalizeBodyParagraphMoveState(
+                      getMovesFromDraftMeta(
+                        draftMeta,
+                        typeof currentStep?.sourceParagraphIndex === "number"
+                          ? currentStep.sourceParagraphIndex
+                          : 0
+                      ),
+                      {
+                        includeTransition,
+                        evidenceCount,
+                        moveOrder,
+                      }
+                    )}
+                    deskArtifacts={{
+                      purpose: deskArtifacts.items
+                        ?.find?.((a) => a?.kind === "claim")
+                        ?.lines?.[0],
+                      evidence: deskArtifacts.items
+                        ?.filter?.((a) => a?.kind === "evidence")
+                        ?.flatMap((a) => a.lines || [])
+                        ?.filter(Boolean)
+                        ?.join(" · "),
+                      evidenceContext: (() => {
+                        if (evidenceList.length) {
+                          return evidenceList
+                            .map((e) =>
+                              String(e?.observation || e?.context || "").trim()
+                            )
+                            .filter(Boolean)
+                            .join(" · ");
+                        }
+                        return String(
+                          bodyCard?.context ||
+                            bodyCard?.evidenceContext ||
+                            bodyCard?.setup ||
+                            ""
+                        ).trim();
+                      })(),
+                      reasoning: deskArtifacts.items
+                        ?.find?.((a) => a?.kind === "reasoning")
+                        ?.lines?.[0],
+                      thesis: deskArtifacts.items
+                        ?.find?.((a) => a?.kind === "thesis")
+                        ?.lines?.[0],
+                      adjacentParagraph: (() => {
+                        if (
+                          typeof currentStep?.bodyIndex !== "number" ||
+                          !Array.isArray(outline?.body)
+                        ) {
+                          return "";
+                        }
+                        const next = outline.body[currentStep.bodyIndex + 1];
+                        return String(next?.point || next?.bucket || "").trim();
+                      })(),
+                      ...indexedDesk,
+                    }}
+                    disabled={locked || !writesAllowed}
+                    onChange={updateBodyParagraphMoves}
+                  />
+                    );
+                  })()
+                ) : isIntroConclusionVerticalSliceStep(currentStep) ? (
+                  (() => {
+                    const type = String(currentStep?.type || "").toLowerCase();
+                    const isIntro =
+                      type === "intro" || type === "introduction";
+                    const prefix = isIntro ? "intro-move" : "conclusion-move";
+                    const moveState = isIntro
+                      ? normalizeIntroductionMoveState(
+                          getIntroductionMovesFromDraftMeta(draftMeta)
+                        )
+                      : normalizeConclusionMoveState(
+                          getConclusionMovesFromDraftMeta(draftMeta)
+                        );
+                    const bodyPurposeLines = compactBodyPurposes(
+                      outline?.body
+                    ).join(" · ");
+                    return (
+                      <SectionMoveWorkspace
+                        label={sectionLabel}
+                        moveState={moveState}
+                        moveMeta={
+                          isIntro ? INTRODUCTION_MOVE_META : CONCLUSION_MOVE_META
+                        }
+                        fieldLabels={
+                          isIntro
+                            ? INTRODUCTION_DESK_FIELD_LABELS
+                            : CONCLUSION_DESK_FIELD_LABELS
+                        }
+                        deskArtifacts={{
+                          assignmentQuestion,
+                          textRelationship: assignmentQuestion
+                            ? `Compare the texts for this assignment: ${assignmentQuestion}`
+                            : "",
+                          thesis: thesisText,
+                          bodyPurposes: bodyPurposeLines,
+                          conclusionSummary: String(
+                            outline?.conclusion?.summary || ""
+                          ).trim(),
+                          conclusionFinalThought: String(
+                            outline?.conclusion?.finalThought || ""
+                          ).trim(),
+                        }}
+                        disabled={locked || !writesAllowed}
+                        onChange={updateIntroConclusionMoves}
+                        testIdPrefix={prefix}
+                        advancedLabel={
+                          isIntro
+                            ? "Advanced: write whole introduction"
+                            : "Advanced: write whole conclusion"
+                        }
+                        previewLabel={
+                          isIntro ? "Your introduction" : "Your conclusion"
+                        }
+                      />
+                    );
+                  })()
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-text-primary">
+                      {sectionLabel}
+                    </p>
+                    <textarea
+                      spellCheck
+                      autoCorrect="on"
+                      autoCapitalize="sentences"
+                      lang="en"
+                      enterKeyHint="enter"
+                      className={DRAFT_TEXTAREA_CLASS}
+                      value={draftIndex != null ? draft[draftIndex] || "" : ""}
+                      onChange={(e) =>
+                        draftIndex != null &&
+                        updateSection(draftIndex, e.target.value)
+                      }
+                      disabled={locked || !writesAllowed}
+                      placeholder={
+                        currentStep.type === SECTION_TYPES.INTRO
+                          ? "What's the first thing your reader needs to know?"
+                          : "Start writing this section…"
+                      }
+                    />
+                  </>
+                )}
               </div>
             </WorkingSetSection>
           )}

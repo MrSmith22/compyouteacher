@@ -328,6 +328,7 @@ export async function upsertModule7DraftArtifact(input: Module7DraftWriteInput) 
       final_text: input.final_text,
       revised: input.revised,
       final_ready: input.final_ready,
+      ...(input.draft_meta !== undefined ? { draft_meta: input.draft_meta } : {}),
     }),
   });
 

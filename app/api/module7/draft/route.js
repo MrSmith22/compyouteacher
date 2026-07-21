@@ -38,6 +38,12 @@ export async function POST(req) {
         : null;
     const revised = body?.revised === true;
     const final_ready = body?.final_ready === true;
+    const draft_meta =
+      body?.draft_meta && typeof body.draft_meta === "object"
+        ? body.draft_meta
+        : body?.draft_meta === null
+          ? null
+          : undefined;
 
     const result = await upsertModule7DraftForUser({
       userEmail,
@@ -45,6 +51,7 @@ export async function POST(req) {
       final_text,
       revised,
       final_ready,
+      draft_meta,
     });
 
     if (!result.ok) return failedResultResponse(result);

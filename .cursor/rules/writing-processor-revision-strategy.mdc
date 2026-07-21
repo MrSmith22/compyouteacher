@@ -1,0 +1,79 @@
+---
+description: Governing instructions for student-facing revision work after the completed July 20, 2026 walkthrough
+alwaysApply: true
+---
+
+# Writing Processor revision program
+
+Before planning or implementing any student-facing flow, instructional copy, artifact transformation, completion state, Google Doc, APA, PDF, submission, or dashboard change, read:
+
+1. `docs/project-standards/walkthroughs/complete-walkthrough-revision-strategy-2026-07-20.md`
+2. The relevant module section in that strategy
+3. `docs/project-standards/cognitive-load-charter.md`
+4. `docs/project-standards/writing-artifact-decision-architecture.md`
+5. The relevant entries in `docs/project-standards/walkthroughs/issue-log.md`
+
+For work involving the desk/shelf relationship, also read `docs/working-set-v1.md`.
+
+For work involving the overall learning sequence, also read `docs/writing-learning-process-v1.md` and `docs/writing-learning-engine-v2.md`.
+
+In the first progress report for a task, name the strategy sections governing the work. Do not claim compliance without reading the relevant sections.
+
+## Nonnegotiable implementation behavior
+
+- Preserve working persistence and integrations unless the task specifically requires changing them.
+- Implement one bounded issue or coherent vertical slice at a time.
+- Inspect the current code and tests before editing.
+- Treat the student's existing language as student-owned. Do not silently rewrite it.
+- Pull forward relevant prior artifacts; do not dump the entire saved history into the active workspace.
+- Do not advance automatically because text crossed a character threshold.
+- Do not use presence, length, clicks, or checked boxes as proof of semantic quality when the task requires a relationship among ideas.
+- Do not certify ready, complete, verified, received, or submitted without durable supporting state.
+- Do not add another checklist when an existing saved confirmation can be reused.
+- Distinguish general style guidance, teacher requirements, and assignment exceptions.
+- Keep one dominant student action visible and make optional reference material progressively disclosed.
+- Support local repair without forcing a full-module replay.
+- Preserve prose-only output: internal plan labels, Roman numerals, and system metadata must not leak into essay prose.
+- Treat responsive behavior, keyboard access, focus behavior, labels, and error recovery as acceptance requirements.
+
+## Required execution cycle
+
+1. Audit the current implementation and artifact/data path.
+2. State the student problem and the intended learning or trust outcome.
+3. Map the task to existing WP issues; create a new issue rather than changing the meaning of an old one.
+4. Propose the smallest coherent implementation.
+5. Implement with focused automated coverage.
+6. Run relevant focused tests, then the broader required checks proportional to risk.
+7. Perform browser verification directly using available browser/agent tools, seeded states, fixtures, and development controls. Do not delegate routine clicking, responsive checks, refresh checks, keyboard checks, or error-path checks to Jason when the agent can perform them.
+8. Ask Jason to test only when verification requires unavailable credentials, inaccessible external state, target-user judgment, or a product decision that automation cannot establish. State exactly why agent-run verification is impossible.
+9. Report automated and agent-run browser evidence. List user verification only for the irreducible remainder.
+10. Update an issue to Resolved only after its stated verification has actually passed.
+
+## Verification ownership
+
+The default owner of verification is the implementation agent, not Jason.
+
+Before requesting user testing, exhaust:
+
+- focused unit and integration tests;
+- full relevant automated suites;
+- lint, type, and build checks proportional to the change;
+- browser automation against local development state;
+- seeded strong, weak, invalid, retry, refresh, and returning-user states;
+- desktop and mobile viewport checks;
+- keyboard and focus checks;
+- screenshots or DOM evidence for visual/state acceptance;
+- direct database/storage inspection when safely available.
+
+Human testing is reserved for subjective instructional judgment, target-age usability, or external systems the agent genuinely cannot access. “Needs manual testing” is not sufficient justification by itself.
+
+## Definition of success
+
+The student should be able to tell, from the interface itself:
+
+- what they are doing now;
+- why it matters;
+- what prior work is helping them;
+- what meaningful decision or change they are making;
+- how to repair a problem;
+- what will happen to the artifact next.

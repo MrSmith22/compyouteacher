@@ -245,7 +245,7 @@ describe("WP-020 Module 7 revision teaching", () => {
   it("W9. Observation never enters full_text/final_text/section prose; reset on new recording", () => {
     const modSeven = readSrc("../components/ModuleSeven.js");
     const saveSliceStart = modSeven.indexOf("const saveDraft = async");
-    const saveSlice = modSeven.slice(saveSliceStart, saveSliceStart + 1200);
+    const saveSlice = modSeven.slice(saveSliceStart, saveSliceStart + 2800);
     assert.ok(saveSlice.includes("full_text: text"));
     assert.ok(saveSlice.includes("final_text: finalized ? text : null"));
     assert.equal(saveSlice.includes("readAloudObservation"), false);

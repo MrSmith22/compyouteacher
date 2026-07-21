@@ -38,26 +38,27 @@ export function completedBucketIndices(flowStep, buckets, plannedIndices = null)
 
 function paragraphStepPresentation(paragraphNumber, phase) {
   const n = paragraphNumber;
+  const sectionLabel = `Body Paragraph ${n}`;
   const phases = {
     scaffold: {
-      question: `What point will Paragraph ${n} prove?`,
+      question: `What point will ${sectionLabel} prove?`,
       whyMatters: [
         "The point is what this paragraph will prove.",
         "The job—how this paragraph fits the essay’s organization—comes next.",
       ],
       successLooksLike: [
-        `Paragraph ${n} has a clear point you could explain to a classmate.`,
+        `${sectionLabel} has a clear point you could explain to a classmate.`,
         "The point sounds like your thinking, not a fill-in-the-blank answer.",
       ],
-      workingSetLabel: `Paragraph ${n} — paragraph point`,
+      workingSetLabel: `${sectionLabel} — paragraph point`,
       workingSetDescription:
         "On your desk: the point this paragraph will prove.",
       coachingMessage:
         "Choose a proof-plan note if it fits, then revise the wording until it sounds like you.",
-      nextStepText: `Next you will choose the organizational job for Paragraph ${n}.`,
+      nextStepText: `Next you will choose the organizational job for ${sectionLabel}.`,
     },
     role: {
-      question: `How will Paragraph ${n} do its part in the essay?`,
+      question: `How will ${sectionLabel} do its part in the essay?`,
       whyMatters: [
         "The job is how this paragraph does one part of the essay’s compare-and-contrast work.",
         "Your paragraph point stays visible so the job matches what you are proving.",
@@ -65,7 +66,7 @@ function paragraphStepPresentation(paragraphNumber, phase) {
       successLooksLike: [
         "You can say whether this paragraph analyzes one work, compares both, or traces a move across both texts.",
       ],
-      workingSetLabel: `Paragraph ${n} — paragraph job`,
+      workingSetLabel: `${sectionLabel} — paragraph job`,
       workingSetDescription:
         "On your desk: the organizational job this paragraph does in your essay.",
       coachingMessage:
@@ -73,7 +74,7 @@ function paragraphStepPresentation(paragraphNumber, phase) {
       nextStepText: "Next you will choose the quotes that belong with this point and job.",
     },
     evidence: {
-      question: `Which quotes belong in paragraph ${n}?`,
+      question: `Which quotes belong in ${sectionLabel}?`,
       whyMatters: [
         "You are choosing lines that support this paragraph’s point and job—not collecting random quotes.",
         "Ask whether each quote really belongs with what this paragraph proves.",
@@ -82,14 +83,14 @@ function paragraphStepPresentation(paragraphNumber, phase) {
         "At least one quote is checked for this paragraph.",
         "Each quote you chose fits the paragraph point you already wrote.",
       ],
-      workingSetLabel: `Paragraph ${n} — evidence`,
+      workingSetLabel: `${sectionLabel} — evidence`,
       workingSetDescription: "On your desk: the quotes you are assigning to this paragraph.",
       coachingMessage:
         "If a quote does not fit this paragraph point and job, leave it unchecked. You can use it elsewhere.",
       nextStepText: "Next you will explain how your evidence supports your thesis.",
     },
     reasoning: {
-      question: `How does paragraph ${n} support your thesis?`,
+      question: `How does ${sectionLabel} support your thesis?`,
       whyMatters: [
         "Reasoning is where analysis becomes writing.",
         "This is where you connect your quotes to your thesis in your own words.",
@@ -98,7 +99,7 @@ function paragraphStepPresentation(paragraphNumber, phase) {
         "Your explanation says what the evidence shows—not just what the quote says.",
         "A reader could see how this paragraph helps prove your thesis.",
       ],
-      workingSetLabel: `Paragraph ${n} — explanation`,
+      workingSetLabel: `${sectionLabel} — explanation`,
       workingSetDescription: "On your desk: the sentences that connect your evidence to your thesis.",
       coachingMessage:
         "Use a starter if it helps, then finish the thought in language you would actually say.",

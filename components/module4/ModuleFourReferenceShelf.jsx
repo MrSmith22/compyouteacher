@@ -32,7 +32,7 @@ function ParagraphBucketPreview({
 }) {
   const claim = (bucket?.claim || "").trim();
   const jobLabel = labelForParagraphJob(bucket?.paragraphRole);
-  const label = `Paragraph ${index + 1}`;
+  const label = `Body Paragraph ${index + 1}`;
 
   return (
     <div

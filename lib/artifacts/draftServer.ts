@@ -43,6 +43,7 @@ export type Module7DraftWriteInput = {
   final_text: string | null;
   revised: boolean;
   final_ready: boolean;
+  draft_meta?: Record<string, unknown> | null;
 };
 
 export type Module8DraftWriteInput = {
@@ -144,6 +145,7 @@ export async function upsertModule7DraftForUser(input: Module7DraftWriteInput) {
     final_text: input.final_text,
     revised: input.revised,
     final_ready: input.final_ready,
+    draft_meta: input.draft_meta,
   });
 
   if (writeRes.error) {

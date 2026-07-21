@@ -1,4 +1,5 @@
 import { formatModule6BodyJobSentence } from "../../lib/module6/bodyJobWording.js";
+import { getEssaySectionLabel } from "../../lib/essaySectionLabels.js";
 
 export const SECTION_TYPES = {
   INTRO: "intro",
@@ -54,19 +55,10 @@ export function buildDraftSectionSteps(outline) {
 /**
  * Writing-language label for drafting/revision textboxes (Modules 6–7).
  * Planning labels (Roman numerals, bucket/claim titles) stay on shelves/maps.
+ * WP-081: delegates to shared essay section labels (Body Paragraph N).
  */
 export function getWritingSectionLabel(step) {
-  if (!step) return "Draft";
-  if (step.type === SECTION_TYPES.INTRO) return "Introduction";
-  if (step.type === SECTION_TYPES.CONCLUSION) return "Conclusion";
-  if (step.type === SECTION_TYPES.BODY) {
-    const n =
-      typeof step.bodyIndex === "number" && step.bodyIndex >= 0
-        ? step.bodyIndex + 1
-        : 1;
-    return `Body Paragraph ${n}`;
-  }
-  return "Draft";
+  return getEssaySectionLabel(step);
 }
 
 /**
@@ -226,6 +218,7 @@ export function getModule6StepPresentation(step, outline) {
       typeof step.bodyIndex === "number" && step.bodyIndex >= 0
         ? step.bodyIndex + 1
         : 1;
+    const isLaterBody = paragraphNumber > 1;
     const point =
       String(card.point || card.bucket || "").trim() ||
       `the point you planned for body paragraph ${paragraphNumber}`;
@@ -235,35 +228,44 @@ export function getModule6StepPresentation(step, outline) {
 
     return {
       question: `How will you explain this point: ${point}?`,
-      whyMatters: [
-        jobSentence,
-        "This paragraph proves one part of your thesis—the idea you planned for this section.",
-        "You are still translating notes into sentences, not inventing a new argument.",
-        pointCount > 0
-          ? "Your outline points under Need Help are your ingredients. Turn each useful point into a clear sentence, then explain how it supports your thesis."
-          : "Use your paragraph plan and thesis under Need Help to build this section in complete sentences.",
-      ],
-      example: {
-        sample:
-          "First, King builds credibility in ways that fit each audience. In the speech, he begins with “five score years ago,” connecting his message to Lincoln so listeners trust him as a national voice. In the letter, he opens with respect for the clergymen’s calling. These choices help each group take him seriously before he asks them to change.",
-        whyItWorks:
-          "It starts with a clear point, uses specific evidence, explains what the evidence shows, and ties the point back to the larger argument—the same moves your outline is asking you to make.",
-      },
+      whyMatters: isLaterBody
+        ? [
+            jobSentence,
+            "This paragraph has its own job—keep its evidence and reasoning separate from earlier body paragraphs.",
+          ]
+        : [
+            jobSentence,
+            "This paragraph proves one part of your thesis—the idea you planned for this section.",
+            "You are still translating notes into sentences, not inventing a new argument.",
+            pointCount > 0
+              ? "Your outline points under Need Help are your ingredients. Turn each useful point into a clear sentence, then explain how it supports your thesis."
+              : "Use your paragraph plan and thesis under Need Help to build this section in complete sentences.",
+          ],
+      example: isLaterBody
+        ? undefined
+        : {
+            sample:
+              "First, King builds credibility in ways that fit each audience. In the speech, he begins with “five score years ago,” connecting his message to Lincoln so listeners trust him as a national voice. In the letter, he opens with respect for the clergymen’s calling. These choices help each group take him seriously before he asks them to change.",
+            whyItWorks:
+              "It starts with a clear point, uses specific evidence, explains what the evidence shows, and ties the point back to the larger argument—the same moves your outline is asking you to make.",
+          },
       successLooksLike: [
         "My first sentence states the point of this paragraph (from my outline).",
         "I turned outline notes into complete sentences—not a list of fragments.",
         "I explained how my evidence or details support this point.",
         "A reader can see how this paragraph connects to my thesis.",
       ],
-      coachingMessage:
-        "Follow Your job right now. Stay inside this outline card—do not pull in evidence from other paragraphs.",
+      coachingMessage: isLaterBody
+        ? "Stay on this paragraph’s purpose and evidence—do not reuse the previous paragraph’s sentences."
+        : "Follow Your job right now. Stay inside this outline card—do not pull in evidence from other paragraphs.",
       nextStepText: isLastBody
         ? "Next you will write your conclusion."
         : "Next you will draft your next body paragraph.",
       thesisCoach:
         "Keep asking: How does this paragraph help prove my thesis? If a sentence does not help, cut it or rewrite it.",
-      outlineCoach:
-        "Stay inside this outline section. Draft only these points now—save other outline rows for later paragraphs.",
+      outlineCoach: isLaterBody
+        ? "Use only this outline card. Earlier paragraphs already have their own draft."
+        : "Stay inside this outline section. Draft only these points now—save other outline rows for later paragraphs.",
       writerMoves: [
         "Start with a topic sentence that matches this outline section.",
         "Turn each useful outline point into a full sentence.",

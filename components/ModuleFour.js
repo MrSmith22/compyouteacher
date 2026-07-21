@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/logActivity";
+import { getBodyParagraphLabel } from "@/lib/essaySectionLabels";
 import {
   deriveValidModule3ConnectionsByRowKey,
   enrichEvidencePoolWithModule3Connections,
@@ -290,7 +291,7 @@ function scaffoldStepTeacherCopy(role, paragraphNumber, isFirstParagraphGeneral)
   const n = paragraphNumber;
   if (role === "similarity") {
     return {
-      title: `Paragraph ${n}: show a key similarity between the texts`,
+      title: `${getBodyParagraphLabel(n - 1)}: show a key similarity between the texts`,
       focusLine:
         "In this paragraph, focus on what both texts have in common.",
       whatYouWillDo:
@@ -299,7 +300,7 @@ function scaffoldStepTeacherCopy(role, paragraphNumber, isFirstParagraphGeneral)
   }
   if (role === "difference") {
     return {
-      title: `Paragraph ${n}: explain an important difference`,
+      title: `${getBodyParagraphLabel(n - 1)}: explain an important difference`,
       focusLine:
         "In this paragraph, focus on how the speech and letter differ in an important way.",
       whatYouWillDo:
@@ -308,7 +309,7 @@ function scaffoldStepTeacherCopy(role, paragraphNumber, isFirstParagraphGeneral)
   }
   if (role === "appeal") {
     return {
-      title: `Paragraph ${n}: analyze one rhetorical strategy`,
+      title: `${getBodyParagraphLabel(n - 1)}: analyze one rhetorical strategy`,
       focusLine:
         "In this paragraph, focus on one rhetorical strategy and how King uses it.",
       whatYouWillDo:
@@ -317,14 +318,14 @@ function scaffoldStepTeacherCopy(role, paragraphNumber, isFirstParagraphGeneral)
   }
   if (isFirstParagraphGeneral) {
     return {
-      title: "Paragraph 1: build a paragraph that proves part of your thesis",
+      title: `${getBodyParagraphLabel(0)}: build a paragraph that proves part of your thesis`,
       focusLine: null,
       whatYouWillDo:
         "Pick a suggestion or write your own idea that supports your thesis, then edit the text box",
     };
   }
   return {
-    title: `Paragraph ${n}: choose a paragraph idea`,
+    title: `${getBodyParagraphLabel(n - 1)}: choose a paragraph idea`,
     focusLine: null,
     whatYouWillDo:
       "Pick a suggestion or write your own, then edit the text box",
@@ -527,7 +528,7 @@ function ParagraphPlanPanel({
     >
       <div>
         <h3 className="text-lg font-extrabold text-theme-dark">
-          Paragraph {paragraphNumber} Plan
+          {getBodyParagraphLabel(paragraphNumber - 1)} Plan
         </h3>
         <p className="text-sm text-theme-dark/80 mt-1 leading-relaxed">
           Here is the idea and evidence you selected for this paragraph. Use this to
@@ -2093,7 +2094,7 @@ export default function ModuleFour({
               </p>
             </StepGuidanceBox>
             <StepActionHeading>
-              Your turn: press Start Paragraph 1 when you are ready.
+              Your turn: press Start Body Paragraph 1 when you are ready.
             </StepActionHeading>
           </>
         )}
@@ -2195,7 +2196,7 @@ export default function ModuleFour({
         {recommendedSlot ? (
           <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/5 px-3 py-3 space-y-1">
             <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
-              Proof-plan slot recommended for Paragraph {n}
+              Proof-plan slot recommended for {getBodyParagraphLabel(n - 1)}
             </p>
             <p className="text-xs font-semibold text-theme-orange">
               {recommendedSlot.roleLabel}
@@ -2220,7 +2221,7 @@ export default function ModuleFour({
             </p>
             {priorSummaries.map((item) => (
               <p key={item.paragraphNumber} className="text-xs text-theme-dark/85">
-                Paragraph {item.paragraphNumber}
+                {getBodyParagraphLabel(item.paragraphNumber - 1)}
                 {item.jobLabel ? ` — ${item.jobLabel}` : ""}
                 {item.point ? `: ${item.point}` : ""}
               </p>
@@ -2294,7 +2295,7 @@ export default function ModuleFour({
         {(b.claim || "").trim() ? (
           <StepMeaningBox label="What this means">
             <p>
-              This is the point Paragraph {n} will prove. Next you will choose
+              This is the point {getBodyParagraphLabel(n - 1)} will prove. Next you will choose
               its organizational job.
             </p>
           </StepMeaningBox>
@@ -2413,11 +2414,11 @@ export default function ModuleFour({
             </p>
             {priorJobs.map((item) => (
               <p key={item.paragraphNumber} className="text-sm text-theme-dark">
-                Paragraph {item.paragraphNumber} — {item.jobLabel}
+                {getBodyParagraphLabel(item.paragraphNumber - 1)} — {item.jobLabel}
               </p>
             ))}
             <p className="text-sm font-semibold text-theme-blue">
-              Paragraph {n} — choosing now
+              {getBodyParagraphLabel(n - 1)} — choosing now
             </p>
             {repeatedCoach ? (
               <p className="pt-1 text-xs text-theme-orange">{repeatedCoach}</p>
@@ -2426,7 +2427,7 @@ export default function ModuleFour({
         ) : null}
 
         <StepActionHeading>
-          Your turn: choose how Paragraph {n} does its part in the essay.
+          Your turn: choose how {getBodyParagraphLabel(n - 1)} does its part in the essay.
         </StepActionHeading>
         <div className="space-y-2">
           {jobUi.choices.map((opt) => {
@@ -2583,7 +2584,7 @@ export default function ModuleFour({
         data-cpe-chips-wrap={CPE_LAYOUT_CONTRACT.mobile.chipsWrap ? "true" : "false"}
       >
         <h2 className="text-xl font-extrabold text-theme-blue">
-          Paragraph {n}: choose evidence
+          {getBodyParagraphLabel(n - 1)}: choose evidence
         </h2>
         {provenanceNoticeEl}
         <p className="text-sm font-semibold text-theme-dark">
@@ -2741,7 +2742,7 @@ export default function ModuleFour({
     main = (
       <div className={panelClass}>
         <h2 className="text-xl font-extrabold text-theme-blue">
-          Paragraph {n}: build your explanation
+          {getBodyParagraphLabel(n - 1)}: build your explanation
         </h2>
         {provenanceNoticeEl}
         <p className="text-sm font-semibold text-theme-dark">
@@ -2916,7 +2917,7 @@ export default function ModuleFour({
     );
   const primaryAdvanceLabel =
     flowStep === STEP_PATTERN
-      ? "Start Paragraph 1"
+      ? "Start Body Paragraph 1"
       : reasoningPlanReady
         ? reasoningReadyNextActionLabel({
             paragraphIndex: reasoningBucketIndex,

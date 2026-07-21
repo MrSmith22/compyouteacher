@@ -67,7 +67,7 @@ describe("module4 Checkpoint 2 — handoff + flow migration", () => {
       resolveModule4OpeningAdvanceTarget(STEP_HANDOFF),
       STEP_B1_SCAFFOLD
     );
-    assert.equal(MODULE4_HANDOFF_CTA_LABEL, "Start Paragraph 1");
+    assert.equal(MODULE4_HANDOFF_CTA_LABEL, "Start Body Paragraph 1");
   });
 
   it("3–4. missing pattern → focused fallback, then Paragraph 1", () => {
@@ -277,7 +277,7 @@ describe("module4 Checkpoint 2 — handoff + flow migration", () => {
     });
 
     assert.equal(presentation.patternText, "Moral urgency across both works");
-    assert.equal(presentation.ctaLabel, "Start Paragraph 1");
+    assert.equal(presentation.ctaLabel, "Start Body Paragraph 1");
     assert.equal(presentation.evidenceFoundation.quotationCount, 2);
     assert.equal(presentation.evidenceFoundation.bothWorks, true);
     assert.ok(
@@ -437,7 +437,7 @@ describe("module4 Checkpoint 2 — guided handoff stages", () => {
     );
     assert.equal(
       getHandoffPrimaryActionLabel({ stage: HANDOFF_STAGE_READY }),
-      "Start Paragraph 1"
+      "Start Body Paragraph 1"
     );
   });
 

@@ -161,7 +161,14 @@ export async function POST(req: Request) {
           targetRaw === "7"
         ) {
           target = Number(targetRaw) as 2 | 3 | 4 | 5 | 6 | 7;
-        } else if (targetRaw === "completeEssay" || targetRaw === "module9Ready") {
+        } else if (
+          targetRaw === "completeEssay" ||
+          targetRaw === "module9Ready" ||
+          targetRaw === "bpVerticalSlice" ||
+          targetRaw === "introConclusionVerticalSlice" ||
+          targetRaw === "allRequiredBodyParagraphs" ||
+          targetRaw === "wholeEssayReview"
+        ) {
           target = targetRaw;
         }
 

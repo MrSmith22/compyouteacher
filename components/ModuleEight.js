@@ -272,13 +272,11 @@ export default function ModuleEight() {
       // Do not clear verificationStatus here — the in-flight revisit verify
       // owns status updates and must not be wiped by a race.
 
+      // Always show the newest Module 7 essay. A previously finalized Module 8
+      // row must not resurrect older m8.final_text over the current revision
+      // (WP-002 / WP-084 handoff).
       if (m8?.final_ready) {
         setPreviouslyFinalized(true);
-        if (m8?.final_text) {
-          const lockedText = String(m8.final_text).trim();
-          setFinishedEssayText(lockedText);
-          setSections(splitDraftIntoSections(lockedText, sectionCount));
-        }
         // Stay on CREATE_DOC so the student must confirm/export this visit.
         setCurrentStepIndex(0);
         setLocked(false);

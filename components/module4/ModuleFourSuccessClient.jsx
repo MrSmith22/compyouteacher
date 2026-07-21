@@ -207,7 +207,7 @@ export default function ModuleFourSuccessClient({ summary }) {
               type="button"
               role="tab"
               aria-selected={index === planIndex}
-              aria-label={`Paragraph ${plan.paragraphNumber} plan`}
+              aria-label={`Body Paragraph ${plan.paragraphNumber} plan`}
               onClick={() => setPlanIndex(index)}
               className={[
                 "min-h-[44px] rounded-lg border px-3 py-2 text-sm font-semibold transition w-full sm:w-auto",
@@ -216,7 +216,7 @@ export default function ModuleFourSuccessClient({ summary }) {
                   : "border-border-soft bg-white text-text-primary hover:bg-theme-blue/5",
               ].join(" ")}
             >
-              Paragraph {plan.paragraphNumber}
+              Body Paragraph {plan.paragraphNumber}
             </button>
           ))}
         </div>

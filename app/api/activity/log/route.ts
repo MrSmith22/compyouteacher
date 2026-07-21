@@ -40,6 +40,25 @@ export async function POST(req: Request) {
 
     const supabase = getSupabaseAdmin();
 
+    // Success/receipt refreshes must not duplicate completion proof.
+    if (action === "module_completed" && moduleValue != null) {
+      const existing = await supabase
+        .from("student_activity_log")
+        .select("id")
+        .eq("user_email", email)
+        .eq("action", "module_completed")
+        .eq("module", moduleValue)
+        .limit(1)
+        .maybeSingle();
+
+      if (!existing.error && existing.data?.id) {
+        return NextResponse.json(
+          { ok: true, stored: false, alreadyLogged: true },
+          { status: 200 }
+        );
+      }
+    }
+
     const { error } = await supabase.from("student_activity_log").insert({
       user_email: email,
       action,
@@ -48,6 +67,22 @@ export async function POST(req: Request) {
     });
 
     if (error) {
+      if (action === "module_completed" && moduleValue != null) {
+        const raced = await supabase
+          .from("student_activity_log")
+          .select("id")
+          .eq("user_email", email)
+          .eq("action", "module_completed")
+          .eq("module", moduleValue)
+          .limit(1)
+          .maybeSingle();
+        if (!raced.error && raced.data?.id) {
+          return NextResponse.json(
+            { ok: true, stored: false, alreadyLogged: true },
+            { status: 200 }
+          );
+        }
+      }
       // Never surface logging failures to the client
       return NextResponse.json(
         { ok: true, stored: false },

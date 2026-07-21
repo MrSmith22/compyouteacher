@@ -346,7 +346,7 @@ describe("module4 Checkpoint 5 repair — dynamic review + success stages", () =
       "Selected evidence comes along",
       "Reasoning becomes planning support",
       "You are not restarting",
-      "Conclusion planning happens later in Module 5",
+      "Introduction and conclusion stay on the essay map—conclusion planning happens in Module 5",
     ]);
 
     // Mirrors ModuleFourSuccessClient Stage 3 mapping — must not throw.

@@ -27,6 +27,12 @@ import {
   HIERARCHY_TASK_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import { openExternalResource } from "@/lib/ui/openExternalResource";
+import {
+  formatFileSize,
+  readPdfHeaderBytes,
+  validateFinalPdfMetadata,
+  validateFinalPdfPayload,
+} from "@/lib/exports/finalPdfValidation";
 import ModuleNineApaLesson from "@/components/module9/ModuleNineApaLesson";
 import ModuleNineApaQuickGuide from "@/components/module9/ModuleNineApaQuickGuide";
 import ModuleNinePdfDownloadVisual from "@/components/module9/ModuleNinePdfDownloadVisual";
@@ -498,9 +504,7 @@ export default function ModuleNine() {
     }
   };
 
-  const MAX_PDF_SIZE_BYTES = 15 * 1024 * 1024;
-
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     setUploadError(null);
     const file = e.target.files?.[0];
     if (!file) {
@@ -508,22 +512,45 @@ export default function ModuleNine() {
       setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
       return;
     }
-    const isPdf =
-      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-    if (!isPdf) {
-      setUploadError("File must be a PDF. Please select a file ending in .pdf");
+
+    const meta = validateFinalPdfMetadata({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
+    if (!meta.ok) {
+      setUploadError(meta.error);
       setPdfFile(null);
       setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
       e.target.value = "";
       return;
     }
-    if (file.size > MAX_PDF_SIZE_BYTES) {
-      setUploadError("File is too large. Maximum size is 15 MB.");
+
+    try {
+      const headerBytes = await readPdfHeaderBytes(file);
+      const payload = validateFinalPdfPayload({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        bytes: headerBytes,
+      });
+      if (!payload.ok) {
+        setUploadError(payload.error);
+        setPdfFile(null);
+        setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+        e.target.value = "";
+        return;
+      }
+    } catch {
+      setUploadError(
+        "Could not read that file. Choose a PDF that opens on your device, then try again."
+      );
       setPdfFile(null);
       setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
       e.target.value = "";
       return;
     }
+
     setPdfFile(file);
     setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
   };
@@ -555,15 +582,13 @@ export default function ModuleNine() {
       return;
     }
 
-    const isPdf =
-      pdfFile.type === "application/pdf" ||
-      pdfFile.name.toLowerCase().endsWith(".pdf");
-    if (!isPdf) {
-      setUploadError("File must be a PDF.");
-      return;
-    }
-    if (pdfFile.size > MAX_PDF_SIZE_BYTES) {
-      setUploadError("File is too large. Maximum size is 15 MB.");
+    const meta = validateFinalPdfMetadata({
+      name: pdfFile.name,
+      type: pdfFile.type,
+      size: pdfFile.size,
+    });
+    if (!meta.ok) {
+      setUploadError(meta.error);
       return;
     }
 
@@ -582,14 +607,9 @@ export default function ModuleNine() {
       const result = await res.json().catch(() => ({}));
 
       if (res.status === 409) {
-        const refetch = await getStudentExport({
-          userEmail: session.user.email,
-          module: 9,
-          kind: "final_pdf",
-        });
-        if (refetch.data) setFinalPdfRow(refetch.data);
+        // Durable receipt already exists — go there; do not flash a local "received" state.
         setUploadError(null);
-        alert("Your final PDF has already been submitted. The page has been updated.");
+        router.push("/modules/9/success");
         return;
       }
 
@@ -602,16 +622,15 @@ export default function ModuleNine() {
 
       await logActivity(session.user.email, "pdf_uploaded", {
         module: 9,
-        file_name: pdfFile.name,
+        file_name: result.file_name || pdfFile.name,
         storage_path: result.storage_path,
         public_url: result.publicUrl,
+        file_size: result.file_size,
+        doc_id: result.doc_id,
       });
 
-      setFinalPdfRow((prev) => ({
-        ...prev,
-        public_url: result.publicUrl,
-        web_view_link: result.webViewLink ?? result.publicUrl,
-      }));
+      // Navigate only after durable success. Do not set local receipt state first
+      // (that briefly mounts the "already submitted" panel before the receipt page).
       router.push("/modules/9/success");
     } catch (err) {
       console.error(err);
@@ -732,12 +751,13 @@ export default function ModuleNine() {
             data-testid="module9-already-submitted"
           >
             <h2 className="text-lg font-semibold text-text-primary">
-              Your PDF was received
+              Your submission is already saved
             </h2>
             <p className="text-sm text-text-primary">
               You’re finished with Module 9. Nothing else needs to be submitted
-              here. Use the buttons below to open your documents—opening a file
-              only lets you review what you turned in and does not submit again.
+              here. Open your lasting receipt for the filename, time, and PDF.
+              Use the buttons below to open your documents—opening a file only
+              lets you review what you turned in and does not submit again.
             </p>
             <p
               className="text-sm leading-relaxed text-text-muted"
@@ -747,10 +767,19 @@ export default function ModuleNine() {
               <span className="font-medium text-text-primary">
                 What happens next:{" "}
               </span>
-              Return to your dashboard when you’re done reviewing your files.
-              There is no further Module 9 instructional step.
+              View your submission receipt, then return to your dashboard when
+              you’re done. There is no further Module 9 instructional step.
             </p>
             <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+                onClick={() => router.push("/modules/9/success")}
+                data-testid="module9-view-submission-receipt"
+                aria-label="View your submission receipt"
+              >
+                View submission receipt
+              </button>
               {(finalPdfRow?.public_url || finalPdfRow?.web_view_link) && (
                 <button
                   type="button"
@@ -1268,8 +1297,7 @@ export default function ModuleNine() {
                   data-testid="module9-pdf-selected"
                   data-rhythm-chunk="selected-file"
                 >
-                  Selected: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(1)}{" "}
-                  MB)
+                  Selected: {pdfFile.name} ({formatFileSize(pdfFile.size)})
                 </div>
               ) : (
                 <p
@@ -1332,6 +1360,16 @@ export default function ModuleNine() {
               >
                 {uploading ? "Uploading…" : "Upload Final PDF"}
               </button>
+              {uploading ? (
+                <p
+                  className="text-sm text-text-muted"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="module9-upload-progress"
+                >
+                  Uploading your PDF and saving your receipt…
+                </p>
+              ) : null}
             </section>
           )}
       </div>

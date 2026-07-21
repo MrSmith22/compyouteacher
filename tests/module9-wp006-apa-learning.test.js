@@ -232,7 +232,8 @@ describe("WP-006 Module 9 APA learning", () => {
   it("19. Submitted-student path still short-circuits the lesson", () => {
     const modNine = readSrc("../components/ModuleNine.js");
     assert.ok(modNine.includes("alreadySubmitted && ("));
-    assert.ok(modNine.includes("Your PDF was received"));
+    assert.ok(modNine.includes("Your submission is already saved"));
+    assert.ok(modNine.includes('data-testid="module9-view-submission-receipt"'));
     assert.ok(modNine.includes("!alreadySubmitted && !submitted"));
   });
 

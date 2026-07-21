@@ -83,7 +83,7 @@ describe("module4 Checkpoint 5 — plan artifacts + success handoff", () => {
       proofPlan: ["Speech note", "Letter note", "Compare note"],
     });
     assert.equal(artifact.ready, true);
-    assert.equal(artifact.readyHeading, "Paragraph 1 plan is ready");
+    assert.equal(artifact.readyHeading, "Body Paragraph 1 plan is ready");
     assert.deepEqual(artifact.hierarchy, [
       "paragraph",
       "job",
@@ -403,11 +403,11 @@ describe("module4 Checkpoint 5 — plan artifacts + success handoff", () => {
   it("reasoning ready next-action labels", () => {
     assert.equal(
       reasoningReadyNextActionLabel({ paragraphIndex: 0 }),
-      "Plan Paragraph 2"
+      "Plan Body Paragraph 2"
     );
     assert.equal(
       reasoningReadyNextActionLabel({ paragraphIndex: 1 }),
-      "Decide whether you need Paragraph 3"
+      "Decide whether you need Body Paragraph 3"
     );
     assert.equal(
       reasoningReadyNextActionLabel({ paragraphIndex: 2 }),

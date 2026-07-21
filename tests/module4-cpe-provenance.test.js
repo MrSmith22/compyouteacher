@@ -510,7 +510,7 @@ describe("CP-E Module 4 provenance personalization", () => {
     });
     assert.equal(priority.show, true);
     assert.equal(reuse.show, true);
-    assert.match(reuse.label, /Already used in Paragraph 1/);
+    assert.match(reuse.label, /Already used in Body Paragraph 1/);
   });
 
   it("20. Job/source alignment cue remains non-blocking", () => {

@@ -49,7 +49,7 @@ export default function ModuleFourCompactPlanCard({
       >
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-            Paragraph {card.paragraphNumber}
+            Body Paragraph {card.paragraphNumber}
           </p>
           {card.ready ? (
             <span className="rounded-full border border-theme-green/35 bg-theme-green/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-theme-green">

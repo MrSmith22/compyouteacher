@@ -9,6 +9,10 @@ import {
   seedModule9Ready,
   type SeedModule9Options,
 } from "@/lib/dev/seeds/seedModule9Ready";
+import { seedBodyParagraphVerticalSlice } from "@/lib/dev/seeds/seedBodyParagraphVerticalSlice";
+import { seedIntroConclusionVerticalSlice } from "@/lib/dev/seeds/seedIntroConclusionVerticalSlice";
+import { seedAllRequiredBodyParagraphs } from "@/lib/dev/seeds/seedAllRequiredBodyParagraphs";
+import { seedWholeEssayReview } from "@/lib/dev/seeds/seedWholeEssayReview";
 
 export type SeedThroughTarget =
   | 2
@@ -18,7 +22,11 @@ export type SeedThroughTarget =
   | 6
   | 7
   | "completeEssay"
-  | "module9Ready";
+  | "module9Ready"
+  | "bpVerticalSlice"
+  | "introConclusionVerticalSlice"
+  | "allRequiredBodyParagraphs"
+  | "wholeEssayReview";
 
 export async function runSeedThrough(
   userEmail: string,
@@ -42,6 +50,14 @@ export async function runSeedThrough(
       return seedCompleteEssay(userEmail);
     case "module9Ready":
       return seedModule9Ready(userEmail, module9Options);
+    case "bpVerticalSlice":
+      return seedBodyParagraphVerticalSlice(userEmail);
+    case "introConclusionVerticalSlice":
+      return seedIntroConclusionVerticalSlice(userEmail);
+    case "allRequiredBodyParagraphs":
+      return seedAllRequiredBodyParagraphs(userEmail);
+    case "wholeEssayReview":
+      return seedWholeEssayReview(userEmail);
     default:
       return { ok: false as const, error: `Unknown seed target: ${String(target)}` };
   }

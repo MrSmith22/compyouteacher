@@ -192,16 +192,26 @@ export default function Dashboard() {
               </p>
 
               <div className="text-xs text-gray-600 space-y-1">
-                <div>
-                  Status:{" "}
-                  {hasFinalPdf ? "Essay completed" : (assignment?.status || "Not started")}
-                </div>
                 {hasFinalPdf ? (
-                  <div>Essay completed</div>
+                  <>
+                    <div data-testid="dashboard-submission-time">
+                      {finalPdf?.uploaded_at
+                        ? `Submitted: ${new Date(finalPdf.uploaded_at).toLocaleString(undefined, {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}`
+                        : "Submitted"}
+                    </div>
+                  </>
                 ) : (
-                  assignment?.current_module != null && (
-                    <div>Current module: {assignment.current_module}</div>
-                  )
+                  <>
+                    <div>
+                      Status: {assignment?.status || "Not started"}
+                    </div>
+                    {assignment?.current_module != null && (
+                      <div>Current module: {assignment.current_module}</div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -211,6 +221,7 @@ export default function Dashboard() {
                 <span
                   className="px-4 py-2 rounded text-sm font-semibold shadow bg-theme-green text-white cursor-default inline-block text-center"
                   aria-label="Essay completed"
+                  data-testid="dashboard-essay-completed-badge"
                 >
                   Essay completed
                 </span>
@@ -235,10 +246,21 @@ export default function Dashboard() {
                   target="_blank"
                   rel="noreferrer"
                   className="text-xs text-theme-blue underline text-center"
+                  data-testid="dashboard-open-final-pdf"
                 >
                   Open final PDF
                 </a>
               )}
+              {hasFinalPdf ? (
+                <button
+                  type="button"
+                  onClick={() => router.push("/modules/9/success")}
+                  className="text-xs text-theme-blue underline text-center"
+                  data-testid="dashboard-view-receipt"
+                >
+                  View submission receipt
+                </button>
+              ) : null}
             </div>
           </section>
         )}

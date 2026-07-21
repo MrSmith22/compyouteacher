@@ -346,6 +346,62 @@ export default function DeveloperTestingPanel() {
                 className={btn}
                 disabled={busy}
                 onClick={() =>
+                  run("Seeded BP1 vertical slice", async () => {
+                    await panelAction("seedThrough", {
+                      target: "bpVerticalSlice",
+                    });
+                  })
+                }
+              >
+                Seed BP1 vertical slice (WP-081)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded intro/conclusion vertical slice", async () => {
+                    await panelAction("seedThrough", {
+                      target: "introConclusionVerticalSlice",
+                    });
+                  })
+                }
+              >
+                Seed Intro+Conclusion slice (WP-082)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded all required body paragraphs", async () => {
+                    await panelAction("seedThrough", {
+                      target: "allRequiredBodyParagraphs",
+                    });
+                  })
+                }
+              >
+                Seed all body paragraphs (WP-083)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded whole-essay review", async () => {
+                    await panelAction("seedThrough", {
+                      target: "wholeEssayReview",
+                    });
+                  })
+                }
+              >
+                Seed whole-essay review (WP-084)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
                   run("Seeded Module 9 ready", async () => {
                     const result = await panelAction("seedThrough", {
                       target: "module9Ready",

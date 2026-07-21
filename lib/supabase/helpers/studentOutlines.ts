@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   buildOutlineUpsertRow,
   resolveFinalizedWriteValue,
@@ -11,7 +11,10 @@ export async function getStudentOutline({
   userEmail: string;
   module: number;
 }) {
-  return supabase
+  // Authenticated API routes already verified the session email. Use admin
+  // reads so RLS on the anon key cannot hide a saved outline (same pattern as
+  // Module 4 paragraph plans).
+  return getSupabaseAdmin()
     .from("student_outlines")
     .select("*")
     .eq("user_email", userEmail)
@@ -43,7 +46,7 @@ export async function upsertStudentOutline({
     delete (row as { finalized?: boolean }).finalized;
   }
 
-  return supabase.from("student_outlines").upsert(row, {
+  return getSupabaseAdmin().from("student_outlines").upsert(row, {
     onConflict: "user_email,module",
   });
 }

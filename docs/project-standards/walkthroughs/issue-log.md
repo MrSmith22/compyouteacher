@@ -117,8 +117,13 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-077 | Make supporting resources impossible to miss on Module 6 drafting pages | 6 | High | Instructional / UX | Needs Verification |
 | WP-078 | Module 1 prompt page lacks clear first-task hierarchy | 1 | High | Instructional / UX | Resolved |
 | WP-079 | Validate and refine the rhetorical-matrix essay-direction engine | 2–6 | High | Instructional / Architecture | Resolved |
+| WP-080 | Submission confirmation is transient; PDF size/validation and receipt are untrustworthy | 9 / Dashboard | Critical | Trust / Persistence | Resolved |
+| WP-081 | Body Paragraph vertical-slice foundation (plan → outline → sentence moves → diagnostic revision) | 4–7 | Critical | Instructional / Architecture | Resolved |
+| WP-082 | Introduction and Conclusion vertical slices (section-specific moves + diagnostics) | 4–7 | Critical | Instructional / Architecture | Resolved |
+| WP-083 | All required body paragraphs (generalize WP-081 to every required body) | 4–7 | Critical | Instructional / Architecture | Resolved |
+| WP-084 | Whole-essay review and configurable teacher word-count expectation | 6–8 | Critical | Instructional / Architecture | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-080.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-083.*
 
 ---
 
@@ -2452,4 +2457,218 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 
 ---
 
-*Last updated: July 14, 2026 — WP-079 Resolved and independently re-verified at commit `5de04f9` (matrix essay-direction engine + Module 3 handoff resume review; browser acceptance passed at 390×844 and 1440×900; focused + full test suites green).*
+### WP-080 — Submission confirmation is transient; PDF size/validation and receipt are untrustworthy
+
+- **Module:** 9 / Dashboard
+- **Screen or area:** Module 9 PDF select/upload; `/modules/9/success`; student dashboard completion
+- **Priority:** Critical
+- **Category:** Trust / Persistence
+- **Status:** Resolved
+
+**Walkthrough observation:** A selected PDF displayed as 0.0 MB. After upload, “Your paper was received” appeared only briefly before the dashboard. The lasting success screen lacked inspectable receipt fields (filename, time, size, ID). The dashboard repeated “Essay completed” instead of showing a concise receipt-backed state synchronized with the submitted PDF.
+
+**Why it matters educationally:** Submission is the highest-trust moment in the Writing Processor. Students must see durable proof that the exact PDF was accepted—not a flash confirmation or ambiguous file size.
+
+**Why it matters technically or operationally:** Client size display rounded small files to 0.0 MB; zero-byte and non-PDF content were not authoritatively rejected; upload success set local `finalPdfRow` before navigation (flashing the already-submitted panel); `file_size` was not persisted; success advanced completion even when no export row loaded.
+
+**Recommended smallest reasonable fix:** Shared PDF validation (nonzero size, MIME/name hint + `%PDF` magic); KB formatting; durable upload ordering; persistent `/modules/9/success` receipt; dashboard status/time/PDF from the same `student_exports` row.
+
+**Verification steps:**
+1. Select a tiny valid PDF (< 50 KB) and confirm the label shows KB, not 0.0 MB.
+2. Reject a zero-byte file and a non-PDF / corrupt payload with a recoverable message.
+3. Upload a valid PDF; confirm navigation lands on `/modules/9/success` with filename, time, size, status, View submitted PDF, and accomplishment trail—without a pre-redirect “received” flash.
+4. Refresh and reopen `/modules/9/success` directly; receipt details remain.
+5. Open `/modules/9/success` with no submission; recovery returns to Module 9 (no false success).
+6. Dashboard shows “Essay completed” once, latest submission time when available, and Open final PDF for the same object; View submission receipt works.
+7. Keyboard: focus moves to the receipt heading; check 390×844 and 1440×900.
+
+**Related files:** `lib/exports/finalPdfValidation.js`; `lib/exports/uploadFinalPdf.ts`; `lib/supabase/helpers/ensureModuleCompletedActivity.js`; `app/api/final-pdf/route.js`; `app/api/activity/log/route.ts`; `components/ModuleNine.js`; `app/modules/9/success/page.js`; `app/dashboard/page.js`; `supabase/migrations/20260720210000_student_exports_file_size.sql`; `tests/wp080-submission-trust-persistent-receipt.test.js`
+
+**Resolution notes:** (July 20, 2026) Agent browser acceptance on `dev-student@localhost` (local Next.js + connected Supabase):
+
+- Tiny PDF selected as `Selected: tiny-essay.pdf (572 bytes)` — not 0.0 MB.
+- Empty file rejected with recoverable copy; non-PDF/`fake.pdf` rejected; wrong type rejected.
+- Valid upload navigated to `/modules/9/success` with filename, submitted time, receipt ID, trail; focus on `#module9-receipt-heading`.
+- Direct reopen/refresh preserved the same receipt; `/api/activity/log` returned `alreadyLogged: true` on repeats; DB has exactly **1** `module_completed` row for module 9.
+- Missing receipt (export deleted) showed recovery UI and “Back to Module 9 upload”; no false receipt; activity count stayed 1.
+- Simulated `/api/final-pdf` 500 kept student on Module 9 with file selected and error text; no success navigation.
+- Dashboard: **one** “Essay completed”, `Submitted:` timestamp, Open final PDF URL matched `student_exports.public_url`, View submission receipt present.
+- Viewports: **390×844** and **1440×900** — no horizontal overflow on receipt; focus on receipt heading.
+- Automated: WP-080 behavioral suite + full `tests/*.test.js` green.
+
+**file_size migration closure (July 20, 2026):** After the remote `student_exports.file_size` DDL was applied, agent re-verified:
+
+1. Service-role probe: `select id, file_size` succeeds (column exists).
+2. Authenticated `POST /api/final-pdf` of `wp080-filesize.pdf` returned `file_size: 596` (matches client byte length).
+3. DB row: `file_name=wp080-filesize.pdf`, `file_size=596`, `doc_id=92343863-fd6b-43c7-b020-ae61c06a6896`.
+4. `/modules/9/success` showed **File size: 596 bytes** (not the prior placeholder); refresh/direct reopen preserved `596 bytes` + same filename/receipt ID.
+5. Focused `tests/wp080-submission-trust-persistent-receipt.test.js` 10/10 pass.
+
+**Resolved in session:** July 20, 2026 WP-080 final verification after `file_size` migration apply.
+
+---
+
+### WP-081 — Body Paragraph vertical-slice foundation (plan → outline → sentence moves → diagnostic revision)
+
+- **Module:** 4–7
+- **Screen or area:** Representative essay-order Body Paragraph 1 across plan, outline, guided drafting, and revision
+- **Priority:** Critical
+- **Category:** Instructional / Architecture
+- **Status:** Resolved
+
+**Walkthrough observation:** Paragraph plans, outline, prose, and revision screens exist, but students do not reliably experience them as transformations of the same paragraph. Plans can mismatch evidence; Module 5 does not produce a sufficiently recognizable outline; Module 6 relies on paragraph-sized drafting; Module 7 buries the editor and assigns generic strategies without diagnosis or before/after comparison.
+
+**Why it matters educationally:** The central writing spine must carry one paragraph from purpose through moves to revised prose so students can see how planning becomes writing.
+
+**Why it matters technically or operationally:** Cross-module identity today is `sourceParagraphIndex` plus outline order; there is no shared slice contract, sentence-move persistence, or durable revision baseline. Production cannot expose a half-finished path.
+
+**Recommended smallest reasonable fix:** Define a reusable Body Paragraph slice contract keyed by `sourceParagraphIndex` with student label `Body Paragraph N` (essay order). Apply it only to essay-order Body Paragraph 1 behind a development gate (`NODE_ENV === "development"`). Extend `draft_meta` for moves and before/after. Do not change Modules 8–9 or generalize to all sections until acceptance passes.
+
+**Verification steps:**
+1. Trace Body Paragraph 1 from evidence/thesis through plan, outline moves, sentence moves, assembled paragraph, diagnosis, revision, and before/after.
+2. Confirm the same `sourceParagraphIndex` survives reorder and reload.
+3. Flag mismatch/duplicate/fragmentary fixtures without erasing student prose.
+4. Confirm editor is visually primary when drafting/revising; no character-threshold auto-advance; local repair without full-module replay; prose free of plan labels/numbering.
+5. Keyboard + focus; viewports 390×844 and 1440×900.
+
+**Related files:** `lib/artifacts/bodyParagraphSliceContract.js`; `lib/artifacts/bodyParagraphHealth.js`; `lib/essaySectionLabels.js`; `lib/module6/bodyParagraphMoves.js`; `lib/module7/bodyParagraphDiagnostics.js`; `lib/dev/isBodyParagraphVerticalSliceEnabled.js`; `components/module6/BodyParagraphMoveWorkspace.jsx`; `components/module7/BodyParagraphRevisionPanel.jsx`; Module 4–7 UI wiring; `lib/dev/seeds/seedBodyParagraphVerticalSlice.ts`; `tests/wp081-*.test.js`
+
+**Gate:** Development-only; essay-order `bodyIndex === 0` only. Production builds keep the current path.
+
+**Resolution notes:** (July 20–21, 2026) Corrective acceptance pass closed all open findings:
+
+1. **Move-specific desk:** `selectDeskArtifactsForMove` filters by `deskFields`; browser confirmed Step 1 = purpose+thesis, Step 3 = evidence only, Step 6 = purpose+next paragraph.
+2. **Advanced persistence:** first-class `advancedProse` in normalize/setMoves; reload kept only advanced prose; return to moves preserved sentence texts.
+3. **Unseeded M7 baseline:** `ensureRevisionBaseline` on workspace entry; Before = original M6 prose after edit+save+refresh (DB + UI); seeded fixture not required.
+4. **Student coaching:** removed banned internal phrases; visible copy uses “Best place to revise,” “Revise your paragraph,” “Keep your ideas and wording,” “This suggestion may not fit perfectly…”
+5. **Step 1 explicit:** job card + workspace label “Step 1 of N”; Continue to Step N+1.
+6. **Less repetition:** slice orientation slimmed; TaskRelevantArtifacts + notebook deskItems cleared on BP1 slice.
+7. **Tests:** 35 focused WP-081; proportional Module 4–7 suite 417/417.
+
+**Browser acceptance (agent):** seeded M6 moves/advanced; unseeded M7 before/after; 390×844 and 1440×900 no horizontal overflow.
+
+**Resolved in commit:** (pending user commit)
+
+---
+
+*Last updated: July 21, 2026 — WP-081 Resolved (Body Paragraph vertical-slice foundation; corrective acceptance passed).*
+
+---
+
+### WP-082 — Introduction and Conclusion vertical slices (section-specific moves + diagnostics)
+
+- **Module:** 4–7
+- **Screen or area:** Introduction and Conclusion across plan/outline, sentence moves, assembled prose, and diagnostic revision
+- **Priority:** Critical
+- **Category:** Instructional / Architecture
+- **Status:** Resolved
+
+**Walkthrough observation:** Introduction and Conclusion have editable prose but do not yet participate in the WP-081 instructional process. Students need section-specific planning, sentence moves, assembled prose, diagnostics, and before/after revision—without treating openings/closings as body paragraphs.
+
+**Why it matters educationally:** An introduction must arrive at the thesis; a conclusion must synthesize and end deliberately. Reusing body evidence/transition rules would teach the wrong moves.
+
+**Why it matters technically or operationally:** WP-081 proved move persistence, advanced prose, desk filtering, and revision baselines for Body Paragraph 1. Intro/conclusion need the same contracts keyed by `sectionType` (`intro` | `conclusion`), not `sourceParagraphIndex`, behind the existing development gate.
+
+**Recommended smallest reasonable fix:** Extend WP-081 shared assemble/normalize/desk/revision-baseline patterns into section-aware move libraries and diagnostics for Introduction and Conclusion only. Do not generalize to Body Paragraphs 2–3, remove the development gate, or change Modules 8–9.
+
+**Verification steps:**
+1. Trace Introduction and Conclusion from plan → outline moves → sentence moves → assembled prose → diagnostic revision → Before/After.
+2. Confirm move-specific desk filtering; thesis prominence on bridge/thesis moves; compact body purposes on conclusion synthesis.
+3. Confirm advanced mode survives rerender/reload without concatenating stale move prose.
+4. Confirm unseeded Module 6 → Module 7 baseline capture for both section types.
+5. Confirm intro diagnostics do not require body evidence; conclusion diagnostics do not require transitions.
+6. Keyboard + focus; viewports 390×844 and 1440×900; WP-081 BP1 tests remain green.
+
+**Related files:** `lib/module6/sectionMoveEngine.js`; `lib/module6/introductionMoves.js`; `lib/module6/conclusionMoves.js`; `lib/artifacts/introductionHealth.js`; `lib/artifacts/conclusionHealth.js`; `lib/artifacts/introConclusionSliceContract.js`; `lib/module7/introductionDiagnostics.js`; `lib/module7/conclusionDiagnostics.js`; `lib/module7/module7Resume.js`; `components/module6/SectionMoveWorkspace.jsx`; `components/module7/SectionRevisionPanel.jsx`; Module 4–7 wiring; `lib/dev/seeds/seedIntroConclusionVerticalSlice.ts`; `lib/dev/seeds/buildWp082Module5Outline.js`; `tests/wp082-*.test.js`
+
+**Gate:** Development-only; Introduction and Conclusion section types only (Body Paragraph 1 path unchanged from WP-081).
+
+**Resolution notes:** (July 21, 2026) Prompt 03A corrective acceptance passed.
+
+**Root causes fixed:**
+1. **M7 Conclusion save/refresh:** `currentStepIndex` was React-only; refresh always returned to read-aloud. Fixed with server-backed `draft_meta.currentStepIndex` / `resume` (written on save and navigate; restored after hydrate). Loading no longer clears the shell before sections+resume apply. M7 upsert remains `module: 7` only.
+2. **WP-082 seed → empty Module 5:** Legacy `SEED_OUTLINE` body lacked CP-F fields; hydrate also blocked on anon client Supabase reads before painting a saved outline. Seed now rebuilds outline via `buildWp082Module5Outline` (≥2 CP-F cards, FINALIZE stage), locks M6, sets current module to 7, and uses 4 sections matching the outline. Module 5 paints saved outline immediately and loads thesis/tchart through authenticated APIs. Outline GET/upsert helpers use admin after session auth (same pattern as Module 4 plans).
+3. **Module 4 “Paragraph N” labels:** Student-facing named sections now use `Body Paragraph N` / `getBodyParagraphLabel` across Module 4 cards, steps, CTAs, and coaching helpers.
+
+**Automated:** focused WP-081 + WP-082 = 67/67; Module 4–7 proportional suite 442/442.
+
+**Browser (Prompt 03A):**
+1. Seed WP-082 → Module 4 map/review shows Introduction, Body Paragraph 1/2, Conclusion.
+2. Module 5 finalize shows thesis + body cards + Introduction/Conclusion move lists (writing-plan + formal lines).
+3. Module 6 Introduction advanced marker `WP082-ADV-MARKER-ONLY` survived reload as sole prose.
+4. Module 7 Introduction: edit/save/refresh stayed on step 2; Before untouched; After kept marker; M6 still readable.
+5. Module 7 Conclusion: edit/save with local target `comparison_insight`; refresh stayed on step 5 (not read-aloud); Before clean; After kept `WP082-CONC-MARKER`; M6 still readable.
+6. Focus order from editor at 1440: Revise Conclusion → alternate targets → Yes/Not yet → Back → Save revision (Keep going follows). No horizontal overflow at 390×844 or 1440×900; editor remains primary.
+7. Development gate and BP2/BP3 / Modules 8–9 out-of-scope boundaries unchanged.
+
+**Visible coaching (no broad redesign):** left as-is; no adjacent-line deletions required beyond prior Prompt 03 clarity.
+
+---
+
+*Last updated: July 21, 2026 — WP-082 Resolved (Prompt 03A corrective acceptance).*
+
+---
+
+### WP-083 — All required body paragraphs (generalize WP-081 to every required body)
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Instructional / Architecture  
+**Module:** 4–7  
+**Related:** WP-081, WP-082; Prompt 04; Phase 2 Slice 3
+
+**Walkthrough observation:** WP-081 proved the complete process for essay-order Body Paragraph 1, but remaining required body paragraphs still risk falling back to paragraph-sized drafting and position-cycled revision. Students need every required body paragraph as the transformation of its own saved plan.
+
+**Student-facing impact:** Without generalization, BP2/BP3 can lose distinct purpose, evidence sequences, transition adjacency after reorder, and independent advanced/revision state.
+
+**Why it matters technically or operationally:** Reuse WP-081 contracts keyed by `sourceParagraphIndex`; widen the development gate to all required bodies; support multi-evidence move cycles; refresh transition after reorder. Do not reopen WP-081/082 or promote the gate to production.
+
+**Recommended smallest reasonable fix:** Widen `isBodyParagraphVerticalSliceStep` to all `bodyIndex >= 0`; multi-evidence moveOrder; sibling-prose checks across all bodies; `matchParagraphPlan` by durable source index; seed + focused tests; agent browser acceptance.
+
+**Verification criteria:**
+1. Every required body has independent moves/revision keyed by sourceParagraphIndex.
+2. Reorder preserves identity and updates transition adjacency.
+3. Multi-evidence repeats context → evidence → explanation.
+4. Final body has no next-body transition requirement.
+5. WP-081/082 tests remain green; development gate stays development-only.
+
+**Gate:** Development-only; all required body paragraphs (assignment-driven count).
+
+**Resolution notes (July 21, 2026):**
+1. Gate widened to every `type: "body"` step with `bodyIndex >= 0` (still `NODE_ENV === "development"`).
+2. Multi-evidence move orders use indexed `evidence_context_N` / `evidence_N` / `explanation_N`; single-evidence BP1 ids unchanged.
+3. Module 5 reorder refreshes transition adjacency via `withOutlineMoveOrder(..., { forceRefresh: true })`.
+4. `matchParagraphPlan` prefers durable `sourceParagraphIndex`; Module 7 sibling duplicate checks use all other bodies.
+5. Seed: `allRequiredBodyParagraphs` (dev panel); fixtures for 2- and 3-body paths.
+6. **Automated:** WP-081/082/083 focused 89/89; Module 4–7 proportional suite 466/466.
+7. **Agent browser:** Seed → M6 BP1/BP2 (9-step multi-evidence, Evidence (2), full preview) → BP3 (5 steps, no transition) → M7 BP2 Before/After + reload resume with marker → BP3 diagnostic panel; no horizontal overflow at 390×844 or desktop.
+
+---
+
+*Last updated: July 21, 2026 — WP-083 Resolved (Prompt 04 all required body paragraphs).*
+
+---
+
+### WP-084 — Whole-essay review and configurable teacher word-count expectation
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Instructional / Architecture  
+**Module:** 6–8  
+**Related:** WP-081–083; Prompt 05; Phase 2 Slice 4
+
+**Walkthrough observation:** Module 7 final review asks whether the essay “communicates more clearly” without an inspection protocol. Word count appears descriptively but is not a teacher-owned expectation.
+
+**Student-facing impact:** Students cannot tell what to inspect, where to repair, or what word-count rule applies—risking filler or unfinished development.
+
+**Why it matters technically or operationally:** Need one shared word-count helper, assignment settings (default off), whole-essay findings composed from section health, Module 6 structural handoff, Module 7 local-repair resume, and advisory vs required completion gates.
+
+**Recommended smallest reasonable fix:** `assignment_settings` + teacher/student APIs + TeacherDashboard control; `essayWordCount` + `wholeEssayReview` engine; gated Module 6/7 UI; seed + tests; agent browser acceptance.
+
+**Gate:** Development-only whole-essay inspection UI; settings schema defaults off for existing assignments.
+
+**Resolution notes:** (July 21, 2026) Shared `countEssayWords` / `resolveAuthoritativeEssayTextForCount`; assignment word-count modes with safe `off` default; teacher PATCH/GET + student GET; whole-essay five-check panel with Fix → section → Back resume; advisory never blocks, required can; Module 8 no longer prefers stale `m8.final_text` over Module 7 final. Automated: WP-081–084 green; Module 4–7 suite green. Agent browser: teacher API advisory 300 / required / invalid range; student final inspection + word coaching; repair return; required lock/unlock; refresh resume; Module 8 272-word newest essay; 390/1440 no overflow; focus order through checks → Fix → Back/Save → Finish.
+
+**Database-backed settings verification** (July 21, 2026, after remote `assignment_settings` migration + RLS): Teacher PATCH `advisory_minimum` 300 returned `source: "database"`; teacher GET and student GET both `source: "database"`; fresh teacher/student sessions re-read the same row; invalid range rejected with prior 300 preserved; direct table row matched (`word_count_mode=advisory_minimum`, `word_count_min=300`, `updated_by=dev-teacher@localhost`); local `.dev-assignment-settings.json` fallback not used. Helper tightened so file fallback applies only when the table is missing.
+
+**Resolved in commit:** (pending commit)

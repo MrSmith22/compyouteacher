@@ -1,6 +1,8 @@
 # The Writing Processor
 # Walkthrough to Finished Product Blueprint
 
+> **Historical execution blueprint:** This document reflects the July 14, 2026 reconciliation state. The completed Modules 1–9 walkthrough on July 20 produced a newer canonical revision strategy: [Complete Walkthrough Revision Strategy](complete-walkthrough-revision-strategy-2026-07-20.md). Preserve this document for issue and implementation history, but use the newer strategy when current walkthrough evidence differs from the earlier “verification, not redesign” conclusion.
+
 Version: July 2026 · **Docs freeze reconciled 2026-07-14**
 
 | | |

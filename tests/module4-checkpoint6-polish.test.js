@@ -118,7 +118,7 @@ describe("module4 Checkpoint 6 — reuse, alignment, snippet safety", () => {
     });
     assert.equal(cue.show, true);
     assert.equal(cue.kind, "already_used");
-    assert.equal(cue.label, "Already used in Paragraph 1");
+    assert.equal(cue.label, "Already used in Body Paragraph 1");
     assert.equal(cue.blocksReuse, false);
   });
 
@@ -146,7 +146,7 @@ describe("module4 Checkpoint 6 — reuse, alignment, snippet safety", () => {
     assert.deepEqual(two, [1, 2]);
     assert.equal(
       formatIntentionalReuseLabel(two),
-      "Used intentionally in Paragraph 1 and Paragraph 2"
+      "Used intentionally in Body Paragraph 1 and Body Paragraph 2"
     );
 
     const three = paragraphNumbersUsingQualifyingEvidence({

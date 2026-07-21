@@ -3,11 +3,14 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { supabase } from "../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { logActivity } from "../lib/logActivity";
 import { buildOutlineBodyFromModule4Plans } from "@/lib/module4/mapStudentBucketsToOutline";
-import { getParagraphPlanRow } from "@/lib/artifacts/readArtifactsClient";
+import {
+  getParagraphPlanRow,
+  getTChartEntriesRows,
+} from "@/lib/artifacts/readArtifactsClient";
+import { parseApiResponse } from "@/lib/api/clientFetch";
 import {
   buildAutosaveRequestBody,
   buildFinalizeRequestBody,
@@ -37,6 +40,25 @@ import {
   writeModule5UiState,
   validateConclusionPlan,
 } from "@/lib/module5/module5OutlineStageHelpers";
+import { getBodyParagraphLabel, getIntroductionLabel, getConclusionLabel } from "@/lib/essaySectionLabels";
+import {
+  isBodyParagraphVerticalSliceEnabled,
+  isSectionVerticalSliceEnabled,
+} from "@/lib/dev/isBodyParagraphVerticalSliceEnabled";
+import {
+  buildBodyParagraphSlice,
+  formatBodyParagraphFormalOutlineLines,
+  formatBodyParagraphWritingPlanSummary,
+  withOutlineMoveOrder,
+} from "@/lib/artifacts/bodyParagraphSliceContract";
+import {
+  buildIntroductionSlice,
+  buildConclusionSlice,
+  formatIntroductionWritingPlanSummary,
+  formatIntroductionFormalOutlineLines,
+  formatConclusionWritingPlanSummary,
+  formatConclusionFormalOutlineLines,
+} from "@/lib/artifacts/introConclusionSliceContract";
 import {
   MODULE5_OUTLINE_READ_STATE,
   MODULE5_OUTLINE_READ_ERROR,
@@ -64,6 +86,8 @@ export default function ModuleFive() {
   const [conclusion, setConclusion] = useState(emptyConclusion());
   const [stage, setStage] = useState(MODULE5_STAGE.BRING_IN);
   const [bodyReviewIndex, setBodyReviewIndex] = useState(0);
+  /** WP-081: writing-plan vs formal-outline toggle for Body Paragraph slice. */
+  const [outlineViewMode, setOutlineViewMode] = useState("writing");
   const [conclusionMicro, setConclusionMicro] = useState(0);
   const [reviewedBodyIndices, setReviewedBodyIndices] = useState([]);
   const [locked, setLocked] = useState(false);
@@ -232,22 +256,35 @@ export default function ModuleFive() {
           savedRow.outline.conclusion || emptyConclusion();
         nextLocked = readFinalizedFlag(savedRow.finalized);
         nextUi = readModule5UiState(savedRow.outline);
+
+        // Paint the saved outline before optional upstream fetches so a slow
+        // Module 3 / evidence read cannot leave the student on an empty BRING_IN.
+        if (generation === loadGenerationRef.current) {
+          setThesis(nextThesis);
+          setOutline(normalizeOutlineBodyOrder(nextBody));
+          setConclusion(nextConclusion);
+          setLocked(nextLocked);
+          setStage(nextUi.stage || MODULE5_STAGE.BRING_IN);
+          setBodyReviewIndex(nextUi.bodyReviewIndex || 0);
+          setConclusionMicro(nextUi.conclusionMicro || 0);
+          setReviewedBodyIndices(nextUi.reviewedBodyIndices || []);
+        }
       }
-
-      const { data: mod3, error: mod3Error } = await supabase
-        .from("module3_responses")
-        .select("thesis")
-        .eq("user_email", email)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (generation !== loadGenerationRef.current) return;
 
       let reminderThesis = "";
-      if (!mod3Error && mod3?.length && mod3[0]?.thesis) {
-        reminderThesis = mod3[0].thesis;
-        if (!nextThesis) nextThesis = reminderThesis;
+      try {
+        const thesisRes = await fetch("/api/module3/thesis");
+        const thesisJson = await parseApiResponse(thesisRes);
+        const thesisRow = thesisJson?.thesis ?? null;
+        if (thesisRow?.thesis) {
+          reminderThesis = String(thesisRow.thesis).trim();
+          if (!nextThesis) nextThesis = reminderThesis;
+        }
+      } catch {
+        // Thesis reminder is optional when a saved outline already carries it.
       }
+
+      if (generation !== loadGenerationRef.current) return;
 
       let upstreamOk = true;
       const m4Result = await getParagraphPlanRow();
@@ -255,15 +292,12 @@ export default function ModuleFive() {
 
       let tchartData = [];
       if (m4Result.ok && Array.isArray(m4Result.data?.buckets)) {
-        const tchartRes = await supabase
-          .from("tchart_entries")
-          .select("*")
-          .eq("user_email", email);
+        const tchartResult = await getTChartEntriesRows();
         if (generation !== loadGenerationRef.current) return;
-        if (tchartRes.error) {
+        if (!tchartResult.ok) {
           upstreamOk = false;
         } else {
-          tchartData = tchartRes.data || [];
+          tchartData = tchartResult.data || [];
         }
 
         if (upstreamOk) {
@@ -860,9 +894,9 @@ export default function ModuleFive() {
               data-module5-paragraph-card="true"
             >
               <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                Paragraph plan {i + 1}
+                {getBodyParagraphLabel(i)} plan
                 {typeof card.sourceParagraphIndex === "number"
-                  ? ` · Module 4 Paragraph ${card.sourceParagraphIndex + 1}`
+                  ? ` · from Module 4 (${getBodyParagraphLabel(card.sourceParagraphIndex)})`
                   : ""}
               </p>
               <p className="mt-1 text-sm font-semibold text-theme-blue break-words">
@@ -924,9 +958,9 @@ export default function ModuleFive() {
               data-module5-paragraph-card="true"
             >
               <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                Position {i + 1}
+                {getBodyParagraphLabel(i)}
                 {typeof card.sourceParagraphIndex === "number"
-                  ? ` · from Module 4 Paragraph ${card.sourceParagraphIndex + 1}`
+                  ? ` · planned as ${getBodyParagraphLabel(card.sourceParagraphIndex)}`
                   : ""}
               </p>
               <p className="mt-1 text-sm font-semibold text-theme-blue break-words">
@@ -980,6 +1014,37 @@ export default function ModuleFive() {
       </div>
     );
   } else if (stage === MODULE5_STAGE.REVIEW_BODY) {
+    const sliceEnabled =
+      isBodyParagraphVerticalSliceEnabled() &&
+      typeof bodyReviewIndex === "number" &&
+      bodyReviewIndex >= 0 &&
+      activeCard;
+    const enrichedCard = activeCard
+      ? withOutlineMoveOrder(activeCard, {
+          essayOrderIndex: bodyReviewIndex,
+          bodyCount: outline.length || 2,
+        })
+      : null;
+    const bpSlice =
+      sliceEnabled && enrichedCard
+        ? buildBodyParagraphSlice({
+            sourceParagraphIndex:
+              typeof enrichedCard.sourceParagraphIndex === "number"
+                ? enrichedCard.sourceParagraphIndex
+                : bodyReviewIndex,
+            essayOrderIndex: bodyReviewIndex,
+            outlineCard: enrichedCard,
+            thesis,
+            includeTransition: bodyReviewIndex < (outline.length || 2) - 1,
+          })
+        : null;
+    const writingSummary = bpSlice
+      ? formatBodyParagraphWritingPlanSummary(bpSlice)
+      : null;
+    const formalLines = bpSlice
+      ? formatBodyParagraphFormalOutlineLines(bpSlice, "II")
+      : [];
+
     main = (
       <div className={`space-y-4 overflow-x-hidden ${readonly}`}>
         {reviewedBodyIndices
@@ -993,7 +1058,7 @@ export default function ModuleFive() {
                 className="rounded-lg border border-theme-green/25 bg-theme-green/[0.04] px-3 py-2"
               >
                 <p className="text-[11px] font-bold uppercase tracking-wide text-theme-green">
-                  Reviewed · Position {idx + 1}
+                  Reviewed · {getBodyParagraphLabel(idx)}
                 </p>
                 <p className="text-sm break-words text-theme-dark">
                   {card.job ? `${card.job} — ` : ""}
@@ -1005,8 +1070,65 @@ export default function ModuleFive() {
         {activeCard ? (
           <div className="rounded-xl border-2 border-theme-orange/35 bg-white px-4 py-4 space-y-3">
             <p className="text-[11px] font-bold uppercase tracking-wide text-theme-orange">
-              Reviewing position {bodyReviewIndex + 1}
+              Reviewing {getBodyParagraphLabel(bodyReviewIndex)}
             </p>
+            {sliceEnabled ? (
+              <div
+                className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 space-y-2"
+                data-testid="module5-bp-slice-outline"
+              >
+                <p className="text-sm text-theme-dark">
+                  <span className="font-semibold">Paragraph plan</span> is what
+                  this paragraph will prove and which evidence it uses.{" "}
+                  <span className="font-semibold">Outline</span> is where it sits
+                  and the order of moves inside it.
+                </p>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Outline view">
+                  <button
+                    type="button"
+                    className={`min-h-[44px] rounded-md border px-3 text-sm font-semibold ${
+                      outlineViewMode === "writing"
+                        ? "border-theme-blue bg-theme-blue/10 text-theme-blue"
+                        : "border-border-soft"
+                    }`}
+                    aria-pressed={outlineViewMode === "writing"}
+                    onClick={() => setOutlineViewMode("writing")}
+                  >
+                    Writing plan
+                  </button>
+                  <button
+                    type="button"
+                    className={`min-h-[44px] rounded-md border px-3 text-sm font-semibold ${
+                      outlineViewMode === "formal"
+                        ? "border-theme-blue bg-theme-blue/10 text-theme-blue"
+                        : "border-border-soft"
+                    }`}
+                    aria-pressed={outlineViewMode === "formal"}
+                    onClick={() => setOutlineViewMode("formal")}
+                  >
+                    Formal outline
+                  </button>
+                </div>
+                {outlineViewMode === "formal" ? (
+                  <pre
+                    className="whitespace-pre-wrap break-words text-sm text-theme-dark font-mono"
+                    data-testid="module5-formal-outline-bp1"
+                  >
+                    {formalLines.join("\n")}
+                  </pre>
+                ) : (
+                  <ul className="space-y-1 text-sm" data-testid="module5-writing-plan-bp1">
+                    <li>
+                      <span className="font-semibold">{writingSummary?.label}:</span>{" "}
+                      {writingSummary?.purpose || "(purpose)"}
+                    </li>
+                    {(writingSummary?.moves || []).map((m) => (
+                      <li key={m.id}>• {m.title}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : null}
             <label className="block text-sm font-semibold text-theme-dark">
               Organizational job
               <input
@@ -1082,8 +1204,51 @@ export default function ModuleFive() {
       </div>
     );
   } else if (stage === MODULE5_STAGE.CONCLUSION) {
+    const conclusionSliceEnabled = isSectionVerticalSliceEnabled();
+    const conclusionSlice = conclusionSliceEnabled
+      ? buildConclusionSlice({
+          thesis,
+          outline: { body: outline, conclusion },
+        })
+      : null;
+    const conclusionWriting = conclusionSlice
+      ? formatConclusionWritingPlanSummary(conclusionSlice)
+      : null;
+    const conclusionFormal = conclusionSlice
+      ? formatConclusionFormalOutlineLines(
+          conclusionSlice,
+          outline.length === 3 ? "V" : "IV"
+        )
+      : [];
+
     main = (
       <div className={`space-y-4 overflow-x-hidden ${readonly}`}>
+        {conclusionSliceEnabled ? (
+          <div
+            className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 space-y-2"
+            data-testid="module5-conclusion-slice-outline"
+          >
+            <p className="text-sm font-semibold text-theme-dark">
+              {getConclusionLabel()} — what this section does
+            </p>
+            <p className="text-sm text-theme-dark/85">
+              Return to your argument in fresh language, bring the body
+              paragraphs together, explain what the comparison shows, and end
+              with one purposeful thought.
+            </p>
+            <ul className="space-y-1 text-sm" data-testid="module5-writing-plan-conclusion">
+              {(conclusionWriting?.moves || []).map((m) => (
+                <li key={m.id}>• {m.title}</li>
+              ))}
+            </ul>
+            <pre
+              className="whitespace-pre-wrap break-words text-xs text-theme-dark/70 font-mono"
+              data-testid="module5-formal-outline-conclusion"
+            >
+              {conclusionFormal.join("\n")}
+            </pre>
+          </div>
+        ) : null}
         {conclusionMicro === 0 || conclusionMicro === 2 ? (
           <label className="block text-sm font-semibold text-theme-dark">
             What should the reader understand after the body paragraphs?
@@ -1123,8 +1288,52 @@ export default function ModuleFive() {
       </div>
     );
   } else {
+    const introSliceEnabled = isSectionVerticalSliceEnabled();
+    const introSlice = introSliceEnabled
+      ? buildIntroductionSlice({ thesis })
+      : null;
+    const introWriting = introSlice
+      ? formatIntroductionWritingPlanSummary(introSlice)
+      : null;
+    const introFormal = introSlice
+      ? formatIntroductionFormalOutlineLines(introSlice, "I")
+      : [];
+    const finalizeConclusionSlice = introSliceEnabled
+      ? buildConclusionSlice({
+          thesis,
+          outline: { body: outline, conclusion },
+        })
+      : null;
+    const finalizeConclusionWriting = finalizeConclusionSlice
+      ? formatConclusionWritingPlanSummary(finalizeConclusionSlice)
+      : null;
+
     main = (
       <div className={`space-y-4 overflow-x-hidden ${readonly}`}>
+        {introSliceEnabled ? (
+          <div
+            className="rounded-lg border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-3"
+            data-testid="module5-intro-slice-outline"
+          >
+            <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+              {getIntroductionLabel()}
+            </p>
+            <p className="mt-1 text-sm text-theme-dark/85">
+              Open the essay and arrive at the thesis.
+            </p>
+            <ul className="mt-2 space-y-1 text-sm" data-testid="module5-writing-plan-intro">
+              {(introWriting?.moves || []).map((m) => (
+                <li key={m.id}>• {m.title}</li>
+              ))}
+            </ul>
+            <pre
+              className="mt-2 whitespace-pre-wrap break-words text-xs text-theme-dark/70 font-mono"
+              data-testid="module5-formal-outline-intro"
+            >
+              {introFormal.join("\n")}
+            </pre>
+          </div>
+        ) : null}
         <div className="rounded-lg border border-theme-green/30 bg-theme-green/5 px-3 py-3">
           <p className="text-[11px] font-bold uppercase tracking-wide text-theme-green">
             Thesis
@@ -1149,8 +1358,18 @@ export default function ModuleFive() {
         </div>
         <div className="rounded-lg border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-3">
           <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
-            Conclusion plan
+            {getConclusionLabel()} plan
           </p>
+          {finalizeConclusionWriting ? (
+            <ul
+              className="mt-2 space-y-1 text-sm"
+              data-testid="module5-finalize-conclusion-moves"
+            >
+              {(finalizeConclusionWriting.moves || []).map((m) => (
+                <li key={m.id}>• {m.title}</li>
+              ))}
+            </ul>
+          ) : null}
           <p className="mt-1 text-sm break-words">{conclusion.summary}</p>
           <p className="mt-2 text-sm break-words">{conclusion.finalThought}</p>
         </div>

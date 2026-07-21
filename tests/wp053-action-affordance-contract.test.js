@@ -110,7 +110,7 @@ describe("WP-053 Module 8–9 action affordance contract", () => {
     assert.ok(success.includes('data-testid="module9-success-open-doc"'));
     assert.match(
       success,
-      /<button[\s\S]*?data-testid="module9-success-open-pdf"[\s\S]*?Open your submitted PDF/
+      /<button[\s\S]*?data-testid="module9-success-open-pdf"[\s\S]*?(?:View submitted PDF|Open your submitted PDF)/
     );
     assert.match(
       success,
