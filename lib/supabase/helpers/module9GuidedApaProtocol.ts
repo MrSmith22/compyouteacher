@@ -80,17 +80,21 @@ export async function upsertModule9GuidedApaProtocolState(
   const now = new Date().toISOString();
   try {
     const existing = await getModule9GuidedApaProtocolState(email);
+    // Compare against semantic state.updatedAt — not row.updated_at.
+    // The table trigger advances row.updated_at with Postgres now(), which can
+    // be ~100ms after the JSON timestamp and false-stale legitimate saves.
+    const existingStateUpdatedAt = existing.state?.updatedAt || null;
     if (
       existing.ok &&
       existing.exists &&
-      isGuidedApaWriteStale(normalized.updatedAt, existing.updatedAt)
+      isGuidedApaWriteStale(normalized.updatedAt, existingStateUpdatedAt)
     ) {
       return {
         ok: true as const,
         schemaOk: true,
         stale: true as const,
         state: existing.state,
-        updatedAt: existing.updatedAt,
+        updatedAt: existingStateUpdatedAt || existing.updatedAt,
       };
     }
 

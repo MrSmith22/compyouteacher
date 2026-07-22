@@ -162,6 +162,22 @@ describe("WP-093 guided state compatibility and rollback fingerprint", () => {
     );
   });
 
+  it("upsert stale check compares state.updatedAt, not row.updated_at", () => {
+    const src = fs.readFileSync(
+      path.join(
+        __dirname,
+        "../lib/supabase/helpers/module9GuidedApaProtocol.ts"
+      ),
+      "utf8"
+    );
+    assert.match(src, /existingStateUpdatedAt/);
+    assert.match(src, /existing\.state\?\.updatedAt/);
+    assert.doesNotMatch(
+      src,
+      /isGuidedApaWriteStale\(normalized\.updatedAt,\s*existing\.updatedAt\)/
+    );
+  });
+
   it("document signature change keeps history and invalidates confirmations", () => {
     let state = createEmptyGuidedApaProtocolState();
     state = setGuidedApaMoveStatus(state, "page_setup", "looks_correct", {

@@ -253,7 +253,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** Not specified in Master Design Specification.
 
-**Resolution notes:** (July 22, 2026 — WP-093 production closure) Production MLK `submission_protocol_mode=rebuilt` (database-backed, no override). Module 8 Doc-only panel owns create/update/verify/open/continue; Module 9 consumes the verified Doc with recovery-only Open/Update and no duplicate export ritual. Agent production-build browser acceptance on `:3040` confirmed Doc handoff + already-submitted bypass without a second create ritual.
+**Resolution notes:** (July 22, 2026 — WP-093 production closure, re-verified after remote migration) Production MLK `submission_protocol_mode=rebuilt` (database-backed, no `SUBMISSION_PROTOCOL_MODE_OVERRIDE`). Module 8 Doc-only panel owns create/update/verify/open/continue; Module 9 consumes the verified Doc with recovery-only Open/Update and no duplicate export ritual. Agent production-build browser acceptance on `:3040` (390×844 + 1440×900) confirmed Doc handoff + already-submitted bypass (“Submission already received”) without a second create ritual.
 
 **Resolved in commit:** (pending commit)
 
@@ -311,7 +311,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** Not specified in Master Design Specification.
 
-**Resolution notes:** (July 22, 2026 — WP-093 production closure) Production rebuilt path has no recognition-quiz gate. Agent production-build browser acceptance confirmed title-page See→Understand→Do→Check→Fix with community-gardens canonical model before **Looks correct** / **Help me fix it** / **I fixed it**; refresh resumed at page numbers (2/7). No `module9_quiz` score invented for guided completion.
+**Resolution notes:** (July 22, 2026 — WP-093 production closure, re-verified after remote migration) Production rebuilt path has no recognition-quiz gate. Agent production-build browser acceptance on `:3040` confirmed title-page See→Understand→Do→Check→Fix with community-gardens canonical model before **Looks correct** / **Help me fix it** / **I fixed it**; refresh resumed at page numbers (2/7). No `module9_quiz` score invented for guided completion.
 
 **Resolved in commit:** (pending commit)
 
@@ -3010,7 +3010,7 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 
 **Gate:** Instructional gates use assignment rollout mode (not NODE_ENV). Developer panel/seeds/dev auth remain NODE_ENV-protected. Modules 1–7 rollout stays independent.
 
-**Resolution notes:** (July 22, 2026)
+**Resolution notes:** (July 22, 2026 — re-verified after Jason applied remote migration; Supabase returned “Success. No rows returned.”)
 
 **Implemented**
 - Resolver/cache: `submissionProtocolRollout.js`, `submissionProtocolModeCache.js`
@@ -3019,21 +3019,22 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - APIs: assignment-rollout fields; teacher GET/PATCH `/api/teacher/submission-protocol-rollout`; guided API uses same DB/override resolver
 - Module 8/9 hydrate gate + recoverable config-failure UI; Teacher ops UI; preflight + runbook
 - Tests: `tests/wp093-submission-protocol-production-rollout.test.js`
+- **Acceptance fix:** guided upsert stale check now compares `state.updatedAt` (not row `updated_at`), because the table trigger advances row time ~100ms after the JSON timestamp and was false-staling legitimate **I fixed it** saves
 
 **Closure evidence**
-1. **Preflight:** all PASS — `submission_protocol_mode=rebuilt` database-backed; writing spine + evidence-argument + vocabulary-transfer unchanged; guided/quiz/checklist/exported_docs/student_exports readable
-2. **Automated:** WP-092+093 **40/40**; WP-093 alone **20/20**
-3. **Production build:** `NEXT_DIST_DIR=.next-wp093-prod` success; static chunks **0** DeveloperTestingPanel / seedGuidedApaProtocol matches
+1. **Preflight:** all PASS after remote migration — `submission_protocol_mode=rebuilt` database-backed; writing spine + evidence-argument + vocabulary-transfer unchanged; guided/quiz/checklist/exported_docs/student_exports readable
+2. **Automated:** WP-092+093 **41/41** (includes state-vs-row stale regression)
+3. **Production build:** `NEXT_DIST_DIR=.next-wp093-prod` rebuilt after stale fix; static chunks **0** DeveloperTestingPanel / seedGuidedApaProtocol matches
 4. **Dev-tool denial:** `/api/dev/panel` → 404 `{not_found}` on production; unauth guided → 401
 5. **Database-backed (no `SUBMISSION_PROTOCOL_MODE_OVERRIDE`):** `/api/assignment-rollout` → `submissionProtocolMode=rebuilt`, `source=database`, `schemaOk=true`; other modes remain rebuilt
-6. **Guided API:** GET 200 with `mode=rebuilt`, resumes `doc_inspection` / mid-move states
-7. **Rollback round-trip:** rebuilt → legacy (guided API `404 not_available`; semantic fingerprint unchanged; Modules 1–7 modes stay rebuilt) → rebuilt restores same fingerprint/`doc_inspection`
-8. **Stale write:** POST with older `updatedAt` returns `stale:true` and keeps fresher `activeMoveId`
+6. **Guided API:** GET/POST 200 with `mode=rebuilt`; needs_help → looks_correct advances without false `stale`; refresh resumes `page_numbers`
+7. **Rollback round-trip:** rebuilt → legacy (guided API `404 not_available`; semantic fingerprint unchanged; Modules 1–7 modes stay rebuilt) → rebuilt restores same fingerprint/`page_numbers`
+8. **True stale write:** POST with older `updatedAt` returns `stale:true` and keeps fresher `activeMoveId`
 9. **No fake quiz:** guided completion does not invent `module9_quiz` scores
 10. **Browser production `:3040` (390×844 + 1440×900):** Module 8 Doc-only (no Format/Ready checklist, no Dev panel, no overflow); Module 9 guided title-page needs_help → **I fixed it** → refresh resumes page numbers (2/7); PDF phase with 8 download steps + 5 inspection items; already-submitted bypass (“Submission already received”)
-11. **WP-080 receipt:** tiny valid PDF upload → durable receipt (`wp093-tiny.pdf`, 322 bytes, Accepted and saved, receipt id); refresh/reopen matches; invalid `.txt` → 400; duplicate → 409; dashboard **Submitted** + Open final PDF / View submission receipt
+11. **WP-080 receipt:** tiny valid PDF upload → durable receipt (`wp093-tiny.pdf`, 322 bytes); invalid `.txt` → 400; duplicate → 409; dashboard **Submitted** + Open final PDF / View submission receipt; Module 9 success shows lasting receipt
 12. **Human remainder:** none
 
-**Resolved in commit:** (pending commit)
+**Resolved in commit:** (pending commit — includes stale-write comparison fix)
 
 ---
