@@ -1324,7 +1324,7 @@ export default function ModuleSix() {
                         evidenceCount,
                         moveOrder,
                         legacyProse:
-                          sections[
+                          draft[
                             typeof currentStep?.draftIndex === "number"
                               ? currentStep.draftIndex
                               : 0
