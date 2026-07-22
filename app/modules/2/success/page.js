@@ -1,50 +1,103 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
+import { projectModule2SuccessEvidence } from "@/lib/module2/module2SuccessProjection";
+import { buildModule2SuccessExperience } from "@/lib/ui/successExperienceContract";
+import SuccessExperienceShell from "@/components/success/SuccessExperienceShell";
 
+/**
+ * WP-095 — Module 2 success: evidence-ready transition (not analysis finished).
+ * Mount advance stays outside the pure builder.
+ */
 export default function ModuleTwoSuccess() {
   const { data: session } = useSession();
   const router = useRouter();
   const { speech, letter } = mlkAssignmentDefinition.sources;
+  const [ready, setReady] = useState(false);
+  const [projection, setProjection] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [sourcesRes, bundleRes] = await Promise.all([
+          fetch("/api/module2/sources"),
+          fetch("/api/module2/artifact-bundle"),
+        ]);
+        const sourcesJson = sourcesRes.ok
+          ? await sourcesRes.json().catch(() => null)
+          : null;
+        const bundleJson = bundleRes.ok
+          ? await bundleRes.json().catch(() => ({}))
+          : {};
+        if (cancelled) return;
+        setProjection(
+          projectModule2SuccessEvidence({
+            sources: sourcesJson,
+            matrixBundle: bundleJson?.matrixBundle ?? null,
+            speechTitle: speech?.title,
+            letterTitle: letter?.title,
+          })
+        );
+      } catch {
+        if (cancelled) return;
+        setProjection(
+          projectModule2SuccessEvidence({
+            speechTitle: speech?.title,
+            letterTitle: letter?.title,
+          })
+        );
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [speech?.title, letter?.title]);
 
   useEffect(() => {
     if (!session?.user?.email) return;
     advanceCurrentModuleOnSuccess({
       userEmail: session.user.email,
       completedModuleNumber: 2,
-    }).catch(() => {});
+    })
+      .then(() => setReady(true))
+      .catch(() => setReady(true));
   }, [session?.user?.email]);
 
-  return (
-    <div className="min-h-screen bg-theme-light text-theme-dark p-6 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <h1 className="text-3xl font-extrabold text-theme-green">
-          Module 2 complete!
-        </h1>
-
-        <p className="text-lg text-theme-dark">
-          You saved working copies of Dr. King&apos;s <em>{speech.title}</em> speech and{" "}
-          <em>{letter.title}</em>, then collected evidence and explained how it connects to
-          ethos, pathos, and logos.
+  if (!projection) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-theme-light px-4">
+        <p className="text-sm text-theme-dark/80" role="status">
+          Loading your evidence summary…
         </p>
-
-        <p className="text-sm text-theme-dark/80">
-          In Module 3, you will group those quotes, sharpen a thesis, and build a proof
-          plan—the thinking your paragraph plans will grow from.
-        </p>
-
-        <button
-          type="button"
-          onClick={() => router.push("/modules/3")}
-          className="inline-block bg-theme-blue text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
-        >
-          Continue to Module 3 — analyze the evidence
-        </button>
       </div>
-    </div>
+    );
+  }
+
+  const resolved = buildModule2SuccessExperience({
+    sourcesReady: projection.sourcesReady,
+    speechTitle: projection.speechTitle,
+    letterTitle: projection.letterTitle,
+    directionLabel: projection.directionLabel,
+    bothWorksEvidence: projection.bothWorksEvidence,
+    continueEnabled: ready,
+  });
+
+  return (
+    <SuccessExperienceShell
+      experience={resolved.experience}
+      headingId="module2-success-heading"
+      primaryTestId="module2-continue-module3"
+      statusMessage={!ready ? "Saving your progress…" : null}
+      onPrimaryAction={(action) => {
+        if (!ready || !action?.href) return;
+        router.push(action.href);
+      }}
+    />
   );
 }

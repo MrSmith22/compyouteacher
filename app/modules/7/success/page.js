@@ -1,19 +1,58 @@
-// app/modules/7/success/page.js
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import ModuleRoleTransitionCard from "@/components/transitions/ModuleRoleTransitionCard";
-import { getModuleRoleTransition } from "@/lib/transitions/moduleRoleTransitions";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
-import { HIERARCHY_ACTION_PRIMARY_CLASS, HIERARCHY_FOCUS_RING_CLASS } from "@/lib/ui/hierarchyContract";
+import {
+  getModule6DraftRow,
+  getModule7DraftRow,
+} from "@/lib/artifacts/readArtifactsClient";
+import { projectModule7SuccessEvidence } from "@/lib/module7/module7SuccessProjection";
+import { buildModule7SuccessExperience } from "@/lib/ui/successExperienceContract";
+import SuccessExperienceShell from "@/components/success/SuccessExperienceShell";
 
-const TRANSITION = getModuleRoleTransition(7, 8);
-
+/**
+ * WP-095 — Module 7 success: writing finished / preparation next.
+ * Never claims submitted or APA done. Mount advance unchanged.
+ */
 export default function ModuleSevenSuccess() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [projection, setProjection] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const [m7, m6] = await Promise.all([
+        getModule7DraftRow(),
+        getModule6DraftRow(),
+      ]);
+      if (cancelled) return;
+      const draftMeta =
+        m7.ok && m7.data?.draft_meta && typeof m7.data.draft_meta === "object"
+          ? m7.data.draft_meta
+          : null;
+      const sectionCount =
+        typeof draftMeta?.sectionCount === "number"
+          ? draftMeta.sectionCount
+          : Array.isArray(draftMeta?.sections)
+            ? draftMeta.sections.length
+            : null;
+      setProjection(
+        projectModule7SuccessEvidence({
+          module7: m7.ok ? m7.data : null,
+          module6: m6.ok ? m6.data : null,
+          sectionCount,
+        })
+      );
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const run = async () => {
@@ -31,31 +70,41 @@ export default function ModuleSevenSuccess() {
     run();
   }, [session?.user?.email]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-theme-light px-4 py-10">
-      <div className="w-full max-w-xl rounded-2xl border border-border-soft/70 bg-white px-6 py-8 shadow-soft md:px-10">
-        <ModuleRoleTransitionCard
-          transition={TRANSITION}
-          status={!ready ? "Saving your progress…" : null}
-        >
-          {ready ? (
-            <Link
-              href="/modules/8"
-              className={`inline-flex items-center justify-center ${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
-            >
-              {TRANSITION.actionLabel}
-            </Link>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-lg bg-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600"
-            >
-              {TRANSITION.actionLabel}
-            </button>
-          )}
-        </ModuleRoleTransitionCard>
+  if (!projection) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-theme-light px-4">
+        <p className="text-sm text-theme-dark/80" role="status">
+          Loading your revision summary…
+        </p>
       </div>
+    );
+  }
+
+  const resolved = buildModule7SuccessExperience({
+    revisedEssaySaved: projection.revisedEssaySaved,
+    sectionCount: projection.sectionCount,
+    wordTotal: projection.wordTotal,
+    wordExpectationLabel: projection.wordExpectationLabel,
+    continueEnabled: ready,
+  });
+
+  return (
+    <div
+      data-testid="module-role-transition"
+      data-from-module="7"
+      data-to-module="8"
+      data-presentation="card"
+    >
+      <SuccessExperienceShell
+        experience={resolved.experience}
+        headingId="module7-success-heading"
+        primaryTestId="module7-continue-module8"
+        statusMessage={!ready ? "Saving your progress…" : null}
+        onPrimaryAction={(action) => {
+          if (!ready || !action?.href) return;
+          router.push(action.href);
+        }}
+      />
     </div>
   );
 }

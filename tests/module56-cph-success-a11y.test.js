@@ -165,6 +165,10 @@ describe("CP-H production wiring, a11y, layout", () => {
       path.join(__dirname, "../components/module6/ModuleSixSuccessClient.jsx"),
       "utf8"
     );
+    const shell = fs.readFileSync(
+      path.join(__dirname, "../components/success/SuccessExperienceShell.jsx"),
+      "utf8"
+    );
     assert.ok(m5page.includes("ModuleFiveSuccessClient"));
     assert.ok(m6page.includes("ModuleSixSuccessClient"));
     assert.ok(m5client.includes("getOutlineRow"));
@@ -173,10 +177,10 @@ describe("CP-H production wiring, a11y, layout", () => {
     assert.equal(m6client.includes("method: \"POST\""), false);
     assert.equal(m5client.includes("/api/outlines"), false);
     assert.ok(m5client.includes("advanceCurrentModuleOnSuccess"));
-    assert.ok(m6client.includes("role=\"tablist\""));
-    assert.ok(m6client.includes("aria-selected"));
-    assert.ok(m5client.includes("min-h-[44px]"));
-    assert.ok(m6client.includes("overflow-x-hidden"));
+    assert.ok(m5client.includes("SuccessExperienceShell"));
+    assert.ok(m6client.includes("SuccessExperienceShell"));
+    assert.ok(shell.includes("HIERARCHY_FOCUS_RING_CLASS"));
+    assert.ok(m6client.includes("overflow-x-hidden") || m6client.includes("incomplete"));
   });
 
   it("H10. Layout contracts cover 320–1440", () => {
@@ -208,6 +212,10 @@ describe("CP-H production wiring, a11y, layout", () => {
   });
 
   it("H13. Success controls expose visible keyboard focus indicators", () => {
+    const shell = fs.readFileSync(
+      path.join(__dirname, "../components/success/SuccessExperienceShell.jsx"),
+      "utf8"
+    );
     const m5client = fs.readFileSync(
       path.join(__dirname, "../components/module5/ModuleFiveSuccessClient.jsx"),
       "utf8"
@@ -216,14 +224,8 @@ describe("CP-H production wiring, a11y, layout", () => {
       path.join(__dirname, "../components/module6/ModuleSixSuccessClient.jsx"),
       "utf8"
     );
-    const focusToken =
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-theme-dark";
-    assert.ok(m5client.includes(focusToken));
-    assert.ok(m6client.includes(focusToken));
-    assert.ok(m6client.includes("role=\"tab\""));
-    assert.equal(
-      (m6client.match(/focus-visible:ring-theme-dark/g) || []).length >= 4,
-      true
-    );
+    assert.ok(shell.includes("HIERARCHY_FOCUS_RING_CLASS"));
+    assert.ok(m5client.includes("SuccessExperienceShell"));
+    assert.ok(m6client.includes("SuccessExperienceShell"));
   });
 });

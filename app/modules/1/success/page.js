@@ -2,20 +2,16 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   MODULE1_ADVANCE_STATES,
   MODULE1_ADVANCE_ERROR_MESSAGE,
-  MODULE1_CONTINUE_HREF,
-  MODULE1_CONTINUE_LABEL,
   MODULE1_SAVING_MESSAGE,
   canNavigateToModule2,
   canStartModule1Advancement,
   createModule1AdvancementController,
   interpretModule1AdvancementWrite,
 } from "@/lib/module1/module1SuccessAdvancement";
-import { isSuccessExperienceFoundationEnabled } from "@/lib/dev/isSuccessExperienceFoundationEnabled";
 import { buildModule1SuccessExperience } from "@/lib/ui/successExperienceContract";
 import SuccessExperienceShell from "@/components/success/SuccessExperienceShell";
 
@@ -67,13 +63,11 @@ function Module1SuccessContent() {
   const params = useSearchParams();
   const scoreParam = params.get("score");
   const score = scoreParam && scoreParam !== "-" ? scoreParam : null;
-  const foundationEnabled = isSuccessExperienceFoundationEnabled();
 
   const [advanceState, setAdvanceState] = useState(
     MODULE1_ADVANCE_STATES.IDLE
   );
   const [errorMessage, setErrorMessage] = useState("");
-  const [lastFailureReason, setLastFailureReason] = useState("");
   const controllerRef = useRef(createModule1AdvancementController());
   const cancelledRef = useRef(false);
 
@@ -94,7 +88,6 @@ function Module1SuccessContent() {
 
     setAdvanceState(MODULE1_ADVANCE_STATES.SAVING);
     setErrorMessage("");
-    setLastFailureReason("");
 
     try {
       const result = await requestModule1Completion();
@@ -110,18 +103,15 @@ function Module1SuccessContent() {
       if (!interpreted.ok) {
         setAdvanceState(MODULE1_ADVANCE_STATES.ERROR);
         setErrorMessage(interpreted.message || MODULE1_ADVANCE_ERROR_MESSAGE);
-        setLastFailureReason(result?.reason || "write_failure");
         return;
       }
 
       setAdvanceState(MODULE1_ADVANCE_STATES.READY);
       setErrorMessage("");
-      setLastFailureReason("");
     } catch {
       if (cancelledRef.current) return;
       setAdvanceState(MODULE1_ADVANCE_STATES.ERROR);
       setErrorMessage(MODULE1_ADVANCE_ERROR_MESSAGE);
-      setLastFailureReason("write_failure");
     } finally {
       controllerRef.current.end(began.generation);
     }
@@ -145,133 +135,44 @@ function Module1SuccessContent() {
   const isSaving = advanceState === MODULE1_ADVANCE_STATES.SAVING;
   const isError = advanceState === MODULE1_ADVANCE_STATES.ERROR;
 
-  if (foundationEnabled) {
-    const resolved = buildModule1SuccessExperience({
-      quizScoreLabel: score ? `Check-in score: ${score}%` : null,
-      conceptsCompleted:
-        "Ethos, pathos, and logos ready for source reading",
-      continueEnabled,
-    });
-    const experience = resolved.experience;
-    return (
-      <SuccessExperienceShell
-        experience={resolved.experience}
-        headingId="module1-success-heading"
-        primaryTestId="module1-continue-module2"
-        statusMessage={
-          isSaving
-            ? MODULE1_SAVING_MESSAGE
-            : isError
-              ? errorMessage || MODULE1_ADVANCE_ERROR_MESSAGE
-              : null
-        }
-        onPrimaryAction={(action) => {
-          if (!action?.href || !continueEnabled) return;
-          router.push(action.href);
-        }}
-      >
-        {isError ? (
-          <button
-            type="button"
-            data-testid="module1-advance-retry"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white"
-            disabled={controllerRef.current.inFlight}
-            onClick={() => {
-              setAdvanceState(MODULE1_ADVANCE_STATES.ERROR);
-              runAdvancement();
-            }}
-          >
-            Try saving again
-          </button>
-        ) : null}
-      </SuccessExperienceShell>
-    );
-  }
+  const resolved = buildModule1SuccessExperience({
+    quizScoreLabel: score ? `Check-in score: ${score}%` : null,
+    conceptsCompleted: "Ethos, pathos, and logos ready for source reading",
+    continueEnabled,
+  });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded-xl p-8 text-center space-y-6">
-        <h1 className="text-3xl font-extrabold text-theme-green">
-          Module 1 complete!
-        </h1>
-
-        <p className="text-lg text-theme-dark">
-          You explained what the essay is asking you to do and checked your
-          understanding of ethos, pathos, and logos—the vocabulary you will use
-          when you analyze King&apos;s speech and letter.
-        </p>
-
-        <p className="text-sm text-theme-dark/80">
-          In Module 2, you will save working copies of both texts and collect
-          evidence you can build on—not start over.
-        </p>
-
-        {score ? (
-          <p className="text-sm text-theme-dark">
-            Quiz score:{" "}
-            <span className="font-bold text-theme-blue">{score}%</span>
-          </p>
-        ) : null}
-
-        {isSaving ? (
-          <p
-            className="text-sm text-theme-dark/80"
-            data-testid="module1-advance-saving"
-            aria-live="polite"
-          >
-            {MODULE1_SAVING_MESSAGE}
-          </p>
-        ) : null}
-
-        {isError ? (
-          <div className="space-y-3" data-testid="module1-advance-error">
-            <p role="alert" className="text-sm text-theme-red">
-              {errorMessage || MODULE1_ADVANCE_ERROR_MESSAGE}
-            </p>
-            {process.env.NODE_ENV === "development" && lastFailureReason ? (
-              <p
-                className="text-xs text-theme-dark/60"
-                data-testid="module1-advance-reason"
-              >
-                Dev reason: {lastFailureReason}
-              </p>
-            ) : null}
-            <button
-              type="button"
-              data-testid="module1-advance-retry"
-              className="inline-block bg-theme-blue hover:bg-blue-800 text-white px-6 py-2 rounded shadow transition disabled:opacity-50"
-              disabled={controllerRef.current.inFlight}
-              onClick={() => {
-                setAdvanceState(MODULE1_ADVANCE_STATES.ERROR);
-                runAdvancement();
-              }}
-            >
-              Try saving again
-            </button>
-          </div>
-        ) : null}
-
-        {continueEnabled ? (
-          <Link
-            href={MODULE1_CONTINUE_HREF}
-            data-testid="module1-continue-module2"
-            className="inline-block bg-theme-blue hover:bg-blue-800 text-white px-6 py-2 rounded shadow transition"
-          >
-            {MODULE1_CONTINUE_LABEL}
-          </Link>
-        ) : (
-          <button
-            type="button"
-            disabled
-            data-testid="module1-continue-module2-disabled"
-            className="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded shadow cursor-not-allowed"
-            aria-disabled="true"
-          >
-            {MODULE1_CONTINUE_LABEL}
-          </button>
-        )}
-      </div>
-    </div>
+    <SuccessExperienceShell
+      experience={resolved.experience}
+      headingId="module1-success-heading"
+      primaryTestId="module1-continue-module2"
+      statusMessage={
+        isSaving
+          ? MODULE1_SAVING_MESSAGE
+          : isError
+            ? errorMessage || MODULE1_ADVANCE_ERROR_MESSAGE
+            : null
+      }
+      onPrimaryAction={(action) => {
+        if (!action?.href || !continueEnabled) return;
+        router.push(action.href);
+      }}
+    >
+      {isError ? (
+        <button
+          type="button"
+          data-testid="module1-advance-retry"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white"
+          disabled={controllerRef.current.inFlight}
+          onClick={() => {
+            setAdvanceState(MODULE1_ADVANCE_STATES.ERROR);
+            runAdvancement();
+          }}
+        >
+          Try saving again
+        </button>
+      ) : null}
+    </SuccessExperienceShell>
   );
 }
 

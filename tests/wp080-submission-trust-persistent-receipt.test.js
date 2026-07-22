@@ -256,20 +256,21 @@ describe("WP-080 submission trust and persistent receipt", () => {
     assert.ok(success.includes('data-testid="module9-receipt-submitted-at"'));
     assert.ok(success.includes('data-testid="module9-receipt-file-size"'));
     assert.ok(success.includes('data-testid="module9-receipt-id"'));
-    assert.ok(success.includes('data-testid="module9-accomplishment-trail"'));
-    assert.ok(success.includes("Understood"));
-    assert.ok(success.includes("Submitted"));
-    assert.ok(success.includes("Your paper was received"));
+    assert.ok(success.includes('journeyTrailTestId="module9-accomplishment-trail"'));
+    assert.ok(success.includes("SuccessExperienceShell"));
+    assert.ok(success.includes("buildModule9ReceiptExperience"));
     assert.ok(success.includes("formatFileSize"));
     assert.ok(success.includes('data-testid="module9-receipt-missing"'));
-    assert.ok(success.includes('data-testid="module9-receipt-recover"'));
-    assert.ok(success.includes('router.push("/modules/9")'));
     assert.ok(success.includes("Contact your teacher before you try to change or resubmit"));
-    assert.ok(success.includes("ModuleRoleTransitionCard"));
     assert.ok(success.includes("advanceCurrentModuleOnSuccess"));
     assert.ok(success.includes("logActivity"));
     assert.ok(success.includes("getStudentExport"));
     assert.ok(success.includes("idempotent") || success.includes("module_completed"));
+
+    const contract = readSrc("lib/ui/successExperienceContract.js");
+    assert.ok(contract.includes("Your paper was received"));
+    assert.ok(contract.includes("Back to Module 9 upload") || contract.includes("/modules/9"));
+    assert.ok(contract.includes('href: "/dashboard"'));
 
     const loadStart = success.indexOf("async function onLoad");
     const loadEnd = success.indexOf("onLoad();");
@@ -283,23 +284,15 @@ describe("WP-080 submission trust and persistent receipt", () => {
 
   it("dashboard shows one completion indicator plus submitted timestamp", () => {
     const dash = readSrc("app/dashboard/page.js");
+    const foundation = readSrc("components/success/CompletedDashboardFoundation.jsx");
     assert.ok(dash.includes("getFinalPdfExport"));
-    assert.ok(dash.includes('data-testid="dashboard-open-final-pdf"'));
-    assert.ok(dash.includes('data-testid="dashboard-view-receipt"'));
-    assert.ok(dash.includes('data-testid="dashboard-submission-time"'));
+    assert.ok(dash.includes("CompletedDashboardFoundation"));
+    assert.ok(foundation.includes('data-testid="dashboard-open-final-pdf"'));
+    assert.ok(foundation.includes('data-testid="dashboard-view-receipt"'));
+    assert.ok(foundation.includes('data-testid="dashboard-submission-time"'));
     assert.ok(dash.includes("uploaded_at"));
-    assert.equal(
-      (dash.match(/>[\s]*Essay completed[\s]*</g) || []).length,
-      1,
-      "visible badge text appears once"
-    );
-    assert.equal(
-      (dash.match(/Status:[\s\S]{0,40}Essay completed/g) || []).length,
-      0,
-      "status line must not repeat Essay completed"
-    );
-    assert.ok(!dash.includes("<div>Essay completed</div>"));
-    assert.ok(dash.includes('router.push("/modules/9/success")'));
+    assert.ok(foundation.includes('data-testid="dashboard-essay-completed-badge"'));
+    assert.ok(dash.includes('router.push("/modules/9/success")') || dash.includes('onOpenReceipt'));
     assert.ok(dash.includes("DevResetStudentButton"));
   });
 

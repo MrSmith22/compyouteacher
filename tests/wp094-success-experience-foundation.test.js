@@ -148,18 +148,14 @@ describe("WP-094 completed dashboard projection", () => {
   });
 });
 
-describe("WP-094 development gate and source boundaries", () => {
-  it("gate is development-only and presentation-only", () => {
-    const src = fs.readFileSync(
-      path.join(
-        __dirname,
-        "../lib/dev/isSuccessExperienceFoundationEnabled.js"
+describe("WP-094 production presentation boundaries (promoted by WP-095)", () => {
+  it("presentation gate file is retired", () => {
+    assert.equal(
+      fs.existsSync(
+        path.join(__dirname, "../lib/dev/isSuccessExperienceFoundationEnabled.js")
       ),
-      "utf8"
+      false
     );
-    assert.match(src, /NODE_ENV === ["']development["']/);
-    assert.match(src, /presentation-only|Presentation-only/i);
-    assert.doesNotMatch(src, /submission_protocol_mode|writing_spine_mode/);
   });
 
   it("does not invent seed/fixture copy in production source gates", () => {
@@ -171,7 +167,7 @@ describe("WP-094 development gate and source boundaries", () => {
     assert.doesNotMatch(src, /WP-094-FIXTURE|synthetic-evidence-seed/i);
   });
 
-  it("representative pages branch on the foundation gate", () => {
+  it("representative pages always mount the shared success presentation", () => {
     for (const rel of [
       "app/modules/1/success/page.js",
       "components/module6/ModuleSixSuccessClient.jsx",
@@ -180,7 +176,8 @@ describe("WP-094 development gate and source boundaries", () => {
       "app/dashboard/page.js",
     ]) {
       const src = fs.readFileSync(path.join(__dirname, "..", rel), "utf8");
-      assert.match(src, /isSuccessExperienceFoundationEnabled/);
+      assert.doesNotMatch(src, /isSuccessExperienceFoundationEnabled/);
+      assert.match(src, /SuccessExperienceShell|CompletedDashboardFoundation/);
     }
   });
 

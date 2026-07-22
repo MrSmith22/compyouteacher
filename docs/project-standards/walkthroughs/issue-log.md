@@ -132,8 +132,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-092 | Consolidated Module 8–9 guided APA protocol (Phase 5, development-only) | 8–9 | Critical | Instructional / Architecture | Resolved |
 | WP-093 | Production promotion of Modules 8–9 guided APA / submission protocol | 8–9 | Critical | Architecture / Ops | Resolved |
 | WP-094 | Success-screen family and completed-dashboard foundation (Phase 6, development-only) | 1, 6, 8–9, Dashboard | High | Visual Design / UX | Resolved |
+| WP-095 | Generalize and promote the success system (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / UX | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-095.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-096.*
 
 ---
 
@@ -1593,6 +1594,8 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 **Related files:** `lib/transitions/moduleRoleTransitions.js`; `components/transitions/ModuleRoleTransitionCard.jsx`; Module 4 handoff + Module 4–6 success clients; `app/modules/{7,8,9}/success/page.js`; `tests/wp052-module-role-transitions.test.js`
 
 **Resolution notes:** (July 2026) Modules 3–9 boundary pass. Shared transition model covers 3→4 … 8→9 plus Module 9 terminal celebration. **Reused** (no duplicate card): Module 4 handoff (3→4 destination-side), Module 4–6 staged success—wired to model copy + `data-testid="module-role-transition"`. **Card surfaces:** Module 7/8/9 success. Module 8 success no longer says “demonstrate” APA; states writing is finished and Module 9 is review/download/submit. Module 9 celebrates the transferable sequence (observing/analyzing → submitting). Module 3 files and paused architecture docs untouched. Status **Needs Verification** (app-wide; Module 3 source success path intentional untouched; browser coverage bounded).
+
+**WP-095 evidence (2026-07-22):** Catalog `3-to-4` `actionLabel` aligned to product **`Start Body Paragraph 1`** (`MODULE4_HANDOFF_CTA_LABEL`). Modules 4–7 success now mount `SuccessExperienceShell`; WP-052 assertions verify catalog copy + CTA destinations still drive the shell (not stale ModuleRoleTransitionCard-only checks). Automated: `tests/wp052-module-role-transitions.test.js` green.
 
 **Resolved in commit:** (this commit)
 
@@ -3068,5 +3071,38 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - Human remainder only: whether celebration intensity / visual tone feels age-appropriate.
 
 **Resolved in commit:** (working tree at acceptance; commit when Jason requests)
+
+---
+
+### WP-095 — Generalize and promote the success system
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Visual Design / UX  
+**Module:** 1–9, Dashboard  
+**Related:** WP-052, WP-080, WP-094; Prompt 16; Phase 6 / Epic H
+
+**Walkthrough observation:** WP-094 established the shared success family on Modules 1, 6, 8, 9 and the completed dashboard behind a development gate. Modules 2, 3, 4, 5, and 7 still use legacy cards or multi-stage success UIs.
+
+**Student-facing impact:** Students should meet one familiar success pattern across all nine modules, with module-specific truthful evidence, then see that same presentation in production without a visual gate.
+
+**Why it matters technically or operationally:** Presentation-only generalization and promotion. Must not change progression, receipt authority, instructional rollout modes, or artifact schemas. No database migration.
+
+**Recommended smallest reasonable fix:** Extend `successExperienceContract` builders for Modules 2/3/4/5/7; wire all nine routes + dashboard to the shared shell; remove `isSuccessExperienceFoundationEnabled`; align WP-052 3→4 CTA catalog with product.
+
+**Gate retirement:** Delete development-only presentation gate after all nine routes pass acceptance; rollback is code/deploy only.
+
+**Resolution notes:** (July 22, 2026)
+
+- Builders: `buildModule2/3/4/5/7SuccessExperience` plus thin projections (`module2SuccessProjection`, `module7SuccessProjection`).
+- Wired Modules 2–5 and 7 to `SuccessExperienceShell`; preserved mount CAS and primary destinations.
+- WP-052: catalog `3-to-4` actionLabel → **Start Body Paragraph 1**; success clients assert shell + catalog destinations.
+- Removed `isSuccessExperienceFoundationEnabled` and legacy gated branches on M1/6/8/9 + dashboard.
+- Automated: `tests/wp095-success-system-generalize-promote.test.js` + updated wp094/wp052/wp080/module56 a11y (**83** related tests green).
+- Agent browser **dev** `http://127.0.0.1:3000`: **165/165** (`scripts/wp095-browser-acceptance.mjs`, screenshots `/tmp/wp095-browser/`).
+- Agent browser **prod** `http://127.0.0.1:3025`: **165/165**; `/api/dev/panel` → **404**; production build succeeded; gate strings absent from `.next/static` success chunks.
+- Human remainder only: age-fit / visual tone.
+
+**Resolved in commit:** (this change set)
 
 ---

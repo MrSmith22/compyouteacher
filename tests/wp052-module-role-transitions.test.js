@@ -118,6 +118,8 @@ describe("WP-052 module role transitions", () => {
       assert.ok(src.includes(`data-from-module="${from}"`));
       assert.ok(src.includes(`data-to-module="${to}"`));
       assert.equal(src.includes("ModuleRoleTransitionCard"), false);
+      // WP-095: catalog-backed SuccessExperienceShell (destinations live in contract).
+      assert.ok(src.includes("SuccessExperienceShell"));
     }
     assert.equal(MODULE4_SUCCESS_ACCOMPLISHMENT, getModuleRoleTransition(4, 5).accomplishment);
     assert.equal(
@@ -131,17 +133,44 @@ describe("WP-052 module role transitions", () => {
     assert.equal(MODULE6_SUCCESS_ACCOMPLISHMENT, getModuleRoleTransition(6, 7).accomplishment);
     assert.equal(MODULE6_SUCCESS_HANDOFF, formatRoleTransitionHandoff(getModuleRoleTransition(6, 7)));
     assert.equal(MODULE6_SUCCESS_PRIMARY_CTA, getModuleRoleTransition(6, 7).actionLabel);
+
+    const contract = readSrc("lib/ui/successExperienceContract.js");
+    assert.ok(contract.includes('href: "/modules/5"'));
+    assert.ok(contract.includes('href: "/modules/6"'));
+    assert.ok(contract.includes('href: "/modules/7"'));
+    assert.equal(
+      getModuleRoleTransition(4, 5).actionLabel,
+      "Continue to Module 5 — organize your outline"
+    );
+    assert.equal(
+      getModuleRoleTransition(5, 6).actionLabel,
+      "Continue to Module 6 — draft your essay"
+    );
   });
 
-  it("uses the shared card for Module 7–9 thin success screens with stable hooks", () => {
+  it("keeps Module 7–9 success hooks; catalog CTAs drive shell or shared card", () => {
+    const m7 = readSrc("app/modules/7/success/page.js");
+    assert.ok(m7.includes('data-testid="module-role-transition"'));
+    assert.ok(m7.includes("SuccessExperienceShell"));
+    assert.ok(m7.includes("buildModule7SuccessExperience"));
+    assert.equal(m7.includes("ModuleRoleTransitionCard"), false);
+    assert.equal(
+      getModuleRoleTransition(7, 8).actionLabel,
+      "Continue to Module 8 — prepare your essay for submission"
+    );
+    assert.ok(
+      readSrc("lib/ui/successExperienceContract.js").includes(
+        'href: "/modules/8"'
+      )
+    );
+
     for (const rel of [
-      "app/modules/7/success/page.js",
       "app/modules/8/success/page.js",
       "app/modules/9/success/page.js",
-      "components/transitions/ModuleRoleTransitionCard.jsx",
     ]) {
       const src = readSrc(rel);
-      assert.ok(src.includes("module-role-transition") || src.includes("ModuleRoleTransitionCard"));
+      assert.ok(src.includes("SuccessExperienceShell"));
+      assert.ok(src.includes('data-testid="module-role-transition"'));
     }
     const card = readSrc("components/transitions/ModuleRoleTransitionCard.jsx");
     assert.ok(card.includes('data-testid="module-role-transition"'));
@@ -158,10 +187,13 @@ describe("WP-052 module role transitions", () => {
     assert.ok(/APA|review|submit|download/i.test(blob));
     const page = readSrc("app/modules/8/success/page.js");
     assert.equal(/demonstrate/i.test(page), false);
-    assert.ok(page.includes("getModuleRoleTransition(8, 9)"));
-    assert.ok(page.includes('data-testid="module8-success-continue"'));
+    assert.ok(page.includes("SuccessExperienceShell"));
+    assert.ok(page.includes("buildModule8SuccessExperience"));
+    assert.ok(page.includes('primaryTestId="module8-success-continue"'));
     assert.ok(page.includes("advanceCurrentModuleOnSuccess"));
-    assert.ok(page.includes('router.push("/modules/9")'));
+    assert.ok(
+      readSrc("lib/ui/successExperienceContract.js").includes('href: "/modules/9"')
+    );
   });
 
   it("celebrates Module 9 as the transferable whole process", () => {
@@ -184,23 +216,38 @@ describe("WP-052 module role transitions", () => {
     assert.ok(/Great work/i.test(blob));
     assert.ok(/Be proud of the work you/i.test(blob));
     const page = readSrc("app/modules/9/success/page.js");
-    assert.ok(page.includes("ModuleRoleTransitionCard"));
-    assert.ok(page.includes("getModuleRoleTransition(9, null)"));
+    assert.ok(page.includes("SuccessExperienceShell"));
+    assert.ok(page.includes("buildModule9ReceiptExperience"));
     assert.ok(page.includes("advanceCurrentModuleOnSuccess"));
     assert.ok(page.includes("logActivity"));
-    assert.ok(page.includes('router.push("/dashboard")'));
+    assert.ok(
+      readSrc("lib/ui/successExperienceContract.js").includes('href: "/dashboard"')
+    );
     assert.ok(/Contact your teacher before you try to change or resubmit/i.test(page));
   });
 
   it("preserves routes, handlers, and primary action destinations", () => {
     const m7 = readSrc("app/modules/7/success/page.js");
     const m8 = readSrc("app/modules/8/success/page.js");
-    assert.ok(m7.includes('href="/modules/8"'));
     assert.ok(m7.includes("completedModuleNumber: 7"));
+    assert.ok(
+      readSrc("lib/ui/successExperienceContract.js").includes('href: "/modules/8"')
+    );
     assert.ok(m8.includes("completedModuleNumber: 8"));
-    assert.ok(m8.includes('router.push("/modules/9")'));
+    assert.ok(m8.includes("router.push(action.href)"));
+    assert.ok(
+      readSrc("lib/ui/successExperienceContract.js").includes('href: "/modules/9"')
+    );
     assert.ok(readSrc("lib/module4/module4HandoffHelpers.js").includes("STEP_HANDOFF"));
     assert.ok(readSrc("lib/module5/module5SuccessHelpers.js").includes("MODULE5_SUCCESS_NEXT_HREF"));
     assert.ok(readSrc("lib/module6/module6SuccessHelpers.js").includes("MODULE6_SUCCESS_NEXT_HREF"));
+  });
+
+  it("aligns 3→4 catalog actionLabel with product Start Body Paragraph 1 (WP-095)", () => {
+    const t = getModuleRoleTransition(3, 4);
+    assert.equal(t.actionLabel, "Start Body Paragraph 1");
+    assert.equal(t.actionLabel, MODULE4_HANDOFF_CTA_LABEL);
+    assert.equal(t.actionLabel.includes("Paragraph 1"), true);
+    assert.equal(t.actionLabel, "Start Body Paragraph 1");
   });
 });
