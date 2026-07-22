@@ -49,6 +49,17 @@ import {
 } from "@/lib/module2/normalizeEvidenceReader";
 import { getSituationSummaryOrFallback } from "@/lib/module2/rhetoricalSituationSummary";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
+import RepresentativeDirectionEvidencePanel from "@/components/module2/RepresentativeDirectionEvidencePanel";
+import {
+  toEvidenceArgumentRecord,
+} from "@/lib/artifacts/evidenceArgumentContract";
+import {
+  isEvidenceToArgumentSliceEnabled,
+  isEvidenceToArgumentSliceModeEnabled,
+} from "@/lib/dev/isEvidenceToArgumentSliceEnabled";
+import {
+  buildEvidenceArgumentDirectionDescriptor,
+} from "@/lib/module2/evidenceArgumentDirectionDescriptor";
 
 function sourceLabel(sourceType) {
   return sourceType === "letter" ? "Letter" : "Speech";
@@ -116,6 +127,7 @@ export default function ModuleTwoRhetoricalMatrix() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [customPattern, setCustomPattern] = useState("");
+  const [customMapping, setCustomMapping] = useState(null);
   const [selectedOptionId, setSelectedOptionId] = useState("");
   const [localFunctionNote, setLocalFunctionNote] = useState("");
   const [hydrated, setHydrated] = useState(false);
@@ -176,6 +188,38 @@ export default function ModuleTwoRhetoricalMatrix() {
     [cell, microtask, localFunctionNote]
   );
 
+  const evidenceArgumentRecords = useMemo(
+    () =>
+      (Array.isArray(evidence) ? evidence : [])
+        .map((row) =>
+          toEvidenceArgumentRecord(row, {
+            selectedDirectionId: selectedOptionId || null,
+          })
+        )
+        .filter(Boolean),
+    [evidence, selectedOptionId]
+  );
+
+  const directionDescriptor = useMemo(
+    () =>
+      buildEvidenceArgumentDirectionDescriptor({
+        optionId: selectedOptionId,
+        matrixBundle: bundle,
+        customMapping,
+        customLabel: customPattern,
+      }),
+    [selectedOptionId, bundle, customMapping, customPattern]
+  );
+
+  // Rebuilt pairing (including incomplete custom mapping UI) only when rollout mode is on.
+  const showEvidencePairPanel =
+    isEvidenceToArgumentSliceModeEnabled() &&
+    (selectedOptionId === "student_created" ||
+      isEvidenceToArgumentSliceEnabled({
+        optionId: selectedOptionId,
+        customMapping,
+      }));
+
   useEffect(() => {
     if (status !== "authenticated" || !email) return;
     let cancelled = false;
@@ -214,6 +258,9 @@ export default function ModuleTwoRhetoricalMatrix() {
             setSelectedOptionId(loaded.selectedPattern.optionId || "");
             if (loaded.selectedPattern.kind === "student_created") {
               setCustomPattern(loaded.selectedPattern.label || "");
+            }
+            if (loaded.selectedPattern.customMapping) {
+              setCustomMapping(loaded.selectedPattern.customMapping);
             }
           }
 
@@ -580,11 +627,16 @@ export default function ModuleTwoRhetoricalMatrix() {
         ? recommendations.custom
         : recommendations.supporting.find((o) => o.id === selectedOptionId));
 
-    const selected = buildSelectedPattern({
-      option: option || recommendations.custom,
-      customLabel: customPattern,
-      derived,
-    });
+    const selected = {
+      ...buildSelectedPattern({
+        option: option || recommendations.custom,
+        customLabel: customPattern,
+        derived,
+      }),
+      ...(selectedOptionId === "student_created" && customMapping
+        ? { customMapping }
+        : {}),
+    };
 
     let next = {
       ...bundleRef.current,
@@ -1238,6 +1290,64 @@ export default function ModuleTwoRhetoricalMatrix() {
                   >
                     {cue.message}
                   </p>
+                ) : null}
+
+                {showEvidencePairPanel ? (
+                  <RepresentativeDirectionEvidencePanel
+                    selectedOptionId={selectedOptionId}
+                    evidenceRecords={evidenceArgumentRecords}
+                    matrixBundle={bundle}
+                    customMapping={customMapping}
+                    onCustomMappingChange={setCustomMapping}
+                    speechCandidates={evidenceArgumentRecords.filter(
+                      (r) =>
+                        r.sourceKind === "speech" &&
+                        (!directionDescriptor.speechAppeal ||
+                          r.rhetoricalChoice === directionDescriptor.speechAppeal)
+                    )}
+                    letterCandidates={evidenceArgumentRecords.filter(
+                      (r) =>
+                        r.sourceKind === "letter" &&
+                        (!directionDescriptor.letterAppeal ||
+                          r.rhetoricalChoice === directionDescriptor.letterAppeal)
+                    )}
+                    onReplaceSpeechId={(id) => {
+                      const appeal = directionDescriptor.speechAppeal;
+                      if (!appeal) {
+                        setCustomMapping((prev) => ({
+                          ...(prev || {}),
+                          speechEvidenceId: id,
+                        }));
+                        return;
+                      }
+                      setBundle((prev) => {
+                        const cells = prev.cells.map((c) =>
+                          c.sourceType === "speech" && c.appeal === appeal
+                            ? { ...c, evidenceIds: id ? [id] : [] }
+                            : c
+                        );
+                        return { ...prev, cells };
+                      });
+                    }}
+                    onReplaceLetterId={(id) => {
+                      const appeal = directionDescriptor.letterAppeal;
+                      if (!appeal) {
+                        setCustomMapping((prev) => ({
+                          ...(prev || {}),
+                          letterEvidenceId: id,
+                        }));
+                        return;
+                      }
+                      setBundle((prev) => {
+                        const cells = prev.cells.map((c) =>
+                          c.sourceType === "letter" && c.appeal === appeal
+                            ? { ...c, evidenceIds: id ? [id] : [] }
+                            : c
+                        );
+                        return { ...prev, cells };
+                      });
+                    }}
+                  />
                 ) : null}
 
                 <div className="mt-4 flex flex-wrap gap-3">

@@ -122,9 +122,14 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-082 | Introduction and Conclusion vertical slices (section-specific moves + diagnostics) | 4–7 | Critical | Instructional / Architecture | Resolved |
 | WP-083 | All required body paragraphs (generalize WP-081 to every required body) | 4–7 | Critical | Instructional / Architecture | Resolved |
 | WP-084 | Whole-essay review and configurable teacher word-count expectation | 6–8 | Critical | Instructional / Architecture | Resolved |
-| WP-085 | Production promotion of Modules 4–7 writing spine | 4–8 | Critical | Architecture / Ops | In Progress |
+| WP-085 | Production promotion of Modules 4–7 writing spine | 4–8 | Critical | Architecture / Ops | Resolved |
+| WP-086 | Evidence-to-argument vertical slice (speech pathos / letter logos) | 2–4 | Critical | Instructional / Architecture | Resolved |
+| WP-087 | Generalize evidence-to-argument across all WP-079 directions | 2–4 | Critical | Instructional / Architecture | Resolved |
+| WP-088 | Production promotion of Modules 2–3 evidence-to-argument spine | 2–4 | Critical | Architecture / Ops | Resolved |
+| WP-089 | Transfer-oriented vocabulary foundation (representative ethos lesson) | 1 | High | Instructional / Architecture | Resolved |
+| WP-090 | Generalize transfer-oriented vocabulary across all six Module 1 concepts | 1 | High | Instructional / Architecture | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-083.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-091.*
 
 ---
 
@@ -2678,7 +2683,7 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 
 ### WP-085 — Production promotion of Modules 4–7 writing spine
 
-**Status:** In Progress  
+**Status:** Resolved
 **Priority:** Critical  
 **Category:** Architecture / Ops  
 **Module:** 4–8  
@@ -2693,5 +2698,198 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 **Recommended smallest reasonable fix:** `writing_spine_mode` on `assignment_settings` + resolver + env emergency override; replace instructional NODE_ENV gates; legacy adapters; preflight + runbook; production-build tests and browser acceptance.
 
 **Gate:** Instructional gates use rollout mode (not NODE_ENV). Developer panel/seeds/dev auth remain NODE_ENV-protected.
+
+**Resolution notes:** (July 21, 2026) Applied the `writing_spine_mode` migration and verified the MLK assignment resolves to `rebuilt` from the database with no local fallback. Production-build browser acceptance passed for Modules 4–7 and Dashboard at 390×844 and 1440×900 with no horizontal overflow and no Developer Testing Panel. Module 6 acceptance exposed a production-only `ReferenceError` where the move workspace read an undefined `sections` variable; corrected it to hydrate from the live `draft` state and added an executable regression assertion. Production safety probes confirmed `/api/dev/panel` and `/api/dev/reset-student` both return 404. The production preflight passes for settings, rollout mode, fallback absence, and draft metadata; focused WP-081–085 tests pass 104/104. Accessible control-order inspection confirms the drafting textbox, move controls, advanced path, Back, Keep going, and optional help remain in logical document order.
+
+**Resolved in commit:** (pending commit)
+
+---
+
+### WP-086 — Evidence-to-argument vertical slice (speech pathos / letter logos)
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Instructional / Architecture  
+**Module:** 2–4  
+**Related:** WP-003, WP-064, WP-079, WP-085; Prompt 07; Phase 3
+
+**Walkthrough observation:** Module 2 observations/ratings and Module 3 thesis work are not experienced as transformations of the same evidence. Evidence can detach from source/explanation; Module 3 can ask for a conclusion before both-work reread; completion can overclaim readiness.
+
+**Student-facing impact:** Students cannot reliably answer which exact passages support their comparison, why the difference matters, or how proof directions connect to both works.
+
+**Why it matters technically or operationally:** Need a shared provenance/health contract, a development-gated representative path (`cross_dominant:pathos:logos`), staged thesis builder, true both-work readiness, and Module 4 handoff compatibility without forking WP-079 or redesigning Modules 4–9.
+
+**Recommended smallest reasonable fix:** Additive `evidenceArgumentContract` + health; `isEvidenceToArgumentSliceEnabled` (dev + representative optionId); seed; gated Module 2 pairing + Module 3 reorient/reread/staged thesis; gated completion truth; read-only M4 handoff tests.
+
+**Gate:** Development-only for speech-pathos / letter-logos. Other directions unchanged. No production promotion in this issue.
+
+**Resolution notes:** (July 21, 2026)
+- Shared contract/health/readiness in `lib/artifacts/evidenceArgumentContract.js`; gate in `lib/dev/isEvidenceToArgumentSliceEnabled.js`.
+- Dev seed `evidenceToArgumentSlice` (ratings 6/8/10/4/4/9, selected `cross_dominant:pathos:logos`, strong + mismatched observations, Module 3 prose preserved for review).
+- Module 2: representative direction desk pairing panel; Module 3: gated staged flow with server-persisted `flow_state.evidenceArgumentSlice`; success argument map; Module 4 still consumes thesis/`proofPlan` strings (`proof-0/1/2`).
+- Automated: WP-086 + WP-079 + Module 3 success + Module 4 handoff/point-job green; WP-081–086 focused suite 94/94.
+- Browser (dev + seed): Module 3 opens on `ea_reorient` with direction + preserved claim; Continue advances to both-work reread (`wp086-both-work-reread`); refresh restores `ea_pattern`; typing 200 chars does not auto-advance; Module 4 shows seeded comparative thesis; 390×844 no horizontal overflow.
+
+**Resolved in commit:** (pending commit)
+
+---
+
+### WP-087 — Generalize evidence-to-argument across all WP-079 directions
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Instructional / Architecture  
+**Module:** 2–4  
+**Related:** WP-003, WP-064, WP-079, WP-085, WP-086; Prompt 08; Phase 3
+
+**Walkthrough observation:** WP-086 proved the evidence-to-argument slice only for `cross_dominant:pathos:logos`. Other same-appeal, reverse cross-dominant, and student-created directions still use the prior Module 2–3 path and cannot share the staged both-work builder.
+
+**Student-facing impact:** Students who choose a different valid WP-079 direction cannot get the same provenance-aware pairing, staged thesis builder, and true both-work readiness.
+
+**Why it matters technically or operationally:** Need a shared direction descriptor + generalized evidence-pair resolver driven by `generateCanonicalDirectionFrames()`, schema v2 with legacy WP-086 normalize, and a development gate for all canonical + fully mapped custom directions — without changing WP-079 ranking or promoting to production.
+
+**Recommended smallest reasonable fix:** Direction descriptor helper; `resolveEvidencePairForDirection`; gate on canonical/mapped-custom; generalize Module 2 pairing + Module 3 coaching; configurable seed variants; table-driven WP-087 tests; preserve WP-086 suite.
+
+**Gate:** Development-only for all nine WP-079 canonical frames + fully mapped `student_created`. Production unchanged. No WP-079 ranking changes.
+
+**Resolution notes:** (July 21, 2026)
+- Descriptor: `lib/module2/evidenceArgumentDirectionDescriptor.js` from WP-079 frames; gate opens all canonical + fully mapped custom.
+- Pairing: `resolveEvidencePairForDirection` (same-appeal / cross / custom); WP-086 `pairRepresentativeDirectionEvidence` kept as fixture alias.
+- Slice schema v2 + `normalizeEvidenceArgumentSliceState` (v1 pathos/logos → v2; direction-change keeps prior prose).
+- Module 2 pairing panel + custom mapping UI; Module 3 flow/panel/success driven by family + relationship coaching.
+- Seed variants: contrast / similarity / nuanced / cross / reverseCross / tied / customMapped / customIncomplete / multiCandidate / legacyWp086 / directionChange.
+- Automated: WP-086 (13) + WP-087 (11) = 24/24 green.
+- Browser (dev): legacy pathos/logos family label + coaching; same-appeal contrast/similarity reorient→reread; reverseCross logos/pathos; customMapped student_created; directionChange prior-prose + Continue blocked until acknowledge; legacy seed resume; Module 4 shows comparative thesis; 390×844 and 1440×900 no horizontal overflow; length alone does not auto-advance (contract + staged Continue).
+
+**Resolved in commit:** (pending)
+
+---
+
+### WP-088 — Production promotion of Modules 2–3 evidence-to-argument spine
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Architecture / Ops  
+**Module:** 2–4  
+**Related:** WP-003, WP-064, WP-079, WP-085–087; Prompt 09; Phase 3 exit
+
+**Walkthrough observation:** The accepted WP-086/WP-087 evidence-to-argument path still requires development mode. Production builds route students through the prior Module 2–3 experience even though Modules 4–7 use the rebuilt production spine.
+
+**Student-facing impact:** Production students would not receive the accepted evidence-to-argument process; returning students risk split-brain between Module 2 pairing and Module 3 staged flow.
+
+**Why it matters technically or operationally:** Need one assignment-owned `evidence_argument_mode` independent from `writing_spine_mode`, legacy/v1/v2 compatibility, rollback that preserves slice state, migration/preflight, and production-build acceptance without leaking developer tooling.
+
+**Recommended smallest reasonable fix:** Mirror WP-085 with a separate `evidence_argument_mode` column + resolver/cache/teacher control; replace instructional NODE_ENV gate; keep seeds/panel NODE_ENV-protected; preflight + runbook; production-build tests and browser acceptance.
+
+**Gate:** Instructional gates use rollout mode (not NODE_ENV). Developer panel/seeds/dev auth remain NODE_ENV-protected. Modules 4–7 rollout stays independent.
+
+**Resolution notes:** (July 21–22, 2026)
+
+**Implemented**
+- Resolver/cache: `evidenceArgumentRollout.js`, `evidenceArgumentModeCache.js`
+- DB helper + APIs: `evidenceArgumentRolloutSettings.ts`; `/api/assignment-rollout` exposes independent evidenceArgument* fields; teacher PATCH `/api/teacher/evidence-argument-rollout`
+- Gate: `isEvidenceToArgumentSliceEnabled` uses assignment mode + WP-079 direction eligibility; Module 2/3/API share one decision
+- Migration `20260721220000_evidence_argument_rollout.sql` applied remotely; MLK `evidence_argument_mode=rebuilt` database-backed
+- Preflight/runbook + Teacher ops UI; recoverable Module 3 config-failure UI; isolated prod dist via `NEXT_DIST_DIR=.next-prod`
+
+**Closure evidence**
+1. **Rollout precedence:** `EVIDENCE_ARGUMENT_MODE_OVERRIDE` → DB `evidence_argument_mode` → safe `legacy`
+2. **Migration:** `20260721220000_evidence_argument_rollout`; remote row `evidence_argument_mode=rebuilt`, `writing_spine_mode=rebuilt`, `source=database`
+3. **Preflight:** all PASS (`evidence_argument_mode` rebuilt; writing spine unchanged; no local fallback)
+4. **Compatibility:** schema-v2 slice preserved through rollback; resume `ea_reread`; thesis API 200
+5. **Rollback round-trip:** rebuilt → legacy → rebuilt; slice fingerprint identical; writing spine stayed rebuilt; legacy denied slice API (`404 not_available`); rebuilt restored slice
+6. **Production build:** `NEXT_DIST_DIR=.next-prod NODE_ENV=production npm run build` success; static chunks **0** DeveloperTestingPanel / seed target matches
+7. **Automated:** WP-085–088 **58/58**; earlier WP-079+081–088 **170/170**
+8. **Production browser:** Google-only home; Module 2 sign-in gate; no Developer Testing Panel / Dev sign-in; no horizontal overflow at 390×844
+9. **Dev-tool denial:** `/api/dev/panel` → 404 `{not_found}`; reset POST → 404; unauth rollout/slice → 401
+10. **Human remainder:** none for WP-088 (remote DDL already applied by Jason)
+
+**Resolved in commit:** (pending commit)
+
+---
+
+### WP-089 — Transfer-oriented vocabulary foundation (representative ethos lesson)
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Instructional / Architecture  
+**Module:** 1  
+**Related:** WP-055, WP-057, WP-078, WP-088; Prompt 10; Phase 4
+
+**Walkthrough observation:** Module 1 teaches six terms with teaching feedback, but ethos remains definition-heavy. Students can recognize a definition without learning choice → audience effect → purpose transfer needed for Module 2–3 analysis. Saved prompt paraphrase is underused during vocabulary.
+
+**Student-facing impact:** Students leave Module 1 able to recall “ethos = credibility” without being able to notice a credibility choice, predict an audience response, connect it to purpose, apply the lens to King, or see how that prepares their essay.
+
+**Why it matters technically or operationally:** Phase 4 needs one reusable lesson contract and staged microsteps behind a development-only gate before generalizing to the other five terms or promoting to production. Must preserve WP-078 hierarchy, quiz/completion integrity, and teaching-feedback contract.
+
+**Recommended smallest reasonable fix:** Representative ethos transfer slice: notice → name/boundary → audience effect → purpose → King apply → assignment transfer; additive step2 `ethosTransfer` state; paraphrase carry-forward helper; dev seed + panel; focused tests; agent browser acceptance at 390×844 and 1440×900.
+
+**Gate:** `NODE_ENV === "development"` and term `ethos` only. Production and other five terms retain current path.
+
+**Resolution notes:** (July 21–22, 2026)
+
+**Implemented**
+- Contract: `lib/module1/ethosTransferLessonContract.js` (schema v1; verified `speech-ethos` King passage)
+- Carry-forward: `lib/module1/assignmentInterpretationCarryForward.js` (shelf → desk on transfer)
+- Gate: `lib/dev/isEthosTransferLessonEnabled.js`
+- UI: `components/module1/EthosTransferLessonFlow.jsx` wired in `ModuleOne.js` after draft hydrate
+- Persistence: additive `ethosTransfer` on Module 1 Step 2 local draft (`step2MicrostageHelpers`)
+- Seed/panel: `seedEthosTransferLesson.ts` via `setCurrentModule`; Developer Testing Panel + `/api/dev/panel`
+- Tests: `tests/wp089-ethos-transfer-vocabulary.test.js`
+
+**Closure evidence**
+1. **Automated:** WP-089 **21/21**; Module 1 CPA sequencing/presentation/completion + WP-089 **73/73**
+2. **Dev seed:** `ethosTransferLesson` / `start` → LEARN termIndex 1, microstep `notice`, paraphrase persisted
+3. **Browser mobile 390×844:** notice before “ethos” in step title/eyebrow; select does not auto-advance; Check → “That works.” feedback → Continue; full microstep path; assignment desk shows saved paraphrase; Back restores `king_apply` locally; no horizontal overflow; Next term enables after complete
+4. **Browser refresh:** mid-lesson `king_apply` + follow-up `refresh-restore-marker` restored after reload
+5. **Browser desktop 1440×900:** King passage inspectable with `speech-ethos` source; Next term → legacy `pathos` card (transfer gone); no overflow
+6. **Gate:** other terms / production path unchanged; panel/seeds remain development-only
+7. **Human remainder:** subjective age-fit / coaching-tone judgment only (not required to close WP-089)
+
+**Resolved in commit:** (pending commit)
+
+---
+
+### WP-090 — Generalize transfer-oriented vocabulary across all six Module 1 concepts
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Instructional / Architecture  
+**Module:** 1  
+**Related:** WP-055, WP-057, WP-078, WP-089; Prompt 11; Phase 4
+
+**Walkthrough observation:** WP-089 proved ethos can be taught as transferable analysis. The other five Module 1 concepts still used the definition-heavy path.
+
+**Student-facing impact:** Students need one recurring lens across rhetoric, ethos, pathos, logos, audience, and purpose—not six isolated definitions.
+
+**Why it matters technically or operationally:** Generalize WP-089 architecture with concept-specific pedagogy, lossless ethos-v1 migration, shared renderer, and development-only gate before production promotion.
+
+**Recommended smallest reasonable fix:** One contract registry + `VocabularyTransferLessonFlow`; `vocabularyTransfer` state keyed by term id; migrate `ethosTransfer`; configurable WP-090 seed variants; table-driven tests; agent browser acceptance for all six families.
+
+**Gate:** `NODE_ENV === "development"` for all six canonical term ids. Production and quiz policy unchanged.
+
+**Resolution notes:** (July 22, 2026)
+
+**Implemented**
+- Contracts: `lib/module1/vocabularyTransferLessonContract.js` (roles: umbrella/appeal/situation/goal)
+- State/migration: `lib/module1/vocabularyTransferState.js` (schema v2 + lossless ethos-v1)
+- UI: `components/module1/VocabularyTransferLessonFlow.jsx` (shared renderer)
+- Gate: `lib/dev/isVocabularyTransferLessonEnabled.js`
+- Seed/panel: `seedVocabularyTransferLesson.ts` + variant selector (no six clutter buttons)
+- Tests: `tests/wp090-generalize-transfer-vocabulary.test.js`
+
+**Closure evidence**
+1. **Automated:** WP-089+WP-090 **47/47**; Module 1 CPA + WP-089/090 **99/99**
+2. **Rhetoric (390×844):** notice before academic label; umbrella boundary; King `speech-logos`; transfer desk with paraphrase; Next term enables after complete; no overflow
+3. **Ethos legacy-v1:** resumes `king_apply` with `legacy-v1-restore-marker` follow-up after migration
+4. **Pathos:** `king_apply` with speech-pathos dream passage; cumulative trail shows rhetoric+ethos
+5. **Logos:** `name_boundary` with connected-reasoning instruction; no overflow
+6. **Audience:** `audience_fit` stage present (distinct from purpose/topic)
+7. **Purpose:** six-term concept map + assignment desk on transfer
+8. **Quiz gate:** `readyForQuiz` enables “Check my understanding” → stage `quiz` Question 1 of 10
+9. **Paraphrase change (1440×900):** review banner; progress preserved; no overflow
+10. **Human remainder:** subjective age-fit / coaching-tone only
+
+**Resolved in commit:** (pending commit)
 
 ---

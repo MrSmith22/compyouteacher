@@ -11,6 +11,8 @@ export type StudentBucketFlowState = {
   module3Idea?: unknown;
   module3Claim?: unknown;
   module3Thesis?: unknown;
+  /** WP-086 gated Module 3 staged builder state (dev representative slice). */
+  evidenceArgumentSlice?: unknown;
 };
 
 export type StudentBucketsRow = {

@@ -167,7 +167,10 @@ export async function POST(req: Request) {
           targetRaw === "bpVerticalSlice" ||
           targetRaw === "introConclusionVerticalSlice" ||
           targetRaw === "allRequiredBodyParagraphs" ||
-          targetRaw === "wholeEssayReview"
+          targetRaw === "wholeEssayReview" ||
+          targetRaw === "evidenceToArgumentSlice" ||
+          targetRaw === "ethosTransferLesson" ||
+          targetRaw === "vocabularyTransferLesson"
         ) {
           target = targetRaw;
         }
@@ -184,7 +187,14 @@ export async function POST(req: Request) {
             ? (body.module9Options as SeedModule9Options)
             : undefined;
 
-        const result = await runSeedThrough(email, target, module9Options);
+        const seedOptions =
+          body.seedOptions && typeof body.seedOptions === "object"
+            ? (body.seedOptions as { variant?: string })
+            : body.variant
+              ? { variant: String(body.variant) }
+              : undefined;
+
+        const result = await runSeedThrough(email, target, module9Options, seedOptions);
         return NextResponse.json(result);
       }
       case "status": {

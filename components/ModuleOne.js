@@ -40,6 +40,15 @@ import {
   STEP2_STAGES,
 } from "@/lib/module1/step2MicrostageHelpers";
 import ModuleOneVocabularyVisual from "@/components/module1/ModuleOneVocabularyVisual";
+import VocabularyTransferLessonFlow from "@/components/module1/VocabularyTransferLessonFlow";
+import { isVocabularyTransferLessonEnabled } from "@/lib/dev/isVocabularyTransferLessonEnabled";
+import {
+  normalizeVocabularyTransferState,
+  evaluateTermTransferReadiness,
+  evaluateAllVocabularyTransferReadiness,
+  getCompletedVocabularyTrail,
+  termStateToEthosV1,
+} from "@/lib/module1/vocabularyTransferState";
 
 const VIDEO_SRC = "/videos/Ethos Pathos and Logos Explained.mp4";
 
@@ -88,6 +97,7 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const [itemFeedback, setItemFeedback] = useState(null);
   const [sayAnotherWayOpen, setSayAnotherWayOpen] = useState(false);
   const [draftReady, setDraftReady] = useState(false);
+  const [vocabularyTransfer, setVocabularyTransfer] = useState(null);
 
   // Resume Step 2 draft on ordinary revisit / reload
   useEffect(() => {
@@ -106,6 +116,12 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
 
     setStage(draft.stage);
     setTermIndex(draft.termIndex);
+    setVocabularyTransfer(
+      normalizeVocabularyTransferState(
+        draft.vocabularyTransfer,
+        draft.ethosTransfer
+      )
+    );
     if (draft.stage === STEP2_STAGES.QUIZ) {
       setUserAnswers(migration.answers);
       setQuizIndex(migration.resumeIndex);
@@ -119,12 +135,18 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   // Persist draft for reload (ordinary revisit)
   useEffect(() => {
     if (!email || !draftReady || quizSubmitted) return;
+    const ethosMirror =
+      vocabularyTransfer?.terms?.ethos != null
+        ? termStateToEthosV1(vocabularyTransfer.terms.ethos)
+        : null;
     writeStep2Draft(email, {
       stage,
       termIndex,
       quizIndex,
       quizAnswers: userAnswers,
       quizVersion: QUIZ_CONTENT_VERSION,
+      vocabularyTransfer,
+      ethosTransfer: ethosMirror,
     });
   }, [
     email,
@@ -134,6 +156,7 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
     quizIndex,
     userAnswers,
     quizSubmitted,
+    vocabularyTransfer,
   ]);
 
   const presentation = getStep2PresentationModel({
@@ -345,7 +368,58 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   };
 
   const term = presentation.activeTerm;
+  const useVocabularyTransfer =
+    stage === STEP2_STAGES.LEARN &&
+    isVocabularyTransferLessonEnabled({
+      termId: term?.id,
+      termIndex,
+    });
+  const activeTermState =
+    useVocabularyTransfer && term?.id && vocabularyTransfer?.terms
+      ? vocabularyTransfer.terms[term.id]
+      : null;
+  const termLessonReady = useVocabularyTransfer
+    ? evaluateTermTransferReadiness(term?.id, activeTermState || {}).ready &&
+      Boolean(activeTermState?.completed)
+    : true;
+  const allLessonsReady = useVocabularyTransfer
+    ? evaluateAllVocabularyTransferReadiness(vocabularyTransfer || {})
+        .quizUnlockReady
+    : true;
+  const completedTrail = useVocabularyTransfer
+    ? getCompletedVocabularyTrail(vocabularyTransfer || {}).filter(
+        (cue) =>
+          !cue
+            .toLowerCase()
+            .startsWith(String(term?.term || term?.id || "").toLowerCase())
+      )
+    : [];
+
+  const dominantQuestion = useVocabularyTransfer
+    ? term?.id === "ethos"
+      ? "How can a communicator earn an audience’s trust?"
+      : term?.id === "pathos"
+        ? "How can a communicator shape feeling on purpose?"
+        : term?.id === "logos"
+          ? "How can a communicator help an audience follow a reason?"
+          : term?.id === "audience"
+            ? "Who is this message for—and why does that matter?"
+            : term?.id === "purpose"
+              ? "What result does the communicator want?"
+              : "How do communicators make strategic choices?"
+    : presentation.dominantQuestion;
+  const strategyExplanation = useVocabularyTransfer
+    ? "Start from a familiar choice. Then name the idea, connect it to audience and purpose, and try it with a short King passage."
+    : presentation.strategyExplanation;
   const showBack = stage !== STEP2_STAGES.TRANSITION;
+
+  const handleVocabularyPrimaryContinue = () => {
+    if (stage === STEP2_STAGES.LEARN && useVocabularyTransfer) {
+      if (!termLessonReady) return;
+      if (canFinishVocabulary(termIndex) && !allLessonsReady) return;
+    }
+    handlePrimaryContinue();
+  };
 
   return (
     <ModulePageShell>
@@ -411,10 +485,10 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
                 className="max-w-3xl text-[1.55rem] font-bold leading-[1.15] tracking-tight text-text-primary md:text-[2rem]"
                 data-testid="step2-dominant-question"
               >
-                {presentation.dominantQuestion}
+                {dominantQuestion}
               </h1>
               <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
-                {presentation.strategyExplanation}
+                {strategyExplanation}
               </p>
             </header>
 
@@ -429,7 +503,43 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
               </div>
             ) : null}
 
-            {stage === STEP2_STAGES.LEARN && term ? (
+            {draftReady && stage === STEP2_STAGES.LEARN && term && useVocabularyTransfer ? (
+              <VocabularyTransferLessonFlow
+                key={`vocab-transfer-${email || "anon"}-${term.id}`}
+                termId={term.id}
+                savedStudentParaphrase={savedStudentParaphrase}
+                initialState={activeTermState}
+                completedTrail={completedTrail}
+                onStateChange={(nextTermState) => {
+                  setVocabularyTransfer((prev) => {
+                    const base = normalizeVocabularyTransferState(prev);
+                    return {
+                      ...base,
+                      terms: {
+                        ...base.terms,
+                        [term.id]: nextTermState,
+                      },
+                      updatedAt: new Date().toISOString(),
+                    };
+                  });
+                }}
+                onLessonComplete={(nextTermState) => {
+                  setVocabularyTransfer((prev) => {
+                    const base = normalizeVocabularyTransferState(prev);
+                    return {
+                      ...base,
+                      terms: {
+                        ...base.terms,
+                        [term.id]: nextTermState,
+                      },
+                      updatedAt: new Date().toISOString(),
+                    };
+                  });
+                }}
+              />
+            ) : null}
+
+            {draftReady && stage === STEP2_STAGES.LEARN && term && !useVocabularyTransfer ? (
               <section
                 className="space-y-4 rounded-xl border-2 border-theme-blue/35 bg-theme-blue/5 px-4 py-5 shadow-soft sm:px-5"
                 aria-labelledby="vocab-definition-heading"
@@ -629,10 +739,16 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
               ) : (
                 <button
                   type="button"
-                  onClick={handlePrimaryContinue}
+                  onClick={handleVocabularyPrimaryContinue}
                   aria-label={presentation.primaryActionLabel}
                   data-testid="step2-primary-action"
-                  className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded bg-theme-blue text-white focus:outline-none focus:ring-2 focus:ring-theme-blue/40"
+                  disabled={
+                    (useVocabularyTransfer && !termLessonReady) ||
+                    (useVocabularyTransfer &&
+                      canFinishVocabulary(termIndex) &&
+                      !allLessonsReady)
+                  }
+                  className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded bg-theme-blue text-white focus:outline-none focus:ring-2 focus:ring-theme-blue/40 disabled:bg-gray-400"
                 >
                   {stage === STEP2_STAGES.LEARN && canFinishVocabulary(termIndex)
                     ? "Check my understanding"

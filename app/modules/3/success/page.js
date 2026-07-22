@@ -10,6 +10,7 @@ import {
   listPatternArtifacts,
 } from "@/lib/artifacts/readArtifacts";
 import { buildModuleThreeSuccessSummary } from "@/lib/module3/moduleThreeSuccessHelpers";
+import { getModule3StudentBucketAdmin } from "@/lib/supabase/helpers/module3FlowState";
 
 function emptySuccessArtifacts() {
   return {
@@ -19,6 +20,7 @@ function emptySuccessArtifacts() {
     evidenceClusterArtifacts: [],
     evidenceArtifacts: [],
     patternArtifacts: [],
+    evidenceArgumentSlice: null,
   };
 }
 
@@ -35,6 +37,7 @@ async function loadSuccessArtifacts(email) {
       evidenceClusterArtifacts,
       evidenceArtifacts,
       patternArtifacts,
+      bucketRes,
     ] = await Promise.all([
       getThesisArtifact(email),
       getClaimArtifact(email),
@@ -42,7 +45,14 @@ async function loadSuccessArtifacts(email) {
       listEvidenceClusterArtifacts(email),
       listEvidenceArtifacts(email),
       listPatternArtifacts(email),
+      getModule3StudentBucketAdmin({ userEmail: email }),
     ]);
+
+    const flow = bucketRes?.data?.flow_state || {};
+    const evidenceArgumentSlice =
+      flow.evidenceArgumentSlice && typeof flow.evidenceArgumentSlice === "object"
+        ? flow.evidenceArgumentSlice
+        : null;
 
     return {
       thesisArtifact,
@@ -51,6 +61,7 @@ async function loadSuccessArtifacts(email) {
       evidenceClusterArtifacts,
       evidenceArtifacts,
       patternArtifacts,
+      evidenceArgumentSlice,
     };
   } catch (error) {
     console.error("Module 3 success artifact load failed:", error);

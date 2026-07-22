@@ -35,10 +35,14 @@ export default function ModuleThreeSuccessClient({ summary }) {
   const thesis = summary?.thesis;
   const proofPlan = summary?.proofPlan;
   const evidence = summary?.evidence;
+  const argumentMap = summary?.argumentMap;
+  const argumentReady = Boolean(
+    evidence?.bothWorksVerified && (!argumentMap?.available || argumentMap?.ready)
+  );
 
   return (
     <div className="min-h-screen bg-theme-light px-4 py-10 text-theme-dark">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
+      <div className="mx-auto w-full max-w-3xl space-y-8">
         <header className="space-y-3 text-left">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
             Module 3
@@ -58,13 +62,75 @@ export default function ModuleThreeSuccessClient({ summary }) {
         <section
           className="rounded-xl border border-border-soft/80 bg-white px-5 py-6 shadow-soft"
           aria-labelledby="argument-ready-heading"
+          data-testid="module3-success-argument"
         >
           <h2
             id="argument-ready-heading"
             className="text-xl font-bold text-text-primary md:text-2xl"
           >
-            Your argument is ready for planning.
+            {argumentReady
+              ? "Your argument is ready for planning."
+              : "Keep strengthening both works before you plan."}
           </h2>
+
+          {argumentMap?.available ? (
+            <section
+              className="mt-6 space-y-4"
+              aria-labelledby="success-argument-map-heading"
+              data-testid="wp086-success-argument-map"
+            >
+              <h3
+                id="success-argument-map-heading"
+                className="text-base font-semibold text-text-primary md:text-lg"
+              >
+                The argument you earned.
+              </h3>
+              <ol className="list-decimal space-y-3 pl-5 text-sm text-text-primary">
+                <li>
+                  <span className="font-medium">Your comparison: </span>
+                  {argumentMap.direction || "—"}
+                  {argumentMap.familyLabel ? (
+                    <span
+                      className="mt-1 block text-xs text-text-muted"
+                      data-testid="wp087-success-family"
+                    >
+                      {argumentMap.familyLabel}
+                    </span>
+                  ) : null}
+                </li>
+                <li>
+                  <span className="font-medium">Speech evidence: </span>
+                  {argumentMap.speechPassage
+                    ? `“${argumentMap.speechPassage}”`
+                    : "—"}
+                  {argumentMap.speechExplanation ? (
+                    <span className="mt-1 block text-text-muted">
+                      {argumentMap.speechExplanation}
+                    </span>
+                  ) : null}
+                </li>
+                <li>
+                  <span className="font-medium">Letter evidence: </span>
+                  {argumentMap.letterPassage
+                    ? `“${argumentMap.letterPassage}”`
+                    : "—"}
+                  {argumentMap.letterExplanation ? (
+                    <span className="mt-1 block text-text-muted">
+                      {argumentMap.letterExplanation}
+                    </span>
+                  ) : null}
+                </li>
+                <li>
+                  <span className="font-medium">Your thesis: </span>
+                  {argumentMap.thesis || "—"}
+                </li>
+                <li>
+                  <span className="font-medium">How you will prove it: </span>
+                  {(argumentMap.proofDirections || []).join(" · ") || "—"}
+                </li>
+              </ol>
+            </section>
+          ) : null}
 
           <div className="mt-6 space-y-6">
             <section aria-labelledby="success-thesis-heading">
@@ -167,10 +233,12 @@ export default function ModuleThreeSuccessClient({ summary }) {
               <p
                 role="status"
                 className="mt-3 text-sm leading-relaxed text-text-muted"
+                data-testid="module3-success-both-works"
               >
                 {evidence?.bothWorksVerified
                   ? evidence.confirmedMessage
-                  : evidence?.unverifiedMessage}
+                  : evidence?.oneWorkNotReadyMessage ||
+                    evidence?.unverifiedMessage}
               </p>
             </section>
 

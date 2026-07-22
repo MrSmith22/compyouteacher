@@ -156,6 +156,15 @@ describe("WP-085 legacy adapters", () => {
 });
 
 describe("WP-085 development tooling boundary", () => {
+  it("hydrates the production Module 6 move workspace from the live draft", () => {
+    const src = fs.readFileSync(
+      path.join(__dirname, "../components/ModuleSix.js"),
+      "utf8"
+    );
+    assert.match(src, /legacyProse:\s*draft\[/);
+    assert.doesNotMatch(src, /legacyProse:\s*sections\[/);
+  });
+
   it("keeps DeveloperTestingPanel behind NODE_ENV dynamic import", () => {
     const src = fs.readFileSync(
       path.join(__dirname, "../components/layout/AppLayoutShell.jsx"),

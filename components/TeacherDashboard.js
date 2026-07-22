@@ -7,6 +7,7 @@ import { logActivity } from "@/lib/logActivity";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import TeacherWordCountSettings from "@/components/teacher/TeacherWordCountSettings";
 import TeacherWritingSpineRollout from "@/components/teacher/TeacherWritingSpineRollout";
+import TeacherEvidenceArgumentRollout from "@/components/teacher/TeacherEvidenceArgumentRollout";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const gradingStatusOptions = [
@@ -649,6 +650,7 @@ useEffect(() => {
 
       <TeacherWordCountSettings />
       <TeacherWritingSpineRollout />
+      <TeacherEvidenceArgumentRollout />
 
       {/* Phase 1: Student Progress Overview */}
       <section className="space-y-2">

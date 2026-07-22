@@ -402,6 +402,131 @@ export default function DeveloperTestingPanel() {
                 className={btn}
                 disabled={busy}
                 onClick={() =>
+                  run("Seeded evidence-to-argument slice", async () => {
+                    await panelAction("seedThrough", {
+                      target: "evidenceToArgumentSlice",
+                      variant: "legacyWp086",
+                    });
+                  })
+                }
+              >
+                Seed evidence→argument (WP-086 legacy)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded WP-087 reverse cross", async () => {
+                    await panelAction("seedThrough", {
+                      target: "evidenceToArgumentSlice",
+                      variant: "reverseCross",
+                    });
+                  })
+                }
+              >
+                Seed evidence→argument (WP-087 reverseCross)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded WP-087 same-appeal contrast", async () => {
+                    await panelAction("seedThrough", {
+                      target: "evidenceToArgumentSlice",
+                      variant: "contrast",
+                    });
+                  })
+                }
+              >
+                Seed evidence→argument (WP-087 contrast)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded ethos transfer lesson", async () => {
+                    const result = await panelAction("seedThrough", {
+                      target: "ethosTransferLesson",
+                      variant: "start",
+                    });
+                    if (email && result?.clientDraft) {
+                      try {
+                        const key = `wp:${email}:module1:step2`;
+                        window.localStorage.setItem(
+                          key,
+                          JSON.stringify(result.clientDraft)
+                        );
+                      } catch {
+                        /* ignore */
+                      }
+                    }
+                    router.push(result?.resumePath || "/modules/1");
+                    return "Seeded ethos transfer lesson (WP-089)";
+                  })
+                }
+              >
+                Seed ethos transfer (WP-089)
+              </button>
+              <label className="flex flex-col gap-1 text-[11px] text-slate-700">
+                WP-090 vocabulary variant
+                <select
+                  id="wp090-vocab-variant"
+                  className="rounded border border-slate-400 bg-white px-2 py-1 text-[11px]"
+                  defaultValue="startRhetoric"
+                  disabled={busy}
+                >
+                  <option value="startRhetoric">startRhetoric</option>
+                  <option value="midPathos">midPathos</option>
+                  <option value="midLogos">midLogos</option>
+                  <option value="audiencePurpose">audiencePurpose</option>
+                  <option value="purposeMap">purposeMap</option>
+                  <option value="partialAllSix">partialAllSix</option>
+                  <option value="readyForQuiz">readyForQuiz</option>
+                  <option value="legacyEthosV1">legacyEthosV1</option>
+                  <option value="paraphraseChanged">paraphraseChanged</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded vocabulary transfer lesson", async () => {
+                    const select = document.getElementById("wp090-vocab-variant");
+                    const variant =
+                      select && "value" in select
+                        ? String(select.value || "startRhetoric")
+                        : "startRhetoric";
+                    const result = await panelAction("seedThrough", {
+                      target: "vocabularyTransferLesson",
+                      variant,
+                    });
+                    if (email && result?.clientDraft) {
+                      try {
+                        const key = `wp:${email}:module1:step2`;
+                        window.localStorage.setItem(
+                          key,
+                          JSON.stringify(result.clientDraft)
+                        );
+                      } catch {
+                        /* ignore */
+                      }
+                    }
+                    router.push(result?.resumePath || "/modules/1");
+                    return `Seeded vocabulary transfer (WP-090 ${variant})`;
+                  })
+                }
+              >
+                Seed vocabulary transfer (WP-090)
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
                   run("Seeded Module 9 ready", async () => {
                     const result = await panelAction("seedThrough", {
                       target: "module9Ready",

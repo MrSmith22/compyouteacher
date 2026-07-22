@@ -13,6 +13,9 @@ import { seedBodyParagraphVerticalSlice } from "@/lib/dev/seeds/seedBodyParagrap
 import { seedIntroConclusionVerticalSlice } from "@/lib/dev/seeds/seedIntroConclusionVerticalSlice";
 import { seedAllRequiredBodyParagraphs } from "@/lib/dev/seeds/seedAllRequiredBodyParagraphs";
 import { seedWholeEssayReview } from "@/lib/dev/seeds/seedWholeEssayReview";
+import { seedEvidenceToArgumentSlice } from "@/lib/dev/seeds/seedEvidenceToArgumentSlice";
+import { seedVocabularyTransferLesson } from "@/lib/dev/seeds/seedVocabularyTransferLesson";
+import { seedEthosTransferLesson } from "@/lib/dev/seeds/seedEthosTransferLesson";
 
 export type SeedThroughTarget =
   | 2
@@ -26,12 +29,16 @@ export type SeedThroughTarget =
   | "bpVerticalSlice"
   | "introConclusionVerticalSlice"
   | "allRequiredBodyParagraphs"
-  | "wholeEssayReview";
+  | "wholeEssayReview"
+  | "evidenceToArgumentSlice"
+  | "ethosTransferLesson"
+  | "vocabularyTransferLesson";
 
 export async function runSeedThrough(
   userEmail: string,
   target: SeedThroughTarget,
-  module9Options?: SeedModule9Options
+  module9Options?: SeedModule9Options,
+  seedOptions?: { variant?: string }
 ) {
   switch (target) {
     case 2:
@@ -58,6 +65,18 @@ export async function runSeedThrough(
       return seedAllRequiredBodyParagraphs(userEmail);
     case "wholeEssayReview":
       return seedWholeEssayReview(userEmail);
+    case "evidenceToArgumentSlice":
+      return seedEvidenceToArgumentSlice(userEmail, {
+        variant: seedOptions?.variant,
+      });
+    case "ethosTransferLesson":
+      return seedEthosTransferLesson(userEmail, {
+        variant: seedOptions?.variant,
+      });
+    case "vocabularyTransferLesson":
+      return seedVocabularyTransferLesson(userEmail, {
+        variant: seedOptions?.variant,
+      });
     default:
       return { ok: false as const, error: `Unknown seed target: ${String(target)}` };
   }

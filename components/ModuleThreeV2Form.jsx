@@ -110,6 +110,10 @@ import {
   getArtifactChainStageForStep,
   getInitialModuleThreePhase,
 } from "@/lib/module3/moduleThreePhaseModel";
+import { isEvidenceToArgumentSliceEnabled } from "@/lib/dev/isEvidenceToArgumentSliceEnabled";
+import { getEvidenceArgumentHydrateFailed } from "@/lib/assignments/evidenceArgumentModeCache";
+import EvidenceArgumentSliceFlow from "@/components/module3/EvidenceArgumentSliceFlow";
+import { adaptLegacyModule3Prose } from "@/lib/artifacts/evidenceArgumentContract";
 
 const ASSIGNMENT = mlkAssignmentDefinition;
 const SOURCE_LABELS = {
@@ -650,6 +654,7 @@ export default function ModuleThreeV2Form({
           selectedPattern: presentation.selectedPattern,
           cta: presentation.cta,
           remaining: presentation.reviewReason,
+          signature: presentation.signature || null,
         });
 
         const selectedNotice =
@@ -2457,6 +2462,94 @@ export default function ModuleThreeV2Form({
       <div className="rounded-xl bg-theme-light p-6 shadow-soft">
         <p className="text-sm text-theme-dark/80">Loading your quotes and notes...</p>
       </div>
+    );
+  }
+
+  const wp086OptionId =
+    matrixHandoff?.selectedPattern?.optionId ||
+    matrixHandoff?.selectedPattern?.id ||
+    selectedPattern?.matrixProvenance?.selectedPatternOptionId ||
+    "";
+  const wp087CustomMapping =
+    matrixHandoff?.selectedPattern?.customMapping ||
+    selectedPattern?.matrixProvenance?.customMapping ||
+    null;
+  if (getEvidenceArgumentHydrateFailed()) {
+    return (
+      <div
+        className="mx-auto max-w-2xl space-y-4 rounded-xl border border-amber-300 bg-amber-50 p-6"
+        data-testid="evidence-argument-rollout-recoverable"
+        role="alert"
+      >
+        <h2 className="text-lg font-semibold text-theme-dark">
+          Could not load your comparison path
+        </h2>
+        <p className="text-sm text-theme-muted">
+          A temporary configuration problem prevented loading whether you should
+          use the rebuilt evidence-to-argument steps. Your saved work is still
+          intact. Refresh to try again — we will not switch you to a different
+          path silently.
+        </p>
+        <button
+          type="button"
+          className="min-h-[44px] rounded-md bg-theme-blue px-4 text-sm font-semibold text-white"
+          onClick={() => {
+            if (typeof window !== "undefined") window.location.reload();
+          }}
+        >
+          Refresh and retry
+        </button>
+      </div>
+    );
+  }
+
+  if (
+    !matrixHandoffLoading &&
+    isEvidenceToArgumentSliceEnabled({
+      optionId: wp086OptionId,
+      customMapping: wp087CustomMapping,
+    })
+  ) {
+    const claimPayload =
+      initialCanvasArtifacts?.claimArtifact?.payload ||
+      initialCanvasArtifacts?.claimArtifact ||
+      {};
+    const thesisPayload =
+      initialCanvasArtifacts?.thesisArtifact?.payload ||
+      initialCanvasArtifacts?.thesisArtifact ||
+      {};
+    const adapted = adaptLegacyModule3Prose({
+      claimText: claimPayload?.workingClaim || workingClaim,
+      thesisText: thesisPayload?.thesis || thesisStatement,
+      proofPlan: thesisPayload?.proofPlan || proofPlan,
+      patternText: selectedPattern?.text || "",
+    });
+    return (
+      <EvidenceArgumentSliceFlow
+        selectedDirectionLabel={
+          matrixHandoff?.selectedPattern?.label ||
+          selectedPattern?.matrixProvenance?.selectedPatternLabel ||
+          "Your comparison direction"
+        }
+        selectedOptionId={wp086OptionId}
+        selectedDirectionSignature={
+          matrixHandoff?.signature ||
+          selectedPattern?.matrixProvenance?.signature ||
+          ""
+        }
+        matrixProvenance={
+          selectedPattern?.matrixProvenance ||
+          matrixHandoff?.selectedPattern ||
+          null
+        }
+        customMapping={wp087CustomMapping}
+        matrixBundle={matrixHandoff?.matrixBundle || null}
+        selectedPattern={matrixHandoff?.selectedPattern || null}
+        initialClaimText={adapted.slice.legacyClaimForReview || ""}
+        initialThesisText={adapted.slice.thesisText || ""}
+        initialProofPlan={(adapted.slice.proofDirections || []).map((p) => p.text)}
+        initialPatternText={adapted.slice.patternText || ""}
+      />
     );
   }
 

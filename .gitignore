@@ -49,3 +49,4 @@ service-account.json
 .env.*.local
 secrets/
 .dev-assignment-settings.json
+.next-prod
