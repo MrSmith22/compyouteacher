@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { advanceCurrentModuleOnSuccess } from "@/lib/supabase/helpers/studentAssignments";
 import {
   getModule6DraftRow,
@@ -17,6 +18,9 @@ import {
   resolveModule6SuccessAdvance,
   resolveModule6SuccessBack,
 } from "@/lib/module6/module6SuccessHelpers";
+import { isSuccessExperienceFoundationEnabled } from "@/lib/dev/isSuccessExperienceFoundationEnabled";
+import { buildModule6SuccessExperience } from "@/lib/ui/successExperienceContract";
+import SuccessExperienceShell from "@/components/success/SuccessExperienceShell";
 
 /**
  * CP-H Module 6 success — staged read-only draft map.
@@ -24,11 +28,13 @@ import {
  */
 export default function ModuleSixSuccessClient() {
   const { data: session } = useSession();
+  const router = useRouter();
   const headingRef = useRef(null);
   const [stage, setStage] = useState(MODULE6_SUCCESS_STAGES.CELEBRATE);
   const [summary, setSummary] = useState(null);
   const [ready, setReady] = useState(false);
   const [activeSection, setActiveSection] = useState(0);
+  const foundationEnabled = isSuccessExperienceFoundationEnabled();
 
   useEffect(() => {
     let cancelled = false;
@@ -122,6 +128,35 @@ export default function ModuleSixSuccessClient() {
   const meta = getModule6SuccessStageMeta(stage);
   const cards = summary.sectionCards || [];
   const active = cards[activeSection] || cards[0];
+
+  if (foundationEnabled) {
+    const wordTotal = cards.reduce(
+      (sum, card) => sum + (Number(card.wordCount) || 0),
+      0
+    );
+    const sectionSummary = cards.map((card) => card.label).join(" · ");
+    const resolved = buildModule6SuccessExperience({
+      sectionCount: summary.sectionCount ?? cards.length,
+      wordTotal,
+      sectionSummary: sectionSummary || null,
+      continueEnabled: ready,
+    });
+    return (
+      <SuccessExperienceShell
+        experience={resolved.experience}
+        headingId="module6-success-heading"
+        statusMessage={!ready ? "Saving your progress…" : null}
+        onPrimaryAction={(action) => {
+          if (!ready || !action?.href) return;
+          router.push(action.href);
+        }}
+        onSecondaryAction={(action) => {
+          if (!action?.href) return;
+          router.push(action.href);
+        }}
+      />
+    );
+  }
 
   return (
     <div

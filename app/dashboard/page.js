@@ -11,6 +11,9 @@ import {
 import { getFinalPdfExport } from "@/lib/supabase/helpers/studentExports";
 import DevResetStudentButton from "@/components/dev/DevResetStudentButton";
 import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
+import { isSuccessExperienceFoundationEnabled } from "@/lib/dev/isSuccessExperienceFoundationEnabled";
+import { resolveCompletedDashboardPresentation } from "@/lib/ui/successExperienceContract";
+import CompletedDashboardFoundation from "@/components/success/CompletedDashboardFoundation";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 
@@ -159,6 +162,22 @@ export default function Dashboard() {
 
   const buttonState = getButtonState();
   const hasFinalPdf = !!finalPdf;
+  const foundationEnabled = isSuccessExperienceFoundationEnabled();
+  const foundationPresentation =
+    foundationEnabled && hasFinalPdf
+      ? resolveCompletedDashboardPresentation({
+          hasDurableReceipt: true,
+          submittedAtLabel: finalPdf?.uploaded_at
+            ? new Date(finalPdf.uploaded_at).toLocaleString(undefined, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })
+            : null,
+          fileName: finalPdf?.file_name || null,
+          pdfHref: finalPdf?.public_url || finalPdf?.web_view_link || null,
+          receiptHref: "/modules/9/success",
+        })
+      : null;
 
   return (
     <div className="min-h-screen bg-theme-light text-theme-dark">
@@ -182,6 +201,11 @@ export default function Dashboard() {
           <div className="text-sm text-gray-700">
             Loading your assignment...
           </div>
+        ) : foundationPresentation ? (
+          <CompletedDashboardFoundation
+            presentation={foundationPresentation}
+            onOpenReceipt={() => router.push("/modules/9/success")}
+          />
         ) : (
           <section className="bg-white shadow p-6 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

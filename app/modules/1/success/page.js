@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -15,6 +15,9 @@ import {
   createModule1AdvancementController,
   interpretModule1AdvancementWrite,
 } from "@/lib/module1/module1SuccessAdvancement";
+import { isSuccessExperienceFoundationEnabled } from "@/lib/dev/isSuccessExperienceFoundationEnabled";
+import { buildModule1SuccessExperience } from "@/lib/ui/successExperienceContract";
+import SuccessExperienceShell from "@/components/success/SuccessExperienceShell";
 
 /**
  * POST /api/module1/complete — session-authenticated server CAS.
@@ -60,9 +63,11 @@ async function requestModule1Completion() {
  */
 function Module1SuccessContent() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const params = useSearchParams();
   const scoreParam = params.get("score");
   const score = scoreParam && scoreParam !== "-" ? scoreParam : null;
+  const foundationEnabled = isSuccessExperienceFoundationEnabled();
 
   const [advanceState, setAdvanceState] = useState(
     MODULE1_ADVANCE_STATES.IDLE
@@ -139,6 +144,49 @@ function Module1SuccessContent() {
   const continueEnabled = canNavigateToModule2(advanceState);
   const isSaving = advanceState === MODULE1_ADVANCE_STATES.SAVING;
   const isError = advanceState === MODULE1_ADVANCE_STATES.ERROR;
+
+  if (foundationEnabled) {
+    const resolved = buildModule1SuccessExperience({
+      quizScoreLabel: score ? `Check-in score: ${score}%` : null,
+      conceptsCompleted:
+        "Ethos, pathos, and logos ready for source reading",
+      continueEnabled,
+    });
+    const experience = resolved.experience;
+    return (
+      <SuccessExperienceShell
+        experience={resolved.experience}
+        headingId="module1-success-heading"
+        primaryTestId="module1-continue-module2"
+        statusMessage={
+          isSaving
+            ? MODULE1_SAVING_MESSAGE
+            : isError
+              ? errorMessage || MODULE1_ADVANCE_ERROR_MESSAGE
+              : null
+        }
+        onPrimaryAction={(action) => {
+          if (!action?.href || !continueEnabled) return;
+          router.push(action.href);
+        }}
+      >
+        {isError ? (
+          <button
+            type="button"
+            data-testid="module1-advance-retry"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-theme-blue px-5 py-2.5 text-sm font-semibold text-white"
+            disabled={controllerRef.current.inFlight}
+            onClick={() => {
+              setAdvanceState(MODULE1_ADVANCE_STATES.ERROR);
+              runAdvancement();
+            }}
+          >
+            Try saving again
+          </button>
+        ) : null}
+      </SuccessExperienceShell>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-light px-4">
