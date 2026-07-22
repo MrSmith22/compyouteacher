@@ -16,6 +16,7 @@ import { seedWholeEssayReview } from "@/lib/dev/seeds/seedWholeEssayReview";
 import { seedEvidenceToArgumentSlice } from "@/lib/dev/seeds/seedEvidenceToArgumentSlice";
 import { seedVocabularyTransferLesson } from "@/lib/dev/seeds/seedVocabularyTransferLesson";
 import { seedEthosTransferLesson } from "@/lib/dev/seeds/seedEthosTransferLesson";
+import { seedGuidedApaProtocol } from "@/lib/dev/seeds/seedGuidedApaProtocol";
 
 export type SeedThroughTarget =
   | 2
@@ -32,7 +33,8 @@ export type SeedThroughTarget =
   | "wholeEssayReview"
   | "evidenceToArgumentSlice"
   | "ethosTransferLesson"
-  | "vocabularyTransferLesson";
+  | "vocabularyTransferLesson"
+  | "guidedApaProtocol";
 
 export async function runSeedThrough(
   userEmail: string,
@@ -75,6 +77,10 @@ export async function runSeedThrough(
       });
     case "vocabularyTransferLesson":
       return seedVocabularyTransferLesson(userEmail, {
+        variant: seedOptions?.variant,
+      });
+    case "guidedApaProtocol":
+      return seedGuidedApaProtocol(userEmail, {
         variant: seedOptions?.variant,
       });
     default:

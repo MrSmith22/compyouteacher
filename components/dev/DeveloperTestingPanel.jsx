@@ -522,6 +522,54 @@ export default function DeveloperTestingPanel() {
               >
                 Seed vocabulary transfer (WP-090)
               </button>
+              <label className="flex flex-col gap-1 text-[11px] text-slate-700">
+                WP-092 guided APA variant
+                <select
+                  id="wp092-guided-apa-variant"
+                  className="rounded border border-slate-400 bg-white px-2 py-1 text-[11px]"
+                  defaultValue="module8DocReady"
+                  disabled={busy}
+                >
+                  <option value="module8DocReady">module8DocReady</option>
+                  <option value="midMoveNeedsHelp">midMoveNeedsHelp</option>
+                  <option value="readyForPdf">readyForPdf</option>
+                  <option value="legacyChecklistHistory">legacyChecklistHistory</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
+                  run("Seeded guided APA protocol", async () => {
+                    const select = document.getElementById(
+                      "wp092-guided-apa-variant"
+                    );
+                    const variant =
+                      select && "value" in select
+                        ? String(select.value || "module8DocReady")
+                        : "module8DocReady";
+                    const result = await panelAction("seedThrough", {
+                      target: "guidedApaProtocol",
+                      variant,
+                    });
+                    // Hard navigation so Module 9 remounts and cannot autosave a
+                    // stale in-memory empty state over the freshly seeded row.
+                    const dest =
+                      variant === "module8DocReady"
+                        ? "/modules/8"
+                        : result?.resumePath || "/modules/9";
+                    if (typeof window !== "undefined") {
+                      window.location.assign(dest);
+                    } else {
+                      router.push(dest);
+                    }
+                    return `Seeded guided APA protocol (WP-092 ${variant})`;
+                  })
+                }
+              >
+                Seed guided APA protocol (WP-092)
+              </button>
               <button
                 type="button"
                 className={btn}

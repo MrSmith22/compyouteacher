@@ -350,7 +350,7 @@ test("WP-090 completed Module 1 records remain completed (draft hydrate preserve
   assert.equal(draft.stage, STEP2_STAGES.QUIZ);
 });
 
-test("WP-090 canonical gate covers all six only in development", () => {
+test("WP-090 canonical gate covers all six when rebuilt mode is enabled", () => {
   assert.equal(isKnownVocabularyTransferTermId("not-a-term"), false);
   assert.equal(isKnownVocabularyTransferTermId("ethos"), true);
   if (isVocabularyTransferLessonDevEnabled()) {
@@ -368,7 +368,12 @@ test("WP-090 production/dev-tool boundaries remain intact", () => {
     path.join(root, "lib/dev/isVocabularyTransferLessonEnabled.js"),
     "utf8"
   );
-  assert.match(gateSrc, /NODE_ENV === ["']development["']/);
+  // WP-091: instructional gate uses assignment rollout mode, not NODE_ENV alone
+  assert.match(gateSrc, /getEffectiveVocabularyTransferMode|isRebuiltVocabularyTransfer/);
+  assert.doesNotMatch(
+    gateSrc,
+    /return process\.env\.NODE_ENV === ["']development["']/
+  );
   const panelSrc = fs.readFileSync(
     path.join(root, "components/dev/DeveloperTestingPanel.jsx"),
     "utf8"

@@ -42,9 +42,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-001 | Generated essay includes Roman numerals and outline headings | 7 | Critical | Bug | Resolved |
 | WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Resolved |
 | WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Resolved |
-| WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Open |
+| WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Resolved |
 | WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Needs Verification |
-| WP-006 | Module 9 tests APA knowledge before teaching it | 9 | Critical | Instructional | Open |
+| WP-006 | Module 9 tests APA knowledge before teaching it | 9 | Critical | Instructional | Resolved |
 | WP-007 | PDF download instructions insufficient for younger students | 9 | Critical | Instructional | Resolved |
 | WP-008 | Module 6→7 transition lacks psychological coaching | 6–7 | High | Navigation / Flow | Open |
 | WP-009 | Module 8→9 transition could be stronger | 8–9 | Medium | Navigation / Flow | Open |
@@ -128,8 +128,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-088 | Production promotion of Modules 2–3 evidence-to-argument spine | 2–4 | Critical | Architecture / Ops | Resolved |
 | WP-089 | Transfer-oriented vocabulary foundation (representative ethos lesson) | 1 | High | Instructional / Architecture | Resolved |
 | WP-090 | Generalize transfer-oriented vocabulary across all six Module 1 concepts | 1 | High | Instructional / Architecture | Resolved |
+| WP-091 | Production promotion of Module 1 transfer vocabulary | 1 | Critical | Architecture / Ops | Resolved |
+| WP-092 | Consolidated Module 8–9 guided APA protocol (Phase 5, development-only) | 8–9 | Critical | Instructional / Architecture | Resolved |
+| WP-093 | Production promotion of Modules 8–9 guided APA / submission protocol | 8–9 | Critical | Architecture / Ops | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-091.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-094.*
 
 ---
 
@@ -232,7 +235,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Module 9 export page; Module 8 Google Doc workflow
 - **Priority:** High
 - **Category:** Architecture / Flow
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Module 8 prepares students to create/update a submission Google Doc. Module 9 then presents a separate export step that repeats the same preparation work. Module 9’s export produced the correct essay, confirming the engine works but the workflow is duplicated.
 
@@ -250,9 +253,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** Not specified in Master Design Specification.
 
-**Resolution notes:**
+**Resolution notes:** (July 22, 2026 — WP-093 production closure) Production MLK `submission_protocol_mode=rebuilt` (database-backed, no override). Module 8 Doc-only panel owns create/update/verify/open/continue; Module 9 consumes the verified Doc with recovery-only Open/Update and no duplicate export ritual. Agent production-build browser acceptance on `:3040` confirmed Doc handoff + already-submitted bypass without a second create ritual.
 
-**Resolved in commit:**
+**Resolved in commit:** (pending commit)
 
 ---
 
@@ -291,7 +294,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** APA quiz / review screens at start of Module 9
 - **Priority:** Critical
 - **Category:** Instructional
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Module 9 asks APA questions before teaching APA concepts. This inverts the application’s established Teach → Practice → Feedback → Continue pattern used elsewhere (e.g., Module 2 rhetorical appeals).
 
@@ -308,9 +311,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** Not specified in Master Design Specification.
 
-**Resolution notes:**
+**Resolution notes:** (July 22, 2026 — WP-093 production closure) Production rebuilt path has no recognition-quiz gate. Agent production-build browser acceptance confirmed title-page See→Understand→Do→Check→Fix with community-gardens canonical model before **Looks correct** / **Help me fix it** / **I fixed it**; refresh resumed at page numbers (2/7). No `module9_quiz` score invented for guided completion.
 
-**Resolved in commit:**
+**Resolved in commit:** (pending commit)
 
 ---
 
@@ -2889,6 +2892,147 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 8. **Quiz gate:** `readyForQuiz` enables “Check my understanding” → stage `quiz` Question 1 of 10
 9. **Paraphrase change (1440×900):** review banner; progress preserved; no overflow
 10. **Human remainder:** subjective age-fit / coaching-tone only
+
+**Resolved in commit:** (pending commit)
+
+---
+
+### WP-091 — Production promotion of Module 1 transfer vocabulary
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Architecture / Ops  
+**Module:** 1  
+**Related:** WP-055, WP-057, WP-078, WP-085, WP-088–090; Prompt 12; Phase 4 exit
+
+**Walkthrough observation:** WP-089/WP-090 transfer lessons are accepted, but instructional gating still depended on development mode and lesson drafts lived only in browser localStorage. Production students would still see legacy definition-heavy vocabulary.
+
+**Student-facing impact:** Production students need the accepted six-concept transfer process with durable, honest resume across devices—not a local-only cache treated as source of truth.
+
+**Why it matters technically or operationally:** Need one assignment-owned `vocabulary_transfer_mode` independent from `writing_spine_mode` and `evidence_argument_mode`; server-backed lesson state; lossless local/ethos-v1/v2 merge; rollback that preserves state; migration/preflight; production-build acceptance without shipping developer tooling.
+
+**Recommended smallest reasonable fix:** Mirror WP-088 with `vocabulary_transfer_mode` + `module1_vocabulary_transfer` table; resolver/cache/teacher control; replace instructional NODE_ENV gate; authenticated GET/POST persistence; localStorage as cache; preflight + runbook; production-build browser acceptance.
+
+**Gate:** Instructional gates use rollout mode (not NODE_ENV). Developer panel/seeds/dev auth remain NODE_ENV-protected. Modules 2–7 rollout stays independent.
+
+**Resolution notes:** (July 22, 2026)
+
+**Implemented**
+- Resolver/cache: `vocabularyTransferRollout.js`, `vocabularyTransferModeCache.js`
+- DB helpers: `vocabularyTransferRolloutSettings.ts`, `module1VocabularyTransfer.ts`
+- APIs: `/api/assignment-rollout` exposes vocabularyTransfer*; teacher PATCH `/api/teacher/vocabulary-transfer-rollout`; student GET/POST `/api/module1/vocabulary-transfer`
+- Gate: `isVocabularyTransferLessonEnabled` uses assignment mode; WritingSpineProvider React context for post-hydrate re-render
+- Merge: `resolveVocabularyTransferAuthority` (completed > newer; no invented responses)
+- ModuleOne: server hydrate + debounced save + Retry; localStorage cache only
+- Migration `20260721230000_vocabulary_transfer_rollout.sql` applied remotely; MLK `vocabulary_transfer_mode=rebuilt` database-backed
+- Preflight/runbook + Teacher ops UI
+- Tests: `tests/wp091-vocabulary-transfer-production-rollout.test.js`
+
+**Closure evidence**
+1. **Preflight:** all PASS — `vocabulary_transfer_mode=rebuilt` database-backed; writing spine + evidence-argument unchanged; `module1_vocabulary_transfer` readable
+2. **Automated:** WP-089+090+091 **64/64**; WP-091 alone **17/17**
+3. **Production build:** `NEXT_DIST_DIR=.next-prod` success; static chunks **0** DeveloperTestingPanel / seed matches
+4. **Dev-tool denial:** `/api/dev/panel` → 404 `{not_found}`; unauth vocabulary-transfer → 401
+5. **Database-backed (no override):** `/api/assignment-rollout` → `vocabularyTransferMode=rebuilt`, `source=database`, `schemaOk=true`
+6. **Persistence:** choose Version B → Check → Continue → server `rhetoric.currentStep=name_boundary`, `noticeChoiceId=version_b_deadline`; refresh resumes Step 2; no Retry banner
+7. **Rollback round-trip:** rebuilt → legacy (Definition card; vocab API `404 not_available`; state fingerprint unchanged; other modes stay rebuilt) → rebuilt resumes `name_boundary` with same choice
+8. **Browser:** 390×844 and desktop — transfer lesson, no horizontal overflow; no Developer Testing Panel
+9. **Human remainder:** none
+
+**Resolved in commit:** (pending commit)
+
+---
+
+### WP-092 — Consolidated Module 8–9 guided APA protocol (Phase 5, development-only)
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Instructional / Architecture  
+**Module:** 8–9  
+**Related:** WP-002, WP-004, WP-006, WP-028–047, WP-067–072, WP-080, WP-084, WP-085; Prompt 13; Phase 5
+
+**Walkthrough observation:** Modules 8–9 stack repeated APA checklists, recognition quizzes, and a duplicate Google Doc ritual. Students can click through without authentic application in Google Docs.
+
+**Student-facing impact:** Need one teach→apply→inspect protocol: Module 8 owns the verified Doc; Module 9 teaches each formatting move in that Doc, then PDF/receipt.
+
+**Why it matters technically or operationally:** Phase 5 architecture behind a development-only gate; preserve WP-080 trust; do not promote to production in this issue.
+
+**Recommended smallest reasonable fix:** Dev gate; assignment requirements contract; semantic move state; canonical model; Module 8 Doc-only UI; Module 9 guided flow; persistence table; seeds/tests; agent browser acceptance.
+
+**Gate:** `NODE_ENV === "development"` and MLK assignment only. Production path unchanged.
+
+**Implementation notes:** (July 22, 2026)
+
+**Implemented**
+- Gate: `lib/dev/isGuidedApaProtocolEnabled.js`
+- Contract: `lib/module9/guidedApaRequirementsContract.js` (APA / teacher / assignment kinds; 1963a/1963b)
+- Moves: `lib/module9/guidedApaMoves.js` (See/Understand/Do/Check/Fix + Docs paths)
+- State: `lib/module9/guidedApaProtocolState.js` + migration `20260722010000_module9_guided_apa_protocol.sql` (applied remotely)
+- API: `/api/module9/guided-apa-protocol` with stale-write guard (`isGuidedApaWriteStale`)
+- UI: `ModuleEightGuidedApaDocPanel`, `GuidedApaProtocolFlow` (`resolveGuidedApaPhase`, skip-first-autosave), `GuidedApaCanonicalModel`
+- Seed/panel: `seedGuidedApaProtocol` clears prior final PDF; hard `location.assign` after seed to remount Module 9
+- Tests: `tests/wp092-guided-apa-protocol.test.js` + WP-080 / Module 8–9 pathway suites (**50/50** in combined focused run)
+
+**Fixes during acceptance**
+1. Stale autosave could overwrite a fresher seeded server row after soft navigation — fixed with hydrate save-skip, `updatedAt` stale rejection, and hard reload after WP-092 seed.
+2. `readyForPdf` could land on the `doc_inspection` move card when Doc readiness arrived after first paint — fixed with `resolveGuidedApaPhase` + phase re-sync when `docReady` becomes true.
+
+**Agent browser acceptance (July 22, 2026, development `:3000`)**
+- Migration live: GET/POST guided protocol **200**; no “Could not save” banner
+- Save/resume: `midMoveNeedsHelp` resumes title page with needs-help; **I fixed it** → refresh resumes on next move (`title_page=fixed`, progress 2/7)
+- Module 8 Doc-only at **390×844** / **1440×900**: guided panel, no Format/Ready checklists, ≥44px actions, focusable Open control, no horizontal overflow
+- Module 9 moves at **1440×900**: needs-help resume, focusable **Looks correct**, no overflow; **390×844** receipt + dashboard no overflow
+- Invalid PDF (`.txt`) rejected with usable-PDF error; checklist stays disabled; upload stays gated
+- Valid PDF upload → durable receipt (`essay-final.pdf`, file size, receipt id, Accepted and saved) → dashboard **Submitted** + Open final PDF / View submission receipt
+- Upload failure path remains wired (`Upload failed. Please try again.` + stay on Module 9); live failure injection not required after successful receipt path
+- Production gate remains off (`NODE_ENV=production` → guided disabled)
+- WP-004 / WP-006 updated with development-path evidence; left Open until production promotion
+
+**Resolved in commit:** (pending commit — acceptance complete)
+
+---
+
+### WP-093 — Production promotion of Modules 8–9 guided APA / submission protocol
+
+**Status:** Resolved  
+**Priority:** Critical  
+**Category:** Architecture / Ops  
+**Module:** 8–9  
+**Related:** WP-004, WP-006, WP-080, WP-084, WP-085, WP-088, WP-091, WP-092; Prompt 14; Phase 5 exit
+
+**Walkthrough observation:** WP-092 is accepted but still gated to development. Production retains legacy Module 8 APA/confidence checklists and Module 9 recognition quiz/checklist.
+
+**Student-facing impact:** Production students need the accepted Doc-only Module 8 and guided Module 9 formatting protocol without forced replay or loss of receipts.
+
+**Why it matters technically or operationally:** Independent assignment-owned rollout, remote migration, compatibility, rollback without data loss, and production-build acceptance are required before Phase 5 exit.
+
+**Recommended smallest reasonable fix:** `submission_protocol_mode` on `assignment_settings`; shared resolver/cache; teacher/ops API; hydrate via assignment-rollout; rewrite instructional gate; preflight + runbook; tests; remote enable; production-build browser acceptance.
+
+**Gate:** Instructional gates use assignment rollout mode (not NODE_ENV). Developer panel/seeds/dev auth remain NODE_ENV-protected. Modules 1–7 rollout stays independent.
+
+**Resolution notes:** (July 22, 2026)
+
+**Implemented**
+- Resolver/cache: `submissionProtocolRollout.js`, `submissionProtocolModeCache.js`
+- Gate: `isGuidedApaProtocolEnabled` → `getEffectiveSubmissionProtocolMode`
+- Migration `20260722020000_submission_protocol_rollout.sql` applied remotely; MLK `submission_protocol_mode=rebuilt`
+- APIs: assignment-rollout fields; teacher GET/PATCH `/api/teacher/submission-protocol-rollout`; guided API uses same DB/override resolver
+- Module 8/9 hydrate gate + recoverable config-failure UI; Teacher ops UI; preflight + runbook
+- Tests: `tests/wp093-submission-protocol-production-rollout.test.js`
+
+**Closure evidence**
+1. **Preflight:** all PASS — `submission_protocol_mode=rebuilt` database-backed; writing spine + evidence-argument + vocabulary-transfer unchanged; guided/quiz/checklist/exported_docs/student_exports readable
+2. **Automated:** WP-092+093 **40/40**; WP-093 alone **20/20**
+3. **Production build:** `NEXT_DIST_DIR=.next-wp093-prod` success; static chunks **0** DeveloperTestingPanel / seedGuidedApaProtocol matches
+4. **Dev-tool denial:** `/api/dev/panel` → 404 `{not_found}` on production; unauth guided → 401
+5. **Database-backed (no `SUBMISSION_PROTOCOL_MODE_OVERRIDE`):** `/api/assignment-rollout` → `submissionProtocolMode=rebuilt`, `source=database`, `schemaOk=true`; other modes remain rebuilt
+6. **Guided API:** GET 200 with `mode=rebuilt`, resumes `doc_inspection` / mid-move states
+7. **Rollback round-trip:** rebuilt → legacy (guided API `404 not_available`; semantic fingerprint unchanged; Modules 1–7 modes stay rebuilt) → rebuilt restores same fingerprint/`doc_inspection`
+8. **Stale write:** POST with older `updatedAt` returns `stale:true` and keeps fresher `activeMoveId`
+9. **No fake quiz:** guided completion does not invent `module9_quiz` scores
+10. **Browser production `:3040` (390×844 + 1440×900):** Module 8 Doc-only (no Format/Ready checklist, no Dev panel, no overflow); Module 9 guided title-page needs_help → **I fixed it** → refresh resumes page numbers (2/7); PDF phase with 8 download steps + 5 inspection items; already-submitted bypass (“Submission already received”)
+11. **WP-080 receipt:** tiny valid PDF upload → durable receipt (`wp093-tiny.pdf`, 322 bytes, Accepted and saved, receipt id); refresh/reopen matches; invalid `.txt` → 400; duplicate → 409; dashboard **Submitted** + Open final PDF / View submission receipt
+12. **Human remainder:** none
 
 **Resolved in commit:** (pending commit)
 

@@ -8,6 +8,8 @@ import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import TeacherWordCountSettings from "@/components/teacher/TeacherWordCountSettings";
 import TeacherWritingSpineRollout from "@/components/teacher/TeacherWritingSpineRollout";
 import TeacherEvidenceArgumentRollout from "@/components/teacher/TeacherEvidenceArgumentRollout";
+import TeacherVocabularyTransferRollout from "@/components/teacher/TeacherVocabularyTransferRollout";
+import TeacherSubmissionProtocolRollout from "@/components/teacher/TeacherSubmissionProtocolRollout";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const gradingStatusOptions = [
@@ -651,6 +653,8 @@ useEffect(() => {
       <TeacherWordCountSettings />
       <TeacherWritingSpineRollout />
       <TeacherEvidenceArgumentRollout />
+      <TeacherVocabularyTransferRollout />
+      <TeacherSubmissionProtocolRollout />
 
       {/* Phase 1: Student Progress Overview */}
       <section className="space-y-2">

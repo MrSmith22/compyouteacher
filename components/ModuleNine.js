@@ -60,6 +60,15 @@ import {
   SUBMISSION_DOC_MISMATCH_RECOVERY,
 } from "@/lib/exports/createOrUpdateSubmissionGoogleDocClient";
 import SubmissionDocRecoveryPanel from "@/components/exports/SubmissionDocRecoveryPanel";
+import GuidedApaProtocolFlow from "@/components/module9/GuidedApaProtocolFlow";
+import {
+  useAssignmentRollout,
+  useSubmissionProtocolMode,
+} from "@/components/assignments/WritingSpineProvider";
+import { isRebuiltSubmissionProtocol } from "@/lib/assignments/submissionProtocolRollout";
+import {
+  getSubmissionProtocolHydrateFailed,
+} from "@/lib/assignments/submissionProtocolModeCache";
 import { MODULE9_SCREEN_CONTRACT } from "@/lib/module9/module9ScreenContract";
 import {
   RHYTHM_MOBILE_SAFE_CLASS,
@@ -101,6 +110,10 @@ const FOCUS_RING =
 export default function ModuleNine() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { hydrated: rolloutHydrated } = useAssignmentRollout();
+  const submissionProtocolMode = useSubmissionProtocolMode();
+  const guidedApaProtocol = isRebuiltSubmissionProtocol(submissionProtocolMode);
+  const submissionProtocolHydrateFailed = getSubmissionProtocolHydrateFailed();
 
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
@@ -555,17 +568,28 @@ export default function ModuleNine() {
     setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
   };
 
-  const canUpload =
-    submitted &&
-    docReady &&
-    checklistComplete &&
-    !!pdfFile &&
-    finalUploadChecklistComplete &&
-    !uploading;
+  const canUpload = guidedApaProtocol
+    ? docReady &&
+      !!pdfFile &&
+      finalUploadChecklistComplete &&
+      !uploading
+    : submitted &&
+      docReady &&
+      checklistComplete &&
+      !!pdfFile &&
+      finalUploadChecklistComplete &&
+      !uploading;
 
   const handleUploadPDF = async () => {
     if (!session?.user?.email) return;
-    if (!submitted || !docReady || !checklistComplete) {
+    if (guidedApaProtocol) {
+      if (!docReady) {
+        setUploadError(
+          "Verify your Google Doc before uploading the final PDF."
+        );
+        return;
+      }
+    } else if (!submitted || !docReady || !checklistComplete) {
       setUploadError(
         "Complete all previous steps (APA practice, verified Google Doc, checklist) before uploading."
       );
@@ -644,6 +668,41 @@ export default function ModuleNine() {
 
   if (!session) return <p className="p-6">Loading…</p>;
 
+  if (!rolloutHydrated) {
+    return (
+      <ModulePageShell contentMax="md">
+        <p className="text-text-primary">Loading preparation settings…</p>
+      </ModulePageShell>
+    );
+  }
+
+  if (submissionProtocolHydrateFailed && process.env.NODE_ENV === "production") {
+    return (
+      <ModulePageShell contentMax="md">
+        <div
+          className="mx-auto max-w-lg space-y-3 rounded-xl border border-border-soft/70 bg-white px-5 py-6 shadow-soft"
+          data-testid="module9-submission-protocol-config-error"
+          role="alert"
+        >
+          <h1 className={HIERARCHY_MODULE_CHROME_CLASS}>
+            Preparation settings unavailable
+          </h1>
+          <p className="text-sm leading-relaxed text-text-muted">
+            We could not confirm which Module 9 path to use. Your Google Doc and
+            any saved formatting progress are safe. Refresh to try again.
+          </p>
+          <button
+            type="button"
+            className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+            onClick={() => window.location.reload()}
+          >
+            Refresh
+          </button>
+        </div>
+      </ModulePageShell>
+    );
+  }
+
   if (gateOk === false) {
     return (
       <ModulePageShell contentMax="md">
@@ -689,6 +748,137 @@ export default function ModuleNine() {
     return (
       <ModulePageShell contentMax="md">
         <p className="text-text-primary">Loading…</p>
+      </ModulePageShell>
+    );
+  }
+
+  if (guidedApaProtocol) {
+    return (
+      <ModulePageShell contentMax={MODULE9_LAYOUT_CONTRACT.contentMax}>
+        <div className="space-y-6 overflow-x-hidden px-1 py-2">
+          <header className="space-y-2">
+            <ModuleModeCue module={9} />
+            <h1 className={HIERARCHY_MODULE_CHROME_CLASS}>
+              Module 9: Format your Google Doc for this assignment
+            </h1>
+            <p className="text-sm text-text-muted">
+              Teach each formatting move in your real Google Doc, inspect once, then
+              download and upload the PDF.
+            </p>
+          </header>
+          <GuidedApaProtocolFlow
+            exportUrl={exportUrl}
+            docReady={docReady}
+            docVerifiedAt={null}
+            verificationSignature={
+              docContentVerified && exportUrl ? `verified:${exportUrl}` : null
+            }
+            authoritativeDocId={exportUrl || null}
+            onOpenDoc={() => exportUrl && openExternalResource(exportUrl)}
+            onNeedDocRecovery={() => {
+              step2Ref.current?.scrollIntoView?.({ behavior: "smooth" });
+            }}
+            legacyChecklistItems={checklistState}
+            legacyQuiz={submitted ? { score, total: MODULE9_APA_QUIZ_TOTAL } : null}
+            pdfFile={pdfFile}
+            pdfError={uploadError}
+            uploading={uploading}
+            uploadError={uploadError}
+            onPdfSelected={async (file) => {
+              setUploadError(null);
+              if (!file) {
+                setPdfFile(null);
+                setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+                return;
+              }
+              const meta = validateFinalPdfMetadata({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+              });
+              if (!meta.ok) {
+                setUploadError(meta.error);
+                setPdfFile(null);
+                setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+                return;
+              }
+              try {
+                const headerBytes = await readPdfHeaderBytes(file);
+                const payload = validateFinalPdfPayload({
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                  bytes: headerBytes,
+                });
+                if (!payload.ok) {
+                  setUploadError(payload.error);
+                  setPdfFile(null);
+                  setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+                  return;
+                }
+              } catch {
+                setUploadError(
+                  "Could not read that file. Choose a PDF that opens on your device, then try again."
+                );
+                setPdfFile(null);
+                setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+                return;
+              }
+              setPdfFile(file);
+              setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+            }}
+            onClearPdf={() => {
+              setPdfFile(null);
+              setUploadError(null);
+              setFinalUploadChecklistState(EMPTY_FINAL_UPLOAD_CHECKLIST());
+            }}
+            onUpload={handleUploadPDF}
+            finalUploadChecklistState={finalUploadChecklistState}
+            onToggleFinalUploadItem={(index) => {
+              setFinalUploadChecklistState((prev) => {
+                const next = [...prev];
+                next[index] = !next[index];
+                return next;
+              });
+            }}
+            canUpload={canUpload}
+            alreadySubmitted={alreadySubmitted}
+            onViewReceipt={() => router.push("/modules/9/success")}
+          />
+          {/* Recovery panel kept available below for Doc repair */}
+          <div ref={step2Ref} className="pt-2">
+            <SubmissionDocRecoveryPanel
+              module={9}
+              verificationStatus={verificationStatus}
+              exportStatus={exportStatus}
+              hasUrl={!!exportUrl}
+              contentVerified={docContentVerified}
+              operation={lastDocOperation}
+              docUrl={exportUrl}
+              busy={docBusy}
+              notice={docNotice}
+              testIdPrefix="module9-guided-doc"
+              showProgressContinue={false}
+              onUpdate={() =>
+                handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+              }
+              onCreate={() =>
+                handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+              }
+              onCreateNew={() =>
+                handleCreateOrUpdateSubmissionDoc({ forceCreate: true })
+              }
+              onRetry={handleRetryVerification}
+              onReplacementCancelled={() =>
+                logSubmissionDocReplacementCancelled({
+                  userEmail: session?.user?.email,
+                  module: 9,
+                  hadExistingDoc: !!exportUrl,
+                })
+              }
+            />
+          </div>
+        </div>
       </ModulePageShell>
     );
   }

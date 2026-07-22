@@ -170,7 +170,8 @@ export async function POST(req: Request) {
           targetRaw === "wholeEssayReview" ||
           targetRaw === "evidenceToArgumentSlice" ||
           targetRaw === "ethosTransferLesson" ||
-          targetRaw === "vocabularyTransferLesson"
+          targetRaw === "vocabularyTransferLesson" ||
+          targetRaw === "guidedApaProtocol"
         ) {
           target = targetRaw;
         }

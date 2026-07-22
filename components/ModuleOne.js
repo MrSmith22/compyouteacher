@@ -42,13 +42,19 @@ import {
 import ModuleOneVocabularyVisual from "@/components/module1/ModuleOneVocabularyVisual";
 import VocabularyTransferLessonFlow from "@/components/module1/VocabularyTransferLessonFlow";
 import { isVocabularyTransferLessonEnabled } from "@/lib/dev/isVocabularyTransferLessonEnabled";
+import { useVocabularyTransferMode } from "@/components/assignments/WritingSpineProvider";
 import {
   normalizeVocabularyTransferState,
   evaluateTermTransferReadiness,
   evaluateAllVocabularyTransferReadiness,
   getCompletedVocabularyTrail,
   termStateToEthosV1,
+  resolveVocabularyTransferAuthority,
 } from "@/lib/module1/vocabularyTransferState";
+import {
+  getVocabularyTransferHydrateFailed,
+} from "@/lib/assignments/vocabularyTransferModeCache";
+import { isRebuiltVocabularyTransfer } from "@/lib/assignments/vocabularyTransferRollout";
 
 const VIDEO_SRC = "/videos/Ethos Pathos and Logos Explained.mp4";
 
@@ -77,13 +83,94 @@ function writeStep2Draft(email, draft) {
   }
 }
 
+async function fetchServerVocabularyTransfer() {
+  try {
+    const res = await fetch("/api/module1/vocabulary-transfer");
+    const json = await res.json().catch(() => ({}));
+    if (res.status === 404 || json?.error === "not_available") {
+      return { ok: true, available: false, vocabularyTransfer: null };
+    }
+    if (res.status === 503 || json?.error === "schema_missing") {
+      return {
+        ok: false,
+        available: true,
+        schemaMissing: true,
+        error: json?.error || "schema_missing",
+      };
+    }
+    if (!res.ok || !json?.ok) {
+      return {
+        ok: false,
+        available: true,
+        error: json?.error || `HTTP ${res.status}`,
+      };
+    }
+    return {
+      ok: true,
+      available: true,
+      exists: Boolean(json.exists),
+      vocabularyTransfer: json.vocabularyTransfer,
+      updatedAt: json.updatedAt || null,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      available: true,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+async function saveServerVocabularyTransfer(vocabularyTransfer, opts = {}) {
+  try {
+    const res = await fetch("/api/module1/vocabulary-transfer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        vocabularyTransfer,
+        preferIncoming: opts.preferIncoming === true,
+        force: opts.force === true,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.status === 404 || json?.error === "not_available") {
+      return { ok: true, skipped: true };
+    }
+    if (!res.ok || !json?.ok) {
+      return {
+        ok: false,
+        error: json?.error || `HTTP ${res.status}`,
+        schemaMissing: json?.error === "schema_missing",
+      };
+    }
+    return {
+      ok: true,
+      vocabularyTransfer: json.vocabularyTransfer,
+      updatedAt: json.updatedAt || null,
+      preserved: Boolean(json.preserved),
+      needsReview: Boolean(json.needsReview),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const { prompt } = mlkAssignmentDefinition;
   const quiz = getActiveQuiz();
   const router = useRouter();
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
+  const vocabularyTransferMode = useVocabularyTransferMode();
+  const rebuiltVocabularyTransfer = isRebuiltVocabularyTransfer(
+    vocabularyTransferMode
+  );
   const hydratedRef = useRef(false);
+  const serverSaveTimerRef = useRef(null);
+  const lastServerSavedAtRef = useRef(null);
 
   const [stage, setStage] = useState(STEP2_STAGES.TRANSITION);
   const [termIndex, setTermIndex] = useState(0);
@@ -98,41 +185,100 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const [sayAnotherWayOpen, setSayAnotherWayOpen] = useState(false);
   const [draftReady, setDraftReady] = useState(false);
   const [vocabularyTransfer, setVocabularyTransfer] = useState(null);
+  const [vocabPersistStatus, setVocabPersistStatus] = useState("idle");
+  const [vocabPersistError, setVocabPersistError] = useState("");
+  const [vocabNeedsReview, setVocabNeedsReview] = useState(false);
 
-  // Resume Step 2 draft on ordinary revisit / reload
+  // Resume Step 2 draft: local cache + authoritative server vocabularyTransfer
   useEffect(() => {
     if (!email || hydratedRef.current) return;
     hydratedRef.current = true;
-    const raw = readStep2Draft(email);
-    const draft = hydrateStep2Draft(raw, {
-      quizLength: quiz.length,
-      currentQuizVersion: QUIZ_CONTENT_VERSION,
-    });
-    const migration = resolveQuizVersionMigration({
-      draftAnswers: draft.quizAnswers,
-      draftVersion: draft.quizVersion,
-      currentVersion: QUIZ_CONTENT_VERSION,
-    });
+    let cancelled = false;
 
-    setStage(draft.stage);
-    setTermIndex(draft.termIndex);
-    setVocabularyTransfer(
-      normalizeVocabularyTransferState(
+    (async () => {
+      const raw = readStep2Draft(email);
+      const draft = hydrateStep2Draft(raw, {
+        quizLength: quiz.length,
+        currentQuizVersion: QUIZ_CONTENT_VERSION,
+      });
+      const migration = resolveQuizVersionMigration({
+        draftAnswers: draft.quizAnswers,
+        draftVersion: draft.quizVersion,
+        currentVersion: QUIZ_CONTENT_VERSION,
+      });
+
+      const localVocab = normalizeVocabularyTransferState(
         draft.vocabularyTransfer,
         draft.ethosTransfer
-      )
-    );
-    if (draft.stage === STEP2_STAGES.QUIZ) {
-      setUserAnswers(migration.answers);
-      setQuizIndex(migration.resumeIndex);
-    } else {
-      setUserAnswers(normalizeQuizAnswers(draft.quizAnswers, quiz.length));
-      setQuizIndex(draft.quizIndex);
-    }
-    setDraftReady(true);
+      );
+
+      const server = await fetchServerVocabularyTransfer();
+      if (cancelled) return;
+
+      let resolvedVocab = localVocab;
+      let needsReview = false;
+
+      if (server.ok && server.available) {
+        const authority = resolveVocabularyTransferAuthority(
+          server.vocabularyTransfer,
+          localVocab,
+          draft.ethosTransfer
+        );
+        resolvedVocab = authority.state;
+        needsReview = authority.needsReview;
+
+        if (
+          authority.source === "local" ||
+          authority.reason === "import_local_only"
+        ) {
+          const saved = await saveServerVocabularyTransfer(resolvedVocab, {
+            preferIncoming: true,
+          });
+          if (saved.ok && !saved.skipped && saved.vocabularyTransfer) {
+            resolvedVocab = normalizeVocabularyTransferState(
+              saved.vocabularyTransfer
+            );
+            lastServerSavedAtRef.current = saved.updatedAt;
+            setVocabPersistStatus("saved");
+          } else if (!saved.ok) {
+            setVocabPersistStatus("error");
+            setVocabPersistError(
+              "Progress is on this device only until it can be saved. Try again when you are online."
+            );
+          }
+        } else if (server.exists) {
+          lastServerSavedAtRef.current = server.updatedAt;
+          setVocabPersistStatus("saved");
+        }
+      } else if (!server.ok && server.available) {
+        setVocabPersistStatus("error");
+        setVocabPersistError(
+          server.schemaMissing
+            ? "Lesson progress could not be verified on the server yet. Work on this device is still here."
+            : "Could not load saved lesson progress. Showing what is on this device — try refresh if something looks missing."
+        );
+      }
+
+      setStage(draft.stage);
+      setTermIndex(draft.termIndex);
+      setVocabularyTransfer(resolvedVocab);
+      setVocabNeedsReview(needsReview);
+      if (draft.stage === STEP2_STAGES.QUIZ) {
+        setUserAnswers(migration.answers);
+        setQuizIndex(migration.resumeIndex);
+      } else {
+        setUserAnswers(normalizeQuizAnswers(draft.quizAnswers, quiz.length));
+        setQuizIndex(draft.quizIndex);
+      }
+      setDraftReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [email, quiz.length]);
 
-  // Persist draft for reload (ordinary revisit)
+  // Persist draft for reload (local cache) + debounced server save for transfer state
   useEffect(() => {
     if (!email || !draftReady || quizSubmitted) return;
     const ethosMirror =
@@ -148,6 +294,42 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
       vocabularyTransfer,
       ethosTransfer: ethosMirror,
     });
+
+    if (!vocabularyTransfer) return;
+    if (getVocabularyTransferHydrateFailed()) return;
+
+    if (serverSaveTimerRef.current) {
+      clearTimeout(serverSaveTimerRef.current);
+    }
+    serverSaveTimerRef.current = setTimeout(async () => {
+      setVocabPersistStatus((prev) => (prev === "error" ? "retrying" : "saving"));
+      const saved = await saveServerVocabularyTransfer(vocabularyTransfer, {
+        preferIncoming: true,
+      });
+      if (saved.ok && !saved.skipped) {
+        if (saved.preserved && saved.vocabularyTransfer) {
+          setVocabularyTransfer(
+            normalizeVocabularyTransferState(saved.vocabularyTransfer)
+          );
+        } else if (saved.vocabularyTransfer) {
+          lastServerSavedAtRef.current = saved.updatedAt;
+        }
+        setVocabNeedsReview(Boolean(saved.needsReview));
+        setVocabPersistStatus("saved");
+        setVocabPersistError("");
+      } else if (!saved.ok) {
+        setVocabPersistStatus("error");
+        setVocabPersistError(
+          "Could not save lesson progress to your account. Work is still on this device — tap Retry save."
+        );
+      }
+    }, 700);
+
+    return () => {
+      if (serverSaveTimerRef.current) {
+        clearTimeout(serverSaveTimerRef.current);
+      }
+    };
   }, [
     email,
     draftReady,
@@ -158,6 +340,26 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
     quizSubmitted,
     vocabularyTransfer,
   ]);
+
+  const retryVocabularyServerSave = async () => {
+    if (!vocabularyTransfer) return;
+    setVocabPersistStatus("retrying");
+    const saved = await saveServerVocabularyTransfer(vocabularyTransfer, {
+      preferIncoming: true,
+      force: vocabNeedsReview,
+    });
+    if (saved.ok && !saved.skipped) {
+      lastServerSavedAtRef.current = saved.updatedAt;
+      setVocabPersistStatus("saved");
+      setVocabPersistError("");
+      setVocabNeedsReview(Boolean(saved.needsReview));
+    } else if (!saved.ok) {
+      setVocabPersistStatus("error");
+      setVocabPersistError(
+        "Still could not save. Check your connection and try again."
+      );
+    }
+  };
 
   const presentation = getStep2PresentationModel({
     stage,
@@ -369,6 +571,7 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
 
   const term = presentation.activeTerm;
   const useVocabularyTransfer =
+    rebuiltVocabularyTransfer &&
     stage === STEP2_STAGES.LEARN &&
     isVocabularyTransferLessonEnabled({
       termId: term?.id,
@@ -500,6 +703,42 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
                 <p className="mt-2 text-sm leading-relaxed text-text-primary">
                   {presentation.requiredContext}
                 </p>
+              </div>
+            ) : null}
+
+            {draftReady &&
+            stage === STEP2_STAGES.LEARN &&
+            useVocabularyTransfer &&
+            (vocabPersistStatus === "error" ||
+              vocabPersistStatus === "retrying" ||
+              vocabNeedsReview) ? (
+              <div
+                className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+                role="status"
+                data-testid="vocabulary-transfer-persist-status"
+              >
+                {vocabNeedsReview ? (
+                  <p>
+                    Your account and this device both have lesson progress. The
+                    safer combined version is shown — review your answers before
+                    continuing.
+                  </p>
+                ) : null}
+                {vocabPersistError ? <p>{vocabPersistError}</p> : null}
+                {vocabPersistStatus === "error" ||
+                vocabPersistStatus === "retrying" ? (
+                  <button
+                    type="button"
+                    className="mt-2 min-h-[44px] rounded bg-theme-blue px-3 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-theme-blue/40 disabled:opacity-60"
+                    onClick={retryVocabularyServerSave}
+                    disabled={vocabPersistStatus === "retrying"}
+                    data-testid="vocabulary-transfer-retry-save"
+                  >
+                    {vocabPersistStatus === "retrying"
+                      ? "Saving…"
+                      : "Retry save"}
+                  </button>
+                ) : null}
               </div>
             ) : null}
 

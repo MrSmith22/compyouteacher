@@ -42,6 +42,15 @@ import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
 import ProgressCelebrationBridge from "@/components/shared/ProgressCelebrationBridge";
 import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import ModuleEightReferenceShelf from "@/components/module8/ModuleEightReferenceShelf";
+import ModuleEightGuidedApaDocPanel from "@/components/module8/ModuleEightGuidedApaDocPanel";
+import {
+  useAssignmentRollout,
+  useSubmissionProtocolMode,
+} from "@/components/assignments/WritingSpineProvider";
+import { isRebuiltSubmissionProtocol } from "@/lib/assignments/submissionProtocolRollout";
+import {
+  getSubmissionProtocolHydrateFailed,
+} from "@/lib/assignments/submissionProtocolModeCache";
 import { getModule8ProgressCelebration } from "@/lib/ui/moduleProgressCelebrations";
 import {
   RHYTHM_ACTION_ZONE_CLASS,
@@ -129,6 +138,10 @@ function PreparationProgressPanel({
 export default function ModuleEight() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { hydrated: rolloutHydrated } = useAssignmentRollout();
+  const submissionProtocolMode = useSubmissionProtocolMode();
+  const guidedApaProtocol = isRebuiltSubmissionProtocol(submissionProtocolMode);
+  const submissionProtocolHydrateFailed = getSubmissionProtocolHydrateFailed();
 
   const [outline, setOutline] = useState(null);
   const [outlineLoading, setOutlineLoading] = useState(true);
@@ -532,13 +545,12 @@ export default function ModuleEight() {
 
   const finishPreparing = async () => {
     if (!email) return;
-    // WP-035 + existing gates: never complete without verified Doc, APA checklist,
-    // and Ready confidence confirmations.
+    // Legacy path: verified Doc + APA checklist + Ready confidence.
+    // Guided path (WP-092/093): verified Doc only — formatting lives in Module 9.
     if (
       !docVerifiedThisSession ||
       !submissionDocUrl ||
-      !checklistComplete ||
-      !confidenceComplete
+      (!guidedApaProtocol && (!checklistComplete || !confidenceComplete))
     ) {
       return;
     }
@@ -569,8 +581,9 @@ export default function ModuleEight() {
     await logActivity(email, "module_completed", {
       module: 8,
       has_submission_doc: !!submissionDocUrl,
-      checklist_complete: checklistComplete,
-      confidence_complete: confidenceComplete,
+      checklist_complete: guidedApaProtocol ? null : checklistComplete,
+      confidence_complete: guidedApaProtocol ? null : confidenceComplete,
+      guided_apa_protocol: guidedApaProtocol,
       ...metrics,
     });
 
@@ -596,6 +609,41 @@ export default function ModuleEight() {
           </Link>
         </div>
       </div>
+    );
+  }
+
+  if (!rolloutHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface-base">
+        <p className="text-text-primary">Loading preparation settings…</p>
+      </div>
+    );
+  }
+
+  if (submissionProtocolHydrateFailed && process.env.NODE_ENV === "production") {
+    return (
+      <ModulePageShell>
+        <div
+          className="mx-auto max-w-lg space-y-3 rounded-xl border border-border-soft/70 bg-white px-5 py-6 shadow-soft"
+          data-testid="module8-submission-protocol-config-error"
+          role="alert"
+        >
+          <h1 className="text-xl font-semibold text-text-primary">
+            Preparation settings unavailable
+          </h1>
+          <p className="text-sm leading-relaxed text-text-muted">
+            We could not confirm which Module 8 path to use. Your essay and Google
+            Doc are safe. Refresh to try again.
+          </p>
+          <button
+            type="button"
+            className={`${HIERARCHY_ACTION_PRIMARY_CLASS} ${HIERARCHY_FOCUS_RING_CLASS}`}
+            onClick={() => window.location.reload()}
+          >
+            Refresh
+          </button>
+        </div>
+      </ModulePageShell>
     );
   }
 
@@ -657,11 +705,12 @@ export default function ModuleEight() {
 
   const canAdvanceFromStep1 = docVerifiedThisSession;
   const canAdvanceFromStep2 = checklistComplete;
-  const canFinish =
-    docVerifiedThisSession &&
-    !!submissionDocUrl &&
-    checklistComplete &&
-    confidenceComplete;
+  const canFinish = guidedApaProtocol
+    ? docVerifiedThisSession && !!submissionDocUrl
+    : docVerifiedThisSession &&
+      !!submissionDocUrl &&
+      checklistComplete &&
+      confidenceComplete;
   const exportControlsDisabled =
     creatingDoc || (locked && docVerifiedThisSession);
   // WP-031: recovery panel already shows primary Continue after this-session verify.
@@ -714,6 +763,83 @@ export default function ModuleEight() {
       </InstructionalDisclosure>
     </div>
   );
+
+  if (guidedApaProtocol) {
+    return (
+      <ModulePageShell>
+        <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
+          <header className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-blue">
+              Module 8
+            </p>
+            <h1 className="text-2xl font-semibold text-theme-dark">
+              Prepare your submission Google Doc
+            </h1>
+          </header>
+          <ModuleEightGuidedApaDocPanel
+            submissionDocUrl={submissionDocUrl}
+            docVerifiedThisSession={docVerifiedThisSession}
+            lastDocOperation={lastDocOperation}
+            verifiedAt={
+              docVerifiedThisSession ? new Date().toISOString() : null
+            }
+            essayWordCount={wordCount}
+            exportBusy={creatingDoc}
+            exportError={
+              docExportNotice?.type === "error" ? docExportNotice.message : ""
+            }
+            onCreateOrUpdate={handleCreateOrUpdateSubmissionDoc}
+            onOpenDoc={openSubmissionGoogleDoc}
+            onContinue={finishPreparing}
+            recoverySlot={
+              <SubmissionDocRecoveryPanel
+                module={8}
+                verificationStatus={verificationStatus}
+                exportStatus={exportStatus}
+                hasUrl={!!submissionDocUrl}
+                contentVerified={docVerifiedThisSession}
+                operation={lastDocOperation}
+                docUrl={submissionDocUrl}
+                busy={creatingDoc || exportControlsDisabled}
+                notice={docExportNotice}
+                testIdPrefix="module8-guided-doc"
+                showProgressContinue={docVerifiedThisSession}
+                onContinue={finishPreparing}
+                onUpdate={() =>
+                  handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+                }
+                onCreate={() =>
+                  handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
+                }
+                onCreateNew={() =>
+                  handleCreateOrUpdateSubmissionDoc({ forceCreate: true })
+                }
+                onRetry={handleRetryDocVerification}
+                onFinishEssay={() => router.push("/modules/7")}
+                onReplacementCancelled={() =>
+                  logSubmissionDocReplacementCancelled({
+                    userEmail: email,
+                    module: 8,
+                    hadExistingDoc: !!submissionDocUrl,
+                  })
+                }
+              />
+            }
+          />
+          {finishedEssayPreview}
+          {locked ? (
+            <button
+              type="button"
+              className="min-h-[44px] rounded-lg bg-theme-blue px-4 py-2 text-white"
+              onClick={() => router.push("/modules/8/success")}
+            >
+              Continue to success
+            </button>
+          ) : null}
+        </div>
+      </ModulePageShell>
+    );
+  }
 
   return (
     <ModulePageShell>
