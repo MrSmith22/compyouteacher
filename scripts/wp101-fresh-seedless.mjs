@@ -1925,45 +1925,107 @@ async function runModule8(page) {
 
 async function runModule9(page) {
   await page.waitForURL(/\/modules\/9/, { timeout: 120000 });
+  // Module 9 can sit on a cold "Loading..." compile — wait for real UI.
+  for (let w = 0; w < 120; w += 1) {
+    const ready =
+      (await page.getByTestId("guided-apa-protocol-flow").count()) > 0 ||
+      (await page.getByTestId("guided-apa-doc-handoff").count()) > 0 ||
+      (await page.getByTestId("guided-apa-pdf-phase").count()) > 0 ||
+      (await page.getByTestId("module9-view-submission-receipt").count()) > 0 ||
+      (await page.getByTestId("guided-apa-pdf-input").count()) > 0 ||
+      (await page.getByTestId("module9-pdf-file-input").count()) > 0;
+    if (ready) break;
+    const loading = await page.getByText(/^Loading/i).count();
+    if (!loading && w > 10) break;
+    await sleep(1000);
+  }
   await shot(page, "m9-entry.png");
+  console.log(`M9: entry url=${page.url()}`);
 
-  for (let i = 0; i < 40; i += 1) {
+  for (let i = 0; i < 80; i += 1) {
     if (await page.getByTestId("guided-apa-pdf-phase").count()) break;
+    if (await page.getByTestId("guided-apa-pdf-input").count()) break;
     if (await page.getByTestId("module9-view-submission-receipt").count()) break;
+    await assertNoPanelUsed(page);
 
     const startMoves = page.getByTestId("guided-apa-start-moves");
-    if (await startMoves.count()) await startMoves.click().catch(() => {});
+    if (await startMoves.count()) {
+      console.log("M9: start moves");
+      await clickStable(startMoves.first()).catch(() => startMoves.click());
+      await sleep(500);
+      continue;
+    }
 
     const looks = page.getByTestId("guided-apa-looks-correct");
     if (await looks.count()) {
-      await looks.click();
+      console.log("M9: looks correct");
+      await clickStable(looks.first()).catch(() => looks.click());
+      await sleep(400);
+      continue;
+    }
+    const fixed = page.getByTestId("guided-apa-fixed");
+    if (await fixed.count()) {
+      console.log("M9: fixed");
+      await clickStable(fixed.first()).catch(() => fixed.click());
       await sleep(400);
       continue;
     }
     const insp = page.getByTestId("guided-apa-doc-inspection-done");
     if (await insp.count()) {
-      await insp.click();
+      console.log("M9: doc inspection done");
+      await clickStable(insp.first()).catch(() => insp.click());
       await sleep(400);
       continue;
     }
-    const cont = page.getByRole("button", { name: /continue|next|looks correct/i });
-    if (await cont.count()) {
-      await cont.first().click().catch(() => {});
+    const cont = page.getByRole("button", {
+      name: /continue|next|looks correct|start formatting|open google doc|continue to pdf/i,
+    });
+    if (
+      (await cont.count()) &&
+      (await cont.first().isEnabled().catch(() => false))
+    ) {
+      console.log(`M9: ${String(await cont.first().textContent()).trim().slice(0, 40)}`);
+      await clickStable(cont.first()).catch(() => cont.first().click());
       await sleep(400);
       continue;
     }
-    break;
+    if (i % 10 === 0) {
+      const h =
+        (await page.locator("h1").first().textContent().catch(() => "")) || "";
+      console.log(`M9: iter ${i} h1="${String(h).slice(0, 60)}" url=${page.url()}`);
+      await shot(page, `m9-iter-${i}.png`);
+    }
+    await sleep(500);
+  }
+
+  // Already-submitted short circuit
+  if (await page.getByTestId("module9-view-submission-receipt").count()) {
+    await shot(page, "m9-receipt.png");
+    await refreshResume(page, "/modules/9");
+    note("module9_receipt", true, "durable receipt UI (already present)");
+    await page.goto(`${BASE}/dashboard`, {
+      waitUntil: "domcontentloaded",
+      timeout: 120000,
+    });
+    await shot(page, "dashboard.png");
+    const dash = await page.locator("body").innerText();
+    note(
+      "dashboard",
+      /submit|receipt|complete|module 9|final/i.test(dash),
+      `len=${dash.length}`
+    );
+    return;
   }
 
   const pdfInput = page.getByTestId("guided-apa-pdf-input").or(
     page.getByTestId("module9-pdf-file-input")
   );
-  await pdfInput.waitFor({ timeout: 120000 });
+  await pdfInput.first().waitFor({ state: "attached", timeout: 120000 });
   const pdfBytes = Buffer.from(
     "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n",
     "utf8"
   );
-  await pdfInput.setInputFiles({
+  await pdfInput.first().setInputFiles({
     name: "final-essay.pdf",
     mimeType: "application/pdf",
     buffer: pdfBytes,
@@ -1981,7 +2043,7 @@ async function runModule9(page) {
   const upload = page.getByTestId("guided-apa-upload").or(
     page.getByTestId("module9-upload-final-pdf")
   );
-  await upload.click({ timeout: 60000 });
+  await clickStable(upload.first()).catch(() => upload.first().click({ timeout: 60000 }));
   await page
     .getByTestId("module9-view-submission-receipt")
     .or(page.getByText(/receipt|submitted|upload complete/i))
@@ -1992,7 +2054,10 @@ async function runModule9(page) {
   await refreshResume(page, "/modules/9");
   note("module9_receipt", true, "durable receipt UI");
 
-  await page.goto(`${BASE}/dashboard`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/dashboard`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120000,
+  });
   await shot(page, "dashboard.png");
   const dash = await page.locator("body").innerText();
   note(
