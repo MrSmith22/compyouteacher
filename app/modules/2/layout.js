@@ -5,9 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Panel from "@/components/ui/Panel";
-import { getStudentAssignment } from "@/lib/supabase/helpers/studentAssignments";
 import { isPathAllowedForModule } from "@/lib/supabase/helpers/moduleGate";
-import { MLK_ASSIGNMENT_NAME } from "@/lib/assignments";
 import {
   isModule2AnalysisPhasePath,
   isModule2SourcePreparationComplete,
@@ -29,8 +27,6 @@ import {
   shouldRecheckModule2Entry,
 } from "@/lib/module2/module2EntryGate";
 
-const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
-
 /**
  * Module 2 family gate.
  * Never redirects `/modules/2` → `/modules/2`.
@@ -46,7 +42,14 @@ export default function ModuleTwoLayout({ children }) {
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.email) {
-      setGateState(MODULE2_ENTRY_GATE_STATES.CHECKING);
+      // Stay on checking only while NextAuth is still resolving.
+      // Unauthenticated must not infinite-spin as CHECKING.
+      if (status === "unauthenticated") {
+        setGateState(MODULE2_ENTRY_GATE_STATES.DENIED);
+        setGateMessage(MODULE2_DENIED_MESSAGE);
+      } else {
+        setGateState(MODULE2_ENTRY_GATE_STATES.CHECKING);
+      }
       return;
     }
     if (!pathname?.startsWith("/modules/2")) {
@@ -58,35 +61,84 @@ export default function ModuleTwoLayout({ children }) {
     let recheckTimer = null;
 
     async function readCurrentModule() {
-      const { data, error } = await getStudentAssignment({
-        userEmail: session.user.email,
-        assignmentName: ASSIGNMENT_NAME,
-      });
-      if (error) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch("/api/assignments/progress", {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+          return { fetchError: true, currentModule: 0 };
+        }
+        const payload = await res.json();
+        return {
+          fetchError: false,
+          currentModule:
+            typeof payload?.currentModule === "number"
+              ? payload.currentModule
+              : 0,
+        };
+      } catch {
         return { fetchError: true, currentModule: 0 };
       }
-      return {
-        fetchError: false,
-        currentModule:
-          data && typeof data.current_module === "number"
-            ? data.current_module
-            : 0,
-      };
     }
 
     async function evaluateAnalysisPhase() {
-      const statusRes = await fetch("/api/module2/rhetorical-situation-status");
-      if (cancelled) return;
-
-      if (!statusRes.ok) {
-        const res = await fetch("/api/module2/sources");
-        const sourceData = res.ok ? await res.json() : null;
-        const sourcesOk = isModule2SourcePreparationComplete(sourceData);
-        const access = getModule2AnalysisAccessDecision({
-          sourcesReady: sourcesOk,
-          lessonSatisfied:
-            sourcesOk && readRhetoricalSituationDevBypassFlag(),
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      try {
+        const statusRes = await fetch("/api/module2/rhetorical-situation-status", {
+          signal: controller.signal,
+          cache: "no-store",
         });
+        if (cancelled) return;
+
+        if (!statusRes.ok) {
+          const res = await fetch("/api/module2/sources", {
+            signal: controller.signal,
+            cache: "no-store",
+          });
+          if (cancelled) return;
+          const sourceData = res.ok ? await res.json() : null;
+          const sourcesOk = isModule2SourcePreparationComplete(sourceData);
+          const access = getModule2AnalysisAccessDecision({
+            sourcesReady: sourcesOk,
+            lessonSatisfied:
+              sourcesOk && readRhetoricalSituationDevBypassFlag(),
+          });
+          if (!access.allowed) {
+            const target = resolveAnalysisPhaseRedirect({
+              pathname,
+              proposedRedirect: access.redirectTo || "/modules/2",
+            });
+            if (target) {
+              router.replace(target);
+              setGateState(MODULE2_ENTRY_GATE_STATES.DENIED);
+              setGateMessage(access.message || MODULE2_DENIED_MESSAGE);
+              return;
+            }
+            // Already on the corrective destination — render it.
+            setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+            return;
+          }
+          setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
+          return;
+        }
+
+        const statusData = await statusRes.json();
+        if (cancelled) return;
+        const lessonSatisfied =
+          Boolean(statusData.lessonComplete) ||
+          readRhetoricalSituationDevBypassFlag();
+        const access = getModule2AnalysisAccessDecision({
+          sourcesReady: Boolean(statusData.sourcesReady),
+          lessonSatisfied,
+        });
+
         if (!access.allowed) {
           const target = resolveAnalysisPhaseRedirect({
             pathname,
@@ -98,39 +150,19 @@ export default function ModuleTwoLayout({ children }) {
             setGateMessage(access.message || MODULE2_DENIED_MESSAGE);
             return;
           }
-          // Already on the corrective destination — render it.
           setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
           return;
         }
+
         setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
-        return;
-      }
-
-      const statusData = await statusRes.json();
-      const lessonSatisfied =
-        Boolean(statusData.lessonComplete) ||
-        readRhetoricalSituationDevBypassFlag();
-      const access = getModule2AnalysisAccessDecision({
-        sourcesReady: Boolean(statusData.sourcesReady),
-        lessonSatisfied,
-      });
-
-      if (!access.allowed) {
-        const target = resolveAnalysisPhaseRedirect({
-          pathname,
-          proposedRedirect: access.redirectTo || "/modules/2",
-        });
-        if (target) {
-          router.replace(target);
-          setGateState(MODULE2_ENTRY_GATE_STATES.DENIED);
-          setGateMessage(access.message || MODULE2_DENIED_MESSAGE);
-          return;
+      } catch {
+        if (!cancelled) {
+          setGateState(MODULE2_ENTRY_GATE_STATES.ERROR);
+          setGateMessage(MODULE2_GATE_ERROR_MESSAGE);
         }
-        setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
-        return;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      setGateState(MODULE2_ENTRY_GATE_STATES.ALLOWED);
     }
 
     async function runGate(attempt = 0) {

@@ -25,7 +25,6 @@ import {
 } from "@/lib/artifacts/evidenceArgumentContract";
 import { buildEvidenceArgumentDirectionDescriptor } from "@/lib/module2/evidenceArgumentDirectionDescriptor";
 import { normalizeEvidenceReader } from "@/lib/module2/normalizeEvidenceReader";
-import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import { evidenceIdsMatch } from "@/lib/shared/evidenceIdAliases";
 
 function safeText(value) {
@@ -87,11 +86,11 @@ export default function EvidenceArgumentSliceFlow({
     setLoading(true);
     setError("");
     try {
-      const [sliceRes, sourcesRes, guidedRes, tchartResult] = await Promise.all([
+      const [sliceRes, sourcesRes, guidedRes, tchartRes] = await Promise.all([
         fetch("/api/module3/evidence-argument-slice"),
         fetch("/api/module2/sources"),
         fetch("/api/module2/observations/guided"),
-        getTChartEntries({ userEmail: email }),
+        fetch("/api/tchart/entries"),
       ]);
 
       const sliceJson = await sliceRes.json().catch(() => ({}));
@@ -101,10 +100,10 @@ export default function EvidenceArgumentSliceFlow({
         : {};
       const guidedRows =
         guidedJson?.ok && Array.isArray(guidedJson.data) ? guidedJson.data : [];
-      const tchartRows =
-        !tchartResult?.error && Array.isArray(tchartResult?.data)
-          ? tchartResult.data
-          : [];
+      const tchartJson = tchartRes.ok
+        ? await tchartRes.json().catch(() => ({}))
+        : {};
+      const tchartRows = Array.isArray(tchartJson?.data) ? tchartJson.data : [];
 
       const speech = safeText(sourcesJson?.speech_full_text || sourcesJson?.mlk_text);
       const letter = safeText(sourcesJson?.letter_full_text || sourcesJson?.lfbj_text);

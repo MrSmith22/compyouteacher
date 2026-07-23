@@ -48,7 +48,6 @@ import {
   normalizeEvidenceReader,
 } from "@/lib/module2/normalizeEvidenceReader";
 import { getSituationSummaryOrFallback } from "@/lib/module2/rhetoricalSituationSummary";
-import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import RepresentativeDirectionEvidencePanel from "@/components/module2/RepresentativeDirectionEvidencePanel";
 import {
   toEvidenceArgumentRecord,
@@ -228,10 +227,10 @@ export default function ModuleTwoRhetoricalMatrix() {
 
     async function load() {
       try {
-        const [bundleRes, guidedRes, tchartResult] = await Promise.all([
+        const [bundleRes, guidedRes, tchartRes] = await Promise.all([
           fetch("/api/module2/artifact-bundle"),
           fetch("/api/module2/observations/guided"),
-          getTChartEntries({ userEmail: email }),
+          fetch("/api/tchart/entries"),
         ]);
 
         const bundleJson = await bundleRes.json().catch(() => ({}));
@@ -242,10 +241,12 @@ export default function ModuleTwoRhetoricalMatrix() {
           guidedJson?.ok && Array.isArray(guidedJson.data)
             ? guidedJson.data
             : [];
-        const tchartRows =
-          !tchartResult?.error && Array.isArray(tchartResult?.data)
-            ? tchartResult.data
-            : [];
+        const tchartJson = tchartRes.ok
+          ? await tchartRes.json().catch(() => ({}))
+          : {};
+        const tchartRows = Array.isArray(tchartJson?.data)
+          ? tchartJson.data
+          : [];
 
         if (cancelled) return;
 

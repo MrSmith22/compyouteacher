@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://compyouteacher.local/beta-matrix/v1/schema.json",
+  "title": "WP-101 Beta Matrix Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "scenarios"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "title": { "type": "string" },
+    "assignmentId": { "type": "string" },
+    "generatedAt": { "type": "string" },
+    "generatedBy": { "type": "string" },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "epic",
+          "riskArea",
+          "fixtureId",
+          "layer",
+          "modules",
+          "stateFamilies",
+          "preconditions",
+          "actions",
+          "expected",
+          "cleanup",
+          "required",
+          "linkedIssues"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "epic": {
+            "type": "string",
+            "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "ops"]
+          },
+          "layer": {
+            "type": "string",
+            "enum": ["pure", "api", "dev_browser", "prod_browser", "external"]
+          },
+          "required": { "type": "boolean" },
+          "severityIfFailed": {
+            "type": "string",
+            "enum": ["Blocker", "Critical", "High", "Medium", "Low"]
+          }
+        }
+      }
+    }
+  }
+}

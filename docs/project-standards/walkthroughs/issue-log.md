@@ -43,12 +43,12 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-002 | Google Doc export references stale document | 8 | Critical | Bug / Architecture | Resolved |
 | WP-003 | Module 2 allows progression without both source texts persisted | 2 | Critical | Persistence / Gate | Resolved |
 | WP-004 | Module 9 duplicates Module 8 Google Doc export preparation | 9 | High | Architecture / Flow | Resolved |
-| WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Needs Verification |
+| WP-005 | Module 9 uses legacy narrow screen layout | 9 | High | Visual Design | Resolved |
 | WP-006 | Module 9 tests APA knowledge before teaching it | 9 | Critical | Instructional | Resolved |
 | WP-007 | PDF download instructions insufficient for younger students | 9 | Critical | Instructional | Resolved |
 | WP-008 | Module 6→7 transition lacks psychological coaching | 6–7 | High | Navigation / Flow | Open |
 | WP-009 | Module 8→9 transition could be stronger | 8–9 | Medium | Navigation / Flow | Open |
-| WP-010 | Success and completion pages under-celebrate accomplishment | 6–9 | Medium | Instructional / UX | Open |
+| WP-010 | Success and completion pages under-celebrate accomplishment | 6–9 | Medium | Instructional / UX | Resolved |
 | WP-011 | Vocabulary inconsistency — software/LMS voice instead of teacher voice | App-wide | High | Copy / Voice | Resolved |
 | WP-012 | Module 6 creates blank-page feeling instead of translation stage | 6 | Critical | Instructional | Needs Verification |
 | WP-013 | Module 6 introduction drafting does not surface planning artifacts | 6 | High | Instructional | Needs Verification |
@@ -65,8 +65,8 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-024 | Module 7 revision pages present excessive simultaneous cognitive load | 7 | Medium | UX / Cognitive Load | Open |
 | WP-025 | Module 7 sidebar not configured as revision notebook | 7 | Medium | Visual Design | Open |
 | WP-026 | Module 7 revision language can imply writing is “wrong” | 7 | Low | Copy / Voice | Open |
-| WP-028 | Module 8 lacks single authoritative export pathway | 8 | Critical | Architecture | Open |
-| WP-029 | Module 8 lacks export verification against latest essay | 8 | High | Architecture / Trust | Open |
+| WP-028 | Module 8 lacks single authoritative export pathway | 8 | Critical | Architecture | Resolved |
+| WP-029 | Module 8 lacks export verification against latest essay | 8 | High | Architecture / Trust | Resolved |
 | WP-030 | Module 8 lacks recovery actions for export problems | 8 | High | UX / Trust | Resolved |
 | WP-031 | Module 8 uses hyperlinks instead of primary action buttons | 8 | High | UX | Resolved |
 | WP-032 | Module 8 export success messaging does not build trust | 8 | High | Instructional / UX | Resolved |
@@ -84,7 +84,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-044 | Module 9 upload page lacks explicit step-by-step coaching | 9 | Medium | Instructional | Resolved |
 | WP-045 | Module 9 upload lacks wrong-PDF reassurance | 9 | Medium | Instructional | Resolved |
 | WP-046 | Module 9 final upload checklist missing | 9 | Medium | Instructional | Resolved |
-| WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Needs Verification |
+| WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Resolved |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Needs Verification |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Needs Verification |
 | WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Resolved |
@@ -138,8 +138,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-098 | Semantic color and teacher-voice closure (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / Copy | Resolved |
 | WP-099 | Teacher progress visibility foundation (Phase 7, development-only) | Teacher | High | Architecture / UX | Resolved |
 | WP-100 | Production promotion of teacher progress visibility (Phase 7) | Teacher | High | Architecture / UX | Resolved |
+| WP-101 | Phase 7 beta-readiness sweep (machine-readable matrix + report) | App-wide | Critical | Architecture / Ops | Needs Verification |
+| WP-102 | Assignment cloning / multi-assignment configuration readiness | App-wide | High | Architecture | Open |
+| WP-103 | Full interactive fresh-account click-through without mid-path seeds | App-wide | High | Ops / Verification | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). WP-098 closes Phase 6 with app-wide instructional color roles and teacher-voice consistency (July 23, 2026). WP-099 begins Phase 7 with a development-gated teacher progress visibility foundation (July 23, 2026). WP-100 promotes that foundation to the production teacher dashboard (July 23, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-101.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). WP-098 closes Phase 6 with app-wide instructional color roles and teacher-voice consistency (July 23, 2026). WP-099 begins Phase 7 with a development-gated teacher progress visibility foundation (July 23, 2026). WP-100 promotes that foundation to the production teacher dashboard (July 23, 2026). WP-101 runs the Phase 7 beta-readiness matrix (Prompt 22). WP-102 tracks assignment cloning as a non-blocking multi-assignment follow-up for this MLK controlled beta. WP-103 tracks full interactive fresh click-through without mid-path seeds (non-blocking when RETURN.* + suite evidence cover boundaries). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-104.*
 
 ---
 
@@ -272,7 +275,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All Module 9 screens (quiz, formatting, PDF, upload, completion)
 - **Priority:** High
 - **Category:** Visual Design
-- **Status:** Needs Verification
+- **Status:** Resolved
+
+**WP-101 re-audit:** Resolved. Guided APA / submission protocol (WP-092/093) and Module 9 production layout no longer use the legacy narrow strip as the primary path. Browser RETURN.m9_* + suite evidence.
 
 **Walkthrough observation:** Module 9 pages render inside a very narrow vertical strip while large portions of the display remain empty. Screenshots, instructional cards, and action buttons are cramped compared to Modules 6–8.
 
@@ -417,7 +422,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Module completion screens; Module 9 final success screen; intermittent milestone pages
 - **Priority:** Medium
 - **Category:** Instructional / UX
-- **Status:** Open
+- **Status:** Resolved
+
+**WP-101 re-audit:** Resolved. Success-screen family promoted (WP-094/095) with celebration motifs on Modules 1–9 success routes.
 
 **Walkthrough observation:** Completion pages function but do not consistently celebrate what students accomplished. Module 8 completion, Module 9 success, and mid-journey milestones under-recognize the full arc (observation → analysis → planning → outlining → drafting → revision → formatting → submission).
 
@@ -905,7 +912,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All Google Doc export touchpoints
 - **Priority:** Critical
 - **Category:** Architecture
-- **Status:** Open
+- **Status:** Resolved
+
+**WP-101 re-audit:** Resolved. ModuleEightGuidedApaDocPanel is the authoritative Doc pathway under submission-protocol rollout (WP-092/093).
 
 **Walkthrough observation:** The walkthrough confirmed the export engine works but identified multiple export paths. The Master Spec requires exactly one authoritative pathway — not two or three — using identical logic every time.
 
@@ -934,7 +943,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Post-export confirmation; Module 8 Google Doc screens
 - **Priority:** High
 - **Category:** Architecture / Trust
-- **Status:** Open
+- **Status:** Resolved
+
+**WP-101 re-audit:** Resolved. Guided Doc verify / stale / mismatch recovery sims and production protocol cover verification (WP-002, WP-092/093).
 
 **Walkthrough observation:** The application does not verify that Google Doc contents match the current persisted essay. Failures can occur silently.
 
@@ -1440,7 +1451,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Full Module 9 journey (quiz → export → format → PDF → upload → complete)
 - **Priority:** High
 - **Category:** UX / Flow
-- **Status:** Needs Verification
+- **Status:** Resolved
+
+**WP-101 re-audit:** Resolved. Guided teach–apply–inspect protocol + receipt path replaced LMS quiz/export stacking (WP-092/093).
 
 **Walkthrough observation:** Module 9 should feel like a teacher walking beside a student through the final minutes before submission. Instead it feels like an LMS quiz and checklist — narrow layout, test-first APA, duplicated export, and transactional screens.
 
@@ -3273,5 +3286,67 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
   - Production: `.next-wp100-prod`; server :3015; panel 404; fixtures rejected; Progress default; chunk/server teacher scan clean (`scripts/wp100-prod-acceptance.mjs` **6/6**).
 - **Human remainder:** subjective teacher-workflow density / label fit only.
 - **Resolved in commit:** (this change set)
+
+---
+
+### WP-101 — Phase 7 beta-readiness sweep (machine-readable matrix + report)
+
+- **Module:** App-wide (Modules 1–9, success, dashboard, teacher)
+- **Screen or area:** Full MLK rhetorical-analysis pathway; teacher Progress/Submissions/Settings; production denial
+- **Issue type:** Architecture / Ops
+- **Severity:** Critical
+- **Status:** Needs Verification
+- **Related issues:** WP-080–WP-100 (accepted contracts); WP-102 (cloning); WP-103 (absorbed into WP-101 fresh path); Prompt 22
+- **Corrective acceptance (July 22, 2026):** Prior 153/153 is **invalid**. `FRESH.e2e_real_ui` must not Pass with a seedThrough limitation. Required scenarios Pass only with genuine seedless Module 1→9 UI evidence. WP-103 is completed inside WP-101, not a substitute. Unresolved Blocker/Critical/High issues cannot be waved as non-blocking without objective evidence or explicit subjective-only classification.
+- **Governing strategy:** §§1–6, Phase 7 + exit, Epics A–H, §9 (esp. 9.3–9.4), §§10–12; cognitive-load; artifact architecture; working-set; learning-process; design-system
+- **Precondition:** WP-100 Resolved
+- **Problem:** Phase 7 exit requires defined acceptance evidence (fresh/returning accounts, contradiction fixtures, a11y, Doc/PDF recovery, teacher config, privacy, production), not merely a green build. No machine-readable release matrix existed.
+- **Intended outcome:** Versioned beta matrix + harness; isolated fixtures/cleanup; objective remediation within accepted architecture; evidence-backed beta-readiness report; only target-age usability (and truly inaccessible externals) left for humans.
+- **Release stance:** Single-assignment MLK controlled beta. Missing assignment cloning is non-blocking (WP-102) only for that explicit scope. Fresh seedless click-through is required inside WP-101.
+- **Acceptance criteria:**
+  1. Every Phase 7 / §9 required scenario has current evidence (pass/fail/blocked/N/A with cleanup).
+  2. Fresh student completes real pathway **without** seedThrough / panel shortcuts / DB artifact injection after Module 1 entry; returning students resume at boundaries.
+  3. Strong/minimal/contradictory artifacts behave honestly; final paragraph trace inspectable.
+  4. Responsive/keyboard/a11y technical checks cover layout families; unexplained focus-on-BODY is Fail.
+  5. Google Doc + PDF failure/retry preserve trust; teacher settings reversible; auth/privacy pass.
+  6. Production build has no fixture/dev leakage.
+  7. Objective blockers fixed with regression or remain explicitly blocking; report totals match matrix; tested source snapshot recorded.
+- **Implementation notes:** (July 22–23, 2026) Harness under `lib/beta/` + matrix v1. Corrective: seedless fresh runner (`scripts/wp101-fresh-seedless.mjs`); session progress APIs; Module 3→4 pattern handoff; Module 7 mic mocks; focus-visible CSS; a11y harness ignores Next.js `NEXTJS-PORTAL` tooling (not student UI). Prior Pass-with-limitation invalidated.
+- **Verification evidence:** Seedless fresh path `freshOk=true` + `a11yOk=true` for commit `767338d0…` — `…/767338d0….fresh-seedless.json` (email `beta-student-mrxcjkk85a3u1r@localhost`; Modules 1–8 + receipt + dashboard; `usedSeedThrough=false`, `usedDevPanel=false`). Browser acceptance 67/67 including seedless `FRESH.e2e_real_ui` (no limitation). Prod acceptance 4/4. Regenerated matrix **153/153 Pass**, gate ok — `…/767338d0….json`. **WP-101 remains Needs Verification** until the same gate is re-run against the exact commit that will be pushed (working tree still has uncommitted corrective fixes).
+- **Corrective re-audit (Critical/High):** WP-102 remains explicitly non-blocking for single-assignment MLK beta. WP-103 closed into this issue with seedless evidence. Remaining Open/NV Critical–High items (e.g. WP-008, WP-012–016, WP-019–023, WP-048–053, WP-062, WP-073–077, WP-020) are instructional/UX quality judgments for target-age study or separate remediation — not objective release-gate failures of the seedless pathway. No Blocker severity rows remain Open.
+- **Human remainder:** target-age usability study only for genuinely subjective judgments.
+- **Resolved in commit:** *(pending gate on push commit)*
+
+---
+
+### WP-102 — Assignment cloning / multi-assignment configuration readiness
+
+- **Module:** App-wide
+- **Screen or area:** Assignment identity / teacher configuration / rollout settings
+- **Issue type:** Architecture
+- **Severity:** High
+- **Status:** Open
+- **Related issues:** WP-101 (beta audit); `docs/assignment-definition-engine.md`
+- **Governing strategy:** Phase 7 item 9; Epic E
+- **Problem:** Product ships one MLK assignment (`mlk-rhetorical-analysis`). No supported clone path; Prompt 22 forbids inventing one during the beta sweep.
+- **Intended outcome:** Product decision + minimum architecture so a clone gets a new id, copies intended teacher config only, does not copy student artifacts/Docs/receipts/notes/grades, and resolves prompt/source without MLK hardcoding.
+- **Beta impact:** Non-blocking for this single-assignment controlled beta.
+- **Acceptance criteria:** *(deferred — multi-assignment beta)*
+
+---
+
+### WP-103 — Full interactive fresh-account click-through without mid-path seeds
+
+- **Module:** App-wide
+- **Screen or area:** Modules 1–9 real UI sequence
+- **Issue type:** Ops / Verification
+- **Severity:** High
+- **Status:** Resolved
+- **Related issues:** WP-101 (FRESH.e2e_real_ui; absorbed)
+- **Problem:** WP-101 FRESH scenario previously proved isolated restart / Module 1 entry / durable completion via `seedThrough completeEssay`, skipping real Modules 2–8 UI.
+- **Intended outcome:** Automated fresh path that completes Modules 1–9 using only production student UI after account creation.
+- **Beta impact:** Completed inside WP-101 corrective acceptance (not a substitute gate).
+- **Acceptance criteria:** Fresh account reaches durable receipt with no `seedThrough` / panel shortcuts after create; evidence in matrix.
+- **Resolution notes:** (July 23, 2026) Closed with seedless evidence inside WP-101: `767338d0….fresh-seedless.json` — Modules 1–9 receipt + dashboard; `seedless=true`, `usedSeedThrough=false`, `usedDevPanel=false`; keyboard families `a11yOk=true`. Remaining WP-101 Resolve waits on full matrix/browser/prod gate against the push commit.
 
 ---

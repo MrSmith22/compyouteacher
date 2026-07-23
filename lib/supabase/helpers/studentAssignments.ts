@@ -3,6 +3,7 @@ import { CANONICAL_ACTIVE_ASSIGNMENT_STATUS } from "@/lib/assignments/assignment
 import { supabase } from "../../supabaseClient";
 import { advanceModuleProgressionWithStore } from "@/lib/module1/advanceModuleProgression";
 import { createSupabaseAssignmentProgressStore } from "@/lib/module1/assignmentProgressStore";
+import { advanceSessionModuleOnSuccess } from "@/lib/assignments/sessionProgressClient";
 
 const MAX_MODULE = 10;
 
@@ -175,8 +176,12 @@ export async function advanceCurrentModuleOnSuccess({
   error?: unknown;
   attempts?: number;
 }> {
-  // Browser/anon path retained for non-Module-1 callers. Module 1 success uses
-  // /api/module1/complete (service role) so RLS cannot block the CAS update.
+  // Prefer session + service-role API in the browser (NextAuth ≠ Supabase JWT).
+  if (typeof window !== "undefined") {
+    return advanceSessionModuleOnSuccess({ completedModuleNumber });
+  }
+
+  // Non-browser fallback retained for tests / rare server callers.
   const store = createSupabaseAssignmentProgressStore({
     supabase,
     userEmail,

@@ -135,11 +135,34 @@ export async function POST(req: Request) {
 
     if (body?.syncThesis) {
       const handoff = assembleModule4HandoffFromSlice(slice);
+      const patternText = String(slice?.patternText || "").trim();
+      let patternId = body.patternId || null;
+      if (!patternId && patternText) {
+        const { randomUUID } = await import("node:crypto");
+        patternId = `ea-pattern-${randomUUID()}`;
+        const evidenceIds = [
+          handoff.speechEvidenceId,
+          handoff.letterEvidenceId,
+        ].filter(Boolean) as string[];
+        const { upsertPatternForUser } = await import(
+          "@/lib/artifacts/patternServer"
+        );
+        await upsertPatternForUser({
+          id: patternId,
+          userEmail,
+          text: patternText,
+          evidenceIds,
+          isSelected: true,
+          ...(body?.matrixProvenance
+            ? { matrixProvenance: body.matrixProvenance }
+            : {}),
+        });
+      }
       await upsertThesisForUser({
         userEmail,
         thesis: handoff.thesis,
         proofPlan: handoff.proofPlan,
-        patternId: body.patternId || null,
+        patternId,
         clusterId: body.clusterId || null,
         ...(body?.matrixProvenance
           ? { matrixProvenance: body.matrixProvenance }

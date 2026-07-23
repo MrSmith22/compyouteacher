@@ -1,8 +1,10 @@
 import { getStudentAssignment } from "./studentAssignments";
+import { requireSessionModuleAccess } from "@/lib/assignments/sessionProgressClient";
 
 /**
  * Read-only gate: allow access only if student_assignments.current_module >= minModule.
  * No assignment or current_module < minModule → ok false.
+ * In the browser, uses session progress API (NextAuth ≠ Supabase Auth JWT).
  */
 export async function requireModuleAccess({
   userEmail,
@@ -13,6 +15,10 @@ export async function requireModuleAccess({
   assignmentName: string;
   minModule: number;
 }): Promise<{ ok: boolean }> {
+  if (typeof window !== "undefined") {
+    return requireSessionModuleAccess({ minModule });
+  }
+
   const { data, error } = await getStudentAssignment({
     userEmail,
     assignmentName,

@@ -1,3 +1,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * WP-101 corrective: visible keyboard focus must survive outline-none utilities.
+ * Keep this outside @layer so it wins over utility-class outline resets.
+ */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid #1d4ed8 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.35) !important;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 3px solid #1d4ed8 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.35) !important;
+}
+
+.wp-skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  transform: translateY(-160%);
+  border-radius: 0.5rem;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.wp-skip-link:focus,
+.wp-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid #fff !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.55) !important;
+}

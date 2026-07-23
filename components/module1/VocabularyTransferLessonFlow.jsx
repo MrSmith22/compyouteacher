@@ -580,6 +580,37 @@ export default function VocabularyTransferLessonFlow({
             checkDisabled
             continueLabel={contract.assignmentTransfer.confirmLabel}
             onContinue={() => {
+              const preview = normalizeTermTransferState(termId, {
+                ...state,
+                assignmentTransferSeen: true,
+                completed: true,
+              });
+              const readiness = evaluateTermTransferReadiness(termId, preview);
+              if (!readiness.ready) {
+                // Do not leave students on a dead-end confirm when earlier
+                // decisions were skipped or not saved. Return to the first gap.
+                const missing = readiness.missing[0];
+                const stepForMissing =
+                  missing === "notice"
+                    ? "notice"
+                    : missing === "boundary"
+                      ? "name_boundary"
+                      : missing === "audience_effect"
+                        ? "audience_effect"
+                        : missing === "purpose"
+                          ? "purpose"
+                          : missing === "audience_fit"
+                            ? "audience_fit"
+                            : missing === "purpose_result"
+                              ? "purpose_result"
+                              : missing === "king_apply"
+                                ? "king_apply"
+                                : null;
+                if (stepForMissing) {
+                  commit({}, { advanceTo: stepForMissing });
+                  return;
+                }
+              }
               commit(
                 {
                   assignmentTransferSeen: true,

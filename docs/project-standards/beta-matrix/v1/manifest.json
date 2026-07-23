@@ -1,0 +1,4742 @@
+{
+  "schemaVersion": "1.0.0",
+  "title": "Phase 7 MLK beta-readiness matrix",
+  "assignmentId": "mlk-rhetorical-analysis",
+  "generatedBy": "lib/beta/buildManifest.js",
+  "scenarios": [
+    {
+      "id": "HARNESS.schema",
+      "title": "Manifest schema/version validation",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.unique_ids",
+      "title": "No duplicate or missing scenario ids",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.required_coverage",
+      "title": "Required Phase 7 / §9.4 / WP-097 coverage present",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.skip_blocked_rules",
+      "title": "Skip/blocked rules and failure exit code",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.fixture_idempotency",
+      "title": "Fixture idempotency and cleanup ledger",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "High",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.redaction",
+      "title": "Sensitive-output redaction",
+      "epic": "ops",
+      "riskArea": "privacy",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "privacy": "tokens and Doc URLs redacted"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.stale_evidence",
+      "title": "Stale-evidence / build-commit detection",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.report_totals",
+      "title": "Report totals equal matrix results",
+      "epic": "ops",
+      "riskArea": "harness",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "High",
+      "runner": "harness"
+    },
+    {
+      "id": "HARNESS.prod_fixture_denial",
+      "title": "Production fixture source denial contract",
+      "epic": "ops",
+      "riskArea": "privacy",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "pure"
+    },
+    {
+      "id": "CONTRA.c01_clean_strong",
+      "title": "Contradiction fixture c01_clean_strong",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c01_clean_strong",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c02_minimal_valid",
+      "title": "Contradiction fixture c02_minimal_valid",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c02_minimal_valid",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c03_one_source_missing",
+      "title": "Contradiction fixture c03_one_source_missing",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c03_one_source_missing",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c04_wrong_work_evidence",
+      "title": "Contradiction fixture c04_wrong_work_evidence",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c04_wrong_work_evidence",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c05_thesis_changed_after_plans",
+      "title": "Contradiction fixture c05_thesis_changed_after_plans",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c05_thesis_changed_after_plans",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c06_duplicate_bodies",
+      "title": "Contradiction fixture c06_duplicate_bodies",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c06_duplicate_bodies",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c07_fragment_reasoning",
+      "title": "Contradiction fixture c07_fragment_reasoning",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c07_fragment_reasoning",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c08_plan_draft_disagree",
+      "title": "Contradiction fixture c08_plan_draft_disagree",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c08_plan_draft_disagree",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c09_quote_without_explanation",
+      "title": "Contradiction fixture c09_quote_without_explanation",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c09_quote_without_explanation",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c10_conclusion_new_claim",
+      "title": "Contradiction fixture c10_conclusion_new_claim",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c10_conclusion_new_claim",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c11_transition_missing_context",
+      "title": "Contradiction fixture c11_transition_missing_context",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c11_transition_missing_context",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c12_below_advisory_target",
+      "title": "Contradiction fixture c12_below_advisory_target",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c12_below_advisory_target",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c13_below_required_minimum",
+      "title": "Contradiction fixture c13_below_required_minimum",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c13_below_required_minimum",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c14_above_configured_range",
+      "title": "Contradiction fixture c14_above_configured_range",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c14_above_configured_range",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c15_teacher_word_count_after_draft",
+      "title": "Contradiction fixture c15_teacher_word_count_after_draft",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c15_teacher_word_count_after_draft",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c16_teacher_formatting_after_guided",
+      "title": "Contradiction fixture c16_teacher_formatting_after_guided",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c16_teacher_formatting_after_guided",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c17_stale_mismatched_doc",
+      "title": "Contradiction fixture c17_stale_mismatched_doc",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c17_stale_mismatched_doc",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c18_doc_unavailable",
+      "title": "Contradiction fixture c18_doc_unavailable",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c18_doc_unavailable",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c19_legacy_rebuilt_mixed",
+      "title": "Contradiction fixture c19_legacy_rebuilt_mixed",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c19_legacy_rebuilt_mixed",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "CONTRA.c20_malformed_future_version",
+      "title": "Contradiction fixture c20_malformed_future_version",
+      "epic": "A",
+      "riskArea": "artifact_honesty",
+      "fixtureId": "c20_malformed_future_version",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "health/mismatch only when supported",
+        "artifact": "prose not rewritten",
+        "persistence": "local repair destination preserved",
+        "downstream": "no false completion",
+        "accessibility": "n/a",
+        "privacy": "markers only"
+      },
+      "cleanup": "pure_noop",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "contradiction"
+    },
+    {
+      "id": "COV.M1.PROMPT",
+      "title": "WP-097 coverage family M1.PROMPT",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M1.PROMPT",
+      "layer": "pure",
+      "modules": [
+        1
+      ],
+      "stateFamilies": [
+        "M1.PROMPT"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M1.TRANSFER",
+      "title": "WP-097 coverage family M1.TRANSFER",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M1.TRANSFER",
+      "layer": "pure",
+      "modules": [
+        1
+      ],
+      "stateFamilies": [
+        "M1.TRANSFER"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M1.LEGACY_LEARN",
+      "title": "WP-097 coverage family M1.LEGACY_LEARN",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M1.LEGACY_LEARN",
+      "layer": "pure",
+      "modules": [
+        1
+      ],
+      "stateFamilies": [
+        "M1.LEGACY_LEARN"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M1.QUIZ",
+      "title": "WP-097 coverage family M1.QUIZ",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M1.QUIZ",
+      "layer": "pure",
+      "modules": [
+        1
+      ],
+      "stateFamilies": [
+        "M1.QUIZ"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M1.TRANSITION",
+      "title": "WP-097 coverage family M1.TRANSITION",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M1.TRANSITION",
+      "layer": "pure",
+      "modules": [
+        1
+      ],
+      "stateFamilies": [
+        "M1.TRANSITION"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M2.WIZARD",
+      "title": "WP-097 coverage family M2.WIZARD",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M2.WIZARD",
+      "layer": "pure",
+      "modules": [
+        2
+      ],
+      "stateFamilies": [
+        "M2.WIZARD"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M2.GUIDED_OBS",
+      "title": "WP-097 coverage family M2.GUIDED_OBS",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M2.GUIDED_OBS",
+      "layer": "pure",
+      "modules": [
+        2
+      ],
+      "stateFamilies": [
+        "M2.GUIDED_OBS"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M2.TCHART",
+      "title": "WP-097 coverage family M2.TCHART",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M2.TCHART",
+      "layer": "pure",
+      "modules": [
+        2
+      ],
+      "stateFamilies": [
+        "M2.TCHART"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M2.MATRIX",
+      "title": "WP-097 coverage family M2.MATRIX",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M2.MATRIX",
+      "layer": "pure",
+      "modules": [
+        2
+      ],
+      "stateFamilies": [
+        "M2.MATRIX"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M2.DIRECTION",
+      "title": "WP-097 coverage family M2.DIRECTION",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M2.DIRECTION",
+      "layer": "pure",
+      "modules": [
+        2
+      ],
+      "stateFamilies": [
+        "M2.DIRECTION"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M3.EA",
+      "title": "WP-097 coverage family M3.EA",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M3.EA",
+      "layer": "pure",
+      "modules": [
+        3
+      ],
+      "stateFamilies": [
+        "M3.EA"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M3.V2",
+      "title": "WP-097 coverage family M3.V2",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M3.V2",
+      "layer": "pure",
+      "modules": [
+        3
+      ],
+      "stateFamilies": [
+        "M3.V2"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M3.HYDRATE",
+      "title": "WP-097 coverage family M3.HYDRATE",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M3.HYDRATE",
+      "layer": "pure",
+      "modules": [
+        3
+      ],
+      "stateFamilies": [
+        "M3.HYDRATE"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M4.HANDOFF",
+      "title": "WP-097 coverage family M4.HANDOFF",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M4.HANDOFF",
+      "layer": "pure",
+      "modules": [
+        4
+      ],
+      "stateFamilies": [
+        "M4.HANDOFF"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M4.PATTERN",
+      "title": "WP-097 coverage family M4.PATTERN",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M4.PATTERN",
+      "layer": "pure",
+      "modules": [
+        4
+      ],
+      "stateFamilies": [
+        "M4.PATTERN"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M4.BODY",
+      "title": "WP-097 coverage family M4.BODY",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M4.BODY",
+      "layer": "pure",
+      "modules": [
+        4
+      ],
+      "stateFamilies": [
+        "M4.BODY"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M4.THIRD",
+      "title": "WP-097 coverage family M4.THIRD",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M4.THIRD",
+      "layer": "pure",
+      "modules": [
+        4
+      ],
+      "stateFamilies": [
+        "M4.THIRD"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M4.REVIEW",
+      "title": "WP-097 coverage family M4.REVIEW",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M4.REVIEW",
+      "layer": "pure",
+      "modules": [
+        4
+      ],
+      "stateFamilies": [
+        "M4.REVIEW"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M4.UPSTREAM",
+      "title": "WP-097 coverage family M4.UPSTREAM",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M4.UPSTREAM",
+      "layer": "pure",
+      "modules": [
+        4
+      ],
+      "stateFamilies": [
+        "M4.UPSTREAM"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M5.OUTLINE",
+      "title": "WP-097 coverage family M5.OUTLINE",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M5.OUTLINE",
+      "layer": "pure",
+      "modules": [
+        5
+      ],
+      "stateFamilies": [
+        "M5.OUTLINE"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M5.VIEW_TOGGLE",
+      "title": "WP-097 coverage family M5.VIEW_TOGGLE",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M5.VIEW_TOGGLE",
+      "layer": "pure",
+      "modules": [
+        5
+      ],
+      "stateFamilies": [
+        "M5.VIEW_TOGGLE"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M5.MISMATCH",
+      "title": "WP-097 coverage family M5.MISMATCH",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M5.MISMATCH",
+      "layer": "pure",
+      "modules": [
+        5
+      ],
+      "stateFamilies": [
+        "M5.MISMATCH"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.INTRO",
+      "title": "WP-097 coverage family M6.INTRO",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.INTRO",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.INTRO"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.BODY",
+      "title": "WP-097 coverage family M6.BODY",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.BODY",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.BODY"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.CONCLUSION",
+      "title": "WP-097 coverage family M6.CONCLUSION",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.CONCLUSION",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.CONCLUSION"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.ADVANCED",
+      "title": "WP-097 coverage family M6.ADVANCED",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.ADVANCED",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.ADVANCED"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.REVIEW",
+      "title": "WP-097 coverage family M6.REVIEW",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.REVIEW",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.REVIEW"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.LEGACY_TEXTAREA",
+      "title": "WP-097 coverage family M6.LEGACY_TEXTAREA",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.LEGACY_TEXTAREA",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.LEGACY_TEXTAREA"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M6.AUTOSAVE",
+      "title": "WP-097 coverage family M6.AUTOSAVE",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M6.AUTOSAVE",
+      "layer": "pure",
+      "modules": [
+        6
+      ],
+      "stateFamilies": [
+        "M6.AUTOSAVE"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M7.RA",
+      "title": "WP-097 coverage family M7.RA",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M7.RA",
+      "layer": "pure",
+      "modules": [
+        7
+      ],
+      "stateFamilies": [
+        "M7.RA"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M7.SECTION",
+      "title": "WP-097 coverage family M7.SECTION",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M7.SECTION",
+      "layer": "pure",
+      "modules": [
+        7
+      ],
+      "stateFamilies": [
+        "M7.SECTION"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M7.WE",
+      "title": "WP-097 coverage family M7.WE",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M7.WE",
+      "layer": "pure",
+      "modules": [
+        7
+      ],
+      "stateFamilies": [
+        "M7.WE"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M7.LEGACY_SEC",
+      "title": "WP-097 coverage family M7.LEGACY_SEC",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M7.LEGACY_SEC",
+      "layer": "pure",
+      "modules": [
+        7
+      ],
+      "stateFamilies": [
+        "M7.LEGACY_SEC"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M8.DOC",
+      "title": "WP-097 coverage family M8.DOC",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M8.DOC",
+      "layer": "pure",
+      "modules": [
+        8
+      ],
+      "stateFamilies": [
+        "M8.DOC"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M8.LEGACY",
+      "title": "WP-097 coverage family M8.LEGACY",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M8.LEGACY",
+      "layer": "pure",
+      "modules": [
+        8
+      ],
+      "stateFamilies": [
+        "M8.LEGACY"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.HAND",
+      "title": "WP-097 coverage family M9.HAND",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.HAND",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.HAND"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.MOVE",
+      "title": "WP-097 coverage family M9.MOVE",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.MOVE",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.MOVE"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.DOCINS",
+      "title": "WP-097 coverage family M9.DOCINS",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.DOCINS",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.DOCINS"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.PDF",
+      "title": "WP-097 coverage family M9.PDF",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.PDF",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.PDF"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.ALREADY",
+      "title": "WP-097 coverage family M9.ALREADY",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.ALREADY",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.ALREADY"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.REC",
+      "title": "WP-097 coverage family M9.REC",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.REC",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.REC"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "COV.M9.LEGACY",
+      "title": "WP-097 coverage family M9.LEGACY",
+      "epic": "H",
+      "riskArea": "workspace_hierarchy",
+      "fixtureId": "coverage:M9.LEGACY",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [
+        "M9.LEGACY"
+      ],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "family registered with desk/shelf owners",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "coverage"
+    },
+    {
+      "id": "FRESH.e2e_real_ui",
+      "title": "Fresh student sign-in through durable receipt (no shortcuts)",
+      "epic": "G",
+      "riskArea": "end_to_end",
+      "fixtureId": "isolated_beta_student",
+      "layer": "dev_browser",
+      "modules": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "isolated beta-student email; empty assignment",
+      "actions": "real UI through Modules 1–9, Doc, PDF, receipt",
+      "expected": {
+        "ui": "one dominant task per screen",
+        "artifact": "traceable chain",
+        "persistence": "authoritative save before nav",
+        "downstream": "durable receipt",
+        "accessibility": "keyboard operable",
+        "privacy": "no secrets in logs"
+      },
+      "cleanup": "restart_owned_beta_email",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080",
+        "WP-093"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "browser_fresh"
+    },
+    {
+      "id": "TRACE.final_body_paragraph",
+      "title": "End-to-end final body paragraph artifact trace",
+      "epic": "A",
+      "riskArea": "provenance",
+      "fixtureId": "strong_trace_fixture",
+      "layer": "pure",
+      "modules": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "trace"
+    },
+    {
+      "id": "RETURN.m1_before_quiz",
+      "title": "Returning student boundary m1_before_quiz",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m1_before_quiz",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m1_after_quiz",
+      "title": "Returning student boundary m1_after_quiz",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m1_after_quiz",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m2_partial_evidence",
+      "title": "Returning student boundary m2_partial_evidence",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m2_partial_evidence",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m2_selected_direction",
+      "title": "Returning student boundary m2_selected_direction",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m2_selected_direction",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m3_ea_family",
+      "title": "Returning student boundary m3_ea_family",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m3_ea_family",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m4_body_plan",
+      "title": "Returning student boundary m4_body_plan",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m4_body_plan",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m4_review",
+      "title": "Returning student boundary m4_review",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m4_review",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m5_outline",
+      "title": "Returning student boundary m5_outline",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m5_outline",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m6_intro",
+      "title": "Returning student boundary m6_intro",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m6_intro",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m6_body",
+      "title": "Returning student boundary m6_body",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m6_body",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m6_conclusion",
+      "title": "Returning student boundary m6_conclusion",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m6_conclusion",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m6_review",
+      "title": "Returning student boundary m6_review",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m6_review",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m7_read_aloud",
+      "title": "Returning student boundary m7_read_aloud",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m7_read_aloud",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m7_section",
+      "title": "Returning student boundary m7_section",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m7_section",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m7_whole_essay",
+      "title": "Returning student boundary m7_whole_essay",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m7_whole_essay",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m8_doc_ready",
+      "title": "Returning student boundary m8_doc_ready",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m8_doc_ready",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m9_guided_move",
+      "title": "Returning student boundary m9_guided_move",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m9_guided_move",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m9_pdf_upload",
+      "title": "Returning student boundary m9_pdf_upload",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m9_pdf_upload",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.m9_receipt",
+      "title": "Returning student boundary m9_receipt",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:m9_receipt",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.success_dashboard",
+      "title": "Returning student boundary success_dashboard",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:success_dashboard",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "RETURN.teacher_progress",
+      "title": "Returning student boundary teacher_progress",
+      "epic": "H",
+      "riskArea": "resume",
+      "fixtureId": "seed:teacher_progress",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "idempotent seed or pure contract map",
+      "actions": "assert resume contract mapped to seed/target",
+      "expected": {
+        "ui": "resume same state",
+        "artifact": "unchanged downstream",
+        "persistence": "no replay/skip",
+        "downstream": "preserved",
+        "accessibility": "focus restored",
+        "privacy": "n/a"
+      },
+      "cleanup": "owned_email_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "returning_contract"
+    },
+    {
+      "id": "PDF.tiny_valid",
+      "title": "Tiny valid PDF displays bytes/KB",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:tiny_valid",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.zero_byte",
+      "title": "Zero-byte file rejected",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:zero_byte",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.extension_non_pdf",
+      "title": ".pdf extension with non-PDF payload rejected",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:extension_non_pdf",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.unexpected_mime",
+      "title": "Valid PDF unexpected MIME under validated contract",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:unexpected_mime",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.malformed",
+      "title": "Malformed/truncated PDF rejected",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:malformed",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.reselect",
+      "title": "Wrong file reselected before upload",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:reselect",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.five_checks",
+      "title": "Five PDF inspection checks gate upload",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:five_checks",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.network_retain",
+      "title": "Network failure retains selection where browser allows",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:network_retain",
+      "layer": "dev_browser",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "browser_pdf"
+    },
+    {
+      "id": "PDF.server_400",
+      "title": "Server 400 recovery",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:server_400",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.server_409",
+      "title": "Duplicate upload 409 without replacing receipt",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:server_409",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.server_500",
+      "title": "Server 500 recovery",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:server_500",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.durable_before_nav",
+      "title": "Durable upload before success navigation",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:durable_before_nav",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.receipt_fields",
+      "title": "Persistent receipt fields",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:receipt_fields",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.missing_receipt_recovery",
+      "title": "Missing receipt recovery",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:missing_receipt_recovery",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.refresh_reopen",
+      "title": "Refresh/direct receipt reopen",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:refresh_reopen",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.already_submitted",
+      "title": "Already-submitted bypasses preparation",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:already_submitted",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "PDF.grade_no_mutate_receipt",
+      "title": "Teacher grading does not alter receipt",
+      "epic": "G",
+      "riskArea": "submission_trust",
+      "fixtureId": "pdf:grade_no_mutate_receipt",
+      "layer": "pure",
+      "modules": [
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "pdf_contract"
+    },
+    {
+      "id": "DOC.signed_out",
+      "title": "Signed out / expired auth",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:signed_out",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.popup_blocked",
+      "title": "Popup blocked",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:popup_blocked",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.permission_denied",
+      "title": "User denies permission",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:permission_denied",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.create_ok",
+      "title": "Creation succeeds",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:create_ok",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.verify_ok",
+      "title": "Verification succeeds",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:verify_ok",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.reuse_current",
+      "title": "Existing current Doc reused",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:reuse_current",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.stale_update",
+      "title": "Stale Doc updated",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:stale_update",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.mismatch_recovery",
+      "title": "Mismatched Doc recovery",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:mismatch_recovery",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.deleted",
+      "title": "Doc deleted/unavailable",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:deleted",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.permission_lost",
+      "title": "Permission lost",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:permission_lost",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.timeout_5xx",
+      "title": "Network/API timeout/5xx",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:timeout_5xx",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.dup_create_prevent",
+      "title": "Duplicate create prevention",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:dup_create_prevent",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.guided_invalidate",
+      "title": "Replaced Doc invalidates guided checks",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:guided_invalidate",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.direct_resume",
+      "title": "Direct resume after recovery",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:direct_resume",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "DOC.teacher_doc_not_submit",
+      "title": "Teacher sees Doc availability but not submission",
+      "epic": "F",
+      "riskArea": "google_doc",
+      "fixtureId": "doc:teacher_doc_not_submit",
+      "layer": "pure",
+      "modules": [
+        8,
+        9
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "recovery path visible",
+        "artifact": "current signature",
+        "persistence": "no duplicate create",
+        "downstream": "guided invalidation when replaced",
+        "accessibility": "n/a",
+        "privacy": "no OAuth/Doc URL in reports"
+      },
+      "cleanup": "scoped_test_doc_only",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093",
+        "WP-002"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "doc_contract"
+    },
+    {
+      "id": "TEACH.word_count_modes",
+      "title": "Word count off/advisory/required/range",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:word_count_modes",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.invalid_range",
+      "title": "Invalid range rejection preserves prior",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:invalid_range",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.rollouts_independent",
+      "title": "Spine/EA/vocab/submission rollouts independent",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:rollouts_independent",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.settings_refresh",
+      "title": "Settings refresh across sessions",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:settings_refresh",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.no_file_fallback",
+      "title": "Missing schema recoverable without prod file fallback",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:no_file_fallback",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.scoped_guidance",
+      "title": "Changing settings updates only intended guidance",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:scoped_guidance",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.rollback_preserves_artifacts",
+      "title": "Rollback restores modes without deleting artifacts",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:rollback_preserves_artifacts",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.progress_projection",
+      "title": "Progress/Submissions/detail projection accurate",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:progress_projection",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.notes_grade_rollback",
+      "title": "Notes/grading failure rollback",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:notes_grade_rollback",
+      "layer": "pure",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "TEACH.anon_student_denial",
+      "title": "Anonymous/student teacher-route denial",
+      "epic": "E",
+      "riskArea": "teacher_config",
+      "fixtureId": "teacher:anon_student_denial",
+      "layer": "api",
+      "modules": [
+        "teacher"
+      ],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "restore_settings_ledger",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "teacher_contract"
+    },
+    {
+      "id": "SEC.auth_boundaries",
+      "title": "Anonymous/student/teacher authorization boundaries",
+      "epic": "ops",
+      "riskArea": "security",
+      "fixtureId": "none",
+      "layer": "api",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-100"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "security"
+    },
+    {
+      "id": "SEC.cross_student_denial",
+      "title": "Cross-student and cross-role access denial",
+      "epic": "ops",
+      "riskArea": "security",
+      "fixtureId": "none",
+      "layer": "api",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "security"
+    },
+    {
+      "id": "SEC.membership",
+      "title": "Assignment membership checks on detail",
+      "epic": "ops",
+      "riskArea": "security",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "security"
+    },
+    {
+      "id": "SEC.roster_least_data",
+      "title": "Roster/detail least-data; no prose/URLs/notes in list",
+      "epic": "ops",
+      "riskArea": "privacy",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "security"
+    },
+    {
+      "id": "SEC.dev_absent_prod",
+      "title": "Dev panel/seeds/fixtures denied in production",
+      "epic": "ops",
+      "riskArea": "privacy",
+      "fixtureId": "none",
+      "layer": "prod_browser",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "prod"
+    },
+    {
+      "id": "SEC.no_client_rollout_truth",
+      "title": "No client-controlled rollout/config truth",
+      "epic": "ops",
+      "riskArea": "security",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "security"
+    },
+    {
+      "id": "CLONE.audit",
+      "title": "Assignment cloning readiness audit (no invent)",
+      "epic": "E",
+      "riskArea": "multi_assignment",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-102"
+      ],
+      "severityIfFailed": "Medium",
+      "runner": "clone_audit"
+    },
+    {
+      "id": "PROD.clean_build",
+      "title": "Clean production build without overrides",
+      "epic": "ops",
+      "riskArea": "production",
+      "fixtureId": "none",
+      "layer": "prod_browser",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "prod"
+    },
+    {
+      "id": "PROD.rollouts_db",
+      "title": "Four instructional rollouts database-backed",
+      "epic": "E",
+      "riskArea": "production",
+      "fixtureId": "none",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "prod_contract"
+    },
+    {
+      "id": "PROD.chunk_scan",
+      "title": "No fixture/dev strings in production chunks",
+      "epic": "ops",
+      "riskArea": "privacy",
+      "fixtureId": "none",
+      "layer": "prod_browser",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101"
+      ],
+      "severityIfFailed": "Blocker",
+      "runner": "prod"
+    },
+    {
+      "id": "A11Y.layout_families",
+      "title": "Responsive/keyboard/a11y technical checks for layout families",
+      "epic": "H",
+      "riskArea": "accessibility",
+      "fixtureId": "none",
+      "layer": "dev_browser",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "390/1440/200% zoom",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "keyboard, focus, landmarks; AT usability human-only",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "High",
+      "runner": "browser_a11y"
+    },
+    {
+      "id": "SUITE.wp080_pdf",
+      "title": "WP-080 submission trust suite",
+      "epic": "G",
+      "riskArea": "regression_suite",
+      "fixtureId": "pdf_suite",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-080"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "suite_evidence"
+    },
+    {
+      "id": "SUITE.wp081_health",
+      "title": "WP-081 body health / fragment signals",
+      "epic": "A",
+      "riskArea": "regression_suite",
+      "fixtureId": "health_suite",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-081"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "suite_evidence"
+    },
+    {
+      "id": "SUITE.wp084_word",
+      "title": "WP-084 word-count settings suite",
+      "epic": "E",
+      "riskArea": "regression_suite",
+      "fixtureId": "word_suite",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-084"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "suite_evidence"
+    },
+    {
+      "id": "SUITE.wp093_protocol",
+      "title": "WP-093 guided APA production suite",
+      "epic": "F",
+      "riskArea": "regression_suite",
+      "fixtureId": "apa_suite",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-093"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "suite_evidence"
+    },
+    {
+      "id": "SUITE.wp097_workspace",
+      "title": "WP-097 workspace hierarchy suite",
+      "epic": "H",
+      "riskArea": "regression_suite",
+      "fixtureId": "workspace_suite",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-097"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "suite_evidence"
+    },
+    {
+      "id": "SUITE.wp100_teacher",
+      "title": "WP-100 teacher progress production suite",
+      "epic": "E",
+      "riskArea": "regression_suite",
+      "fixtureId": "teacher_suite",
+      "layer": "pure",
+      "modules": [],
+      "stateFamilies": [],
+      "preconditions": "none",
+      "actions": "assert",
+      "expected": {
+        "ui": "n/a",
+        "artifact": "n/a",
+        "persistence": "n/a",
+        "downstream": "n/a",
+        "accessibility": "n/a",
+        "privacy": "n/a"
+      },
+      "cleanup": "none",
+      "required": true,
+      "linkedIssues": [
+        "WP-101",
+        "WP-100"
+      ],
+      "severityIfFailed": "Critical",
+      "runner": "suite_evidence"
+    }
+  ],
+  "generatedAt": "2026-07-23T03:41:07.087Z"
+}

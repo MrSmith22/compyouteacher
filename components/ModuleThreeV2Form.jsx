@@ -31,7 +31,6 @@ import {
 } from "@/lib/module3/moduleThreeMatrixHandoffHelpers";
 import { readAdditiveMatrixFields } from "@/lib/module3/matrixArtifactFields";
 import ModuleThreeMatrixReviewBanner from "@/components/module3/ModuleThreeMatrixReviewBanner";
-import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
 import ModuleThreeEvidenceCard from "@/components/module3/ModuleThreeEvidenceCard";
 import ModuleThreeProgress from "@/components/module3/ModuleThreeProgress";
 import ModuleThreeConnectEvidenceStep from "@/components/module3/ModuleThreeConnectEvidenceStep";
@@ -884,9 +883,9 @@ export default function ModuleThreeV2Form({
       setLoadError("");
 
       try {
-        const [guidedResponse, tchartResult] = await Promise.all([
+        const [guidedResponse, tchartResponse] = await Promise.all([
           fetch("/api/module2/observations/guided"),
-          getTChartEntries({ userEmail }),
+          fetch("/api/tchart/entries"),
         ]);
 
         let guidedRows = [];
@@ -905,10 +904,12 @@ export default function ModuleThreeV2Form({
           setLoadError("Module 3 could not load guided observations.");
         }
 
-        const tchartRows =
-          !tchartResult?.error && Array.isArray(tchartResult?.data)
-            ? tchartResult.data
-            : [];
+        const tchartJson = tchartResponse.ok
+          ? await tchartResponse.json().catch(() => ({}))
+          : {};
+        const tchartRows = Array.isArray(tchartJson?.data)
+          ? tchartJson.data
+          : [];
 
         const combinedEvidence = normalizeEvidenceForModule3(
           { guidedRows, tchartRows },

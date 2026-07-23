@@ -427,13 +427,25 @@ export default function ModuleSeven() {
   useEffect(() => {
     async function loadDevices() {
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch {}
-      const list = await navigator.mediaDevices.enumerateDevices();
-      const inputs = list.filter((d) => d.kind === "audioinput");
-      setDevices(inputs);
-      const saved = localStorage.getItem("chosenMicId") || "";
-      setSelectedDeviceId(saved || inputs[0]?.deviceId || "");
+        const stream = await Promise.race([
+          navigator.mediaDevices.getUserMedia({ audio: true }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("mic_permission_timeout")), 4000)
+          ),
+        ]);
+        stream?.getTracks?.().forEach((t) => t.stop?.());
+      } catch {
+        // Permission denied / timeout — still enumerate if possible.
+      }
+      try {
+        const list = await navigator.mediaDevices.enumerateDevices();
+        const inputs = list.filter((d) => d.kind === "audioinput");
+        setDevices(inputs);
+        const saved = localStorage.getItem("chosenMicId") || "";
+        setSelectedDeviceId(saved || inputs[0]?.deviceId || "");
+      } catch {
+        setDevices([]);
+      }
     }
     loadDevices();
     navigator.mediaDevices?.addEventListener?.("devicechange", loadDevices);

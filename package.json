@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:wp101": "node --test tests/wp101-beta-harness.test.js",
+    "test:beta-manifest": "node scripts/wp101-write-manifest.mjs",
+    "test:beta-matrix": "node scripts/wp101-run-matrix.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

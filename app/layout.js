@@ -18,8 +18,11 @@ export default function RootLayout({ children }) {
         className={`${inter.className} bg-theme-light text-theme-dark`}
         suppressHydrationWarning
       >
+        <a href="#main-content" className="wp-skip-link">
+          Skip to main content
+        </a>
         <SessionProvider>
-          <main className="min-h-screen">
+          <main id="main-content" className="min-h-screen" tabIndex={-1}>
             <AppLayoutShell>{children}</AppLayoutShell>
           </main>
         </SessionProvider>
