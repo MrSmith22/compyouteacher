@@ -1,7 +1,7 @@
 {
-  "commit": "cdd3104115841d2c37794378822ffc6aec53f55d",
-  "runId": "mrxqazmbgvn7pj",
-  "email": "beta-student-mrxqazmbgvn7pj@localhost",
+  "commit": "37c6229e35c98290340709b11a04017cf0a24fc1",
+  "runId": "mrxqnvbnpntoow",
+  "email": "beta-student-mrxqnvbnpntoow@localhost",
   "freshOk": true,
   "a11yOk": true,
   "seedless": true,
@@ -11,7 +11,7 @@
     {
       "step": "bootstrap_account",
       "ok": true,
-      "detail": "beta-student-mrxqazmbgvn7pj@localhost"
+      "detail": "beta-student-mrxqnvbnpntoow@localhost"
     },
     {
       "step": "refresh:/modules/1/success",
@@ -180,5 +180,5 @@
     }
   ],
   "evidenceDir": "/tmp/wp101-browser/fresh-seedless",
-  "generatedAt": "2026-07-23T16:39:08.630Z"
+  "generatedAt": "2026-07-23T16:57:33.854Z"
 }

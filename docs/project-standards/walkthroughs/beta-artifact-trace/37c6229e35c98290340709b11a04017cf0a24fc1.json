@@ -19,11 +19,11 @@
     {
       "layer": "receipt",
       "label": "durable final receipt",
-      "identity": "fresh-mrxqazmbgvn7pj",
+      "identity": "fresh-mrxqnvbnpntoow",
       "excerpt": {
         "length": 28,
-        "excerpt": "receipt:fres…mbgvn7pj",
-        "hashHint": "92b5841f"
+        "excerpt": "receipt:fres…bnpntoow",
+        "hashHint": "bc6ace14"
       },
       "linked": true,
       "confidence": "proven"
@@ -31,11 +31,11 @@
     {
       "layer": "doc",
       "label": "Google Doc signature",
-      "identity": "doc-fresh-mrxqazmbgvn7pj",
+      "identity": "doc-fresh-mrxqnvbnpntoow",
       "excerpt": {
         "length": 24,
-        "excerpt": "doc-fresh-mr…mbgvn7pj",
-        "hashHint": "11abd992"
+        "excerpt": "doc-fresh-mr…bnpntoow",
+        "hashHint": "3b612387"
       },
       "linked": true,
       "confidence": "proven"
