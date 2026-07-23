@@ -1180,6 +1180,17 @@ async function fillShortTextareas(page, minLen, text) {
       await areas.nth(a).fill(text);
     }
   }
+  // Some Module 5 outline fields expose role=textbox without a reliable :visible textarea.
+  const boxes = page.getByRole("textbox");
+  const bn = await boxes.count();
+  for (let a = 0; a < bn; a += 1) {
+    const el = boxes.nth(a);
+    if (!(await el.isVisible().catch(() => false))) continue;
+    const cur = await el.inputValue().catch(() => "");
+    if (String(cur).trim().length < minLen) {
+      await el.fill(text).catch(() => {});
+    }
+  }
 }
 
 async function clickEnabledByName(page, nameRe, label) {
@@ -1614,7 +1625,7 @@ async function runModule5(page) {
   await page.waitForURL(/\/modules\/5/, { timeout: 120000 });
   await shot(page, "m5-entry.png");
   console.log(`M5: entry url=${page.url()}`);
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < 120; i += 1) {
     if (page.url().includes("/modules/5/success")) break;
     await assertNoPanelUsed(page);
 
@@ -1642,7 +1653,10 @@ async function runModule5(page) {
       (await finish.first().isEnabled().catch(() => false))
     ) {
       console.log("M5: Finish my outline");
-      await finish.first().click();
+      await clickStable(finish.first());
+      await page
+        .waitForURL(/\/modules\/5\/success|\/modules\/6/, { timeout: 60000 })
+        .catch(() => {});
       await sleep(900);
       continue;
     }
@@ -1655,13 +1669,15 @@ async function runModule5(page) {
       (await cont.first().isEnabled().catch(() => false))
     ) {
       console.log(`M5: ${String(await cont.first().textContent()).trim()}`);
-      await cont.first().click();
+      await clickStable(cont.first());
       await sleep(700);
       continue;
     }
 
     if (i % 10 === 0) {
-      console.log(`M5: iter ${i} url=${page.url()}`);
+      const h =
+        (await page.locator("h1").first().textContent().catch(() => "")) || "";
+      console.log(`M5: iter ${i} h1="${String(h).slice(0, 50)}" url=${page.url()}`);
       await shot(page, `m5-iter-${i}.png`);
     }
     await sleep(450);
