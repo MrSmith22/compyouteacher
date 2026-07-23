@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * WP-081 — Diagnostic revision desk for Body Paragraph 1 (dev-gated).
+ * WP-081 — Diagnostic revision desk for Body Paragraph 1.
  * Editor is primary; diagnostics recommend a target without rewriting prose.
+ * WP-097 — Renders inside ModuleSixStepFrame's promoted work region; only
+ * adds internal desk/work region attrs (no separate frame/root).
  */
 
 import { REVISION_TARGET_META } from "@/lib/module7/bodyParagraphDiagnostics";
@@ -35,7 +37,11 @@ export default function BodyParagraphRevisionPanel({
     <div className="space-y-3" data-testid="bp-revision-panel">
       <p className="text-sm font-medium text-text-primary">{label}</p>
 
-      <label className="block text-sm font-semibold text-theme-dark">
+      <label
+        className="block text-sm font-semibold text-theme-dark"
+        data-task-workspace-region="work"
+        data-instructional-color-role="writing"
+      >
         Revise your paragraph
         <textarea
           className={`mt-1 ${TEXTAREA_CLASS}`}
@@ -48,7 +54,11 @@ export default function BodyParagraphRevisionPanel({
         />
       </label>
 
-      <div className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 text-sm space-y-1">
+      <div
+        className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 text-sm space-y-1"
+        data-task-workspace-region="desk"
+        data-instructional-color-role="student-thinking"
+      >
         <p>
           <span className="font-semibold">Planned purpose:</span>{" "}
           {purpose || "(not set)"}

@@ -17,6 +17,7 @@ import {
   WP079_RELATIONSHIP,
 } from "@/lib/module2/evidenceArgumentDirectionDescriptor";
 import { isEvidenceToArgumentSliceEnabled } from "@/lib/dev/isEvidenceToArgumentSliceEnabled";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
 
 function safeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -134,12 +135,22 @@ export default function RepresentativeDirectionEvidencePanel({
     onCustomMappingChange?.(next);
   }
 
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 2,
+    taskHeading: "Your evidence for this comparison",
+    desktopWidthIntent: "single",
+  });
+
   return (
     <div
       className="mt-4 space-y-3 rounded-xl border border-theme-blue/30 bg-theme-blue/5 p-4"
       data-testid="wp086-direction-evidence-pair"
       data-family={descriptor.family || ""}
       data-option-id={selectedOptionId || ""}
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
+      data-task-workspace-region="desk"
+      data-instructional-color-role="evidence"
     >
       <h3 className="text-sm font-bold text-text-primary">
         Your evidence for this comparison

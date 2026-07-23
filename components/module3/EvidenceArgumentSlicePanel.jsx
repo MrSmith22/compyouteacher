@@ -17,7 +17,6 @@ import {
 } from "@/lib/artifacts/evidenceArgumentContract";
 import { relationshipCoachingPrompt } from "@/lib/module2/evidenceArgumentDirectionDescriptor";
 import ReopenSourceTextsControl from "@/components/sources/ReopenSourceTextsControl";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import {
   HIERARCHY_DESK_CLASS,
   HIERARCHY_LEVELS,
@@ -236,7 +235,6 @@ export default function EvidenceArgumentSlicePanel({
   const familyLabel =
     FAMILY_LABEL[directionDescriptor?.family] ||
     (directionDescriptor?.family ? String(directionDescriptor.family) : "");
-  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
   const workspacePresentation = resolveTaskWorkspacePresentation({
     moduleNumber: 3,
     stepLabel: step.label || stepId,
@@ -251,41 +249,26 @@ export default function EvidenceArgumentSlicePanel({
       data-step={stepId}
       data-family={directionDescriptor?.family || ""}
       data-option-id={selectedOptionId || ""}
-      data-task-workspace-foundation={foundation ? "true" : undefined}
-      data-task-workspace-contract={
-        foundation ? workspacePresentation.journeyStageId : undefined
-      }
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
     >
       <Card className="border-theme-blue/25 bg-white">
         <p
-          className={
-            foundation
-              ? `${HIERARCHY_MODULE_CHROME_CLASS} text-[11px] !font-semibold uppercase tracking-[0.18em] text-text-muted`
-              : "text-xs font-semibold uppercase tracking-wide text-text-muted"
-          }
+          className={`${HIERARCHY_MODULE_CHROME_CLASS} text-[11px] !font-semibold uppercase tracking-[0.18em] text-text-muted`}
         >
           Your comparison
-          {foundation && (selectedDirectionLabel || directionDescriptor?.label)
+          {selectedDirectionLabel || directionDescriptor?.label
             ? ` · ${selectedDirectionLabel || directionDescriptor?.label}`
             : ""}
         </p>
         <h1
-          className={
-            foundation
-              ? `mt-2 ${HIERARCHY_TASK_CLASS}`
-              : "mt-1 text-xl font-bold text-text-primary"
-          }
-          data-testid={foundation ? "task-workspace-task" : undefined}
-          data-hierarchy-level={foundation ? HIERARCHY_LEVELS.task : undefined}
+          className={`mt-2 ${HIERARCHY_TASK_CLASS}`}
+          data-testid="task-workspace-task"
+          data-hierarchy-level={HIERARCHY_LEVELS.task}
         >
           {step.question}
         </h1>
-        {!foundation && (selectedDirectionLabel || directionDescriptor?.label) ? (
-          <p className="mt-2 text-sm text-text-muted" data-testid="wp086-selected-direction">
-            Direction: {selectedDirectionLabel || directionDescriptor?.label}
-          </p>
-        ) : null}
-        {foundation && (selectedDirectionLabel || directionDescriptor?.label) ? (
+        {selectedDirectionLabel || directionDescriptor?.label ? (
           <p className="sr-only" data-testid="wp086-selected-direction">
             Direction: {selectedDirectionLabel || directionDescriptor?.label}
           </p>
@@ -343,11 +326,11 @@ export default function EvidenceArgumentSlicePanel({
 
       {stepId === "ea_reread" || stepId === "ea_repair" || stepId === "ea_explain" ? (
         <div
-          className={`grid gap-3 md:grid-cols-2 ${foundation ? HIERARCHY_DESK_CLASS : ""}`}
+          className={`grid gap-3 md:grid-cols-2 ${HIERARCHY_DESK_CLASS}`}
           data-testid="wp086-both-work-reread"
-          data-task-workspace-region={foundation ? "desk" : undefined}
-          data-instructional-color-role={foundation ? "evidence" : undefined}
-          data-hierarchy-level={foundation ? HIERARCHY_LEVELS.work : undefined}
+          data-task-workspace-region="desk"
+          data-instructional-color-role="evidence"
+          data-hierarchy-level={HIERARCHY_LEVELS.work}
         >
           <Card>
             <h2 className="text-sm font-bold">Speech</h2>

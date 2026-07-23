@@ -7,7 +7,6 @@
  */
 
 import ModuleModeCue from "@/components/shared/ModuleModeCue";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import {
   HIERARCHY_INSTRUCTION_CLASS,
   HIERARCHY_INSTRUCTION_LABEL_CLASS,
@@ -36,7 +35,6 @@ export default function ModuleFiveStepFrame({
   nextStepText = "",
   psychologicalModule = 5,
 }) {
-  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
   const workspacePresentation = resolveTaskWorkspacePresentation({
     moduleNumber: 5,
     taskHeading: question,
@@ -54,11 +52,9 @@ export default function ModuleFiveStepFrame({
       className="mx-auto w-full max-w-[1180px] overflow-x-hidden"
       data-module5-step-frame="true"
       data-cpf-desktop-shell="1180"
-      data-task-workspace-foundation={foundation ? "true" : undefined}
-      data-task-workspace-contract={
-        foundation ? workspacePresentation.journeyStageId : undefined
-      }
-      data-testid={foundation ? "task-workspace-frame" : undefined}
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
+      data-testid="task-workspace-frame"
     >
       <div
         className={[
@@ -79,23 +75,19 @@ export default function ModuleFiveStepFrame({
 
           <header className="space-y-3 py-1 text-left md:py-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
-              {foundation ? "Plan · Outline" : "Question"}
+              Plan · Outline
             </p>
             <h1
-              className={
-                foundation
-                  ? HIERARCHY_TASK_CLASS
-                  : "w-full max-w-none text-[1.65rem] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[1.9rem] md:text-[2.15rem] md:leading-[1.12]"
-              }
+              className={HIERARCHY_TASK_CLASS}
               data-module5-question="true"
-              data-testid={foundation ? "task-workspace-task" : undefined}
-              data-hierarchy-level={foundation ? HIERARCHY_LEVELS.task : undefined}
+              data-testid="task-workspace-task"
+              data-hierarchy-level={HIERARCHY_LEVELS.task}
             >
               {question}
             </h1>
           </header>
 
-          {foundation && primaryWhy ? (
+          {primaryWhy ? (
             <div
               className={HIERARCHY_INSTRUCTION_CLASS}
               data-testid="task-workspace-job"
@@ -110,14 +102,14 @@ export default function ModuleFiveStepFrame({
           <div className="w-full space-y-3 text-left">
             <details
               className="rounded-lg bg-surface-soft/50 px-4 py-3"
-              open={!foundation}
+              open={false}
             >
               <summary className="cursor-pointer list-none text-xs font-medium text-text-muted">
                 Why this matters
               </summary>
               <div className="mt-2 space-y-2">
-                {(foundation ? extraWhy : whyLines).length > 0 ? (
-                  (foundation ? extraWhy : whyLines).map((line) => (
+                {extraWhy.length > 0 ? (
+                  extraWhy.map((line) => (
                     <p
                       key={line}
                       className="text-sm leading-relaxed text-text-muted"
@@ -125,7 +117,7 @@ export default function ModuleFiveStepFrame({
                       {line}
                     </p>
                   ))
-                ) : foundation && primaryWhy ? (
+                ) : primaryWhy ? (
                   <p className="text-sm leading-relaxed text-text-muted">
                     More context stays here if you want it. Your required instruction
                     is already visible above.
@@ -156,8 +148,8 @@ export default function ModuleFiveStepFrame({
           <div
             className="w-full min-w-0 space-y-6"
             data-module5-stage-content="true"
-            data-testid={foundation ? "task-workspace-work" : undefined}
-            data-instructional-color-role={foundation ? "writing" : undefined}
+            data-testid="task-workspace-work"
+            data-instructional-color-role="writing"
           >
             {children}
           </div>

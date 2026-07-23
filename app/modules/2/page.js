@@ -38,6 +38,8 @@ import {
   readRhetoricalSituationDevBypassFlag,
 } from "@/lib/module2/rhetoricalSituationGate";
 import ModuleTwoMeetSituationsStep from "@/components/module2/ModuleTwoMeetSituationsStep";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import { HIERARCHY_LEVELS, HIERARCHY_TASK_CLASS } from "@/lib/ui/hierarchyContract";
 
 const WIZARD_STEPS = MODULE2_WIZARD_STEPS;
 
@@ -374,10 +376,23 @@ function ModuleTwoSourcePage() {
     );
   }
 
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 2,
+    taskHeading:
+      "You're not reading randomly. You're starting your evidence notebook.",
+    desktopWidthIntent: "single",
+  });
+
   return (
     <ModulePageShell>
       {stage === 0 ? (
-        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+        <WorkspaceColumns
+          variant="drafting"
+          className="gap-5 xl:gap-8"
+          data-task-workspace-foundation="true"
+          data-task-workspace-contract={workspacePresentation.journeyStageId}
+          data-testid="task-workspace-frame"
+        >
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
             <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
               <div className="space-y-1">
@@ -429,7 +444,11 @@ function ModuleTwoSourcePage() {
                 <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                   Start here
                 </p>
-                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   You&apos;re not reading randomly. You&apos;re starting your
                   evidence notebook.
                 </h1>
@@ -563,7 +582,13 @@ function ModuleTwoSourcePage() {
           </WorkspaceGuide>
         </WorkspaceColumns>
       ) : stage === 2 ? (
-        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+        <WorkspaceColumns
+          variant="drafting"
+          className="gap-5 xl:gap-8"
+          data-task-workspace-foundation="true"
+          data-task-workspace-contract={workspacePresentation.journeyStageId}
+          data-testid="task-workspace-frame"
+        >
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
             <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
               <div className="space-y-1">
@@ -622,7 +647,11 @@ function ModuleTwoSourcePage() {
                 <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                   Start here
                 </p>
-                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   Add the speech to your evidence notebook.
                 </h1>
                 <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
@@ -864,7 +893,13 @@ function ModuleTwoSourcePage() {
           </WorkspaceGuide>
         </WorkspaceColumns>
       ) : stage === 3 ? (
-        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+        <WorkspaceColumns
+          variant="drafting"
+          className="gap-5 xl:gap-8"
+          data-task-workspace-foundation="true"
+          data-task-workspace-contract={workspacePresentation.journeyStageId}
+          data-testid="task-workspace-frame"
+        >
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
             <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
               <div className="space-y-1">
@@ -924,7 +959,11 @@ function ModuleTwoSourcePage() {
                 <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                   Start here
                 </p>
-                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   Add the letter to your evidence notebook.
                 </h1>
                 <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
@@ -1168,7 +1207,13 @@ function ModuleTwoSourcePage() {
           </WorkspaceGuide>
         </WorkspaceColumns>
       ) : stage === 4 ? (
-        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+        <WorkspaceColumns
+          variant="drafting"
+          className="gap-5 xl:gap-8"
+          data-task-workspace-foundation="true"
+          data-task-workspace-contract={workspacePresentation.journeyStageId}
+          data-testid="task-workspace-frame"
+        >
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
             <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
               <div className="space-y-1">
@@ -1227,7 +1272,11 @@ function ModuleTwoSourcePage() {
                 <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                   Start here
                 </p>
-                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   Your evidence notebook is complete.
                 </h1>
                 <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">
@@ -1477,7 +1526,13 @@ function ModuleTwoSourcePage() {
           }}
         />
       ) : stage === 6 ? (
-        <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+        <WorkspaceColumns
+          variant="drafting"
+          className="gap-5 xl:gap-8"
+          data-task-workspace-foundation="true"
+          data-task-workspace-contract={workspacePresentation.journeyStageId}
+          data-testid="task-workspace-frame"
+        >
           <WorkspaceSidebar className="opacity-80 lg:col-span-1">
             <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
               <div className="space-y-1">
@@ -1536,7 +1591,11 @@ function ModuleTwoSourcePage() {
                 <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                   Start here
                 </p>
-                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   Begin reading like a writer.
                 </h1>
                 <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">

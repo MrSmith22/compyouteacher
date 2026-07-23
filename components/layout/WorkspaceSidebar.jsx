@@ -1,6 +1,7 @@
-export default function WorkspaceSidebar({ children, className = "" }) {
+export default function WorkspaceSidebar({ children, className = "", ...rest }) {
   return (
     <div
+      {...rest}
       className={[
         "order-3 space-y-4",
         "lg:col-span-2",

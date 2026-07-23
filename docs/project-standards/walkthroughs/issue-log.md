@@ -55,7 +55,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-014 | Module 6 body paragraph pages lack drafting coaching | 6 | High | Instructional | Needs Verification |
 | WP-015 | Module 6 conclusion drafting ignores conclusion planning | 6 | High | Instructional | Needs Verification |
 | WP-016 | Module 6 missing “how experienced writers use these notes” instruction | 6 | High | Instructional | Needs Verification |
-| WP-017 | Module 6 sidebar too narrow and visually de-emphasized | 6 | High | Visual Design | Open |
+| WP-017 | Module 6 sidebar too narrow and visually de-emphasized | 6 | High | Visual Design | Resolved |
 | WP-018 | Module 6 lacks meaningful instructional color semantics | 6 | Medium | Visual Design | Open |
 | WP-019 | Module 6 drafting pages missing consistent six-section screen pattern | 6 | High | Instructional / UX | Open |
 | WP-020 | Module 7 assumes revision knowledge instead of teaching it | 7 | Critical | Instructional | Open |
@@ -87,7 +87,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-047 | Module 9 legacy submission flow feels LMS-like | 9 | High | UX / Flow | Needs Verification |
 | WP-048 | Four-question screen contract not met (especially how + finished) | App-wide | High | Instructional / UX | Needs Verification |
 | WP-049 | Students must search sidebar instead of seeing artifacts pulled forward | App-wide | High | UX / Cognitive Load | Needs Verification |
-| WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Needs Verification |
+| WP-050 | Visual hierarchy treats all page elements with equal weight | App-wide | High | Visual Design | Resolved |
 | WP-051 | Most screens lack visible success criteria (“How do I know I’m finished?”) | App-wide | High | Instructional | Needs Verification |
 | WP-052 | Module transitions are mechanical, not psychological | App-wide | High | Navigation / Flow | Needs Verification |
 | WP-053 | Action affordances mix buttons, hyperlinks, and plain text inconsistently | App-wide | High | UX | Needs Verification |
@@ -134,8 +134,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-094 | Success-screen family and completed-dashboard foundation (Phase 6, development-only) | 1, 6, 8–9, Dashboard | High | Visual Design / UX | Resolved |
 | WP-095 | Generalize and promote the success system (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / UX | Resolved |
 | WP-096 | Task workspace hierarchy foundation (Phase 6, development-only) | 1, 3, 5, 6, 9 | High | Visual Design / UX | Resolved |
+| WP-097 | Generalize and promote the workspace hierarchy (Phase 6 complete) | 1–9 | High | Visual Design / UX | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-097.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-098.*
 
 ---
 
@@ -616,7 +617,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Drafting sidebar (Writer’s Notebook)
 - **Priority:** High
 - **Category:** Visual Design
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** The sidebar is very narrow with small text and little visual emphasis. It feels secondary even though it contains necessary planning information. Students do not naturally consult it.
 
@@ -633,9 +634,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** Not specified in Master Design Specification.
 
-**Resolution notes:**
+**Resolution notes:** (July 23, 2026) Promoted WP-097 Module 6 task-workspace composition keeps move-specific desk readable (≥300px at desktop) while the writing surface remains larger (`deskW:300`, `writingW:372` in WP-097 browser desktop evidence). Contextual desk is required work context, not an optional decorative shelf. App-wide sidebar typography beyond Module 6 drafting remains out of this issue’s Module 6 scope.
 
-**Resolved in commit:**
+**Resolved in commit:** (this change set)
 
 ---
 
@@ -1522,7 +1523,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All student-facing pages
 - **Priority:** High
 - **Category:** Visual Design
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** Many pages feel bland because instructions, buttons, examples, references, sidebars, text boxes, and helper text share nearly identical visual weight. Students must decide what matters instead of being guided.
 
@@ -1538,9 +1539,10 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 
 **Related files:** `lib/ui/hierarchyContract.js`; `components/module6/ModuleSixStepFrame.jsx`; `components/shared/ScreenContractCues.jsx`; `components/shared/TaskRelevantArtifacts.jsx`; `components/ModuleSix.js`; `components/ModuleSeven.js`; `components/ModuleEight.js`; `components/ModuleNine.js`; `tests/wp050-five-level-visual-hierarchy.test.js`
 
-**Resolution notes:** (July 2026) Modules 6–9 pilot only—not app-wide visual acceptance. Shared `hierarchyContract` tokens + `data-hierarchy-level` markers strengthen L1 task headings, quiet L2 objective cues, soften L3 instruction (JobRightNow/strategy), keep L4 desk quieter than active work surfaces, demote L5 shelves/guides, and make Keep going / Finish / Upload Final PDF dominate adjacent Back/Save actions—without adding five cards or a louder color system. Module 9 module chrome demoted so journey-step tasks win. Status remains **Needs Verification** pending broader app visual judgment.
+**Resolution notes:** (July 2026) Modules 6–9 pilot only—not app-wide visual acceptance. Shared `hierarchyContract` tokens + `data-hierarchy-level` markers strengthen L1 task headings, quiet L2 objective cues, soften L3 instruction (JobRightNow/strategy), keep L4 desk quieter than active work surfaces, demote L5 shelves/guides, and make Keep going / Finish / Upload Final PDF dominate adjacent Back/Save actions—without adding five cards or a louder color system. Module 9 module chrome demoted so journey-step tasks win. Status remained Needs Verification pending broader app visual judgment.
+(July 23, 2026) WP-097 promoted the task/desk/work/shelf composition across Module 1–9 active-work families with coverage-registry exhaustiveness and browser matrix **73/73** (one H1 per family sample). Production build confirms hierarchy default with gate deleted. Subjective visual tone remains the only human remainder.
 
-**Resolved in commit:** (this commit)
+**Resolved in commit:** (this change set)
 
 ---
 
@@ -1891,7 +1893,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - Action/status stay separate: primary blue, success green, final/in-progress orange, error red. Stop-recording uses labelled `theme-orange` (not evidence gold); Start uses primary action blue. Removed raw `yellow-500`.
 - Artifact registry: evidence→`role-evidence`, draft→`role-writing` (labels/keys/descriptions unchanged). Patterns/claims/thesis/etc. retained. Artifact identity ≠ instructional surface role.
 - Application matrix covers M6 drafting/notebook/reference, M7 read-aloud/observation/revision, M8 preparation/confidence, M9 APA teaching/Quick Guide/upload. Role text colors meet WCAG AA vs white (lighter `theme-gold` rejected for normal evidence text).
-- Status remains Needs Verification (app-wide; M6–9 pilot; browser bounded).
+- Status remains Needs Verification (app-wide; M6–9 pilot; browser bounded). WP-097 applied accepted active-work roles (`instruction` / `student-thinking` / `evidence` / `writing` / `reference`) across Module 1–9 families but did not close the full revision-role / app-wide color sweep.
 - Browser: no listener on port 3000 during verification; role-colored states **not reached live**.
 
 **Resolved in commit:**
@@ -3133,6 +3135,42 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - Agent browser (dev gate on): `scripts/wp096-browser-acceptance.mjs` → **48/48** at 390×844 and 1440×900 for M1/3/5/6/9; screenshots under `/tmp/wp096-browser/` (local evidence only, not committed).
 - Production gate-off: `.next-wp096-prod` build; server on :3011; `/api/dev/panel` → 404; M5 Why remains open legacy composition (no foundation attrs); M6 retains JobRightNow without foundation grid; instructional rollout modes unchanged (`rebuilt`).
 - WP-017: representative gated M6 contextual desk readable (≥300px) while writing surface larger at desktop — recorded as slice evidence only; app-wide WP-017 remains Open.
+
+**Human remainder:** subjective visual tone only.
+
+**Resolved in commit:** (this change set)
+
+---
+
+### WP-097 — Generalize and promote the workspace hierarchy
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Visual Design / UX  
+**Module:** 1–9  
+**Related:** WP-017, WP-018, WP-048–WP-055, WP-050, WP-059, WP-061–WP-063, WP-073–WP-079, WP-081–WP-093, WP-095, WP-096; Prompt 18; Phase 6 / Epic H
+
+**Walkthrough observation:** WP-096 proved the task/desk/work/shelf grammar on five representative screens behind a development gate. Remaining Module 1–9 active-work families still use competing H1s, uneven desk/shelf discipline, and legacy presentation branches.
+
+**Student-facing impact:** Every production active-work family should use the accepted hierarchy so students always see the current task, required context on the desk, dominant work surface, and optional shelf—then that composition becomes normal production without a new data mode.
+
+**Why it matters technically or operationally:** Presentation-only generalization and promotion. Must not alter instructional rollouts, artifacts, saves, progression, Doc/PDF/receipt, success, or dashboard. Coverage registry must fail when a new production step type lacks a hierarchy mapping. Remove `isTaskWorkspaceHierarchyFoundationEnabled` rather than returning `true`.
+
+**Recommended smallest reasonable fix:** Pure `taskWorkspaceCoverageRegistry` mapping every family; wire adapters under the existing gate; complete browser matrix; delete the gate and collapse branches.
+
+**Gate (during implementation):** Existing WP-096 development presentation gate. After acceptance: gate file deleted; composition is production default. No assignment/DB presentation mode. Rollback = code/deploy only.
+
+**State-family matrix (renderer patterns):** M1.PROMPT / TRANSFER / LEGACY_LEARN / QUIZ; M2.WIZARD / GUIDED_OBS / TCHART / MATRIX / DIRECTION; M3.EA / V2 / HYDRATE; M4.HANDOFF / PATTERN / BODY_* / THIRD / REVIEW / UPSTREAM; M5.BRING_IN–FINALIZE / VIEW_TOGGLE / MISMATCH; M6.INTRO–CONCLUSION moves / ADVANCED / PREVIEW / REVIEW / LEGACY_TEXTAREA / AUTOSAVE; M7.RA / INTRO–CONCL / WE / FIX / WC / LEGACY-SEC; M8.DOC–REV / LEGACY_*; M9.HAND / MOVE×7 / DOCINS / PDF / ALREADY / REC / LEGACY_1–4. Parameterized body/APA indexes share one family entry.
+
+**Implementation notes:** (July 22–23, 2026) Coverage registry + exhaustiveness tests; adapters across Modules 1–9; Module 8 chrome demoted so Doc panel owns the page H1; Module 9 unhealthy Doc owns recovery H1; gate deleted and branches collapsed to promoted composition only.
+
+**Verification evidence:**
+- Automated: `tests/wp097-task-workspace-coverage-registry.test.js` **9/9**; `tests/wp097-task-workspace-adapters.test.js` **5/5**; upgraded `tests/wp096-task-workspace-hierarchy-foundation.test.js` (gate absent); related batch **68/68**.
+- Agent browser (dev, hierarchy default): `scripts/wp097-browser-acceptance.mjs` → **73/73** at 390×844 + 1440×900 (+ zoom/keyboard); screenshots under `/tmp/wp097-browser/` (not committed).
+- Production: `.next-wp097-prod` build; server on :3012; `/api/dev/panel` → 404; gate file absent; hierarchy attrs present on Module 5 (`foundation:true`, one H1); chunk scan **0** fixture/gate hits across 125 chunks (`scripts/wp097-prod-acceptance.mjs` **4/4**).
+- WP-017: promoted Module 6 contextual desk readable (300px) with writing surface larger at desktop — recorded as promoted M6 evidence; issue updated accordingly.
+- WP-050: app-wide active-work hierarchy matrix recorded; issue updated accordingly.
+- WP-061: accepted color roles applied on active-work families; app-wide revision-role sweep remains Needs Verification.
 
 **Human remainder:** subjective visual tone only.
 

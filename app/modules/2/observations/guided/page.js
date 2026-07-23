@@ -11,6 +11,8 @@ import {
 } from "@/components/module3/ModuleThreeDeskFrame";
 import ModuleTwoNotebook from "@/components/module2/ModuleTwoNotebook";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import { HIERARCHY_LEVELS, HIERARCHY_TASK_CLASS } from "@/lib/ui/hierarchyContract";
 
 const ASSIGNMENT = mlkAssignmentDefinition;
 const PASSAGES = ASSIGNMENT?.observationSchema?.guidedPassages ?? [];
@@ -544,8 +546,19 @@ export default function GuidedObservationsPage() {
     );
   }
 
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 2,
+    taskHeading: currentPassage.observationQuestion,
+    desktopWidthIntent: "single",
+  });
+
   return (
-    <div className="min-h-screen bg-theme-light text-theme-dark p-6">
+    <div
+      className="min-h-screen bg-theme-light text-theme-dark p-6"
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
+      data-testid="task-workspace-frame"
+    >
       <div className="max-w-3xl mx-auto space-y-6">
         <div
           className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-3 text-sm text-theme-dark"
@@ -571,7 +584,11 @@ export default function GuidedObservationsPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-theme-dark/70">
             Guided observation {currentIndex + 1} of {TOTAL}
           </p>
-          <h1 className="text-2xl font-extrabold text-theme-dark leading-snug">
+          <h1
+            className={HIERARCHY_TASK_CLASS}
+            data-testid="task-workspace-task"
+            data-hierarchy-level={HIERARCHY_LEVELS.task}
+          >
             {currentPassage.observationQuestion}
           </h1>
           <p className="text-sm text-theme-dark/70">

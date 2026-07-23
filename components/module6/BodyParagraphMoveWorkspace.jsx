@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * WP-081 — Sentence-move drafting workspace for Body Paragraph 1 (dev-gated).
+ * WP-081 — Sentence-move drafting workspace for Body Paragraph 1.
  * Assembles prose only; never emits plan labels or Roman numerals into draft text.
  * Kept as a dedicated component so WP-081 test IDs remain stable; shared
  * SectionMoveWorkspace (WP-082) powers Introduction / Conclusion.
@@ -15,7 +15,6 @@ import {
   resolveBodyParagraphMoveMeta,
   selectDeskArtifactsForMove,
 } from "@/lib/module6/bodyParagraphMoves";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import { HIERARCHY_DESK_CLASS, HIERARCHY_LEVELS } from "@/lib/ui/hierarchyContract";
 import { getInstructionalColorRole } from "@/lib/ui/instructionalColorContract";
 
@@ -48,8 +47,7 @@ export default function BodyParagraphMoveWorkspace({
   const meta =
     resolveBodyParagraphMoveMeta(activeId) || BODY_PARAGRAPH_MOVE_META.point;
   const deskForMove = selectDeskArtifactsForMove(activeId, deskArtifacts);
-  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
-  const writingSurfaceClass = foundation ? WRITING_TEXTAREA_CLASS : TEXTAREA_CLASS;
+  const writingSurfaceClass = WRITING_TEXTAREA_CLASS;
   const preview = resolveAssembledBodyParagraphProse(normalized, {
     includeTransition: moveOrder.includes("transition"),
     moveOrder,
@@ -147,25 +145,17 @@ export default function BodyParagraphMoveWorkspace({
       </p>
 
       <div
-        className={
-          foundation
-            ? "grid gap-4 lg:grid-cols-[minmax(300px,0.65fr)_minmax(0,1.35fr)] lg:items-start"
-            : "space-y-3"
-        }
-        data-testid={foundation ? "task-workspace-work" : undefined}
+        className="grid gap-4 lg:grid-cols-[minmax(300px,0.65fr)_minmax(0,1.35fr)] lg:items-start"
+        data-testid="task-workspace-work"
       >
         <div
-          className={
-            foundation
-              ? `${HIERARCHY_DESK_CLASS} order-1 lg:order-1`
-              : "rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2"
-          }
+          className={`${HIERARCHY_DESK_CLASS} order-1 lg:order-1`}
           data-testid="bp-active-move"
           data-active-move={activeId}
           data-step-number={stepNumber}
-          data-instructional-color-role={foundation ? "student-thinking" : undefined}
-          data-hierarchy-level={foundation ? HIERARCHY_LEVELS.work : undefined}
-          data-task-workspace-region={foundation ? "desk" : undefined}
+          data-instructional-color-role="student-thinking"
+          data-hierarchy-level={HIERARCHY_LEVELS.work}
+          data-task-workspace-region="desk"
         >
           <p
             className="text-[11px] font-bold uppercase tracking-wide text-theme-blue"
@@ -189,8 +179,8 @@ export default function BodyParagraphMoveWorkspace({
         </div>
 
         <label
-          className={`block text-sm font-semibold text-theme-dark ${foundation ? "order-2 min-w-0" : ""}`}
-          data-instructional-color-role={foundation ? "writing" : undefined}
+          className="block text-sm font-semibold text-theme-dark order-2 min-w-0"
+          data-instructional-color-role="writing"
         >
           Your sentence(s) for Step {stepNumber}
           <textarea

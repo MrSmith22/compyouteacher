@@ -7,6 +7,11 @@ import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import {
+  HIERARCHY_LEVELS,
+  HIERARCHY_TASK_CLASS,
+} from "@/lib/ui/hierarchyContract";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import {
   LESSON_PHASES,
   advanceAfterFeedback,
   advanceLessonPhase,
@@ -197,8 +202,20 @@ export default function ModuleTwoMeetSituationsStep({
         )
       : null;
 
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 2,
+    taskHeading: "Meet the two situations.",
+    desktopWidthIntent: "single",
+  });
+
   return (
-    <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+    <WorkspaceColumns
+      variant="drafting"
+      className="gap-5 xl:gap-8"
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
+      data-testid="task-workspace-frame"
+    >
       <WorkspaceSidebar className="opacity-80 lg:col-span-1">
         <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
           <div className="space-y-1">
@@ -258,7 +275,11 @@ export default function ModuleTwoMeetSituationsStep({
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
               Start here
             </p>
-            <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+            <h1
+              className={HIERARCHY_TASK_CLASS}
+              data-testid="task-workspace-task"
+              data-hierarchy-level={HIERARCHY_LEVELS.task}
+            >
               Meet the two situations.
             </h1>
             {returnFromProtectedRoute ? (

@@ -26,7 +26,6 @@ import {
   getFirstIncompleteGuidedApaMoveId,
   resolveGuidedApaPhase,
 } from "@/lib/module9/guidedApaProtocolState";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import {
   HIERARCHY_LEVELS,
   HIERARCHY_TASK_CLASS,
@@ -206,7 +205,6 @@ export default function GuidedApaProtocolFlow({
     };
   }, [state, ready]);
 
-  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
   const activeMove = getGuidedApaMove(state.activeMoveId) || moves[0];
   const activeMoveIndex = Math.max(
     0,
@@ -302,19 +300,13 @@ export default function GuidedApaProtocolFlow({
           className="space-y-3 rounded-xl border-2 border-theme-blue/30 bg-white p-4"
           data-testid="guided-apa-doc-handoff"
         >
-          {foundation ? (
-            <h1
-              className={HIERARCHY_TASK_CLASS}
-              data-testid="task-workspace-task"
-              data-hierarchy-level={HIERARCHY_LEVELS.task}
-            >
-              Format your Google Doc for this assignment
-            </h1>
-          ) : (
-            <h2 className="text-xl font-semibold text-theme-dark">
-              Format your Google Doc for this assignment
-            </h2>
-          )}
+          <h2
+            className={HIERARCHY_TASK_CLASS}
+            data-testid="guided-apa-doc-handoff-title"
+            data-hierarchy-level={HIERARCHY_LEVELS.task}
+          >
+            Format your Google Doc for this assignment
+          </h2>
           <p className="text-sm text-theme-muted">
             Module 8 prepares one verified Google Doc with your newest essay. Open or
             repair that Doc, then start the first formatting move.
@@ -381,30 +373,22 @@ export default function GuidedApaProtocolFlow({
         <section
           className="space-y-4 rounded-xl border-2 border-theme-blue/30 bg-white p-4"
           data-testid="guided-apa-active-move"
-          data-task-workspace-foundation={foundation ? "true" : undefined}
-          data-task-workspace-contract={
-            foundation ? workspacePresentation.journeyStageId : undefined
-          }
-          data-task-workspace-region={foundation ? "work" : undefined}
+          data-task-workspace-foundation="true"
+          data-task-workspace-contract={workspacePresentation.journeyStageId}
+          data-task-workspace-region="work"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wide text-theme-blue">
                 Formatting move · {progress} of {totalMoves} complete
               </p>
-              {foundation ? (
-                <h1
-                  className={HIERARCHY_TASK_CLASS}
-                  data-testid="task-workspace-task"
-                  data-hierarchy-level={HIERARCHY_LEVELS.task}
-                >
-                  {activeMove.title}
-                </h1>
-              ) : (
-                <h2 className="text-xl font-semibold text-theme-dark">
-                  {activeMove.title}
-                </h2>
-              )}
+              <h1
+                className={HIERARCHY_TASK_CLASS}
+                data-testid="task-workspace-task"
+                data-hierarchy-level={HIERARCHY_LEVELS.task}
+              >
+                {activeMove.title}
+              </h1>
               <p className="text-xs text-theme-muted">
                 {labelForGuidedApaRuleKind(activeMove.ruleKind)}
               </p>
@@ -449,17 +433,11 @@ export default function GuidedApaProtocolFlow({
               })}
           </ol>
 
-          <div
-            className={
-              foundation
-                ? "grid gap-4 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]"
-                : "grid gap-4 lg:grid-cols-2"
-            }
-          >
+          <div className="grid gap-4 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]">
             <div
               className="space-y-3"
-              data-instructional-color-role={foundation ? "reference" : undefined}
-              data-task-workspace-region={foundation ? "desk" : undefined}
+              data-instructional-color-role="reference"
+              data-task-workspace-region="desk"
             >
               <div>
                 <h3 className="text-sm font-semibold">See it</h3>
@@ -476,8 +454,8 @@ export default function GuidedApaProtocolFlow({
             </div>
             <div
               className="space-y-3"
-              data-instructional-color-role={foundation ? "instruction" : undefined}
-              data-task-workspace-region={foundation ? "job" : undefined}
+              data-instructional-color-role="instruction"
+              data-task-workspace-region="job"
             >
               <div>
                 <h3 className="text-sm font-semibold">Do it</h3>
@@ -595,17 +573,13 @@ export default function GuidedApaProtocolFlow({
           className="space-y-4 rounded-xl border-2 border-theme-blue/30 bg-white p-4"
           data-testid="guided-apa-doc-inspection"
         >
-          {foundation ? (
-            <h1
-              className={HIERARCHY_TASK_CLASS}
-              data-testid="task-workspace-task"
-              data-hierarchy-level={HIERARCHY_LEVELS.task}
-            >
-              Final Google Doc inspection
-            </h1>
-          ) : (
-            <h2 className="text-xl font-semibold">Final Google Doc inspection</h2>
-          )}
+          <h1
+            className={HIERARCHY_TASK_CLASS}
+            data-testid="task-workspace-task"
+            data-hierarchy-level={HIERARCHY_LEVELS.task}
+          >
+            Final Google Doc inspection
+          </h1>
           <p className="text-sm text-theme-muted">
             This is the only definitive formatting review of your Google Doc. Check the
             beginning, a body page, citations, and the References page.
@@ -674,17 +648,13 @@ export default function GuidedApaProtocolFlow({
           className="space-y-4 rounded-xl border-2 border-theme-blue/30 bg-white p-4"
           data-testid="guided-apa-pdf-phase"
         >
-          {foundation ? (
-            <h1
-              className={HIERARCHY_TASK_CLASS}
-              data-testid="task-workspace-task"
-              data-hierarchy-level={HIERARCHY_LEVELS.task}
-            >
-              Download, inspect, and upload your PDF
-            </h1>
-          ) : (
-            <h2 className="text-xl font-semibold">Download, inspect, and upload your PDF</h2>
-          )}
+          <h1
+            className={HIERARCHY_TASK_CLASS}
+            data-testid="task-workspace-task"
+            data-hierarchy-level={HIERARCHY_LEVELS.task}
+          >
+            Download, inspect, and upload your PDF
+          </h1>
           <p className="text-sm font-medium text-theme-dark">
             You checked your Google Doc earlier. Now check that the downloaded PDF still
             looks correct.

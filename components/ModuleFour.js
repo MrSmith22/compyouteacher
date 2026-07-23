@@ -2932,6 +2932,7 @@ export default function ModuleFour({
         main
       ) : (
       <ModuleThreeStepFrame
+        moduleNumber={4}
         minimalChrome={chrome.useMinimalStepChrome}
         question={chrome.showPageQuestion ? stepPresentation.question : ""}
         whyMatters={chrome.showWhyMatters ? stepPresentation.whyMatters : []}

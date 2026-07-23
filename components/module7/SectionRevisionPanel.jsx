@@ -3,6 +3,8 @@
 /**
  * WP-082 — Shared diagnostic revision desk for section vertical slices.
  * Editor is primary; diagnostics recommend a target without rewriting prose.
+ * WP-097 — Renders inside ModuleSixStepFrame's promoted work region; only
+ * adds internal desk/work region attrs (no separate frame/root).
  */
 
 const TEXTAREA_CLASS =
@@ -34,7 +36,11 @@ export default function SectionRevisionPanel({
     <div className="space-y-3" data-testid={`${testIdPrefix}-panel`}>
       <p className="text-sm font-medium text-text-primary">{label}</p>
 
-      <label className="block text-sm font-semibold text-theme-dark">
+      <label
+        className="block text-sm font-semibold text-theme-dark"
+        data-task-workspace-region="work"
+        data-instructional-color-role="writing"
+      >
         {editorLabel}
         <textarea
           className={`mt-1 ${TEXTAREA_CLASS}`}
@@ -48,7 +54,11 @@ export default function SectionRevisionPanel({
       </label>
 
       {planLines.length > 0 ? (
-        <div className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 text-sm space-y-1">
+        <div
+          className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 text-sm space-y-1"
+          data-task-workspace-region="desk"
+          data-instructional-color-role="student-thinking"
+        >
           {planLines.map((line) => (
             <p key={line.label}>
               <span className="font-semibold">{line.label}:</span>{" "}

@@ -27,7 +27,6 @@ import {
   HIERARCHY_TASK_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import { openExternalResource } from "@/lib/ui/openExternalResource";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import {
   formatFileSize,
   readPdfHeaderBytes,
@@ -754,33 +753,33 @@ export default function ModuleNine() {
   }
 
   if (guidedApaProtocol) {
-    const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
     return (
       <ModulePageShell contentMax={MODULE9_LAYOUT_CONTRACT.contentMax}>
         <div className="space-y-6 overflow-x-hidden px-1 py-2">
           <header className="space-y-2">
             <ModuleModeCue module={9} />
-            {foundation ? (
-              <p className={HIERARCHY_MODULE_CHROME_CLASS}>
-                Module 9: Format your Google Doc for this assignment
-              </p>
-            ) : (
-              <h1 className={HIERARCHY_MODULE_CHROME_CLASS}>
-                Module 9: Format your Google Doc for this assignment
-              </h1>
-            )}
+            <p className={HIERARCHY_MODULE_CHROME_CLASS}>
+              Module 9: Format your Google Doc for this assignment
+            </p>
             <p className="text-sm text-text-muted">
               Teach each formatting move in your real Google Doc, inspect once, then
               download and upload the PDF.
             </p>
           </header>
-          {foundation && !docReady ? (
+          {!docReady ? (
             <div
               ref={step2Ref}
-              className="pt-2"
+              className="space-y-3 pt-2"
               data-testid="module9-recovery-priority"
               data-task-workspace-region="feedback"
             >
+              <h1
+                className={HIERARCHY_TASK_CLASS}
+                data-testid="task-workspace-task"
+                data-hierarchy-level={HIERARCHY_LEVELS.task}
+              >
+                Fix your Google Doc before you format
+              </h1>
               <SubmissionDocRecoveryPanel
                 module={9}
                 verificationStatus={verificationStatus}
@@ -892,7 +891,7 @@ export default function ModuleNine() {
             alreadySubmitted={alreadySubmitted}
             onViewReceipt={() => router.push("/modules/9/success")}
           />
-          {docReady && foundation ? (
+          {docReady ? (
             <details className="rounded-lg border border-role-reference/30 bg-role-reference/[0.06] px-4 py-3">
               <summary className="cursor-pointer text-sm font-medium text-text-muted">
                 Google Doc repair tools
@@ -930,40 +929,6 @@ export default function ModuleNine() {
                 />
               </div>
             </details>
-          ) : null}
-          {docReady && !foundation ? (
-            <div ref={step2Ref} className="pt-2">
-              <SubmissionDocRecoveryPanel
-                module={9}
-                verificationStatus={verificationStatus}
-                exportStatus={exportStatus}
-                hasUrl={!!exportUrl}
-                contentVerified={docContentVerified}
-                operation={lastDocOperation}
-                docUrl={exportUrl}
-                busy={docBusy}
-                notice={docNotice}
-                testIdPrefix="module9-guided-doc"
-                showProgressContinue={false}
-                onUpdate={() =>
-                  handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
-                }
-                onCreate={() =>
-                  handleCreateOrUpdateSubmissionDoc({ forceCreate: false })
-                }
-                onCreateNew={() =>
-                  handleCreateOrUpdateSubmissionDoc({ forceCreate: true })
-                }
-                onRetry={handleRetryVerification}
-                onReplacementCancelled={() =>
-                  logSubmissionDocReplacementCancelled({
-                    userEmail: session?.user?.email,
-                    module: 9,
-                    hadExistingDoc: !!exportUrl,
-                  })
-                }
-              />
-            </div>
           ) : null}
         </div>
       </ModulePageShell>

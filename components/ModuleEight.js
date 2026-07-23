@@ -36,6 +36,7 @@ import {
   HIERARCHY_ACTION_PRIMARY_CLASS,
   HIERARCHY_ACTION_SECONDARY_CLASS,
   HIERARCHY_FOCUS_RING_CLASS,
+  HIERARCHY_MODULE_CHROME_CLASS,
   HIERARCHY_WORK_SURFACE_CLASS,
 } from "@/lib/ui/hierarchyContract";
 import SuccessCriteriaPanel from "@/components/shared/SuccessCriteriaPanel";
@@ -772,9 +773,9 @@ export default function ModuleEight() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-blue">
               Module 8
             </p>
-            <h1 className="text-2xl font-semibold text-theme-dark">
+            <p className={HIERARCHY_MODULE_CHROME_CLASS}>
               Prepare your submission Google Doc
-            </h1>
+            </p>
           </header>
           <ModuleEightGuidedApaDocPanel
             submissionDocUrl={submissionDocUrl}

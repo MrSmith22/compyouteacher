@@ -1,6 +1,9 @@
-export default function WorkspaceCenter({ children, className = "" }) {
+export default function WorkspaceCenter({ children, className = "", ...rest }) {
   return (
-    <div className={["order-1 min-w-0", className].filter(Boolean).join(" ")}>
+    <div
+      {...rest}
+      className={["order-1 min-w-0", className].filter(Boolean).join(" ")}
+    >
       {children}
     </div>
   );

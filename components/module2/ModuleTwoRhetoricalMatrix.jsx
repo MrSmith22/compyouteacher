@@ -60,6 +60,8 @@ import {
 import {
   buildEvidenceArgumentDirectionDescriptor,
 } from "@/lib/module2/evidenceArgumentDirectionDescriptor";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import { HIERARCHY_LEVELS, HIERARCHY_TASK_CLASS } from "@/lib/ui/hierarchyContract";
 
 function sourceLabel(sourceType) {
   return sourceType === "letter" ? "Letter" : "Speech";
@@ -721,11 +723,30 @@ export default function ModuleTwoRhetoricalMatrix() {
     );
   }
 
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 2,
+    taskHeading:
+      stage === MATRIX_FLOW_STAGES.CELL
+        ? presentation.dominantQuestion
+        : "How to rate rhetorical centrality",
+    desktopWidthIntent: "single",
+  });
+
   return (
     <ModulePageShell>
-      <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+      <WorkspaceColumns
+        variant="drafting"
+        className="gap-5 xl:gap-8"
+        data-task-workspace-foundation="true"
+        data-task-workspace-contract={workspacePresentation.journeyStageId}
+        data-testid="task-workspace-frame"
+      >
         <WorkspaceSidebar className="opacity-80 lg:col-span-1">
-          <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
+          <aside
+            className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left"
+            data-task-workspace-region="shelf"
+            data-instructional-color-role="reference"
+          >
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
               Module 2
             </p>
@@ -800,7 +821,11 @@ export default function ModuleTwoRhetoricalMatrix() {
 
             {stage === MATRIX_FLOW_STAGES.ORIENTATION ? (
               <Card className="border-theme-blue/30 bg-theme-blue/5">
-                <h1 className="text-xl font-bold text-text-primary">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   How to rate rhetorical centrality
                 </h1>
                 <p className="mt-2 text-sm text-text-muted">
@@ -837,15 +862,23 @@ export default function ModuleTwoRhetoricalMatrix() {
                   Your job right now
                 </p>
                 <h1
-                  className="mt-2 text-lg font-bold text-text-primary"
-                  data-testid="matrix-dominant-question"
+                  className={`mt-2 ${HIERARCHY_TASK_CLASS}`}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
                 >
                   {presentation.dominantQuestion}
                 </h1>
+                <p className="sr-only" data-testid="matrix-dominant-question">
+                  {presentation.dominantQuestion}
+                </p>
                 <p className="mt-2 text-sm text-text-muted">
                   {APPEAL_DEFINITIONS[cell.appeal]}
                 </p>
-                <div className="mt-3 rounded-lg border border-border-soft bg-white/80 px-3 py-2 text-sm">
+                <div
+                  className="mt-3 rounded-lg border border-border-soft bg-white/80 px-3 py-2 text-sm"
+                  data-task-workspace-region="desk"
+                  data-instructional-color-role="student-thinking"
+                >
                   <p className="font-medium text-text-primary">
                     {sourceLabel(cell.sourceType)} audience / purpose
                   </p>

@@ -1,5 +1,7 @@
 /**
- * WP-096 — Development-gated task-workspace hierarchy foundation.
+ * WP-096/WP-097 — Task-workspace hierarchy is the promoted production default.
+ * The WP-096 development gate has been deleted; every representative family
+ * now renders the shared task/desk/work/shelf composition unconditionally.
  */
 
 const { describe, it } = require("node:test");
@@ -115,8 +117,17 @@ describe("WP-096 shared task-workspace contract", () => {
   });
 });
 
-describe("WP-096 representative presentation boundary", () => {
-  it("wires all five representative families to one gate and contract", () => {
+describe("WP-097 promoted task-workspace hierarchy is the production default", () => {
+  it("deletes the WP-096 development gate rather than returning true", () => {
+    assert.equal(
+      fs.existsSync(
+        path.join(root, "lib/dev/isTaskWorkspaceHierarchyFoundationEnabled.js")
+      ),
+      false
+    );
+  });
+
+  it("wires all five representative families unconditionally, with no gate import", () => {
     for (const rel of [
       "components/module1/VocabularyTransferLessonFlow.jsx",
       "components/module3/EvidenceArgumentSlicePanel.jsx",
@@ -125,18 +136,11 @@ describe("WP-096 representative presentation boundary", () => {
       "components/module9/GuidedApaProtocolFlow.jsx",
     ]) {
       const source = read(rel);
-      assert.match(source, /isTaskWorkspaceHierarchyFoundationEnabled/);
+      assert.doesNotMatch(source, /isTaskWorkspaceHierarchyFoundationEnabled/);
       assert.match(source, /resolveTaskWorkspacePresentation/);
       assert.match(source, /data-task-workspace-foundation/);
       assert.match(source, /data-task-workspace-contract/);
     }
-  });
-
-  it("keeps the gate development-only and independently switchable for comparison", () => {
-    const source = read("lib/dev/isTaskWorkspaceHierarchyFoundationEnabled.js");
-    assert.match(source, /NODE_ENV !== "development"/);
-    assert.match(source, /NEXT_PUBLIC_TASK_WORKSPACE_HIERARCHY !== "off"/);
-    assert.doesNotMatch(source, /localStorage|searchParams|document|window/);
   });
 
   it("keeps required teaching visible while shelves remain optional", () => {
@@ -159,17 +163,26 @@ describe("WP-096 representative presentation boundary", () => {
     assert.match(frame, /order-10 lg:order-3/);
   });
 
-  it("keeps production free of fixtures and preserves the accepted production branch", () => {
-    const gate = read("lib/dev/isTaskWorkspaceHierarchyFoundationEnabled.js");
-    assert.doesNotMatch(gate, /fixture|seed|WP-096-FIXTURE/i);
+  it("keeps the promoted composition unconditional across representative adapters", () => {
     for (const rel of [
       "components/ModuleOne.js",
       "components/module3/EvidenceArgumentSlicePanel.jsx",
       "components/module5/ModuleFiveStepFrame.jsx",
       "components/module6/ModuleSixStepFrame.jsx",
       "components/ModuleNine.js",
+      "components/module9/GuidedApaProtocolFlow.jsx",
     ]) {
-      assert.match(read(rel), /foundation|isTaskWorkspaceHierarchyFoundationEnabled/);
+      assert.doesNotMatch(read(rel), /isTaskWorkspaceHierarchyFoundationEnabled/);
     }
+    for (const rel of [
+      "components/ModuleOne.js",
+      "components/module3/EvidenceArgumentSlicePanel.jsx",
+      "components/module5/ModuleFiveStepFrame.jsx",
+      "components/module6/ModuleSixStepFrame.jsx",
+      "components/module9/GuidedApaProtocolFlow.jsx",
+    ]) {
+      assert.match(read(rel), /data-task-workspace-foundation/);
+    }
+    assert.match(read("components/ModuleNine.js"), /GuidedApaProtocolFlow/);
   });
 });

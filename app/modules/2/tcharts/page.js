@@ -9,6 +9,8 @@ import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import ModuleTwoNotebook from "@/components/module2/ModuleTwoNotebook";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import { HIERARCHY_LEVELS, HIERARCHY_TASK_CLASS } from "@/lib/ui/hierarchyContract";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { parseModule2Observation } from "@/lib/parseModule2Observation";
 import { getTChartEntries } from "@/lib/supabase/helpers/tchartEntries";
@@ -590,9 +592,21 @@ export default function ModuleTwoTCharts() {
     );
   }
 
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 2,
+    taskHeading: phase1Headline,
+    desktopWidthIntent: "single",
+  });
+
   return (
     <ModulePageShell>
-      <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+      <WorkspaceColumns
+        variant="drafting"
+        className="gap-5 xl:gap-8"
+        data-task-workspace-foundation="true"
+        data-task-workspace-contract={workspacePresentation.journeyStageId}
+        data-testid="task-workspace-frame"
+      >
         <WorkspaceSidebar className="opacity-80 lg:col-span-1">
           <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
             <div className="space-y-1">
@@ -700,7 +714,11 @@ export default function ModuleTwoTCharts() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-green">
                   Nice work
                 </p>
-                <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.35rem] md:leading-[1.08]">
+                <h1
+                  className={HIERARCHY_TASK_CLASS}
+                  data-testid="task-workspace-task"
+                  data-hierarchy-level={HIERARCHY_LEVELS.task}
+                >
                   {waitingForLetterAfterSpeech
                     ? `Great job. You found one example of ${activeLabel} from the speech. Now let’s find one from ${letterTitle}.`
                     : `Great job. You found one example of ${activeLabel} from the letter. Now let’s find one from ${speechTitle}.`}
@@ -753,7 +771,11 @@ export default function ModuleTwoTCharts() {
                       {activeTextLabel}
                     </span>
                   </div>
-                  <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+                  <h1
+                    className={HIERARCHY_TASK_CLASS}
+                    data-testid="task-workspace-task"
+                    data-hierarchy-level={HIERARCHY_LEVELS.task}
+                  >
                     {phase1Headline}
                   </h1>
                   <p className="max-w-3xl text-sm leading-relaxed text-text-muted md:text-base">

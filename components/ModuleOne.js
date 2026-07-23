@@ -8,8 +8,12 @@ import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
 import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
-import { HIERARCHY_MODULE_CHROME_CLASS } from "@/lib/ui/hierarchyContract";
+import {
+  HIERARCHY_LEVELS,
+  HIERARCHY_MODULE_CHROME_CLASS,
+  HIERARCHY_TASK_CLASS,
+} from "@/lib/ui/hierarchyContract";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { logActivity } from "@/lib/logActivity";
 import {
@@ -620,6 +624,12 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
     ? "Start from a familiar choice. Then name the idea, connect it to audience and purpose, and try it with a short King passage."
     : presentation.strategyExplanation;
   const showBack = stage !== STEP2_STAGES.TRANSITION;
+  const isQuizWorkspace = stage === STEP2_STAGES.QUIZ;
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 1,
+    taskHeading: dominantQuestion,
+    desktopWidthIntent: "single",
+  });
 
   const handleVocabularyPrimaryContinue = () => {
     if (stage === STEP2_STAGES.LEARN && useVocabularyTransfer) {
@@ -634,6 +644,11 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
       <WorkspaceColumns
         variant="drafting"
         className="gap-5 xl:gap-8 overflow-x-hidden"
+        data-task-workspace-foundation={isQuizWorkspace ? "true" : undefined}
+        data-task-workspace-contract={
+          isQuizWorkspace ? workspacePresentation.journeyStageId : undefined
+        }
+        data-testid={isQuizWorkspace ? "task-workspace-frame" : undefined}
       >
         <WorkspaceSidebar className="opacity-80 lg:col-span-1 order-2 lg:order-1">
           <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
@@ -689,9 +704,7 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                 Your question
               </p>
-              {isTaskWorkspaceHierarchyFoundationEnabled() &&
-              useVocabularyTransfer &&
-              draftReady ? (
+              {useVocabularyTransfer && draftReady ? (
                 <p
                   className={`${HIERARCHY_MODULE_CHROME_CLASS} max-w-3xl`}
                   data-testid="step2-dominant-question"
@@ -700,8 +713,15 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
                 </p>
               ) : (
                 <h1
-                  className="max-w-3xl text-[1.55rem] font-bold leading-[1.15] tracking-tight text-text-primary md:text-[2rem]"
+                  className={
+                    isQuizWorkspace
+                      ? HIERARCHY_TASK_CLASS
+                      : "max-w-3xl text-[1.55rem] font-bold leading-[1.15] tracking-tight text-text-primary md:text-[2rem]"
+                  }
                   data-testid="step2-dominant-question"
+                  data-hierarchy-level={
+                    isQuizWorkspace ? HIERARCHY_LEVELS.task : undefined
+                  }
                 >
                   {dominantQuestion}
                 </h1>

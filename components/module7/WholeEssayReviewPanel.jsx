@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * WP-084 — Concise whole-essay final inspection (development-gated).
+ * WP-084 — Concise whole-essay final inspection.
  * One primary finding + compact check overview. No five-card wall.
+ * WP-097 — Renders inside ModuleSixStepFrame's promoted work region; only
+ * adds internal desk/feedback region attrs (no separate frame/root).
  */
 
 const CHECK_ORDER = [
@@ -63,6 +65,8 @@ export default function WholeEssayReviewPanel({
           className="rounded-md border border-border-soft bg-surface-soft/40 px-3 py-2 text-sm"
           data-testid="whole-essay-word-expectation"
           data-word-status={wordEval.status}
+          data-task-workspace-region="desk"
+          data-instructional-color-role="student-thinking"
         >
           <p className="font-semibold text-theme-dark">
             Teacher expectation: {wordEval.expectationLabel}
@@ -113,6 +117,8 @@ export default function WholeEssayReviewPanel({
           className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-3 space-y-2"
           data-testid="whole-essay-active-finding"
           data-finding-id={shown.id}
+          data-task-workspace-region="feedback"
+          data-instructional-color-role="instruction"
         >
           <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
             {shown.severity === "error" || shown.blocking

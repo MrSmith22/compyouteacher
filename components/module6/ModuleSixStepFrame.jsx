@@ -25,7 +25,6 @@ import {
   RHYTHM_PAGE_CLASS,
   RHYTHM_PROSE_CLASS,
 } from "@/lib/ui/instructionalRhythmContract";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
 export const MODULE6_NEED_HELP_ID = "module-6-need-help";
 
@@ -177,7 +176,6 @@ export default function ModuleSixStepFrame({
     ? []
     : remainingContractLines(successItems, visibleFinished);
   const actionFirst = !!jobRightNow?.steps?.length;
-  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
   const workspacePresentation = resolveTaskWorkspacePresentation({
     moduleNumber: psychologicalModule || 6,
     taskHeading: question,
@@ -200,24 +198,22 @@ export default function ModuleSixStepFrame({
     !actionFirst && supportingPlacement === "after" ? supporting : null;
   const showHeaderNext =
     String(nextStepText || "").trim() &&
-    !(foundation && actionFirst);
+    !actionFirst;
 
   return (
     <WorkspaceColumns
       variant="drafting"
       className="gap-5 xl:gap-8"
-      data-task-workspace-foundation={foundation ? "true" : undefined}
-      data-task-workspace-contract={
-        foundation ? workspacePresentation.journeyStageId : undefined
-      }
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
     >
       <WorkspaceSidebar
-        className={`${HIERARCHY_REFERENCE_CLASS} ${foundation ? "order-9 lg:order-1" : ""} lg:col-span-1`}
+        className={`${HIERARCHY_REFERENCE_CLASS} order-9 lg:order-1 lg:col-span-1`}
       >
         <div data-hierarchy-level={HIERARCHY_LEVELS.reference}>{sidebar}</div>
       </WorkspaceSidebar>
 
-      <WorkspaceCenter className={`min-w-0 ${foundation ? "order-1 lg:order-2" : ""}`}>
+      <WorkspaceCenter className="min-w-0 order-1 lg:order-2">
         <div
           className={RHYTHM_PAGE_CLASS}
           data-rhythm-contract="page"
@@ -307,7 +303,7 @@ export default function ModuleSixStepFrame({
       </WorkspaceCenter>
 
       <WorkspaceGuide
-        className={`${HIERARCHY_REFERENCE_CLASS} ${foundation ? "order-10 lg:order-3" : ""}`}
+        className={`${HIERARCHY_REFERENCE_CLASS} order-10 lg:order-3`}
       >
         <aside
           className={HIERARCHY_REFERENCE_ASIDE_CLASS}

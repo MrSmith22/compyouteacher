@@ -38,6 +38,8 @@ import {
   resolveAssignmentWelcomeDisplay,
 } from "@/lib/module1/assignmentWelcomeHelpers";
 import ModuleOneWritingPath from "@/components/module1/ModuleOneWritingPath";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import { HIERARCHY_LEVELS, HIERARCHY_TASK_CLASS } from "@/lib/ui/hierarchyContract";
 
 const MODULE1_NEED_HELP_ID = "module-1-need-help";
 
@@ -419,10 +421,21 @@ export default function ModuleOnePromptPage() {
 
   const mc = PROMPT_MC[stepKey];
   const questionId = `prompt-step-${stepKey}-label`;
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 1,
+    taskHeading: "Break down what this essay is asking you to do.",
+    desktopWidthIntent: "single",
+  });
 
   return (
     <ModulePageShell>
-      <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
+      <WorkspaceColumns
+        variant="drafting"
+        className="gap-5 xl:gap-8"
+        data-task-workspace-foundation="true"
+        data-task-workspace-contract={workspacePresentation.journeyStageId}
+        data-testid="task-workspace-frame"
+      >
         <WorkspaceSidebar className="opacity-80 lg:col-span-1">
           <aside className="space-y-4 rounded-xl bg-surface-soft/70 px-4 py-5 text-left">
             <div className="space-y-1">
@@ -468,7 +481,11 @@ export default function ModuleOnePromptPage() {
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                 Start here
               </p>
-              <h1 className="max-w-4xl text-[1.85rem] font-bold leading-[1.1] tracking-tight text-text-primary md:text-[2.5rem] md:leading-[1.08]">
+              <h1
+                className={HIERARCHY_TASK_CLASS}
+                data-testid="task-workspace-task"
+                data-hierarchy-level={HIERARCHY_LEVELS.task}
+              >
                 Break down what this essay is asking you to do.
               </h1>
               <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">

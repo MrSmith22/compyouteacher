@@ -21,7 +21,6 @@ import {
   resolveAssignmentInterpretationCarryForward,
 } from "@/lib/module1/assignmentInterpretationCarryForward";
 import { getTeachingFeedbackPresentation } from "@/lib/ui/teachingFeedbackContract";
-import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
 import {
   HIERARCHY_LEVELS,
   HIERARCHY_TASK_CLASS,
@@ -148,7 +147,6 @@ export default function VocabularyTransferLessonFlow({
     state.currentStep === "notice"
       ? `Transfer lesson · Step ${stepIndex + 1} of ${steps.length}`
       : `Transfer lesson · ${contract.studentFacingName} · Step ${stepIndex + 1} of ${steps.length}`;
-  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
   const workspacePresentation = resolveTaskWorkspacePresentation({
     moduleNumber: 1,
     stepIndex: stepIndex + 1,
@@ -163,34 +161,22 @@ export default function VocabularyTransferLessonFlow({
       data-testid="vocabulary-transfer-lesson"
       data-term-id={termId}
       data-step={state.currentStep}
-      data-task-workspace-foundation={foundation ? "true" : undefined}
-      data-task-workspace-contract={
-        foundation ? workspacePresentation.journeyStageId : undefined
-      }
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
       aria-labelledby="vocabulary-transfer-heading"
     >
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-blue">
           {eyebrow}
         </p>
-        {foundation ? (
-          <h1
-            id="vocabulary-transfer-heading"
-            className={HIERARCHY_TASK_CLASS}
-            data-testid="vocabulary-transfer-step-title"
-            data-hierarchy-level={HIERARCHY_LEVELS.task}
-          >
-            {stepTitleFor(termId, state.currentStep)}
-          </h1>
-        ) : (
-          <h2
-            id="vocabulary-transfer-heading"
-            className="text-lg font-semibold text-text-primary"
-            data-testid="vocabulary-transfer-step-title"
-          >
-            {stepTitleFor(termId, state.currentStep)}
-          </h2>
-        )}
+        <h1
+          id="vocabulary-transfer-heading"
+          className={HIERARCHY_TASK_CLASS}
+          data-testid="vocabulary-transfer-step-title"
+          data-hierarchy-level={HIERARCHY_LEVELS.task}
+        >
+          {stepTitleFor(termId, state.currentStep)}
+        </h1>
         <p className="text-xs text-text-muted">
           {SHARED_ANALYTICAL_ANCHOR.label}
         </p>

@@ -6,6 +6,12 @@
  */
 
 import { useMemo } from "react";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
+import {
+  HIERARCHY_LEVELS,
+  HIERARCHY_REFERENCE_CLASS,
+  HIERARCHY_TASK_CLASS,
+} from "@/lib/ui/hierarchyContract";
 
 export default function ModuleEightGuidedApaDocPanel({
   submissionDocUrl,
@@ -39,23 +45,33 @@ export default function ModuleEightGuidedApaDocPanel({
   ]);
 
   const canContinue = Boolean(docVerifiedThisSession && submissionDocUrl);
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 8,
+    taskHeading: "Put your newest essay in one Google Doc",
+    desktopWidthIntent: "single",
+  });
+  const HeadingTag = "h1";
 
   return (
     <section
       className="space-y-4 rounded-xl border-2 border-theme-blue/30 bg-white px-4 py-5 shadow-soft sm:px-5"
       data-testid="module8-guided-apa-doc-panel"
       aria-labelledby="m8-guided-doc-heading"
+      data-task-workspace-foundation="true"
+      data-task-workspace-contract={workspacePresentation.journeyStageId}
     >
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-theme-blue">
           Module 8 · Submission document
         </p>
-        <h2
+        <HeadingTag
           id="m8-guided-doc-heading"
-          className="text-xl font-semibold text-theme-dark sm:text-2xl"
+          className={HIERARCHY_TASK_CLASS}
+          data-testid="task-workspace-task"
+          data-hierarchy-level={HIERARCHY_LEVELS.task}
         >
           Put your newest essay in one Google Doc
-        </h2>
+        </HeadingTag>
         <p className="text-sm text-theme-muted">
           Module 8 creates or updates the Doc and checks that it contains your newest
           finished essay. Formatting happens in Module 9.
@@ -65,6 +81,8 @@ export default function ModuleEightGuidedApaDocPanel({
       <div
         className="rounded-lg border border-theme-light bg-surface-soft/80 px-3 py-3 text-sm"
         data-testid="module8-guided-doc-status"
+        data-task-workspace-region="work"
+        data-instructional-color-role="writing"
       >
         <p className="font-medium text-theme-dark">{statusLabel}</p>
         {submissionDocUrl ? (
@@ -124,9 +142,20 @@ export default function ModuleEightGuidedApaDocPanel({
         </button>
       </div>
 
-      {recoverySlot}
+      {recoverySlot ? (
+        <div
+          data-task-workspace-region="feedback"
+          data-instructional-color-role="instruction"
+        >
+          {recoverySlot}
+        </div>
+      ) : null}
 
-      <details className="rounded-lg border border-theme-light bg-white px-3 py-2 text-sm">
+      <details
+        className={`rounded-lg border border-theme-light bg-white px-3 py-2 text-sm ${HIERARCHY_REFERENCE_CLASS}`}
+        data-task-workspace-region="shelf"
+        data-instructional-color-role="reference"
+      >
         <summary className="cursor-pointer font-medium text-theme-dark">
           Optional: blank template (recovery only)
         </summary>
