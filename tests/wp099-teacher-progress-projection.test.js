@@ -21,7 +21,6 @@ import {
   assertRosterRowPrivacy,
   WP099_SYNTHETIC_STUDENT_INPUTS,
 } from "../lib/teacher/teacherProgressFixtures.js";
-import { isTeacherProgressVisibilityFoundationEnabled } from "../lib/dev/isTeacherProgressVisibilityFoundationEnabled.js";
 
 test("WP-099 projection version is frozen", () => {
   assert.equal(TEACHER_PROGRESS_PROJECTION_VERSION, 1);
@@ -209,17 +208,12 @@ test("WP-099 synthetic fixtures cover Prompt 20 status spread", () => {
   assert.equal(sorted[0].overallStatus, "needs_attention");
 });
 
-test("WP-099 gate is development-only", () => {
-  const prev = process.env.TEACHER_PROGRESS_VISIBILITY_FOUNDATION;
-  try {
-    delete process.env.TEACHER_PROGRESS_VISIBILITY_FOUNDATION;
-    if (process.env.NODE_ENV === "development") {
-      assert.equal(isTeacherProgressVisibilityFoundationEnabled(), true);
-    }
-    process.env.TEACHER_PROGRESS_VISIBILITY_FOUNDATION = "off";
-    assert.equal(isTeacherProgressVisibilityFoundationEnabled(), false);
-  } finally {
-    if (prev == null) delete process.env.TEACHER_PROGRESS_VISIBILITY_FOUNDATION;
-    else process.env.TEACHER_PROGRESS_VISIBILITY_FOUNDATION = prev;
-  }
+test("WP-099 gate helper was development-only (promoted away in WP-100)", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const gatePath = path.join(
+    process.cwd(),
+    "lib/dev/isTeacherProgressVisibilityFoundationEnabled.js"
+  );
+  assert.equal(fs.existsSync(gatePath), false, "gate file removed on production promotion");
 });

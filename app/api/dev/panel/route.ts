@@ -213,7 +213,7 @@ export async function POST(req: Request) {
           source: "fixtures",
           count: students.length,
           studentIds: students.map((s) => s.studentId),
-          openPath: "/modules/10?wp099Fixtures=1",
+          openPath: "/modules/10",
         });
       }
       case "ensureDevTeacherRole": {

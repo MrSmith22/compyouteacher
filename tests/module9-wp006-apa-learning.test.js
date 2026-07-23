@@ -170,8 +170,11 @@ describe("WP-006 Module 9 APA learning", () => {
 
     const teacherDash = readSrc("../lib/supabase/helpers/teacherDashboard.ts");
     assert.ok(teacherDash.includes("module9_quiz"));
-    const overview = readSrc("../app/api/teacher/overview/route.js");
-    assert.ok(overview.includes("quiz_score") || overview.includes("score"));
+    const projection = readSrc("../lib/teacher/teacherProgressProjection.js");
+    assert.ok(projection.includes("hasDurableFinalPdfReceipt"));
+    assert.ok(projection.includes("submitted"));
+    const rosterRoute = readSrc("../app/api/teacher/roster/route.ts");
+    assert.ok(rosterRoute.includes("buildTeacherRosterReadModel"));
   });
 
   it("15. Google Doc / checklist / PDF gates remain after APA completion", () => {

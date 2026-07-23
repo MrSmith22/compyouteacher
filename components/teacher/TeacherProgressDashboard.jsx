@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * WP-099 — Teacher progress visibility foundation UI (development-gated).
+ * WP-100 — Production teacher progress dashboard.
  * Progress / Submissions / Settings jobs. Detail drawer with focus trap.
  */
 
@@ -62,7 +62,7 @@ function trailSummary(trail) {
   return `${present.slice(0, 2).join(" · ")} · +${present.length - 2}`;
 }
 
-export default function TeacherProgressFoundationDashboard() {
+export default function TeacherProgressDashboard() {
   const { data: session, status: sessionStatus } = useSession();
   const titleId = useId();
   const drawerTitleId = useId();
@@ -74,8 +74,6 @@ export default function TeacherProgressFoundationDashboard() {
   const [roster, setRoster] = useState(null);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  // Foundation UI defaults to synthetic fixtures for deterministic verification.
-  const [useFixtures, setUseFixtures] = useState(true);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailStudentId, setDetailStudentId] = useState(null);
@@ -91,6 +89,7 @@ export default function TeacherProgressFoundationDashboard() {
   const openButtonRef = useRef(null);
   const drawerRef = useRef(null);
   const noteTimerRef = useRef(null);
+  const detailRequestIdRef = useRef(0);
 
   useEffect(() => {
     const loadRole = async () => {
@@ -110,8 +109,7 @@ export default function TeacherProgressFoundationDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const qs = useFixtures ? "?source=fixtures" : "";
-      const res = await fetch(`/api/teacher/roster${qs}`);
+      const res = await fetch("/api/teacher/roster");
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false) {
         throw new Error(data.error || "Could not load roster");
@@ -123,7 +121,7 @@ export default function TeacherProgressFoundationDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [useFixtures]);
+  }, []);
 
   useEffect(() => {
     if (!session?.user?.email) return;
@@ -160,36 +158,39 @@ export default function TeacherProgressFoundationDashboard() {
     openButtonRef.current = null;
   }, []);
 
-  const openDetail = useCallback(
-    async (student, triggerEl) => {
-      openButtonRef.current = triggerEl || null;
-      setDetailOpen(true);
-      setDetailStudentId(student.studentId || student.email);
-      setDetail(null);
-      setDetailError(null);
-      setDetailLoading(true);
-      setHistoryOpen(false);
-      try {
-        const key = student.email || student.studentId;
-        const qs = useFixtures
-          ? `?source=fixtures&studentId=${encodeURIComponent(student.studentId)}&email=${encodeURIComponent(student.email || "")}`
-          : `?email=${encodeURIComponent(key)}`;
-        const res = await fetch(`/api/teacher/student-progress${qs}`);
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || data.ok === false) {
-          throw new Error(data.error || "Could not load student");
-        }
-        setDetail(data.student);
-        setNoteDraft(data.student?.note || "");
-        setGradingStatus(data.student?.finalPdf?.gradingStatus || "ungraded");
-      } catch (err) {
-        setDetailError(err?.message || "Could not load student");
-      } finally {
+  const openDetail = useCallback(async (student, triggerEl) => {
+    openButtonRef.current = triggerEl || null;
+    const requestId = ++detailRequestIdRef.current;
+    setDetailOpen(true);
+    setDetailStudentId(student.studentId || student.email);
+    setDetail(null);
+    setDetailError(null);
+    setDetailLoading(true);
+    setNoteDraft("");
+    setNoteStatus("");
+    setHistoryOpen(false);
+    try {
+      const key = student.email || student.studentId;
+      const res = await fetch(
+        `/api/teacher/student-progress?email=${encodeURIComponent(key)}`
+      );
+      const data = await res.json().catch(() => ({}));
+      if (requestId !== detailRequestIdRef.current) return;
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.error || "Could not load student");
+      }
+      setDetail(data.student);
+      setNoteDraft(data.student?.note || "");
+      setGradingStatus(data.student?.finalPdf?.gradingStatus || "ungraded");
+    } catch (err) {
+      if (requestId !== detailRequestIdRef.current) return;
+      setDetailError(err?.message || "Could not load student");
+    } finally {
+      if (requestId === detailRequestIdRef.current) {
         setDetailLoading(false);
       }
-    },
-    [useFixtures]
-  );
+    }
+  }, []);
 
   // Focus trap + Escape
   useEffect(() => {
@@ -237,10 +238,6 @@ export default function TeacherProgressFoundationDashboard() {
 
   const saveNote = useCallback(
     async (value) => {
-      if (useFixtures) {
-        setNoteStatus("Saved (fixture)");
-        return;
-      }
       const email = detail?.email;
       if (!email) return;
       setNoteStatus("Saving…");
@@ -258,10 +255,10 @@ export default function TeacherProgressFoundationDashboard() {
         if (!res.ok || data.ok === false) throw new Error(data.error || "Save failed");
         setNoteStatus("Saved");
       } catch (err) {
-        setNoteStatus(err?.message || "Save failed");
+        setNoteStatus(err?.message || "Save failed — edit preserved; retry");
       }
     },
-    [detail?.email, useFixtures]
+    [detail?.email]
   );
 
   const onNoteChange = (value) => {
@@ -271,11 +268,8 @@ export default function TeacherProgressFoundationDashboard() {
   };
 
   const saveGrading = async (next) => {
+    const previous = gradingStatus;
     setGradingStatus(next);
-    if (useFixtures) {
-      setGradingStatusState("Saved (fixture)");
-      return;
-    }
     const email = detail?.email;
     if (!email) return;
     setGradingStatusState("Saving…");
@@ -289,7 +283,8 @@ export default function TeacherProgressFoundationDashboard() {
       if (!res.ok || data.ok === false) throw new Error(data.error || "Save failed");
       setGradingStatusState("Saved");
     } catch (err) {
-      setGradingStatusState(err?.message || "Save failed");
+      setGradingStatus(previous);
+      setGradingStatusState(err?.message || "Save failed — restored prior value");
     }
   };
 
@@ -326,7 +321,7 @@ export default function TeacherProgressFoundationDashboard() {
   return (
     <div
       className="mx-auto max-w-6xl space-y-5 rounded bg-theme-light p-4 shadow-sm sm:p-6"
-      data-wp099-teacher-progress-foundation="1"
+      data-wp100-teacher-progress="1"
     >
       <header className="border-b border-theme-blue pb-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-theme-muted">
@@ -362,20 +357,12 @@ export default function TeacherProgressFoundationDashboard() {
             {t.label}
           </button>
         ))}
-        <label className="ml-auto flex items-center gap-2 text-xs text-theme-muted">
-          <input
-            type="checkbox"
-            checked={useFixtures}
-            onChange={(e) => setUseFixtures(e.target.checked)}
-          />
-          Synthetic fixtures (dev)
-        </label>
       </div>
 
       {tab === "progress" && (
         <section aria-labelledby={titleId} className="space-y-3">
           {summary && (
-            <div className="flex flex-wrap gap-3 text-sm" data-wp099-summary="1">
+            <div className="flex flex-wrap gap-3 text-sm" data-wp100-summary="1">
               <span className="rounded bg-white px-2 py-1 border border-theme-light">
                 Total {summary.total}
               </span>
@@ -395,11 +382,11 @@ export default function TeacherProgressFoundationDashboard() {
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <label className="sr-only" htmlFor="wp099-filter">
+            <label className="sr-only" htmlFor="wp100-filter">
               Filter students
             </label>
             <select
-              id="wp099-filter"
+              id="wp100-filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="rounded-lg border border-theme-light bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-theme-blue"
@@ -410,11 +397,11 @@ export default function TeacherProgressFoundationDashboard() {
                 </option>
               ))}
             </select>
-            <label className="sr-only" htmlFor="wp099-search">
+            <label className="sr-only" htmlFor="wp100-search">
               Search students
             </label>
             <input
-              id="wp099-search"
+              id="wp100-search"
               type="search"
               placeholder="Search name or email…"
               value={search}
@@ -435,7 +422,7 @@ export default function TeacherProgressFoundationDashboard() {
 
           {!loading && !error && (
             <div className="overflow-x-auto rounded-xl border border-theme-light bg-white shadow-sm">
-              <table className="min-w-full text-sm" data-wp099-roster="1">
+              <table className="min-w-full text-sm" data-wp100-roster="1">
                 <thead>
                   <tr className="bg-gray-100 text-left">
                     <th className="border border-theme-light px-3 py-2">Student</th>
@@ -492,7 +479,7 @@ export default function TeacherProgressFoundationDashboard() {
                         <button
                           type="button"
                           className="rounded bg-theme-blue px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-theme-blue"
-                          data-wp099-view-student={s.studentId}
+                          data-wp100-view-student={s.studentId}
                           onClick={(e) => openDetail(s, e.currentTarget)}
                         >
                           View student
@@ -508,7 +495,7 @@ export default function TeacherProgressFoundationDashboard() {
       )}
 
       {tab === "submissions" && (
-        <section className="space-y-3" data-wp099-submissions="1">
+        <section className="space-y-3" data-wp100-submissions="1">
           <h2 className="text-lg font-semibold text-theme-dark">Submissions / review</h2>
           <p className="text-sm text-theme-muted">
             Only students with a durable final PDF receipt appear here. Google Docs are reviewed
@@ -568,7 +555,7 @@ export default function TeacherProgressFoundationDashboard() {
       )}
 
       {tab === "settings" && (
-        <section className="space-y-4" data-wp099-settings="1">
+        <section className="space-y-4" data-wp100-settings="1">
           <h2 className="text-lg font-semibold text-theme-dark">Assignment settings</h2>
           <div className="space-y-3 rounded-xl border border-theme-light bg-white p-4">
             <h3 className="text-sm font-bold uppercase tracking-wide text-theme-muted">
@@ -609,7 +596,7 @@ export default function TeacherProgressFoundationDashboard() {
             aria-modal="true"
             aria-labelledby={drawerTitleId}
             className="flex h-full w-full max-w-md flex-col overflow-y-auto bg-white p-4 shadow-xl sm:p-5"
-            data-wp099-student-detail="1"
+            data-wp100-student-detail="1"
           >
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
@@ -625,7 +612,7 @@ export default function TeacherProgressFoundationDashboard() {
                 type="button"
                 className="rounded border border-theme-light px-2 py-1 text-sm"
                 onClick={closeDetail}
-                data-wp099-close-detail="1"
+                data-wp100-close-detail="1"
               >
                 Close
               </button>
@@ -705,11 +692,11 @@ export default function TeacherProgressFoundationDashboard() {
 
                 {detail.finalPdf && (
                   <div>
-                    <label className="font-semibold" htmlFor="wp099-grade">
+                    <label className="font-semibold" htmlFor="wp100-grade">
                       Grading status
                     </label>
                     <select
-                      id="wp099-grade"
+                      id="wp100-grade"
                       value={gradingStatus}
                       onChange={(e) => saveGrading(e.target.value)}
                       className="mt-1 block w-full rounded border border-theme-light px-2 py-1"
@@ -727,11 +714,11 @@ export default function TeacherProgressFoundationDashboard() {
                 )}
 
                 <div>
-                  <label className="font-semibold" htmlFor="wp099-note">
+                  <label className="font-semibold" htmlFor="wp100-note">
                     Teacher notes
                   </label>
                   <textarea
-                    id="wp099-note"
+                    id="wp100-note"
                     value={noteDraft}
                     onChange={(e) => onNoteChange(e.target.value)}
                     rows={4}

@@ -582,13 +582,11 @@ export default function DeveloperTestingPanel() {
                       {}
                     );
                     if (typeof window !== "undefined") {
-                      window.location.assign(
-                        result?.openPath || "/modules/10?wp099Fixtures=1"
-                      );
+                      window.location.assign("/modules/10");
                     } else {
-                      router.push("/modules/10?wp099Fixtures=1");
+                      router.push("/modules/10");
                     }
-                    return `Opened teacher progress with ${result?.count ?? 12} synthetic fixtures`;
+                    return `Teacher role ready; opened live teacher progress (${result?.count ?? 12} fixture identities available for unit tests only)`;
                   })
                 }
               >

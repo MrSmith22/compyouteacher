@@ -1,43 +1,15 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+/**
+ * WP-100 — Grading status update (private, no-store). Receipt row required.
+ */
+
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { requireTeacherSession, teacherJson } from "@/lib/teacher/requireTeacherSession";
 
 const allowedStatuses = new Set(["ungraded", "in_review", "graded"]);
 
-async function requireTeacherRole(email: string | null | undefined) {
-  if (!email) {
-    return { ok: false, status: 401, error: "Not signed in" };
-  }
-
-  const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("app_roles")
-    .select("role")
-    .eq("user_email", email)
-    .maybeSingle();
-
-  if (error) {
-    console.warn("Grading status role lookup failed:", error);
-    return { ok: false, status: 500, error: "Role lookup failed" };
-  }
-
-  if (data?.role !== "teacher") {
-    return { ok: false, status: 403, error: "Teacher access only" };
-  }
-
-  return { ok: true };
-}
-
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  const roleCheck = await requireTeacherRole(session?.user?.email);
-  if (!roleCheck.ok) {
-    return NextResponse.json(
-      { ok: false, error: roleCheck.error },
-      { status: roleCheck.status }
-    );
-  }
+  const auth = await requireTeacherSession();
+  if ("error" in auth) return auth.error;
 
   const body = await request.json().catch(() => null);
   const studentEmail = body?.studentEmail;
@@ -48,13 +20,30 @@ export async function POST(request: Request) {
     typeof studentEmail !== "string" ||
     !allowedStatuses.has(gradingStatus)
   ) {
-    return NextResponse.json(
-      { ok: false, error: "Invalid request body" },
-      { status: 400 }
-    );
+    return teacherJson({ ok: false, error: "Invalid request body" }, 400);
   }
 
   const supabase = getSupabaseAdmin();
+  const { data: receipt, error: lookupErr } = await supabase
+    .from("student_exports")
+    .select("id")
+    .eq("user_email", studentEmail)
+    .eq("module", 9)
+    .eq("kind", "final_pdf")
+    .limit(1)
+    .maybeSingle();
+
+  if (lookupErr) {
+    console.warn("Grading status lookup failed");
+    return teacherJson({ ok: false, error: "Status update failed" }, 500);
+  }
+  if (!receipt) {
+    return teacherJson(
+      { ok: false, error: "No durable submission receipt for this student" },
+      400
+    );
+  }
+
   const { error } = await supabase
     .from("student_exports")
     .update({ grading_status: gradingStatus })
@@ -63,12 +52,9 @@ export async function POST(request: Request) {
     .eq("kind", "final_pdf");
 
   if (error) {
-    console.warn("Grading status update failed:", error);
-    return NextResponse.json(
-      { ok: false, error: "Status update failed" },
-      { status: 500 }
-    );
+    console.warn("Grading status update failed");
+    return teacherJson({ ok: false, error: "Status update failed" }, 500);
   }
 
-  return NextResponse.json({ ok: true }, { status: 200 });
+  return teacherJson({ ok: true }, 200);
 }
