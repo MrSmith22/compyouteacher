@@ -1188,9 +1188,27 @@ async function clickEnabledByName(page, nameRe, label) {
   const target = btn.first();
   if (!(await target.isEnabled().catch(() => false))) return false;
   console.log(`${label || (await target.textContent())}`);
-  await target.click();
+  await clickStable(target);
   await sleep(700);
   return true;
+}
+
+/** Click through React remounts / layout thrash (Playwright "element is not stable"). */
+async function clickStable(locator, { timeout = 45000 } = {}) {
+  const started = Date.now();
+  let lastErr;
+  while (Date.now() - started < timeout) {
+    try {
+      await locator.click({ timeout: 8000, force: true });
+      return;
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/not stable|detached|intercepts pointer/i.test(msg)) throw err;
+      await sleep(350);
+    }
+  }
+  throw lastErr || new Error("clickStable timeout");
 }
 
 async function runModule3(page) {
@@ -1556,7 +1574,10 @@ async function runModule4(page) {
       (await finish.first().isEnabled().catch(() => false))
     ) {
       console.log("M4: Finish Module 4");
-      await finish.first().click();
+      await clickStable(finish.first());
+      await page
+        .waitForURL(/\/modules\/4\/success|\/modules\/5/, { timeout: 60000 })
+        .catch(() => {});
       await sleep(900);
       continue;
     }
@@ -1569,7 +1590,7 @@ async function runModule4(page) {
       (await keep.first().isEnabled().catch(() => false))
     ) {
       console.log(`M4: ${String(await keep.first().textContent()).trim()}`);
-      await keep.first().click();
+      await clickStable(keep.first());
       await sleep(700);
       continue;
     }
