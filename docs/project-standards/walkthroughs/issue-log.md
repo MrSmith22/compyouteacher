@@ -3312,10 +3312,10 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
   6. Production build has no fixture/dev leakage.
   7. Objective blockers fixed with regression or remain explicitly blocking; report totals match matrix; tested source snapshot recorded.
 - **Implementation notes:** (July 22–23, 2026) Harness under `lib/beta/` + matrix v1. Corrective: seedless fresh runner (`scripts/wp101-fresh-seedless.mjs`); session progress APIs; Module 3→4 pattern handoff; Module 7 mic mocks; focus-visible CSS; a11y harness ignores Next.js `NEXTJS-PORTAL` tooling (not student UI). Prior Pass-with-limitation invalidated.
-- **Verification evidence:** Corrective release gate on tested code commit `a8019489219df19f1e0594b261cd73cc2f3a037a`: seedless `freshOk=true` + `a11yOk=true` (`docs/project-standards/walkthroughs/beta-matrix-results/a8019489219df19f1e0594b261cd73cc2f3a037a.fresh-seedless.json`; email `beta-student-mrxnm08mhhdwiy@localhost`; Modules 1–8 + receipt + dashboard; `usedSeedThrough=false`, `usedDevPanel=false`); browser **67/67**; prod **4/4**; matrix **153/153 Pass**, gate ok. `FRESH.e2e_real_ui` = seedless ok (no limitation / no seedThrough).
+- **Verification evidence:** Corrective release gate on `d2c92315a8c67ed3d499089973df1eae87012e85`: seedless `freshOk=true` + `a11yOk=true` (`docs/project-standards/walkthroughs/beta-matrix-results/d2c92315a8c67ed3d499089973df1eae87012e85.fresh-seedless.json`; email `beta-student-mrxoofpm7viuhr@localhost`; Modules 1–8 + receipt + dashboard; `usedSeedThrough=false`, `usedDevPanel=false`); browser **67/67**; prod **4/4**; matrix **153/153 Pass**, gate ok. `FRESH.e2e_real_ui` = seedless ok (no limitation / no seedThrough).
 - **Corrective re-audit (Critical/High):** WP-102 remains explicitly non-blocking for single-assignment MLK beta. WP-103 closed into this issue with seedless evidence. Remaining Open/NV Critical–High items (e.g. WP-008, WP-012–016, WP-019–023, WP-048–053, WP-062, WP-073–077, WP-020) are instructional/UX quality judgments for target-age study or separate remediation — not objective release-gate failures of the seedless pathway. No Blocker severity rows remain Open.
 - **Human remainder:** target-age usability study only for genuinely subjective judgments.
-- **Resolved in commit:** a8019489219df19f1e0594b261cd73cc2f3a037a (code) + evidence commit on this branch
+- **Resolved in commit:** d2c92315a8c67ed3d499089973df1eae87012e85
 
 ---
 
@@ -3347,6 +3347,6 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - **Intended outcome:** Automated fresh path that completes Modules 1–9 using only production student UI after account creation.
 - **Beta impact:** Completed inside WP-101 corrective acceptance (not a substitute gate).
 - **Acceptance criteria:** Fresh account reaches durable receipt with no `seedThrough` / panel shortcuts after create; evidence in matrix.
-- **Resolution notes:** (July 23, 2026) Closed with seedless evidence inside WP-101: `767338d0….fresh-seedless.json` — Modules 1–9 receipt + dashboard; `seedless=true`, `usedSeedThrough=false`, `usedDevPanel=false`; keyboard families `a11yOk=true`. Remaining WP-101 Resolve waits on full matrix/browser/prod gate against the push commit.
+- **Resolution notes:** (July 23, 2026) Closed with seedless evidence inside WP-101: `d2c92315….fresh-seedless.json` — Modules 1–9 receipt + dashboard; `seedless=true`, `usedSeedThrough=false`, `usedDevPanel=false`; keyboard families `a11yOk=true`. WP-101 Resolved on the same corrective gate (browser 67/67, prod 4/4, matrix 153/153).
 
 ---
