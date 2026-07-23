@@ -1,75 +1,15 @@
 {
   "schemaVersion": "1.0.0",
-  "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
-  "generatedAt": "2026-07-23T16:08:16.348Z",
+  "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
+  "generatedAt": "2026-07-23T16:40:51.914Z",
   "results": [
-    {
-      "scenarioId": "SEC.dev_absent_prod",
-      "result": "pass",
-      "evidence": [
-        {
-          "kind": "prod",
-          "detail": "panel status=404"
-        }
-      ],
-      "severityIfFailed": "Blocker",
-      "timestamp": "2026-07-23T16:08:15.728Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
-      "cleanupConfirmed": true,
-      "detail": "panel status=404"
-    },
-    {
-      "scenarioId": "HARNESS.prod_fixture_denial",
-      "result": "pass",
-      "evidence": [
-        {
-          "kind": "prod",
-          "detail": "status=401 students=false"
-        }
-      ],
-      "severityIfFailed": "Blocker",
-      "timestamp": "2026-07-23T16:08:15.736Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
-      "cleanupConfirmed": true,
-      "detail": "status=401 students=false"
-    },
-    {
-      "scenarioId": "PROD.chunk_scan",
-      "result": "pass",
-      "evidence": [
-        {
-          "kind": "prod",
-          "detail": "no synthetic fixture builders in client chunks"
-        }
-      ],
-      "severityIfFailed": "Blocker",
-      "timestamp": "2026-07-23T16:08:15.784Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
-      "cleanupConfirmed": true,
-      "detail": "no synthetic fixture builders in client chunks"
-    },
-    {
-      "scenarioId": "PROD.clean_build",
-      "result": "pass",
-      "evidence": [
-        {
-          "kind": "prod",
-          "detail": "dist=.next-wp101-prod routesOk=true consoleErr=0"
-        }
-      ],
-      "severityIfFailed": "Blocker",
-      "timestamp": "2026-07-23T16:08:16.348Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
-      "cleanupConfirmed": true,
-      "detail": "dist=.next-wp101-prod routesOk=true consoleErr=0"
-    },
     {
       "scenarioId": "FRESH.e2e_real_ui",
       "result": "pass",
       "evidence": [
         {
           "kind": "fresh_seedless_report",
-          "detail": "/Users/jasonsmith/Desktop/compyouteacher/docs/project-standards/walkthroughs/beta-matrix-results/d2c92315a8c67ed3d499089973df1eae87012e85.fresh-seedless.json",
+          "detail": "/Users/jasonsmith/Desktop/compyouteacher/docs/project-standards/walkthroughs/beta-matrix-results/cdd3104115841d2c37794378822ffc6aec53f55d.fresh-seedless.json",
           "persistenceRequired": true
         },
         {
@@ -78,10 +18,10 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.474Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.241Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
-      "detail": "seedless ok email=beta-student-mrxoofpm7viuhr@localhost"
+      "detail": "seedless ok email=beta-student-mrxqazmbgvn7pj@localhost"
     },
     {
       "scenarioId": "A11Y.layout_families",
@@ -89,12 +29,12 @@
       "evidence": [
         {
           "kind": "a11y",
-          "detail": "[{\"step\":\"a11y.skip.m1\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m1\",\"ok\":true,\"detail\":\"focusables=3 bodyHits=0 invisible=0 tooling=0\"},{\"step\":\"a11y.skip.m3\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m3\",\"ok\":true,\"detail\":\"focusables=6 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m5\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m5\",\"ok\":true,\"detail\":\"focusables=7 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m6\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m6\",\"ok\":true,\"detail\":\"focusables=4 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m8\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m8\",\"ok\":true,\"detail\":\"focusables=6 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m9\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m9\",\"ok\":true,\"detail\":\"focusables=1 bodyHits=0 invisible=0 tooling=0\"},{\"step\":\"a11y.skip.teacher\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.teacher\",\"ok\":true,\"detail\":\"focusables=2 bodyHits=0 invisible=0 tooling=1\"}]"
+          "detail": "[{\"step\":\"a11y.skip.m1\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m1\",\"ok\":true,\"detail\":\"focusables=3 bodyHits=0 invisible=0 tooling=0\"},{\"step\":\"a11y.skip.m3\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m3\",\"ok\":true,\"detail\":\"focusables=6 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m5\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m5\",\"ok\":true,\"detail\":\"focusables=7 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m6\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m6\",\"ok\":true,\"detail\":\"focusables=4 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m8\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m8\",\"ok\":true,\"detail\":\"focusables=6 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m9\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m9\",\"ok\":true,\"detail\":\"focusables=4 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.teacher\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.teacher\",\"ok\":true,\"detail\":\"focusables=2 bodyHits=0 invisible=0 tooling=1\"}]"
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.475Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.245Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "keyboard families + skip link + focus-visible"
     },
@@ -104,13 +44,13 @@
       "evidence": [
         {
           "kind": "artifact_trace",
-          "detail": "/Users/jasonsmith/Desktop/compyouteacher/docs/project-standards/walkthroughs/beta-artifact-trace/d2c92315a8c67ed3d499089973df1eae87012e85.json",
+          "detail": "/Users/jasonsmith/Desktop/compyouteacher/docs/project-standards/walkthroughs/beta-artifact-trace/cdd3104115841d2c37794378822ffc6aec53f55d.json",
           "persistenceRequired": true
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "coreOk=true"
     },
@@ -124,8 +64,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -139,8 +79,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -154,8 +94,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -169,8 +109,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -184,8 +124,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -199,8 +139,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -214,8 +154,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -229,8 +169,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -244,8 +184,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -259,8 +199,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -274,8 +214,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -289,8 +229,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -304,8 +244,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -319,8 +259,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -334,8 +274,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.247Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -349,8 +289,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -364,8 +304,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -379,8 +319,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -394,8 +334,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -409,8 +349,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -424,8 +364,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -439,8 +379,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -454,8 +394,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -469,8 +409,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -484,8 +424,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -499,8 +439,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -514,8 +454,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -529,8 +469,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -544,8 +484,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -559,8 +499,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -574,8 +514,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -589,8 +529,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -604,8 +544,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -619,8 +559,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -634,8 +574,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -649,8 +589,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -664,8 +604,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -679,8 +619,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -694,8 +634,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -709,8 +649,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -724,8 +664,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -739,8 +679,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:36.477Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:21.248Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "registry+fresh/returning coverage map"
     },
@@ -754,8 +694,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:41.772Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:23.138Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/1 seed=vocabularyTransferLesson"
     },
@@ -769,8 +709,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:46.589Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:28.251Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/2 seed=2"
     },
@@ -784,8 +724,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:49.421Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:31.927Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/2 seed=2"
     },
@@ -799,8 +739,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:53.731Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:33.349Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/3 seed=3"
     },
@@ -814,8 +754,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:06:58.605Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:34.614Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/3 seed=evidenceToArgumentSlice"
     },
@@ -829,8 +769,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:01.542Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:38.659Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/4 seed=4"
     },
@@ -844,8 +784,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:04.470Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:40.360Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/5 seed=5"
     },
@@ -859,8 +799,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:09.718Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:42.841Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/6 seed=6"
     },
@@ -874,8 +814,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:14.053Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:45.515Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/6 seed=introConclusionVerticalSlice"
     },
@@ -889,8 +829,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:17.873Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:48.663Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/6 seed=bpVerticalSlice"
     },
@@ -904,8 +844,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:20.415Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:51.417Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/6 seed=allRequiredBodyParagraphs"
     },
@@ -919,8 +859,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:22.495Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:39:54.845Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/7 seed=7"
     },
@@ -934,8 +874,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:26.029Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:04.640Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/7 seed=7"
     },
@@ -949,8 +889,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:31.044Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:07.696Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/7 seed=7"
     },
@@ -964,8 +904,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:33.707Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:12.300Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/7 seed=wholeEssayReview"
     },
@@ -979,8 +919,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:39.634Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:19.149Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/8 seed=module9Ready"
     },
@@ -994,8 +934,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:50.456Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:24.764Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/9 seed=guidedApaProtocol"
     },
@@ -1009,8 +949,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:07:58.291Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:30.784Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/9 seed=module9Ready"
     },
@@ -1024,8 +964,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:08:00.782Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:34.006Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/9 seed=completeEssay"
     },
@@ -1039,8 +979,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:08:04.265Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:37.441Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/dashboard seed=completeEssay"
     },
@@ -1054,8 +994,8 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:08:07.033Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:39.112Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "route=/modules/10 seed=ensureDevTeacherRole"
     },
@@ -1069,10 +1009,70 @@
         }
       ],
       "severityIfFailed": "Critical",
-      "timestamp": "2026-07-23T16:08:15.450Z",
-      "buildCommit": "d2c92315a8c67ed3d499089973df1eae87012e85",
+      "timestamp": "2026-07-23T16:40:50.742Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
       "cleanupConfirmed": true,
       "detail": "fileInput=true"
+    },
+    {
+      "scenarioId": "SEC.dev_absent_prod",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "panel status=404"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T16:40:51.091Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
+      "cleanupConfirmed": true,
+      "detail": "panel status=404"
+    },
+    {
+      "scenarioId": "HARNESS.prod_fixture_denial",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "status=401 students=false"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T16:40:51.114Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
+      "cleanupConfirmed": true,
+      "detail": "status=401 students=false"
+    },
+    {
+      "scenarioId": "PROD.chunk_scan",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "no synthetic fixture builders in client chunks"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T16:40:51.170Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
+      "cleanupConfirmed": true,
+      "detail": "no synthetic fixture builders in client chunks"
+    },
+    {
+      "scenarioId": "PROD.clean_build",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "dist=.next-wp101-prod routesOk=true consoleErr=0"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T16:40:51.913Z",
+      "buildCommit": "cdd3104115841d2c37794378822ffc6aec53f55d",
+      "cleanupConfirmed": true,
+      "detail": "dist=.next-wp101-prod routesOk=true consoleErr=0"
     }
   ]
 }
