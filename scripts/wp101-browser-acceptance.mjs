@@ -57,16 +57,25 @@ function row(scenarioId, result, detail, evidence = [], cleanupConfirmed = true)
 }
 
 async function panel(token, body) {
-  const res = await fetch(`${BASE}/api/dev/panel`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `next-auth.session-token=${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  const json = await res.json().catch(() => ({}));
-  return { status: res.status, json };
+  let lastErr;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      const res = await fetch(`${BASE}/api/dev/panel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `next-auth.session-token=${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json().catch(() => ({}));
+      return { status: res.status, json };
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    }
+  }
+  throw lastErr;
 }
 
 (async () => {
@@ -211,8 +220,18 @@ async function panel(token, body) {
         timeout: 120000,
       });
       await page.reload({ waitUntil: "domcontentloaded", timeout: 120000 });
-      await new Promise((r) => setTimeout(r, 500));
-      const body = await page.locator("body").innerText();
+      let body = "";
+      for (let w = 0; w < 30; w += 1) {
+        body = await page.locator("body").innerText();
+        if (
+          body.trim().length > 40 &&
+          !/Loading\.\.\./i.test(body.slice(0, 80)) &&
+          !/application error/i.test(body)
+        ) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
       const ok = body.trim().length > 40 && !/application error/i.test(body);
       row(
         `RETURN.${key}`,
