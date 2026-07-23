@@ -1249,14 +1249,36 @@ async function runModule3(page) {
 
   for (let i = 0; i < 120; i += 1) {
     if (page.url().includes("/modules/3/success")) break;
+    if (page.url().includes("/modules/4")) break;
     await assertNoPanelUsed(page);
+
+    const toM4 = page.getByRole("button", {
+      name: /Continue to Module 4|plan your paragraphs/i,
+    });
+    if (
+      (await toM4.count()) &&
+      (await toM4.first().isEnabled().catch(() => false))
+    ) {
+      console.log("M3: Continue to Module 4");
+      await clickStable(toM4.first());
+      await page.waitForURL(/\/modules\/4/, { timeout: 120000 }).catch(() => {});
+      break;
+    }
 
     // --- wp086 rebuilt path (if mounted) ---
     const ack = page.getByTestId("wp087-acknowledge-direction-review");
-    if (await ack.count()) await ack.click().catch(() => {});
+    if (await ack.count()) await ack.click({ timeout: 5000 }).catch(() => {});
     const mapConfirm = page.getByTestId("wp086-confirm-argument-map");
-    if (await mapConfirm.count()) {
-      await mapConfirm.check({ force: true }).catch(() => mapConfirm.click());
+    if (
+      (await mapConfirm.count()) &&
+      (await mapConfirm.first().isVisible().catch(() => false))
+    ) {
+      await mapConfirm
+        .first()
+        .check({ force: true, timeout: 5000 })
+        .catch(() =>
+          mapConfirm.first().click({ force: true, timeout: 5000 }).catch(() => {})
+        );
     }
     if (await page.getByTestId("wp086-evidence-argument-panel").count()) {
       await fillShortTextareas(page, 15, thesisText);
@@ -1457,10 +1479,16 @@ async function runModule3(page) {
     }
     await sleep(450);
   }
-  await page.waitForURL(/\/modules\/3\/success/, { timeout: 180000 });
-  await shot(page, "m3-success.png");
-  await refreshResume(page, "/modules/3/success");
-  await clickContinueToModule(page, 4);
+  if (!page.url().includes("/modules/4")) {
+    await page.waitForURL(/\/modules\/3\/success|\/modules\/4/, {
+      timeout: 180000,
+    });
+  }
+  if (page.url().includes("/modules/3/success")) {
+    await shot(page, "m3-success.png");
+    await refreshResume(page, "/modules/3/success");
+    await clickContinueToModule(page, 4);
+  }
   note("module3", true, "success→module4");
 }
 
