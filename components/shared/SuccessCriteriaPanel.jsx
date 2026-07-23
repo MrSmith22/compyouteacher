@@ -11,7 +11,7 @@ import {
 
 export default function SuccessCriteriaPanel({
   items = [],
-  heading = "Before you continue",
+  heading = "How you'll know you're ready",
   lead = "Check your work:",
   note = "",
   mode = "criteria", // criteria | gate | micro

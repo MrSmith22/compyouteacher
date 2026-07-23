@@ -3,8 +3,7 @@
 /**
  * WP-084 — Concise whole-essay final inspection.
  * One primary finding + compact check overview. No five-card wall.
- * WP-097 — Renders inside ModuleSixStepFrame's promoted work region; only
- * adds internal desk/feedback region attrs (no separate frame/root).
+ * WP-098 — Finding = revision; word-count = status only (no instructional role).
  */
 
 const CHECK_ORDER = [
@@ -65,8 +64,7 @@ export default function WholeEssayReviewPanel({
           className="rounded-md border border-border-soft bg-surface-soft/40 px-3 py-2 text-sm"
           data-testid="whole-essay-word-expectation"
           data-word-status={wordEval.status}
-          data-task-workspace-region="desk"
-          data-instructional-color-role="student-thinking"
+          role="status"
         >
           <p className="font-semibold text-theme-dark">
             Teacher expectation: {wordEval.expectationLabel}
@@ -114,18 +112,18 @@ export default function WholeEssayReviewPanel({
 
       {shown ? (
         <div
-          className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-3 space-y-2"
+          className="rounded-md border border-role-revision/30 bg-role-revision/[0.05] px-3 py-3 space-y-2"
           data-testid="whole-essay-active-finding"
           data-finding-id={shown.id}
           data-task-workspace-region="feedback"
-          data-instructional-color-role="instruction"
+          data-instructional-color-role="revision"
         >
-          <p className="text-[11px] font-bold uppercase tracking-wide text-theme-blue">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-role-revision">
             {shown.severity === "error" || shown.blocking
-              ? "Needs attention"
+              ? "Needs revision"
               : shown.severity === "info"
                 ? "Notice"
-                : "Needs attention"}
+                : "Needs revision"}
           </p>
           <p className="text-sm font-semibold text-theme-dark">{shown.title}</p>
           <p className="text-sm text-theme-dark/90">
@@ -167,6 +165,7 @@ export default function WholeEssayReviewPanel({
         <div
           className="rounded-md border border-theme-green/30 bg-theme-green/5 px-3 py-3 text-sm text-theme-green"
           data-testid="whole-essay-all-clear"
+          role="status"
         >
           <p className="font-semibold">Pass — no automatic findings on these checks.</p>
           <p className="mt-1 text-theme-dark/80">

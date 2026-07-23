@@ -65,6 +65,7 @@ describe("WP-096 shared task-workspace contract", () => {
       actions: null,
       shelf: "reference",
       evidence: "evidence",
+      revision: "revision",
     });
     for (const id of ["job", "desk", "work", "feedback", "shelf"]) {
       const region = describeTaskWorkspaceRegion(id);
@@ -75,6 +76,10 @@ describe("WP-096 shared task-workspace contract", () => {
     assert.equal(
       describeTaskWorkspaceRegion("desk", { evidenceSurface: true }).colorRoleId,
       "evidence"
+    );
+    assert.equal(
+      describeTaskWorkspaceRegion("work", { revisionWorkSurface: true }).colorRoleId,
+      "revision"
     );
   });
 

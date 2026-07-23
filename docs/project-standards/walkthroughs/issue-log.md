@@ -49,14 +49,14 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-008 | Module 6→7 transition lacks psychological coaching | 6–7 | High | Navigation / Flow | Open |
 | WP-009 | Module 8→9 transition could be stronger | 8–9 | Medium | Navigation / Flow | Open |
 | WP-010 | Success and completion pages under-celebrate accomplishment | 6–9 | Medium | Instructional / UX | Open |
-| WP-011 | Vocabulary inconsistency — software/LMS voice instead of teacher voice | App-wide | High | Copy / Voice | Open |
+| WP-011 | Vocabulary inconsistency — software/LMS voice instead of teacher voice | App-wide | High | Copy / Voice | Resolved |
 | WP-012 | Module 6 creates blank-page feeling instead of translation stage | 6 | Critical | Instructional | Needs Verification |
 | WP-013 | Module 6 introduction drafting does not surface planning artifacts | 6 | High | Instructional | Needs Verification |
 | WP-014 | Module 6 body paragraph pages lack drafting coaching | 6 | High | Instructional | Needs Verification |
 | WP-015 | Module 6 conclusion drafting ignores conclusion planning | 6 | High | Instructional | Needs Verification |
 | WP-016 | Module 6 missing “how experienced writers use these notes” instruction | 6 | High | Instructional | Needs Verification |
 | WP-017 | Module 6 sidebar too narrow and visually de-emphasized | 6 | High | Visual Design | Resolved |
-| WP-018 | Module 6 lacks meaningful instructional color semantics | 6 | Medium | Visual Design | Open |
+| WP-018 | Module 6 lacks meaningful instructional color semantics | 6 | Medium | Visual Design | Resolved |
 | WP-019 | Module 6 drafting pages missing consistent six-section screen pattern | 6 | High | Instructional / UX | Open |
 | WP-020 | Module 7 assumes revision knowledge instead of teaching it | 7 | Critical | Instructional | Open |
 | WP-021 | Module 7 Read Aloud lacks “why” coaching and listening checklist | 7 | High | Instructional | Open |
@@ -98,7 +98,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-058 | Modules lack distinct psychological feel across the journey | App-wide | Medium | Instructional / UX | Needs Verification |
 | WP-059 | Sidebar functions as storage instead of working notebook | App-wide | Medium | UX | Needs Verification |
 | WP-060 | Dense pages lack whitespace and instructional card chunking | App-wide | Low | Visual Design | Needs Verification |
-| WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Needs Verification |
+| WP-061 | Instructional color semantics not applied application-wide | App-wide | Medium | Visual Design | Resolved |
 | WP-062 | Students feel lost on several screens | App-wide | High | UX / Cognitive Load | Needs Verification |
 | WP-063 | Planning supports do not fade naturally before drafting and revision | 5–7 | High | Instructional / Architecture | Resolved |
 | WP-064 | Students cannot reopen saved source texts during Module 3 analysis | 3 | High | UX / Navigation | Resolved |
@@ -135,8 +135,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-095 | Generalize and promote the success system (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / UX | Resolved |
 | WP-096 | Task workspace hierarchy foundation (Phase 6, development-only) | 1, 3, 5, 6, 9 | High | Visual Design / UX | Resolved |
 | WP-097 | Generalize and promote the workspace hierarchy (Phase 6 complete) | 1–9 | High | Visual Design / UX | Resolved |
+| WP-098 | Semantic color and teacher-voice closure (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / Copy | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-098.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). WP-098 closes Phase 6 with app-wide instructional color roles and teacher-voice consistency (July 23, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-099.*
 
 ---
 
@@ -443,7 +444,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** Buttons, headings, instructions, feedback
 - **Priority:** High
 - **Category:** Copy / Voice
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** The application sometimes sounds like software or an LMS (“Continue”, “Complete”, “Submit”, “Export”) instead of a writing teacher (“Let’s look at the evidence you’ve already chosen”, “I’m ready to continue”). Module 9 is the strongest example; the pattern appears throughout.
 
@@ -458,11 +459,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 2. Flag remaining LMS-style imperatives.
 3. Confirm action labels use student-natural verbs.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** `lib/ui/teacherVoiceContract.js`; `docs/project-standards/teacher-voice-contract.md`; high-traffic presentation registries
 
-**Resolution notes:**
+**Resolution notes:** (July 23, 2026) WP-098 added a testable teacher-voice contract and cleared high-traffic jargon (`processor` narration, bare Continue/Complete/Submit journey label, dashboard Status/Current module, premature Module 8 “turn in”). Technical Doc/PDF verbs retained. Browser matrix **53/53** reported no student-visible jargon on sampled families; prod **4/4**.
 
-**Resolved in commit:**
+**Resolved in commit:** (this change set)
 
 ---
 
@@ -646,7 +647,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All Module 6 drafting screens
 - **Priority:** Medium
 - **Category:** Visual Design
-- **Status:** Open
+- **Status:** Resolved
 
 **Walkthrough observation:** Module 6 feels visually flat. Color does not reinforce thinking types (instruction, student idea, evidence, writing, revision reminder) as recommended in the Master Spec.
 
@@ -660,11 +661,11 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Review Module 6 screens against color semantics table in Master Spec.
 2. Confirm color distinguishes instruction from student work from evidence.
 
-**Related files:** Not specified in Master Design Specification.
+**Related files:** Module 6 move workspaces; `instructionalColorContract.js`
 
-**Resolution notes:**
+**Resolution notes:** (July 23, 2026) WP-098 coverage family `M6.*` declares instruction / student-thinking / evidence / writing / reference. Browser matrix sampled Module 6 with labelled roles and no jargon. Module 6 drafting surfaces retain the WP-061/097 role wiring verified under grayscale/reduced-motion spot checks on neighboring M7.
 
-**Resolved in commit:**
+**Resolved in commit:** (this change set)
 
 ---
 
@@ -1872,7 +1873,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 - **Screen or area:** All instructional screens
 - **Priority:** Medium
 - **Category:** Visual Design
-- **Status:** Needs Verification
+- **Status:** Resolved
 
 **Walkthrough observation:** Color is discussed throughout the walkthrough but not applied consistently. Students should eventually recognize blue = instruction, green = student thinking, yellow = evidence, purple = writing, orange = revision, gray = reference.
 
@@ -1886,17 +1887,14 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 1. Compare pages against semantic color table.
 2. Confirm consistent role-to-color mapping.
 
-**Related files:** `tailwind.config.js`, `lib/ui/instructionalColorContract.js`, `lib/ui/hierarchyContract.js`, `lib/artifacts/artifactPresentation.ts`, `docs/design-system-v1.md`, Modules 6–9 shared instructional surfaces, `tests/wp061-instructional-color-semantics.test.js`
+**Related files:** `tailwind.config.js`, `lib/ui/instructionalColorContract.js`, `lib/ui/hierarchyContract.js`, `lib/artifacts/artifactPresentation.ts`, `docs/design-system-v1.md`, Modules 6–9 shared instructional surfaces, `tests/wp061-instructional-color-semantics.test.js`, `lib/ui/taskWorkspaceColorRoleCoverage.js`, `tests/wp098-semantic-color-and-teacher-voice.test.js`
 
 **Resolution notes:**
 - Semantic roles: instruction (`#1B406D`), student-thinking (`#0A4F47`), evidence (`#7A5C00`), writing (`#5C3D6E`), revision (`#B45309`), reference (`#6B7280`). Soft tint surfaces + `data-instructional-color-role`.
-- Action/status stay separate: primary blue, success green, final/in-progress orange, error red. Stop-recording uses labelled `theme-orange` (not evidence gold); Start uses primary action blue. Removed raw `yellow-500`.
-- Artifact registry: evidence→`role-evidence`, draft→`role-writing` (labels/keys/descriptions unchanged). Patterns/claims/thesis/etc. retained. Artifact identity ≠ instructional surface role.
-- Application matrix covers M6 drafting/notebook/reference, M7 read-aloud/observation/revision, M8 preparation/confidence, M9 APA teaching/Quick Guide/upload. Role text colors meet WCAG AA vs white (lighter `theme-gold` rejected for normal evidence text).
-- Status remains Needs Verification (app-wide; M6–9 pilot; browser bounded). WP-097 applied accepted active-work roles (`instruction` / `student-thinking` / `evidence` / `writing` / `reference`) across Module 1–9 families but did not close the full revision-role / app-wide color sweep.
-- Browser: no listener on port 3000 during verification; role-colored states **not reached live**.
+- Action/status stay separate: primary blue, success green, final/in-progress orange, error red.
+- (July 23, 2026) WP-098 closed Module 7 revision-role mapping (editors/diagnosis/compare/findings = `revision`; read-aloud prose stays `writing`; word-count = status only). Coverage registry declares roles or explicit neutral for every WP-097 family. Browser **53/53** + grayscale M7; prod **4/4** with roles visible on Module 5.
 
-**Resolved in commit:**
+**Resolved in commit:** (this change set)
 
 ---
 
@@ -3173,6 +3171,40 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - WP-061: accepted color roles applied on active-work families; app-wide revision-role sweep remains Needs Verification.
 
 **Human remainder:** subjective visual tone only.
+
+**Resolved in commit:** (this change set)
+
+---
+
+### WP-098 — Semantic color and teacher-voice closure
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Visual Design / Copy  
+**Module:** 1–9, Dashboard  
+**Related:** WP-011, WP-018, WP-047, WP-050, WP-053, WP-056, WP-061, WP-062, WP-069, WP-072–WP-078, WP-089–WP-097; Prompt 19; Phase 6 / Epic H
+
+**Walkthrough observation:** WP-097 promoted workspace hierarchy, but instructional color roles remain incomplete (especially Module 7 revision) and high-traffic student language still leaks software/LMS voice on some surfaces.
+
+**Student-facing impact:** Students should recognize coaching, their thinking, evidence, writing, revision, and reference without relying on color alone, and hear a consistent writing-teacher voice while keeping precise Google Doc/PDF/submission verbs.
+
+**Why it matters technically or operationally:** Presentation and language only. Must not alter instructional sequence, correctness, artifacts, saves, progression, rollouts, Doc/PDF, receipt, or teacher dashboard. Close WP-061 and WP-011 only with full app-wide evidence.
+
+**Recommended smallest reasonable fix:** Extend coverage registry with instructional roles; finish Module 7 revision mapping; add teacher-voice contract; fix high-traffic jargon; accept via WP-098 tests + browser/prod matrices.
+
+**Color inventory (summary):** M7 slice editors tagged writing → must be revision; diagnosis/before-after untagged orange → revision; WE finding instruction → revision; WE word-count student-thinking → status only; M1–M5 sparse roles / orange accents; success/dashboard/recovery stay status-neutral; taskWorkspace work region needs revision override.
+
+**Voice inventory (summary):** “processor” / Writing Processor narration in M3/M8/transitions; bare Continue/Complete/Submit; dashboard Status/Current module; premature M8 “turn in.” Keep Create/Update/Open Doc and PDF verbs. Brand chrome “The Writing Processor” intentionally unchanged.
+
+**Implementation notes:** (July 23, 2026) `teacherVoiceContract` + guide; `taskWorkspaceColorRoleCoverage`; Module 7 revision panels/WE finding/WC status; work-region revision override; high-traffic voice fixes; light M4 coaching + M7 secondary teaching roles.
+
+**Verification evidence:**
+- Automated: `tests/wp098-semantic-color-and-teacher-voice.test.js` **11/11**; related WP-061/096/098 batch **21/21**.
+- Agent browser: `scripts/wp098-browser-acceptance.mjs` → **53/53** (mobile+desktop families + grayscale M7); `/tmp/wp098-browser/` not committed.
+- Production: `.next-wp098-prod`; server :3013; `/api/dev/panel` → 404; Module 5 roles `instruction`/`writing`; chunk scan clean (`scripts/wp098-prod-acceptance.mjs` **4/4**).
+- WP-061 / WP-011 / WP-018 Resolved with this app-wide evidence.
+
+**Human remainder:** subjective warmth / age fit only.
 
 **Resolved in commit:** (this change set)
 

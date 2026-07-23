@@ -356,7 +356,7 @@ export default function ModuleThreeBuildArgumentStep({
     : "Your evidence sets the limits of what you can honestly claim. Build from what you can see and explain.";
 
   const whatComesNext = isThesis
-    ? "Next, the Writing Processor will carry your thesis and proof plan into the next stage of planning."
+    ? "Next, you’ll take this thesis and proof plan into Module 4, where you organize it into paragraph plans."
     : "Next, you’ll sharpen this supported point into the sentence that guides your essay.";
 
   function insertClaimStarter(starter) {

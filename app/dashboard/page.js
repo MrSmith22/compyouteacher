@@ -227,11 +227,12 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <div>
-                      Status: {assignment?.status || "Not started"}
+                      Where you are:{" "}
+                      {assignment?.current_module != null &&
+                      assignment.status !== "not_started"
+                        ? `Working on Module ${assignment.current_module}`
+                        : "Not started"}
                     </div>
-                    {assignment?.current_module != null && (
-                      <div>Current module: {assignment.current_module}</div>
-                    )}
                   </>
                 )}
               </div>

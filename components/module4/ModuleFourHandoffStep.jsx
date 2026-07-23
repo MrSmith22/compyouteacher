@@ -38,8 +38,11 @@ function sourceAccentClass(sourceType) {
 
 function JobCard({ title, children }) {
   return (
-    <div className="rounded-xl border-2 border-theme-orange/40 bg-theme-orange/10 px-4 py-4 shadow-soft ring-1 ring-theme-orange/15">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-theme-orange">
+    <div
+      className="rounded-xl border border-role-instruction/25 bg-role-instruction/[0.05] px-4 py-4 text-left shadow-soft ring-1 ring-theme-orange/15"
+      data-instructional-color-role="instruction"
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-role-instruction">
         Your job right now
       </p>
       <p className="mt-2 text-base font-semibold leading-snug text-text-primary">

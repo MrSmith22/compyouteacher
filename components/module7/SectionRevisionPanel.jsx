@@ -3,12 +3,13 @@
 /**
  * WP-082 — Shared diagnostic revision desk for section vertical slices.
  * Editor is primary; diagnostics recommend a target without rewriting prose.
- * WP-097 — Renders inside ModuleSixStepFrame's promoted work region; only
- * adds internal desk/work region attrs (no separate frame/root).
+ * WP-098 — Revision-role surfaces: editor/diagnosis/compare/clearer = revision;
+ * plan notes = student-thinking.
  */
 
-const TEXTAREA_CLASS =
-  "w-full min-h-[160px] rounded-md border border-border-soft bg-white px-3 py-2 text-sm text-theme-dark focus:outline-none focus:ring-2 focus:ring-theme-orange/40";
+import {
+  ROLE_REVISION_TEXTAREA_CLASS,
+} from "@/lib/ui/instructionalColorContract";
 
 export default function SectionRevisionPanel({
   label = "Section",
@@ -39,11 +40,14 @@ export default function SectionRevisionPanel({
       <label
         className="block text-sm font-semibold text-theme-dark"
         data-task-workspace-region="work"
-        data-instructional-color-role="writing"
+        data-instructional-color-role="revision"
       >
-        {editorLabel}
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-role-revision">
+          Revision
+        </span>
+        <span className="mt-1 block">{editorLabel}</span>
         <textarea
-          className={`mt-1 ${TEXTAREA_CLASS}`}
+          className={`mt-1 ${ROLE_REVISION_TEXTAREA_CLASS} min-h-[160px] text-sm`}
           value={value}
           disabled={disabled}
           onChange={(e) => onChange?.(e.target.value)}
@@ -55,10 +59,13 @@ export default function SectionRevisionPanel({
 
       {planLines.length > 0 ? (
         <div
-          className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2 text-sm space-y-1"
+          className="rounded-md border border-role-thinking/25 bg-role-thinking/[0.05] px-3 py-2 text-sm space-y-1"
           data-task-workspace-region="desk"
           data-instructional-color-role="student-thinking"
         >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-role-thinking">
+            Your thinking
+          </p>
           {planLines.map((line) => (
             <p key={line.label}>
               <span className="font-semibold">{line.label}:</span>{" "}
@@ -72,10 +79,11 @@ export default function SectionRevisionPanel({
       ) : null}
 
       <div
-        className="rounded-md border border-theme-orange/30 bg-theme-orange/[0.04] px-3 py-2 space-y-2"
+        className="rounded-md border border-role-revision/30 bg-role-revision/[0.05] px-3 py-2 space-y-2"
         data-testid={`${testIdPrefix}-diagnosis`}
+        data-instructional-color-role="revision"
       >
-        <p className="text-[11px] font-bold uppercase tracking-wide text-theme-orange">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-role-revision">
           Best place to revise
         </p>
         <p className="text-sm font-semibold text-theme-dark">{activeMeta?.title}</p>
@@ -100,7 +108,7 @@ export default function SectionRevisionPanel({
               type="button"
               className={`min-h-[44px] rounded-md border px-3 text-xs font-semibold ${
                 t.id === activeId
-                  ? "border-theme-orange bg-theme-orange/10"
+                  ? "border-role-revision/50 bg-role-revision/10"
                   : "border-border-soft"
               }`}
               disabled={disabled}
@@ -114,8 +122,9 @@ export default function SectionRevisionPanel({
 
       {(before || after) && before !== after ? (
         <div
-          className="grid gap-2 sm:grid-cols-2"
+          className="grid gap-2 sm:grid-cols-2 rounded-md border border-role-revision/25 bg-role-revision/[0.03] p-2"
           data-testid={`${testIdPrefix}-before-after`}
+          data-instructional-color-role="revision"
         >
           <div className="rounded-md border border-border-soft px-3 py-2">
             <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
@@ -123,7 +132,7 @@ export default function SectionRevisionPanel({
             </p>
             <p className="mt-1 text-sm whitespace-pre-wrap break-words">{before}</p>
           </div>
-          <div className="rounded-md border border-theme-green/30 bg-theme-green/[0.04] px-3 py-2">
+          <div className="rounded-md border border-border-soft px-3 py-2">
             <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
               After
             </p>
@@ -134,8 +143,9 @@ export default function SectionRevisionPanel({
         </div>
       ) : before ? (
         <div
-          className="rounded-md border border-border-soft px-3 py-2"
+          className="rounded-md border border-role-revision/25 bg-role-revision/[0.03] px-3 py-2"
           data-testid={`${testIdPrefix}-before-after`}
+          data-instructional-color-role="revision"
         >
           <p className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
             Before (original)
@@ -151,8 +161,9 @@ export default function SectionRevisionPanel({
       ) : null}
 
       <fieldset
-        className="rounded-md border border-border-soft px-3 py-2"
+        className="rounded-md border border-role-revision/25 bg-role-revision/[0.03] px-3 py-2"
         data-testid={`${testIdPrefix}-clearer`}
+        data-instructional-color-role="revision"
       >
         <legend className="text-sm font-semibold text-theme-dark">
           Is the intended relationship clearer?
@@ -174,7 +185,7 @@ export default function SectionRevisionPanel({
             type="button"
             className={`min-h-[44px] rounded-md border px-3 text-sm font-semibold ${
               clearerConfirmed === false
-                ? "border-theme-orange bg-theme-orange/10"
+                ? "border-role-revision/40 bg-role-revision/10"
                 : "border-border-soft"
             }`}
             disabled={disabled}

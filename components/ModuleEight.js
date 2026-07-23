@@ -92,26 +92,26 @@ function PreparationProgressPanel({
   preparationComplete,
 }) {
   const apaStatus = checklistComplete
-    ? { mark: "✓", label: "Complete", className: "text-theme-green" }
+    ? { mark: "✓", label: "Formatting done", className: "text-theme-green" }
     : hasGoogleDoc
       ? { mark: "○", label: "In progress", className: "text-text-primary" }
       : { mark: "○", label: "Next", className: "text-text-muted" };
 
   const docStatus = hasGoogleDoc
-    ? { mark: "✓", label: "Created", className: "text-theme-green" }
+    ? { mark: "✓", label: "Doc created", className: "text-theme-green" }
     : { mark: "○", label: "Next", className: "text-text-muted" };
 
   const readyStatus = preparationComplete
-    ? { mark: "✓", label: "Ready", className: "text-theme-green" }
+    ? { mark: "✓", label: "Ready for Module 9", className: "text-theme-green" }
     : isReadyStep
       ? { mark: "○", label: "Almost there", className: "text-text-primary" }
       : { mark: "○", label: "Next", className: "text-text-muted" };
 
   const rows = [
-    { label: "Your finished essay", mark: "✓", status: "Complete", className: "text-theme-green" },
+    { label: "Your finished essay", mark: "✓", status: "Done", className: "text-theme-green" },
     { label: "Google Doc", mark: docStatus.mark, status: docStatus.label, className: docStatus.className },
     { label: "APA formatting", mark: apaStatus.mark, status: apaStatus.label, className: apaStatus.className },
-    { label: "Ready to turn in", mark: readyStatus.mark, status: readyStatus.label, className: readyStatus.className },
+    { label: "Ready for Module 9", mark: readyStatus.mark, status: readyStatus.label, className: readyStatus.className },
   ];
 
   return (
