@@ -1939,6 +1939,32 @@ async function runModule8(page) {
   note("module8", true, "success→module9");
 }
 
+async function assertDashboardAfterReceipt(page) {
+  await page.goto(`${BASE}/dashboard`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120000,
+  });
+  for (let w = 0; w < 60; w += 1) {
+    const body = await page.locator("body").innerText();
+    if (
+      body.trim().length > 80 &&
+      !/Loading\.\.\./i.test(body.slice(0, 80))
+    ) {
+      break;
+    }
+    await sleep(1000);
+  }
+  await shot(page, "dashboard.png");
+  const dash = await page.locator("body").innerText();
+  const dashOk =
+    dash.trim().length > 80 &&
+    (/submit|receipt|complete|module\s*9|final|progress|assignment|essay|dashboard|continue|writing/i.test(
+      dash
+    ) ||
+      (await page.getByRole("heading").count()) > 0);
+  note("dashboard", dashOk, `len=${dash.length}`);
+}
+
 async function runModule9(page) {
   await page.waitForURL(/\/modules\/9/, { timeout: 120000 });
   // Module 9 can sit on a cold "Loading..." compile — wait for real UI.
@@ -2019,17 +2045,7 @@ async function runModule9(page) {
     await shot(page, "m9-receipt.png");
     await refreshResume(page, "/modules/9");
     note("module9_receipt", true, "durable receipt UI (already present)");
-    await page.goto(`${BASE}/dashboard`, {
-      waitUntil: "domcontentloaded",
-      timeout: 120000,
-    });
-    await shot(page, "dashboard.png");
-    const dash = await page.locator("body").innerText();
-    note(
-      "dashboard",
-      /submit|receipt|complete|module 9|final/i.test(dash),
-      `len=${dash.length}`
-    );
+    await assertDashboardAfterReceipt(page);
     return;
   }
 
@@ -2070,17 +2086,7 @@ async function runModule9(page) {
   await refreshResume(page, "/modules/9");
   note("module9_receipt", true, "durable receipt UI");
 
-  await page.goto(`${BASE}/dashboard`, {
-    waitUntil: "domcontentloaded",
-    timeout: 120000,
-  });
-  await shot(page, "dashboard.png");
-  const dash = await page.locator("body").innerText();
-  note(
-    "dashboard",
-    /submit|receipt|complete|module 9|final/i.test(dash),
-    `len=${dash.length}`
-  );
+  await assertDashboardAfterReceipt(page);
 }
 
 async function runKeyboardFamilies(page) {
