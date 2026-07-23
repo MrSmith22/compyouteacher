@@ -294,7 +294,11 @@ describe("WP-048 four-question screen contract (Modules 6–9)", () => {
     assert.ok(frame.includes("pickVisiblePurpose"));
     assert.ok(frame.includes("pickVisibleFinished"));
     assert.ok(frame.includes("remainingContractLines"));
-    assert.ok(frame.includes('data-testid="screen-contract-how"'));
+    const jobRightNow = readSrc("components/shared/JobRightNow.jsx");
+    assert.ok(
+      frame.includes('data-testid="screen-contract-how"') ||
+        jobRightNow.includes('data-testid="screen-contract-how"')
+    );
     assert.ok(frame.includes("More about why this matters"));
     assert.ok(frame.includes("More self-check details"));
 

@@ -15,9 +15,19 @@ import {
   resolveBodyParagraphMoveMeta,
   selectDeskArtifactsForMove,
 } from "@/lib/module6/bodyParagraphMoves";
+import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
+import { HIERARCHY_DESK_CLASS, HIERARCHY_LEVELS } from "@/lib/ui/hierarchyContract";
+import { getInstructionalColorRole } from "@/lib/ui/instructionalColorContract";
 
 const TEXTAREA_CLASS =
   "w-full min-h-[120px] rounded-md border border-border-soft bg-white px-3 py-2 text-sm text-theme-dark focus:outline-none focus:ring-2 focus:ring-theme-blue/40";
+
+const WRITING_TEXTAREA_CLASS = [
+  "w-full min-h-[160px]",
+  getInstructionalColorRole("writing")?.softSurfaceClass ||
+    "rounded-xl border-2 border-role-writing/30 bg-role-writing/[0.04] px-3 py-3 text-base text-theme-dark shadow-soft",
+  "focus:outline-none focus:ring-2 focus:ring-theme-dark/20",
+].join(" ");
 
 export default function BodyParagraphMoveWorkspace({
   label = "Body Paragraph 1",
@@ -38,6 +48,8 @@ export default function BodyParagraphMoveWorkspace({
   const meta =
     resolveBodyParagraphMoveMeta(activeId) || BODY_PARAGRAPH_MOVE_META.point;
   const deskForMove = selectDeskArtifactsForMove(activeId, deskArtifacts);
+  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
+  const writingSurfaceClass = foundation ? WRITING_TEXTAREA_CLASS : TEXTAREA_CLASS;
   const preview = resolveAssembledBodyParagraphProse(normalized, {
     includeTransition: moveOrder.includes("transition"),
     moveOrder,
@@ -135,43 +147,62 @@ export default function BodyParagraphMoveWorkspace({
       </p>
 
       <div
-        className="rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2"
-        data-testid="bp-active-move"
-        data-active-move={activeId}
-        data-step-number={stepNumber}
+        className={
+          foundation
+            ? "grid gap-4 lg:grid-cols-[minmax(300px,0.65fr)_minmax(0,1.35fr)] lg:items-start"
+            : "space-y-3"
+        }
+        data-testid={foundation ? "task-workspace-work" : undefined}
       >
-        <p
-          className="text-[11px] font-bold uppercase tracking-wide text-theme-blue"
-          data-testid="bp-step-label"
+        <div
+          className={
+            foundation
+              ? `${HIERARCHY_DESK_CLASS} order-1 lg:order-1`
+              : "rounded-md border border-theme-blue/25 bg-theme-blue/[0.04] px-3 py-2"
+          }
+          data-testid="bp-active-move"
+          data-active-move={activeId}
+          data-step-number={stepNumber}
+          data-instructional-color-role={foundation ? "student-thinking" : undefined}
+          data-hierarchy-level={foundation ? HIERARCHY_LEVELS.work : undefined}
+          data-task-workspace-region={foundation ? "desk" : undefined}
         >
-          Step {stepNumber} of {totalSteps}
-        </p>
-        <p className="mt-1 text-sm font-semibold text-theme-dark">{meta.title}</p>
-        <p className="mt-1 text-sm text-theme-dark/85" data-testid="bp-move-reminder">
-          {meta.prompt || meta.model}
-        </p>
-        {deskForMove.length > 0 ? (
-          <div className="mt-2 space-y-1" data-testid="bp-move-desk">
-            {deskForMove.map((item) => (
-              <p key={item.field} className="text-xs text-theme-dark/75">
-                <span className="font-semibold">{item.label}:</span> {item.value}
-              </p>
-            ))}
-          </div>
-        ) : null}
-      </div>
+          <p
+            className="text-[11px] font-bold uppercase tracking-wide text-theme-blue"
+            data-testid="bp-step-label"
+          >
+            Step {stepNumber} of {totalSteps}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-theme-dark">{meta.title}</p>
+          <p className="mt-1 text-sm text-theme-dark/85" data-testid="bp-move-reminder">
+            {meta.prompt || meta.model}
+          </p>
+          {deskForMove.length > 0 ? (
+            <div className="mt-2 space-y-1" data-testid="bp-move-desk">
+              {deskForMove.map((item) => (
+                <p key={item.field} className="text-xs text-theme-dark/75 break-words">
+                  <span className="font-semibold">{item.label}:</span> {item.value}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </div>
 
-      <label className="block text-sm font-semibold text-theme-dark">
-        Your sentence(s) for Step {stepNumber}
-        <textarea
-          className={`mt-1 ${TEXTAREA_CLASS}`}
-          value={normalized.moves[activeId] || ""}
-          disabled={disabled}
-          onChange={(e) => setMoveText(activeId, e.target.value)}
-          aria-label={`Step ${stepNumber}: ${meta.title}`}
-          data-testid="bp-move-writing-field"
-        />
-      </label>
+        <label
+          className={`block text-sm font-semibold text-theme-dark ${foundation ? "order-2 min-w-0" : ""}`}
+          data-instructional-color-role={foundation ? "writing" : undefined}
+        >
+          Your sentence(s) for Step {stepNumber}
+          <textarea
+            className={`mt-1 ${writingSurfaceClass}`}
+            value={normalized.moves[activeId] || ""}
+            disabled={disabled}
+            onChange={(e) => setMoveText(activeId, e.target.value)}
+            aria-label={`Step ${stepNumber}: ${meta.title}`}
+            data-testid="bp-move-writing-field"
+          />
+        </label>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {nextMoveId ? (

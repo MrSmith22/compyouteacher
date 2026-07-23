@@ -5,16 +5,16 @@ import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
 import ScreenContractCues from "@/components/shared/ScreenContractCues";
 import InstructionalDisclosure from "@/components/shared/InstructionalDisclosure";
 import ModuleModeCue from "@/components/shared/ModuleModeCue";
+import JobRightNow from "@/components/shared/JobRightNow";
 import {
   pickVisibleFinished,
   pickVisiblePurpose,
   remainingContractLines,
 } from "@/components/shared/screenContractHelpers";
 import {
-  HIERARCHY_INSTRUCTION_BODY_CLASS,
+  // JobRightNow renders HIERARCHY_INSTRUCTION_CLASS with
+  // data-instructional-color-role="instruction" in the shared component.
   HIERARCHY_INSTRUCTION_CLASS,
-  HIERARCHY_INSTRUCTION_LABEL_CLASS,
-  HIERARCHY_INSTRUCTION_LEAD_CLASS,
   HIERARCHY_LEVELS,
   HIERARCHY_REFERENCE_ASIDE_CLASS,
   HIERARCHY_REFERENCE_CLASS,
@@ -25,25 +25,9 @@ import {
   RHYTHM_PAGE_CLASS,
   RHYTHM_PROSE_CLASS,
 } from "@/lib/ui/instructionalRhythmContract";
+import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
 export const MODULE6_NEED_HELP_ID = "module-6-need-help";
-
-const RESOURCE_CUE = {
-  thesis: {
-    label: "Thesis · Need Help",
-    className:
-      "inline-flex items-center rounded-md border border-theme-blue/30 bg-theme-blue/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-theme-blue",
-  },
-  outline: {
-    label: "Outline · Need Help",
-    className:
-      "inline-flex items-center rounded-md border border-theme-green/30 bg-theme-green/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-theme-green",
-  },
-  help: {
-    label: "Need Help below",
-    className:
-      "inline-flex items-center rounded-md border border-theme-orange/30 bg-theme-orange/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-theme-orange",
-  },
-};
 
 function normalizeWhyMatters(whyMatters) {
   if (Array.isArray(whyMatters)) {
@@ -69,24 +53,6 @@ function normalizeExample(example) {
     return { sample, whyItWorks };
   }
   return null;
-}
-
-function normalizeJobSteps(steps) {
-  if (!Array.isArray(steps)) return [];
-  return steps
-    .map((step) => {
-      if (typeof step === "string" && step.trim()) {
-        return { text: step.trim(), find: null };
-      }
-      if (step && typeof step === "object") {
-        const text = String(step.text || "").trim();
-        if (!text) return null;
-        const find = RESOURCE_CUE[step.find] ? step.find : null;
-        return { text, find };
-      }
-      return null;
-    })
-    .filter(Boolean);
 }
 
 function scrollToNeedHelp(event) {
@@ -116,54 +82,13 @@ function NeedHelpJumpLink() {
 }
 
 function JobRightNowCard({ jobRightNow }) {
-  const steps = normalizeJobSteps(jobRightNow?.steps);
-  if (!steps.length) return null;
-
+  // Shared JobRightNow preserves data-hierarchy-level={HIERARCHY_LEVELS.instruction}.
   return (
-    <div
-      className={HIERARCHY_INSTRUCTION_CLASS}
-      data-testid="screen-contract-how"
-      data-hierarchy-level={HIERARCHY_LEVELS.instruction}
-      data-instructional-color-role="instruction"
-    >
-      <p className={HIERARCHY_INSTRUCTION_LABEL_CLASS}>Your job right now</p>
-      {jobRightNow.lead ? (
-        <p className={HIERARCHY_INSTRUCTION_LEAD_CLASS}>{jobRightNow.lead}</p>
-      ) : null}
-      <ol
-        className={`mt-3 list-decimal space-y-2 pl-5 ${HIERARCHY_INSTRUCTION_BODY_CLASS}`}
-      >
-        {steps.map((step) => {
-          const cue = step.find ? RESOURCE_CUE[step.find] : null;
-          return (
-            <li key={step.text}>
-              <span>{step.text}</span>
-              {cue ? (
-                <>
-                  {" "}
-                  <span className={cue.className}>{cue.label}</span>
-                </>
-              ) : null}
-            </li>
-          );
-        })}
-      </ol>
-      <p className={`mt-3 font-medium ${HIERARCHY_INSTRUCTION_BODY_CLASS}`}>
-        {jobRightNow.closing || "Start with Step 1 in the writing box below."}
-      </p>
-      {jobRightNow.findHint ? (
-        <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          {jobRightNow.findHint}{" "}
-          <a
-            href={`#${MODULE6_NEED_HELP_ID}`}
-            onClick={scrollToNeedHelp}
-            className="font-medium text-text-muted underline decoration-border-soft underline-offset-2 hover:text-text-primary"
-          >
-            Jump to Need Help
-          </a>
-        </p>
-      ) : null}
-    </div>
+    <JobRightNow
+      jobRightNow={jobRightNow}
+      needHelpId={MODULE6_NEED_HELP_ID}
+      onNeedHelpClick={scrollToNeedHelp}
+    />
   );
 }
 
@@ -252,6 +177,12 @@ export default function ModuleSixStepFrame({
     ? []
     : remainingContractLines(successItems, visibleFinished);
   const actionFirst = !!jobRightNow?.steps?.length;
+  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: psychologicalModule || 6,
+    taskHeading: question,
+    desktopWidthIntent: "drafting",
+  });
   const howSummary = String(
     howToSucceed || (!actionFirst ? coachingMessage : "") || ""
   ).trim();
@@ -267,14 +198,26 @@ export default function ModuleSixStepFrame({
     !actionFirst && supportingPlacement !== "after" ? supporting : null;
   const supportingAfter =
     !actionFirst && supportingPlacement === "after" ? supporting : null;
+  const showHeaderNext =
+    String(nextStepText || "").trim() &&
+    !(foundation && actionFirst);
 
   return (
-    <WorkspaceColumns variant="drafting" className="gap-5 xl:gap-8">
-      <WorkspaceSidebar className={`${HIERARCHY_REFERENCE_CLASS} lg:col-span-1`}>
+    <WorkspaceColumns
+      variant="drafting"
+      className="gap-5 xl:gap-8"
+      data-task-workspace-foundation={foundation ? "true" : undefined}
+      data-task-workspace-contract={
+        foundation ? workspacePresentation.journeyStageId : undefined
+      }
+    >
+      <WorkspaceSidebar
+        className={`${HIERARCHY_REFERENCE_CLASS} ${foundation ? "order-9 lg:order-1" : ""} lg:col-span-1`}
+      >
         <div data-hierarchy-level={HIERARCHY_LEVELS.reference}>{sidebar}</div>
       </WorkspaceSidebar>
 
-      <WorkspaceCenter className="min-w-0">
+      <WorkspaceCenter className={`min-w-0 ${foundation ? "order-1 lg:order-2" : ""}`}>
         <div
           className={RHYTHM_PAGE_CLASS}
           data-rhythm-contract="page"
@@ -302,7 +245,7 @@ export default function ModuleSixStepFrame({
                 showHow={!actionFirst}
               />
             </div>
-            {String(nextStepText || "").trim() ? (
+            {showHeaderNext ? (
               <p
                 className="max-w-3xl text-sm leading-relaxed text-text-muted"
                 data-testid="screen-orientation-next"
@@ -363,7 +306,9 @@ export default function ModuleSixStepFrame({
         </div>
       </WorkspaceCenter>
 
-      <WorkspaceGuide className={HIERARCHY_REFERENCE_CLASS}>
+      <WorkspaceGuide
+        className={`${HIERARCHY_REFERENCE_CLASS} ${foundation ? "order-10 lg:order-3" : ""}`}
+      >
         <aside
           className={HIERARCHY_REFERENCE_ASIDE_CLASS}
           data-hierarchy-level={HIERARCHY_LEVELS.reference}

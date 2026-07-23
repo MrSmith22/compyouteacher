@@ -157,13 +157,17 @@ describe("WP-062 screen orientation audit (Modules 6–9)", () => {
 
   it("14. WP-048–061 protection hooks remain intact", () => {
     const frame = readSrc("components/module6/ModuleSixStepFrame.jsx");
+    const jobRightNow = readSrc("components/shared/JobRightNow.jsx");
     const m6 = readSrc("components/ModuleSix.js");
     const m7 = readSrc("components/ModuleSeven.js");
     const m8 = readSrc("components/ModuleEight.js");
     const m9 = readSrc("components/ModuleNine.js");
     assert.match(frame, /ScreenContractCues/);
     assert.match(frame, /ModuleModeCue/);
-    assert.match(frame, /role-instruction|HIERARCHY_INSTRUCTION/);
+    assert.match(
+      frame + jobRightNow,
+      /role-instruction|HIERARCHY_INSTRUCTION/
+    );
     assert.match(m6, /TaskRelevantArtifacts|WorkingNotebookCurrentPage|selectTaskRelevantArtifacts/);
     assert.match(m6, /SuccessCriteriaPanel/);
     assert.match(m7, /ModuleSevenReadAloudObservation/);

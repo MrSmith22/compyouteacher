@@ -1022,6 +1022,11 @@ export default function ModuleSix() {
       }
       stepType={deskStepType}
       sectionLabel={notebookSectionLabel}
+      locationHintOverride={
+        bpSliceActive || introConclusionSliceActive
+          ? "Move-specific notes sit beside the writing box. Full thesis and outline stay under More saved work."
+          : null
+      }
     />
   );
 

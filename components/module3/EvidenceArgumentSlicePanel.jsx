@@ -17,6 +17,14 @@ import {
 } from "@/lib/artifacts/evidenceArgumentContract";
 import { relationshipCoachingPrompt } from "@/lib/module2/evidenceArgumentDirectionDescriptor";
 import ReopenSourceTextsControl from "@/components/sources/ReopenSourceTextsControl";
+import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
+import {
+  HIERARCHY_DESK_CLASS,
+  HIERARCHY_LEVELS,
+  HIERARCHY_MODULE_CHROME_CLASS,
+  HIERARCHY_TASK_CLASS,
+} from "@/lib/ui/hierarchyContract";
+import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
 
 function safeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -228,6 +236,13 @@ export default function EvidenceArgumentSlicePanel({
   const familyLabel =
     FAMILY_LABEL[directionDescriptor?.family] ||
     (directionDescriptor?.family ? String(directionDescriptor.family) : "");
+  const foundation = isTaskWorkspaceHierarchyFoundationEnabled();
+  const workspacePresentation = resolveTaskWorkspacePresentation({
+    moduleNumber: 3,
+    stepLabel: step.label || stepId,
+    taskHeading: step.question,
+    desktopWidthIntent: "single",
+  });
 
   return (
     <div
@@ -236,14 +251,42 @@ export default function EvidenceArgumentSlicePanel({
       data-step={stepId}
       data-family={directionDescriptor?.family || ""}
       data-option-id={selectedOptionId || ""}
+      data-task-workspace-foundation={foundation ? "true" : undefined}
+      data-task-workspace-contract={
+        foundation ? workspacePresentation.journeyStageId : undefined
+      }
     >
       <Card className="border-theme-blue/25 bg-white">
-        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+        <p
+          className={
+            foundation
+              ? `${HIERARCHY_MODULE_CHROME_CLASS} text-[11px] !font-semibold uppercase tracking-[0.18em] text-text-muted`
+              : "text-xs font-semibold uppercase tracking-wide text-text-muted"
+          }
+        >
           Your comparison
+          {foundation && (selectedDirectionLabel || directionDescriptor?.label)
+            ? ` · ${selectedDirectionLabel || directionDescriptor?.label}`
+            : ""}
         </p>
-        <h1 className="mt-1 text-xl font-bold text-text-primary">{step.question}</h1>
-        {selectedDirectionLabel || directionDescriptor?.label ? (
+        <h1
+          className={
+            foundation
+              ? `mt-2 ${HIERARCHY_TASK_CLASS}`
+              : "mt-1 text-xl font-bold text-text-primary"
+          }
+          data-testid={foundation ? "task-workspace-task" : undefined}
+          data-hierarchy-level={foundation ? HIERARCHY_LEVELS.task : undefined}
+        >
+          {step.question}
+        </h1>
+        {!foundation && (selectedDirectionLabel || directionDescriptor?.label) ? (
           <p className="mt-2 text-sm text-text-muted" data-testid="wp086-selected-direction">
+            Direction: {selectedDirectionLabel || directionDescriptor?.label}
+          </p>
+        ) : null}
+        {foundation && (selectedDirectionLabel || directionDescriptor?.label) ? (
+          <p className="sr-only" data-testid="wp086-selected-direction">
             Direction: {selectedDirectionLabel || directionDescriptor?.label}
           </p>
         ) : null}
@@ -300,8 +343,11 @@ export default function EvidenceArgumentSlicePanel({
 
       {stepId === "ea_reread" || stepId === "ea_repair" || stepId === "ea_explain" ? (
         <div
-          className="grid gap-3 md:grid-cols-2"
+          className={`grid gap-3 md:grid-cols-2 ${foundation ? HIERARCHY_DESK_CLASS : ""}`}
           data-testid="wp086-both-work-reread"
+          data-task-workspace-region={foundation ? "desk" : undefined}
+          data-instructional-color-role={foundation ? "evidence" : undefined}
+          data-hierarchy-level={foundation ? HIERARCHY_LEVELS.work : undefined}
         >
           <Card>
             <h2 className="text-sm font-bold">Speech</h2>

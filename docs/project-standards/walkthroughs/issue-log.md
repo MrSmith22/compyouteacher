@@ -133,8 +133,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-093 | Production promotion of Modules 8–9 guided APA / submission protocol | 8–9 | Critical | Architecture / Ops | Resolved |
 | WP-094 | Success-screen family and completed-dashboard foundation (Phase 6, development-only) | 1, 6, 8–9, Dashboard | High | Visual Design / UX | Resolved |
 | WP-095 | Generalize and promote the success system (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / UX | Resolved |
+| WP-096 | Task workspace hierarchy foundation (Phase 6, development-only) | 1, 3, 5, 6, 9 | High | Visual Design / UX | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-096.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-097.*
 
 ---
 
@@ -3102,6 +3103,38 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - Agent browser **dev** `http://127.0.0.1:3000`: **165/165** (`scripts/wp095-browser-acceptance.mjs`, screenshots `/tmp/wp095-browser/`).
 - Agent browser **prod** `http://127.0.0.1:3025`: **165/165**; `/api/dev/panel` → **404**; production build succeeded; gate strings absent from `.next/static` success chunks.
 - Human remainder only: age-fit / visual tone.
+
+**Resolved in commit:** (this change set)
+
+---
+
+### WP-096 — Task workspace hierarchy foundation
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Visual Design / UX  
+**Module:** 1, 3, 5, 6, 9  
+**Related:** WP-017, WP-050, WP-053, WP-054, WP-061–WP-063, WP-073–WP-077, WP-094, WP-095; Prompt 17; Phase 6 / Epic H
+
+**Walkthrough observation:** Active-work screens still let chrome, orientation, instruction, desk, editor, and reference compete at similar weight. Students can miss “what am I doing right now?” even when teaching content is present.
+
+**Student-facing impact:** One composable hierarchy should make the current task and active work primary, put only task-relevant artifacts on the desk, keep broader history on the shelf, and use stable semantic color roles—across five representative families—without changing instruction or persistence.
+
+**Why it matters technically or operationally:** Presentation-only, development-gated foundation. Must not alter rollout modes, artifact schemas, autosave, progression, Doc/PDF/receipt, or success screens.
+
+**Recommended smallest reasonable fix:** Shared `taskWorkspaceContract` + thin frame; extract JobRightNow with production parity; wire Modules 1/3/5/6/9 behind `isTaskWorkspaceHierarchyFoundationEnabled`.
+
+**Gate:** `NODE_ENV === "development"` presentation-only. Production composition unchanged until a later promotion prompt.
+
+**Implementation notes:** (July 22, 2026) Shared contract + `TaskWorkspaceFrame`/`TaskWorkspaceRegion`; `JobRightNow` extracted with production markup parity; foundation adapters on M1/M3/M5/M6/M9. Clarifications applied: one page `<h1>`; exact color roles `instruction` / `student-thinking` / `evidence` / `writing` / `reference`; M6 writing surface largest with readable contextual desk (not optional shelf widening); M9 recovery priority when Doc unhealthy / disclosed when healthy; M5 Why closed only after primary why retained as visible job coaching. Module 1 Strict Mode draft hydration fix unblocked transfer-lesson resume.
+
+**Verification evidence:**
+- Automated: `tests/wp096-task-workspace-hierarchy-foundation.test.js` **9/9**; related WP-048/050/054/059/061/062/081/082/092 + WP-096 batch **105/105**.
+- Agent browser (dev gate on): `scripts/wp096-browser-acceptance.mjs` → **48/48** at 390×844 and 1440×900 for M1/3/5/6/9; screenshots under `/tmp/wp096-browser/` (local evidence only, not committed).
+- Production gate-off: `.next-wp096-prod` build; server on :3011; `/api/dev/panel` → 404; M5 Why remains open legacy composition (no foundation attrs); M6 retains JobRightNow without foundation grid; instructional rollout modes unchanged (`rebuilt`).
+- WP-017: representative gated M6 contextual desk readable (≥300px) while writing surface larger at desktop — recorded as slice evidence only; app-wide WP-017 remains Open.
+
+**Human remainder:** subjective visual tone only.
 
 **Resolved in commit:** (this change set)
 

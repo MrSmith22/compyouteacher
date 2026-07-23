@@ -118,6 +118,7 @@ export default function ModuleSixReferenceShelf({
   deskItems = [],
   stepType = "",
   sectionLabel = "",
+  locationHintOverride = null,
 }) {
   const body = Array.isArray(outline?.body) ? outline.body : [];
   const activeBodyIndex =
@@ -132,6 +133,7 @@ export default function ModuleSixReferenceShelf({
     stepType: resolvedStepType,
     sectionLabel,
     items: deskItems,
+    locationHintOverride,
   });
 
   return (

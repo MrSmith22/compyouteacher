@@ -8,6 +8,8 @@ import WorkspaceCenter from "@/components/layout/WorkspaceCenter";
 import WorkspaceColumns from "@/components/layout/WorkspaceColumns";
 import WorkspaceGuide from "@/components/layout/WorkspaceGuide";
 import WorkspaceSidebar from "@/components/layout/WorkspaceSidebar";
+import { isTaskWorkspaceHierarchyFoundationEnabled } from "@/lib/dev/isTaskWorkspaceHierarchyFoundationEnabled";
+import { HIERARCHY_MODULE_CHROME_CLASS } from "@/lib/ui/hierarchyContract";
 import { mlkAssignmentDefinition } from "@/lib/assignments";
 import { logActivity } from "@/lib/logActivity";
 import {
@@ -168,7 +170,6 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const rebuiltVocabularyTransfer = isRebuiltVocabularyTransfer(
     vocabularyTransferMode
   );
-  const hydratedRef = useRef(false);
   const serverSaveTimerRef = useRef(null);
   const lastServerSavedAtRef = useRef(null);
 
@@ -189,10 +190,11 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
   const [vocabPersistError, setVocabPersistError] = useState("");
   const [vocabNeedsReview, setVocabNeedsReview] = useState(false);
 
-  // Resume Step 2 draft: local cache + authoritative server vocabularyTransfer
+  // Resume Step 2 draft: local cache + authoritative server vocabularyTransfer.
+  // Do not gate with a mount-once ref — React Strict Mode remounts cancel the first
+  // async pass; a sticky ref would skip the second and leave draftReady false forever.
   useEffect(() => {
-    if (!email || hydratedRef.current) return;
-    hydratedRef.current = true;
+    if (!email) return;
     let cancelled = false;
 
     (async () => {
@@ -234,6 +236,7 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
           const saved = await saveServerVocabularyTransfer(resolvedVocab, {
             preferIncoming: true,
           });
+          if (cancelled) return;
           if (saved.ok && !saved.skipped && saved.vocabularyTransfer) {
             resolvedVocab = normalizeVocabularyTransferState(
               saved.vocabularyTransfer
@@ -258,6 +261,8 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
             : "Could not load saved lesson progress. Showing what is on this device — try refresh if something looks missing."
         );
       }
+
+      if (cancelled) return;
 
       setStage(draft.stage);
       setTermIndex(draft.termIndex);
@@ -684,12 +689,23 @@ export default function ModuleOne({ savedStudentParaphrase = "" }) {
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-text-muted">
                 Your question
               </p>
-              <h1
-                className="max-w-3xl text-[1.55rem] font-bold leading-[1.15] tracking-tight text-text-primary md:text-[2rem]"
-                data-testid="step2-dominant-question"
-              >
-                {dominantQuestion}
-              </h1>
+              {isTaskWorkspaceHierarchyFoundationEnabled() &&
+              useVocabularyTransfer &&
+              draftReady ? (
+                <p
+                  className={`${HIERARCHY_MODULE_CHROME_CLASS} max-w-3xl`}
+                  data-testid="step2-dominant-question"
+                >
+                  {dominantQuestion}
+                </p>
+              ) : (
+                <h1
+                  className="max-w-3xl text-[1.55rem] font-bold leading-[1.15] tracking-tight text-text-primary md:text-[2rem]"
+                  data-testid="step2-dominant-question"
+                >
+                  {dominantQuestion}
+                </h1>
+              )}
               <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
                 {strategyExplanation}
               </p>

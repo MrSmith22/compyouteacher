@@ -100,7 +100,11 @@ describe("WP-061 instructional color semantics (Modules 6–9)", () => {
     assert.match(HIERARCHY_DESK_CLASS, /role-thinking/);
 
     const frame = readSrc("components/module6/ModuleSixStepFrame.jsx");
-    assert.match(frame, /data-instructional-color-role="instruction"/);
+    const jobRightNow = readSrc("components/shared/JobRightNow.jsx");
+    assert.match(
+      frame + jobRightNow,
+      /data-instructional-color-role="instruction"/
+    );
     assert.match(frame, /data-instructional-color-role="reference"/);
 
     const desk = readSrc("components/shared/TaskRelevantArtifacts.jsx");

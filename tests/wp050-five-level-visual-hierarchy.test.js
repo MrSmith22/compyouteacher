@@ -231,10 +231,17 @@ describe("WP-050 five-level visual hierarchy (Modules 6–9)", () => {
 
   it("ModuleSixStepFrame marks task/instruction/work/reference with real treatments", () => {
     const frame = readSrc("components/module6/ModuleSixStepFrame.jsx");
+    const jobRightNow = readSrc("components/shared/JobRightNow.jsx");
     assert.ok(frame.includes("HIERARCHY_TASK_CLASS"));
     assert.ok(frame.includes('data-hierarchy-level={HIERARCHY_LEVELS.task}'));
-    assert.ok(frame.includes("HIERARCHY_INSTRUCTION_CLASS"));
-    assert.ok(frame.includes('data-hierarchy-level={HIERARCHY_LEVELS.instruction}'));
+    assert.ok(
+      frame.includes("HIERARCHY_INSTRUCTION_CLASS") ||
+        jobRightNow.includes("HIERARCHY_INSTRUCTION_CLASS")
+    );
+    assert.ok(
+      frame.includes('data-hierarchy-level={HIERARCHY_LEVELS.instruction}') ||
+        jobRightNow.includes('data-hierarchy-level={HIERARCHY_LEVELS.instruction}')
+    );
     assert.ok(frame.includes('data-hierarchy-emphasis="active"'));
     assert.ok(frame.includes('data-hierarchy-level={HIERARCHY_LEVELS.reference}'));
     assert.ok(frame.includes("HIERARCHY_REFERENCE_CLASS"));

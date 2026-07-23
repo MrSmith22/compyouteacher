@@ -13,6 +13,7 @@ export default function WorkspaceColumns({
   children,
   className = "",
   variant = "default",
+  ...rest
 }) {
   const lgColumns = LG_COLUMN_LAYOUTS[variant] ?? LG_COLUMN_LAYOUTS.default;
   const xlColumns =
@@ -20,6 +21,7 @@ export default function WorkspaceColumns({
 
   return (
     <div
+      {...rest}
       className={[
         "grid grid-cols-1 gap-5",
         lgColumns,
