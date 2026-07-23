@@ -1,0 +1,184 @@
+{
+  "commit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+  "runId": "mrxnm08mhhdwiy",
+  "email": "beta-student-mrxnm08mhhdwiy@localhost",
+  "freshOk": true,
+  "a11yOk": true,
+  "seedless": true,
+  "usedSeedThrough": false,
+  "usedDevPanel": false,
+  "log": [
+    {
+      "step": "bootstrap_account",
+      "ok": true,
+      "detail": "beta-student-mrxnm08mhhdwiy@localhost"
+    },
+    {
+      "step": "refresh:/modules/1/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/1/success?score=100 after=http://127.0.0.1:3000/modules/1/success?score=100"
+    },
+    {
+      "step": "module1",
+      "ok": true,
+      "detail": "success→module2"
+    },
+    {
+      "step": "refresh:/modules/2/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/2/success after=http://127.0.0.1:3000/modules/2/success"
+    },
+    {
+      "step": "module2",
+      "ok": true,
+      "detail": "success→module3"
+    },
+    {
+      "step": "refresh:/modules/3/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/3/success after=http://127.0.0.1:3000/modules/3/success"
+    },
+    {
+      "step": "module3",
+      "ok": true,
+      "detail": "success→module4"
+    },
+    {
+      "step": "refresh:/modules/4/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/4/success after=http://127.0.0.1:3000/modules/4/success"
+    },
+    {
+      "step": "module4",
+      "ok": true,
+      "detail": "success→module5"
+    },
+    {
+      "step": "refresh:/modules/5/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/5/success after=http://127.0.0.1:3000/modules/5/success"
+    },
+    {
+      "step": "module5",
+      "ok": true,
+      "detail": "success→module6"
+    },
+    {
+      "step": "refresh:/modules/6/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/6/success after=http://127.0.0.1:3000/modules/6/success"
+    },
+    {
+      "step": "module6",
+      "ok": true,
+      "detail": "success→module7"
+    },
+    {
+      "step": "refresh:/modules/7/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/7/success after=http://127.0.0.1:3000/modules/7/success"
+    },
+    {
+      "step": "module7",
+      "ok": true,
+      "detail": "success→module8"
+    },
+    {
+      "step": "refresh:/modules/8/success",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/8/success after=http://127.0.0.1:3000/modules/8/success"
+    },
+    {
+      "step": "module8",
+      "ok": true,
+      "detail": "success→module9"
+    },
+    {
+      "step": "refresh:/modules/9",
+      "ok": true,
+      "detail": "before=http://127.0.0.1:3000/modules/9/success after=http://127.0.0.1:3000/modules/9/success"
+    },
+    {
+      "step": "module9_receipt",
+      "ok": true,
+      "detail": "durable receipt UI"
+    },
+    {
+      "step": "dashboard",
+      "ok": true,
+      "detail": "len=483"
+    },
+    {
+      "step": "a11y.skip.m1",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.m1",
+      "ok": true,
+      "detail": "focusables=3 bodyHits=0 invisible=0 tooling=0"
+    },
+    {
+      "step": "a11y.skip.m3",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.m3",
+      "ok": true,
+      "detail": "focusables=6 bodyHits=0 invisible=0 tooling=1"
+    },
+    {
+      "step": "a11y.skip.m5",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.m5",
+      "ok": true,
+      "detail": "focusables=7 bodyHits=0 invisible=0 tooling=1"
+    },
+    {
+      "step": "a11y.skip.m6",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.m6",
+      "ok": true,
+      "detail": "focusables=4 bodyHits=0 invisible=0 tooling=1"
+    },
+    {
+      "step": "a11y.skip.m8",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.m8",
+      "ok": true,
+      "detail": "focusables=6 bodyHits=0 invisible=0 tooling=1"
+    },
+    {
+      "step": "a11y.skip.m9",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.m9",
+      "ok": true,
+      "detail": "focusables=4 bodyHits=0 invisible=0 tooling=1"
+    },
+    {
+      "step": "a11y.skip.teacher",
+      "ok": true,
+      "detail": "skip link focused"
+    },
+    {
+      "step": "a11y.keyboard.teacher",
+      "ok": true,
+      "detail": "focusables=2 bodyHits=0 invisible=0 tooling=1"
+    }
+  ],
+  "evidenceDir": "/tmp/wp101-browser/fresh-seedless",
+  "generatedAt": "2026-07-23T15:28:10.073Z"
+}

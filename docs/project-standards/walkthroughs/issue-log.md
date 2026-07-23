@@ -138,7 +138,7 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-098 | Semantic color and teacher-voice closure (Phase 6 complete) | 1–9, Dashboard | High | Visual Design / Copy | Resolved |
 | WP-099 | Teacher progress visibility foundation (Phase 7, development-only) | Teacher | High | Architecture / UX | Resolved |
 | WP-100 | Production promotion of teacher progress visibility (Phase 7) | Teacher | High | Architecture / UX | Resolved |
-| WP-101 | Phase 7 beta-readiness sweep (machine-readable matrix + report) | App-wide | Critical | Architecture / Ops | Needs Verification |
+| WP-101 | Phase 7 beta-readiness sweep (machine-readable matrix + report) | App-wide | Critical | Architecture / Ops | Resolved |
 | WP-102 | Assignment cloning / multi-assignment configuration readiness | App-wide | High | Architecture | Open |
 | WP-103 | Full interactive fresh-account click-through without mid-path seeds | App-wide | High | Ops / Verification | Resolved |
 
@@ -3295,9 +3295,9 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - **Screen or area:** Full MLK rhetorical-analysis pathway; teacher Progress/Submissions/Settings; production denial
 - **Issue type:** Architecture / Ops
 - **Severity:** Critical
-- **Status:** Needs Verification
+- **Status:** Resolved
 - **Related issues:** WP-080–WP-100 (accepted contracts); WP-102 (cloning); WP-103 (absorbed into WP-101 fresh path); Prompt 22
-- **Corrective acceptance (July 22, 2026):** Prior 153/153 is **invalid**. `FRESH.e2e_real_ui` must not Pass with a seedThrough limitation. Required scenarios Pass only with genuine seedless Module 1→9 UI evidence. WP-103 is completed inside WP-101, not a substitute. Unresolved Blocker/Critical/High issues cannot be waved as non-blocking without objective evidence or explicit subjective-only classification.
+- **Corrective acceptance (July 22–23, 2026):** Prior 153/153 is **invalid** when `FRESH.e2e_real_ui` Passes with a seedThrough limitation. Required scenarios Pass only with genuine seedless Module 1→9 UI evidence. WP-103 is completed inside WP-101, not a substitute. Unresolved Blocker/Critical/High issues cannot be waved as non-blocking without objective evidence or explicit subjective-only classification.
 - **Governing strategy:** §§1–6, Phase 7 + exit, Epics A–H, §9 (esp. 9.3–9.4), §§10–12; cognitive-load; artifact architecture; working-set; learning-process; design-system
 - **Precondition:** WP-100 Resolved
 - **Problem:** Phase 7 exit requires defined acceptance evidence (fresh/returning accounts, contradiction fixtures, a11y, Doc/PDF recovery, teacher config, privacy, production), not merely a green build. No machine-readable release matrix existed.
@@ -3312,10 +3312,10 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
   6. Production build has no fixture/dev leakage.
   7. Objective blockers fixed with regression or remain explicitly blocking; report totals match matrix; tested source snapshot recorded.
 - **Implementation notes:** (July 22–23, 2026) Harness under `lib/beta/` + matrix v1. Corrective: seedless fresh runner (`scripts/wp101-fresh-seedless.mjs`); session progress APIs; Module 3→4 pattern handoff; Module 7 mic mocks; focus-visible CSS; a11y harness ignores Next.js `NEXTJS-PORTAL` tooling (not student UI). Prior Pass-with-limitation invalidated.
-- **Verification evidence:** Seedless fresh path `freshOk=true` + `a11yOk=true` for commit `767338d0…` — `…/767338d0….fresh-seedless.json` (email `beta-student-mrxcjkk85a3u1r@localhost`; Modules 1–8 + receipt + dashboard; `usedSeedThrough=false`, `usedDevPanel=false`). Browser acceptance 67/67 including seedless `FRESH.e2e_real_ui` (no limitation). Prod acceptance 4/4. Regenerated matrix **153/153 Pass**, gate ok — `…/767338d0….json`. **WP-101 remains Needs Verification** until the same gate is re-run against the exact commit that will be pushed (working tree still has uncommitted corrective fixes).
+- **Verification evidence:** Corrective release gate on tested code commit `a8019489219df19f1e0594b261cd73cc2f3a037a`: seedless `freshOk=true` + `a11yOk=true` (`docs/project-standards/walkthroughs/beta-matrix-results/a8019489219df19f1e0594b261cd73cc2f3a037a.fresh-seedless.json`; email `beta-student-mrxnm08mhhdwiy@localhost`; Modules 1–8 + receipt + dashboard; `usedSeedThrough=false`, `usedDevPanel=false`); browser **67/67**; prod **4/4**; matrix **153/153 Pass**, gate ok. `FRESH.e2e_real_ui` = seedless ok (no limitation / no seedThrough).
 - **Corrective re-audit (Critical/High):** WP-102 remains explicitly non-blocking for single-assignment MLK beta. WP-103 closed into this issue with seedless evidence. Remaining Open/NV Critical–High items (e.g. WP-008, WP-012–016, WP-019–023, WP-048–053, WP-062, WP-073–077, WP-020) are instructional/UX quality judgments for target-age study or separate remediation — not objective release-gate failures of the seedless pathway. No Blocker severity rows remain Open.
 - **Human remainder:** target-age usability study only for genuinely subjective judgments.
-- **Resolved in commit:** *(pending gate on push commit)*
+- **Resolved in commit:** a8019489219df19f1e0594b261cd73cc2f3a037a (code) + evidence commit on this branch
 
 ---
 

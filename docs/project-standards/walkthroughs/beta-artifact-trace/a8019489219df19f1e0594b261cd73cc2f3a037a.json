@@ -1,0 +1,128 @@
+{
+  "version": "1.0.0",
+  "coreOk": true,
+  "planLabelsInProse": false,
+  "unbrokenPartial": true,
+  "nodes": [
+    {
+      "layer": "pdf",
+      "label": "submitted PDF paragraph",
+      "identity": "88c26fa01b423018",
+      "excerpt": {
+        "length": 61,
+        "excerpt": "King connect… justice",
+        "hashHint": "4f0226b1"
+      },
+      "linked": true,
+      "confidence": "proven"
+    },
+    {
+      "layer": "receipt",
+      "label": "durable final receipt",
+      "identity": "fresh-mrxnm08mhhdwiy",
+      "excerpt": {
+        "length": 28,
+        "excerpt": "receipt:fres…8mhhdwiy",
+        "hashHint": "30e2d7f7"
+      },
+      "linked": true,
+      "confidence": "proven"
+    },
+    {
+      "layer": "doc",
+      "label": "Google Doc signature",
+      "identity": "doc-fresh-mrxnm08mhhdwiy",
+      "excerpt": {
+        "length": 24,
+        "excerpt": "doc-fresh-mr…8mhhdwiy",
+        "hashHint": "afd92d6a"
+      },
+      "linked": true,
+      "confidence": "proven"
+    },
+    {
+      "layer": "m7",
+      "label": "Module 7 revised paragraph",
+      "identity": "d590f1319bb9be74",
+      "excerpt": {
+        "length": 47,
+        "excerpt": "After listen…lanation",
+        "hashHint": "f42783d5"
+      },
+      "linked": true,
+      "confidence": "proven"
+    },
+    {
+      "layer": "m6",
+      "label": "Module 6 assembled prose",
+      "identity": "88c26fa01b423018",
+      "excerpt": {
+        "length": 61,
+        "excerpt": "King connect… justice",
+        "hashHint": "4f0226b1"
+      },
+      "linked": true,
+      "confidence": "proven"
+    },
+    {
+      "layer": "m5",
+      "label": "Module 5 outline node",
+      "identity": "0785cb4375919b41",
+      "excerpt": {
+        "length": 10,
+        "excerpt": "outline-bp",
+        "hashHint": "cbb1adb9"
+      },
+      "linked": true,
+      "confidence": "inferred"
+    },
+    {
+      "layer": "m4",
+      "label": "Module 4 paragraph plan",
+      "identity": "7eb0728f87226329",
+      "excerpt": {
+        "length": 7,
+        "excerpt": "plan-bp",
+        "hashHint": "e28eed72"
+      },
+      "linked": true,
+      "confidence": "inferred"
+    },
+    {
+      "layer": "m3",
+      "label": "Module 3 thesis proof direction",
+      "identity": "9902f09b9d3aec7c",
+      "excerpt": {
+        "length": 25,
+        "excerpt": "Both works p… justice",
+        "hashHint": "d310db92"
+      },
+      "linked": true,
+      "confidence": "inferred"
+    },
+    {
+      "layer": "m2",
+      "label": "Module 2 comparison direction",
+      "identity": "4b0a7ef6a14123a8",
+      "excerpt": {
+        "length": 22,
+        "excerpt": "pathos/logos…irection",
+        "hashHint": "5b5f1041"
+      },
+      "linked": true,
+      "confidence": "inferred"
+    },
+    {
+      "layer": "source",
+      "label": "source passage provenance",
+      "identity": "letter:open",
+      "excerpt": {
+        "length": 18,
+        "excerpt": "source:lette…ter:open",
+        "hashHint": "aa888c3f"
+      },
+      "linked": true,
+      "confidence": "proven"
+    }
+  ]
+}

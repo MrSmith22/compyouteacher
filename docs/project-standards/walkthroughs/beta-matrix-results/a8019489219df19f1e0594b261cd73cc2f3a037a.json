@@ -1,0 +1,2310 @@
+{
+  "schemaVersion": "1.0.0",
+  "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+  "runId": "mrxoc6rwpq7iyo",
+  "generatedAt": "2026-07-23T15:36:36.447Z",
+  "results": [
+    {
+      "scenarioId": "HARNESS.schema",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "schema",
+          "detail": "errors=0"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.428Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "schema ok"
+    },
+    {
+      "scenarioId": "HARNESS.unique_ids",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "ids",
+          "detail": "153"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.430Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "count=153 unique=153"
+    },
+    {
+      "scenarioId": "HARNESS.required_coverage",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "need=67"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.430Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "coverage ok"
+    },
+    {
+      "scenarioId": "HARNESS.skip_blocked_rules",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "gate",
+          "detail": "missing required fails"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "x: missing result"
+    },
+    {
+      "scenarioId": "HARNESS.fixture_idempotency",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "cleanup",
+          "detail": "restored=1"
+        }
+      ],
+      "severityIfFailed": "High",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "restored=1"
+    },
+    {
+      "scenarioId": "HARNESS.redaction",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "redaction",
+          "detail": "token [REDACTED] and [REDACTED]/edit"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "redacted"
+    },
+    {
+      "scenarioId": "HARNESS.stale_evidence",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "stale",
+          "detail": "true"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "stale evidence: results.buildCommit old !== new"
+    },
+    {
+      "scenarioId": "HARNESS.report_totals",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "totals",
+          "detail": "deferred_to_runner"
+        }
+      ],
+      "severityIfFailed": "High",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "totals checked at sweep end"
+    },
+    {
+      "scenarioId": "HARNESS.prod_fixture_denial",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "status=401 students=false"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:30:51.050Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "status=401 students=false"
+    },
+    {
+      "scenarioId": "CONTRA.c01_clean_strong",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c01_clean_strong\",\"artifactHash\":\"58c83f55036f8948\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=58c83f55036f8948"
+    },
+    {
+      "scenarioId": "CONTRA.c02_minimal_valid",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c02_minimal_valid\",\"artifactHash\":\"ce98b54988687f85\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=ce98b54988687f85"
+    },
+    {
+      "scenarioId": "CONTRA.c03_one_source_missing",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c03_one_source_missing\",\"artifactHash\":\"20a5e9ba146387e7\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=20a5e9ba146387e7"
+    },
+    {
+      "scenarioId": "CONTRA.c04_wrong_work_evidence",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c04_wrong_work_evidence\",\"artifactHash\":\"586adc0b2cd8990b\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=586adc0b2cd8990b"
+    },
+    {
+      "scenarioId": "CONTRA.c05_thesis_changed_after_plans",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c05_thesis_changed_after_plans\",\"artifactHash\":\"749579e67da0206a\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=749579e67da0206a"
+    },
+    {
+      "scenarioId": "CONTRA.c06_duplicate_bodies",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c06_duplicate_bodies\",\"artifactHash\":\"45e126c4b35ae633\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=45e126c4b35ae633"
+    },
+    {
+      "scenarioId": "CONTRA.c07_fragment_reasoning",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c07_fragment_reasoning\",\"artifactHash\":\"aec1bad816b52396\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=aec1bad816b52396"
+    },
+    {
+      "scenarioId": "CONTRA.c08_plan_draft_disagree",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c08_plan_draft_disagree\",\"artifactHash\":\"397485c4a06432be\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=397485c4a06432be"
+    },
+    {
+      "scenarioId": "CONTRA.c09_quote_without_explanation",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c09_quote_without_explanation\",\"artifactHash\":\"21bf3148fdcf8c51\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=21bf3148fdcf8c51"
+    },
+    {
+      "scenarioId": "CONTRA.c10_conclusion_new_claim",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c10_conclusion_new_claim\",\"artifactHash\":\"d1f246b551be3d46\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=d1f246b551be3d46"
+    },
+    {
+      "scenarioId": "CONTRA.c11_transition_missing_context",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c11_transition_missing_context\",\"artifactHash\":\"9345335644d0c7c7\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=9345335644d0c7c7"
+    },
+    {
+      "scenarioId": "CONTRA.c12_below_advisory_target",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c12_below_advisory_target\",\"artifactHash\":\"89b654f838c5432c\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=89b654f838c5432c"
+    },
+    {
+      "scenarioId": "CONTRA.c13_below_required_minimum",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c13_below_required_minimum\",\"artifactHash\":\"7494bb9e0f6b4af8\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=7494bb9e0f6b4af8"
+    },
+    {
+      "scenarioId": "CONTRA.c14_above_configured_range",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c14_above_configured_range\",\"artifactHash\":\"f881aca076932030\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=f881aca076932030"
+    },
+    {
+      "scenarioId": "CONTRA.c15_teacher_word_count_after_draft",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c15_teacher_word_count_after_draft\",\"artifactHash\":\"fa5b30cf7570b4b7\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.431Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=fa5b30cf7570b4b7"
+    },
+    {
+      "scenarioId": "CONTRA.c16_teacher_formatting_after_guided",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c16_teacher_formatting_after_guided\",\"artifactHash\":\"f082cfb4c86289e6\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=f082cfb4c86289e6"
+    },
+    {
+      "scenarioId": "CONTRA.c17_stale_mismatched_doc",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c17_stale_mismatched_doc\",\"artifactHash\":\"72dd51b2d7812f42\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=72dd51b2d7812f42"
+    },
+    {
+      "scenarioId": "CONTRA.c18_doc_unavailable",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c18_doc_unavailable\",\"artifactHash\":\"e1cda5925b151452\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=e1cda5925b151452"
+    },
+    {
+      "scenarioId": "CONTRA.c19_legacy_rebuilt_mixed",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c19_legacy_rebuilt_mixed\",\"artifactHash\":\"1b372518b11647e0\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=1b372518b11647e0"
+    },
+    {
+      "scenarioId": "CONTRA.c20_malformed_future_version",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "contradiction_eval",
+          "detail": "{\"ok\":true,\"failures\":[],\"fixtureId\":\"c20_malformed_future_version\",\"artifactHash\":\"9444954d7ea3bfca\"}"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "honesty ok hash=9444954d7ea3bfca"
+    },
+    {
+      "scenarioId": "COV.M1.PROMPT",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M1.PROMPT"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M1.TRANSFER",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M1.TRANSFER"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M1.LEGACY_LEARN",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M1.LEGACY_LEARN"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M1.QUIZ",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M1.QUIZ"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M1.TRANSITION",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M1.TRANSITION"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M2.WIZARD",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M2.WIZARD"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M2.GUIDED_OBS",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M2.GUIDED_OBS"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M2.TCHART",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M2.TCHART"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M2.MATRIX",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M2.MATRIX"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M2.DIRECTION",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M2.DIRECTION"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M3.EA",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M3.EA"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M3.V2",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M3.V2"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M3.HYDRATE",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M3.HYDRATE"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M4.HANDOFF",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M4.HANDOFF"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M4.PATTERN",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M4.PATTERN"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M4.BODY",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M4.BODY"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M4.THIRD",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M4.THIRD"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M4.REVIEW",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M4.REVIEW"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M4.UPSTREAM",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M4.UPSTREAM"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M5.OUTLINE",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M5.OUTLINE"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M5.VIEW_TOGGLE",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M5.VIEW_TOGGLE"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M5.MISMATCH",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M5.MISMATCH"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.INTRO",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.INTRO"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.BODY",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.BODY"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.CONCLUSION",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.CONCLUSION"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.ADVANCED",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.ADVANCED"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.REVIEW",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.REVIEW"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.LEGACY_TEXTAREA",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.LEGACY_TEXTAREA"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M6.AUTOSAVE",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M6.AUTOSAVE"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M7.RA",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M7.RA"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M7.SECTION",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M7.SECTION"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M7.WE",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M7.WE"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M7.LEGACY_SEC",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M7.LEGACY_SEC"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M8.DOC",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M8.DOC"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M8.LEGACY",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M8.LEGACY"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.HAND",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.HAND"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.MOVE",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.MOVE"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.DOCINS",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.DOCINS"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.PDF",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.PDF"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.ALREADY",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.ALREADY"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.REC",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.REC"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "COV.M9.LEGACY",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "coverage",
+          "detail": "M9.LEGACY"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.645Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "registry+fresh/returning coverage map"
+    },
+    {
+      "scenarioId": "TRACE.final_body_paragraph",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "artifact_trace",
+          "detail": "/Users/jasonsmith/Desktop/compyouteacher/docs/project-standards/walkthroughs/beta-artifact-trace/a8019489219df19f1e0594b261cd73cc2f3a037a.json",
+          "persistenceRequired": true
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.644Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "coreOk=true"
+    },
+    {
+      "scenarioId": "RETURN.m1_before_quiz",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/1 seed=vocabularyTransferLesson"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:00.151Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/1 seed=vocabularyTransferLesson"
+    },
+    {
+      "scenarioId": "RETURN.m1_after_quiz",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/2 seed=2"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:04.133Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/2 seed=2"
+    },
+    {
+      "scenarioId": "RETURN.m2_partial_evidence",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/2 seed=2"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:07.686Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/2 seed=2"
+    },
+    {
+      "scenarioId": "RETURN.m2_selected_direction",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/3 seed=3"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:10.908Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/3 seed=3"
+    },
+    {
+      "scenarioId": "RETURN.m3_ea_family",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/3 seed=evidenceToArgumentSlice"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:15.648Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/3 seed=evidenceToArgumentSlice"
+    },
+    {
+      "scenarioId": "RETURN.m4_body_plan",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/4 seed=4"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:18.694Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/4 seed=4"
+    },
+    {
+      "scenarioId": "RETURN.m4_review",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/5 seed=5"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:21.528Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/5 seed=5"
+    },
+    {
+      "scenarioId": "RETURN.m5_outline",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/6 seed=6"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:26.863Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/6 seed=6"
+    },
+    {
+      "scenarioId": "RETURN.m6_intro",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/6 seed=introConclusionVerticalSlice"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:29.902Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/6 seed=introConclusionVerticalSlice"
+    },
+    {
+      "scenarioId": "RETURN.m6_body",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/6 seed=bpVerticalSlice"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:32.209Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/6 seed=bpVerticalSlice"
+    },
+    {
+      "scenarioId": "RETURN.m6_conclusion",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/6 seed=allRequiredBodyParagraphs"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:33.975Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/6 seed=allRequiredBodyParagraphs"
+    },
+    {
+      "scenarioId": "RETURN.m6_review",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/7 seed=7"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:35.902Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/7 seed=7"
+    },
+    {
+      "scenarioId": "RETURN.m7_read_aloud",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/7 seed=7"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:38.700Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/7 seed=7"
+    },
+    {
+      "scenarioId": "RETURN.m7_section",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/7 seed=7"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:42.434Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/7 seed=7"
+    },
+    {
+      "scenarioId": "RETURN.m7_whole_essay",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/7 seed=wholeEssayReview"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:45.001Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/7 seed=wholeEssayReview"
+    },
+    {
+      "scenarioId": "RETURN.m8_doc_ready",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/8 seed=module9Ready"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:50.526Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/8 seed=module9Ready"
+    },
+    {
+      "scenarioId": "RETURN.m9_guided_move",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/9 seed=guidedApaProtocol"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:35:58.833Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/9 seed=guidedApaProtocol"
+    },
+    {
+      "scenarioId": "RETURN.m9_pdf_upload",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/9 seed=module9Ready"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:08.172Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/9 seed=module9Ready"
+    },
+    {
+      "scenarioId": "RETURN.m9_receipt",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/9 seed=completeEssay"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:11.827Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/9 seed=completeEssay"
+    },
+    {
+      "scenarioId": "RETURN.success_dashboard",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/dashboard seed=completeEssay"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:16.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/dashboard seed=completeEssay"
+    },
+    {
+      "scenarioId": "RETURN.teacher_progress",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "route=/modules/10 seed=ensureDevTeacherRole"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:18.193Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "route=/modules/10 seed=ensureDevTeacherRole"
+    },
+    {
+      "scenarioId": "PDF.tiny_valid",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "pdf",
+          "detail": "8 bytes"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "size=8 bytes ok=true"
+    },
+    {
+      "scenarioId": "PDF.zero_byte",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "pdf",
+          "detail": "That file is empty (0 bytes). Download the PDF again from Google Docs, then select the new file."
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "That file is empty (0 bytes). Download the PDF again from Google Docs, then select the new file."
+    },
+    {
+      "scenarioId": "PDF.extension_non_pdf",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "pdf",
+          "detail": "That file is not a usable PDF. Choose a file that ends in .pdf and opens as a PDF on your device."
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "That file is not a usable PDF. Choose a file that ends in .pdf and opens as a PDF on your device."
+    },
+    {
+      "scenarioId": "PDF.unexpected_mime",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "pdf",
+          "detail": "mime_override_by_magic"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "ok=true"
+    },
+    {
+      "scenarioId": "PDF.malformed",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "pdf",
+          "detail": "That file is not a usable PDF. Choose a file that ends in .pdf and opens as a PDF on your device."
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "That file is not a usable PDF. Choose a file that ends in .pdf and opens as a PDF on your device."
+    },
+    {
+      "scenarioId": "PDF.reselect",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.reselect"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.432Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.five_checks",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.five_checks"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.434Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.server_400",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.server_400"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.435Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.server_409",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.server_409"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.435Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.server_500",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.server_500"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.435Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.durable_before_nav",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.durable_before_nav"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.436Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.receipt_fields",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.receipt_fields"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.436Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.missing_receipt_recovery",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.missing_receipt_recovery"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.436Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.refresh_reopen",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.refresh_reopen"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.436Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.already_submitted",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source_contract",
+          "detail": "PDF.already_submitted"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.436Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "contract present"
+    },
+    {
+      "scenarioId": "PDF.grade_no_mutate_receipt",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "source",
+          "detail": "grade_route"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.437Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "grade does not mutate pdf storage"
+    },
+    {
+      "scenarioId": "DOC.signed_out",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.signed_out"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.437Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.popup_blocked",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.popup_blocked"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.439Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.permission_denied",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.permission_denied"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.439Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.create_ok",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.create_ok"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.440Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.verify_ok",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.verify_ok"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.440Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.reuse_current",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.reuse_current"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.440Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.stale_update",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.stale_update"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.441Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.mismatch_recovery",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.mismatch_recovery"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.441Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.deleted",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.deleted"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.441Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.permission_lost",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.permission_lost"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.441Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.timeout_5xx",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.timeout_5xx"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.442Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.dup_create_prevent",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.dup_create_prevent"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.442Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.guided_invalidate",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.guided_invalidate"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.442Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.direct_resume",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "doc_contract",
+          "detail": "DOC.direct_resume"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.443Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel sims + contract present"
+    },
+    {
+      "scenarioId": "DOC.teacher_doc_not_submit",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "projection",
+          "detail": "doc_ne_submit"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.443Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "projection uses receipt authority"
+    },
+    {
+      "scenarioId": "TEACH.word_count_modes",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.word_count_modes"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.443Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.invalid_range",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.invalid_range"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.444Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.rollouts_independent",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.rollouts_independent"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.444Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.settings_refresh",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.settings_refresh"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.444Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.no_file_fallback",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.no_file_fallback"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.scoped_guidance",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.scoped_guidance"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.rollback_preserves_artifacts",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.rollback_preserves_artifacts"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.progress_projection",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.progress_projection"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.notes_grade_rollback",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.notes_grade_rollback"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "TEACH.anon_student_denial",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "teacher",
+          "detail": "TEACH.anon_student_denial"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "teacher contract ok"
+    },
+    {
+      "scenarioId": "SEC.auth_boundaries",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "auth",
+          "detail": "401/403"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.445Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "requireTeacherSession"
+    },
+    {
+      "scenarioId": "SEC.cross_student_denial",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "auth",
+          "detail": "cross_student"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.446Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "membership/auth"
+    },
+    {
+      "scenarioId": "SEC.membership",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "membership",
+          "detail": "not_in_assignment"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.446Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "membership check"
+    },
+    {
+      "scenarioId": "SEC.roster_least_data",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "privacy",
+          "detail": "roster"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:36:36.446Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "least data"
+    },
+    {
+      "scenarioId": "SEC.no_client_rollout_truth",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "rollout",
+          "detail": "no_client_truth"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.446Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "db/ops authority"
+    },
+    {
+      "scenarioId": "CLONE.audit",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "clone_audit",
+          "detail": "assignment=mlk-rhetorical-analysis"
+        }
+      ],
+      "severityIfFailed": "Medium",
+      "timestamp": "2026-07-23T15:36:36.446Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "no clone path; MLK-only; WP-102 logged non-blocking for this beta"
+    },
+    {
+      "scenarioId": "PROD.rollouts_db",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "rollout_files",
+          "detail": "lib/assignments/writingSpineRollout.js,lib/assignments/evidenceArgumentRollout.js,lib/assignments/vocabularyTransferRollout.js,lib/assignments/submissionProtocolRollout.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "four rollout modules present"
+    },
+    {
+      "scenarioId": "SUITE.wp080_pdf",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "suite_file",
+          "detail": "tests/wp080-submission-trust-persistent-receipt.test.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "suite file present tests/wp080-submission-trust-persistent-receipt.test.js"
+    },
+    {
+      "scenarioId": "SUITE.wp081_health",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "suite_file",
+          "detail": "tests/wp081-body-paragraph-health.test.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "suite file present tests/wp081-body-paragraph-health.test.js"
+    },
+    {
+      "scenarioId": "SUITE.wp084_word",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "suite_file",
+          "detail": "tests/wp084-whole-essay-review-word-count.test.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "suite file present tests/wp084-whole-essay-review-word-count.test.js"
+    },
+    {
+      "scenarioId": "SUITE.wp093_protocol",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "suite_file",
+          "detail": "tests/wp093-submission-protocol-production-rollout.test.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "suite file present tests/wp093-submission-protocol-production-rollout.test.js"
+    },
+    {
+      "scenarioId": "SUITE.wp097_workspace",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "suite_file",
+          "detail": "tests/wp097-task-workspace-coverage-registry.test.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "suite file present tests/wp097-task-workspace-coverage-registry.test.js"
+    },
+    {
+      "scenarioId": "SUITE.wp100_teacher",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "suite_file",
+          "detail": "tests/wp100-teacher-progress-production.test.js"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:36.447Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "suite file present tests/wp100-teacher-progress-production.test.js"
+    },
+    {
+      "scenarioId": "SEC.dev_absent_prod",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "panel status=404"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:30:51.027Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "panel status=404"
+    },
+    {
+      "scenarioId": "PROD.chunk_scan",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "no synthetic fixture builders in client chunks"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:30:51.098Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "no synthetic fixture builders in client chunks"
+    },
+    {
+      "scenarioId": "PROD.clean_build",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "prod",
+          "detail": "dist=.next-wp101-prod routesOk=true consoleErr=0"
+        }
+      ],
+      "severityIfFailed": "Blocker",
+      "timestamp": "2026-07-23T15:30:51.934Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "dist=.next-wp101-prod routesOk=true consoleErr=0"
+    },
+    {
+      "scenarioId": "FRESH.e2e_real_ui",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "fresh_seedless_report",
+          "detail": "/Users/jasonsmith/Desktop/compyouteacher/docs/project-standards/walkthroughs/beta-matrix-results/a8019489219df19f1e0594b261cd73cc2f3a037a.fresh-seedless.json",
+          "persistenceRequired": true
+        },
+        {
+          "kind": "screenshot_dir",
+          "detail": "/tmp/wp101-browser/fresh-seedless"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.642Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "seedless ok email=beta-student-mrxnm08mhhdwiy@localhost"
+    },
+    {
+      "scenarioId": "A11Y.layout_families",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "a11y",
+          "detail": "[{\"step\":\"a11y.skip.m1\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m1\",\"ok\":true,\"detail\":\"focusables=3 bodyHits=0 invisible=0 tooling=0\"},{\"step\":\"a11y.skip.m3\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m3\",\"ok\":true,\"detail\":\"focusables=6 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m5\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m5\",\"ok\":true,\"detail\":\"focusables=7 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m6\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m6\",\"ok\":true,\"detail\":\"focusables=4 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m8\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m8\",\"ok\":true,\"detail\":\"focusables=6 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.m9\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.m9\",\"ok\":true,\"detail\":\"focusables=4 bodyHits=0 invisible=0 tooling=1\"},{\"step\":\"a11y.skip.teacher\",\"ok\":true,\"detail\":\"skip link focused\"},{\"step\":\"a11y.keyboard.teacher\",\"ok\":true,\"detail\":\"focusables=2 bodyHits=0 invisible=0 tooling=1\"}]"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:34:54.643Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "keyboard families + skip link + focus-visible"
+    },
+    {
+      "scenarioId": "PDF.network_retain",
+      "result": "pass",
+      "evidence": [
+        {
+          "kind": "browser",
+          "detail": "fileInput=true"
+        }
+      ],
+      "severityIfFailed": "Critical",
+      "timestamp": "2026-07-23T15:36:28.266Z",
+      "buildCommit": "a8019489219df19f1e0594b261cd73cc2f3a037a",
+      "cleanupConfirmed": true,
+      "detail": "fileInput=true"
+    }
+  ],
+  "ledger": []
+}
