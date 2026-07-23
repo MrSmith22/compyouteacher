@@ -10,6 +10,8 @@ import TeacherWritingSpineRollout from "@/components/teacher/TeacherWritingSpine
 import TeacherEvidenceArgumentRollout from "@/components/teacher/TeacherEvidenceArgumentRollout";
 import TeacherVocabularyTransferRollout from "@/components/teacher/TeacherVocabularyTransferRollout";
 import TeacherSubmissionProtocolRollout from "@/components/teacher/TeacherSubmissionProtocolRollout";
+import { isTeacherProgressVisibilityFoundationEnabled } from "@/lib/dev/isTeacherProgressVisibilityFoundationEnabled";
+import TeacherProgressFoundationDashboard from "@/components/teacher/TeacherProgressFoundationDashboard";
 
 const ASSIGNMENT_NAME = MLK_ASSIGNMENT_NAME;
 const gradingStatusOptions = [
@@ -29,6 +31,14 @@ const gradingStatusLabels = {
 };
 
 export default function TeacherDashboard() {
+  if (isTeacherProgressVisibilityFoundationEnabled()) {
+    return <TeacherProgressFoundationDashboard />;
+  }
+
+  return <LegacyTeacherDashboard />;
+}
+
+function LegacyTeacherDashboard() {
   const { data: session, status } = useSession();
 
   // ROLE + LOAD STATES

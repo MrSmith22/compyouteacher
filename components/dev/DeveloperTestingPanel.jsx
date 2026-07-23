@@ -575,6 +575,30 @@ export default function DeveloperTestingPanel() {
                 className={btn}
                 disabled={busy}
                 onClick={() =>
+                  run("WP-099 teacher fixtures", async () => {
+                    await panelAction("ensureDevTeacherRole", {});
+                    const result = await panelAction(
+                      "wp099TeacherProgressFixtures",
+                      {}
+                    );
+                    if (typeof window !== "undefined") {
+                      window.location.assign(
+                        result?.openPath || "/modules/10?wp099Fixtures=1"
+                      );
+                    } else {
+                      router.push("/modules/10?wp099Fixtures=1");
+                    }
+                    return `Opened teacher progress with ${result?.count ?? 12} synthetic fixtures`;
+                  })
+                }
+              >
+                Open WP-099 teacher progress fixtures
+              </button>
+              <button
+                type="button"
+                className={btn}
+                disabled={busy}
+                onClick={() =>
                   run("Seeded Module 9 ready", async () => {
                     const result = await panelAction("seedThrough", {
                       target: "module9Ready",

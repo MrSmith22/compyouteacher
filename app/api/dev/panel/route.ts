@@ -202,6 +202,35 @@ export async function POST(req: Request) {
         const status = await getDevPanelStatus(email);
         return NextResponse.json({ ok: true, status });
       }
+      case "wp099TeacherProgressFixtures": {
+        // Dev-only: return synthetic roster identity list (never writes production tables).
+        const { buildWp099SyntheticRosterRows } =
+          await import("@/lib/teacher/teacherProgressFixtures.js");
+        const students = buildWp099SyntheticRosterRows();
+        return NextResponse.json({
+          ok: true,
+          assignmentId: "mlk-rhetorical-analysis",
+          source: "fixtures",
+          count: students.length,
+          studentIds: students.map((s) => s.studentId),
+          openPath: "/modules/10?wp099Fixtures=1",
+        });
+      }
+      case "ensureDevTeacherRole": {
+        const { getSupabaseAdmin } = await import("@/lib/supabase/admin");
+        const supabase = getSupabaseAdmin();
+        const { error } = await supabase.from("app_roles").upsert(
+          { user_email: email, role: "teacher" },
+          { onConflict: "user_email" }
+        );
+        if (error) {
+          return NextResponse.json(
+            { ok: false, error: error.message },
+            { status: 500 }
+          );
+        }
+        return NextResponse.json({ ok: true, role: "teacher", email });
+      }
       default:
         return NextResponse.json(
           { ok: false, error: `Unknown action: ${action}` },
