@@ -387,7 +387,7 @@ async function runModule1(page) {
   const promptCorrectExact = [
     "Compare and contrast",
     "A compare and contrast essay",
-    "How Dr. King uses rhetorical appeals in two texts",
+    "How Dr. King uses rhetorical appeals in the speech and the letter.",
     "Specific evidence from both works",
   ];
   for (let i = 0; i < 12; i += 1) {

@@ -3,9 +3,10 @@
 /**
  * WP-090 — Shared transfer-oriented vocabulary lesson renderer.
  * Contract-driven microsteps; one decision per screen; feedback before Continue.
+ * WP-104 — Parent notifications stay outside React state updaters.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   getVocabularyTransferLessonContract,
   stepTitleFor,
@@ -16,6 +17,7 @@ import {
   evaluateTermTransferReadiness,
   applyParaphraseSignatureToTermState,
 } from "@/lib/module1/vocabularyTransferState";
+import { buildVocabularyTransferNextState } from "@/lib/module1/vocabularyTransferCommit";
 import {
   ASSIGNMENT_INTERPRETATION_LABEL,
   resolveAssignmentInterpretationCarryForward,
@@ -50,6 +52,14 @@ export default function VocabularyTransferLessonFlow({
     return applyParaphraseSignatureToTermState(base, savedStudentParaphrase);
   });
   const [pendingFeedback, setPendingFeedback] = useState(null);
+  // Keep a mutable mirror so rapid event-handler updates do not lose prior patches.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const onStateChangeRef = useRef(onStateChange);
+  onStateChangeRef.current = onStateChange;
+  const onLessonCompleteRef = useRef(onLessonComplete);
+  onLessonCompleteRef.current = onLessonComplete;
 
   const carryForward = useMemo(
     () =>
@@ -70,35 +80,35 @@ export default function VocabularyTransferLessonFlow({
   const stepIndex = Math.max(0, steps.indexOf(state.currentStep));
   const trail = steps.slice(0, stepIndex);
 
+  function notifyParent(merged, { complete = false } = {}) {
+    onStateChangeRef.current?.(merged);
+    if (!complete) return;
+    const readiness = evaluateTermTransferReadiness(termId, merged);
+    if (readiness.ready) onLessonCompleteRef.current?.(merged);
+  }
+
   function commit(nextPatch, { advanceTo = null, complete = false } = {}) {
-    setState((prev) => {
-      const merged = normalizeTermTransferState(termId, {
-        ...prev,
-        ...nextPatch,
-        updatedAt: new Date().toISOString(),
-        ...(advanceTo ? { currentStep: advanceTo } : {}),
-        ...(complete ? { completed: true, assignmentTransferSeen: true } : {}),
-      });
-      onStateChange?.(merged);
-      if (complete) {
-        const readiness = evaluateTermTransferReadiness(termId, merged);
-        if (readiness.ready) onLessonComplete?.(merged);
-      }
-      return merged;
-    });
+    const merged = buildVocabularyTransferNextState(
+      termId,
+      stateRef.current,
+      nextPatch,
+      { advanceTo, complete }
+    );
+    stateRef.current = merged;
+    setState(merged);
     setPendingFeedback(null);
+    notifyParent(merged, { complete });
   }
 
   function patchState(nextPatch) {
-    setState((prev) => {
-      const merged = normalizeTermTransferState(termId, {
-        ...prev,
-        ...nextPatch,
-        updatedAt: new Date().toISOString(),
-      });
-      onStateChange?.(merged);
-      return merged;
-    });
+    const merged = buildVocabularyTransferNextState(
+      termId,
+      stateRef.current,
+      nextPatch
+    );
+    stateRef.current = merged;
+    setState(merged);
+    notifyParent(merged);
   }
 
   function showFeedback(option) {

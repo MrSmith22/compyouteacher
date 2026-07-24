@@ -25,7 +25,7 @@ describe("CP-A Module 1 prompt breakdown sequencing", () => {
     const payload = prompt.buildPromptPersistencePayload({
       task_verb: "Compare and contrast",
       task_type: "A compare and contrast essay",
-      analysis_focus: "How Dr. King uses rhetorical appeals in two texts",
+      analysis_focus: "How Dr. King uses rhetorical appeals in the speech and the letter.",
       required_angle: "Specific evidence from both works",
       student_paraphrase: "Compare how King uses rhetoric in both texts for different audiences.",
       extra_field: "ignored",
@@ -58,7 +58,7 @@ describe("CP-A Module 1 prompt breakdown sequencing", () => {
     const short = {
       task_verb: "Compare and contrast",
       task_type: "A compare and contrast essay",
-      analysis_focus: "How Dr. King uses rhetorical appeals in two texts",
+      analysis_focus: "How Dr. King uses rhetorical appeals in the speech and the letter.",
       required_angle: "Specific evidence from both works",
       student_paraphrase: "too short",
     };

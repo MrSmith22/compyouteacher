@@ -141,8 +141,9 @@ Update this log as issues are picked up, fixed, verified, or deferred. Link comm
 | WP-101 | Phase 7 beta-readiness sweep (machine-readable matrix + report) | App-wide | Critical | Architecture / Ops | Resolved |
 | WP-102 | Assignment cloning / multi-assignment configuration readiness | App-wide | High | Architecture | Open |
 | WP-103 | Full interactive fresh-account click-through without mid-path seeds | App-wide | High | Ops / Verification | Resolved |
+| WP-104 | Module 1 compare/contrast teaching + vocab render-phase parent update | 1 | High | Instructional / Bug | Resolved |
 
-*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). WP-098 closes Phase 6 with app-wide instructional color roles and teacher-voice consistency (July 23, 2026). WP-099 begins Phase 7 with a development-gated teacher progress visibility foundation (July 23, 2026). WP-100 promotes that foundation to the production teacher dashboard (July 23, 2026). WP-101 runs the Phase 7 beta-readiness matrix (Prompt 22). WP-102 tracks assignment cloning as a non-blocking multi-assignment follow-up for this MLK controlled beta. WP-103 tracks full interactive fresh click-through without mid-path seeds (non-blocking when RETURN.* + suite evidence cover boundaries). The Developer Testing Panel and seed harness are development infrastructure only and intentionally have no WP issue ID. Next new walkthrough ID: WP-104.*
+*Note: WP-027 was reserved during drafting and intentionally skipped to avoid renumbering WP-028+. WP-064 was added after WP-003 verification (July 2026). WP-065 was added after WP-001 verification (July 2026). WP-066 was logged after WP-065 verification (July 2026). WP-067 was logged after WP-002 Module 8 export-gate verification (July 2026). WP-068 was logged to unify Module 8 completion through `/modules/8/success` (July 2026). WP-069 was logged for Module 9 final success-screen guidance (July 2026). WP-070 was logged when Unlock to Test failed to restore Module 7 editing during WP-002 verification (July 2026). WP-071 was logged for Module 8 Create vs Update Google Doc wording (July 2026). WP-072 was created to correctly track Module 9 introductory coaching that had been mis-attributed to WP-012 (July 2026). WP-073 was logged for explicit Module 6 “Your job right now” drafting steps (July 2026). WP-074 was logged to make those steps the primary page focus (July 2026). WP-075 was logged for ambiguous Module 6 wording such as “open your essay” (July 2026). WP-076 was logged for reader-centered Introduction coaching (July 2026). WP-077 was logged for Module 6 Need Help discoverability and natural drafting questions (July 2026). WP-078 was logged for Module 1 prompt first-task hierarchy (M1.1) and closed after live verification (July 10, 2026). WP-079 was logged to validate the Module 2 rhetorical-matrix essay-direction universe before the next beta-readiness sweep (July 2026). WP-080 was logged from the July 20, 2026 complete walkthrough for submission trust (0.0 MB display, transient received flash, missing durable receipt fields, dashboard status duplication). WP-081 was logged for Prompt 02 Body Paragraph vertical-slice foundation (July 20, 2026). WP-082 was logged for Prompt 03 Introduction and Conclusion vertical slices (July 20, 2026). WP-087 generalizes WP-086 across all WP-079 frames (July 21, 2026). WP-088 promotes the accepted evidence-to-argument spine to production (July 21, 2026). WP-089 begins Phase 4 with one representative ethos transfer lesson (July 21, 2026). WP-090 generalizes that lesson across all six Module 1 concepts (July 22, 2026). WP-091 promotes Module 1 transfer vocabulary to production (July 22, 2026). WP-092 begins Phase 5 consolidated Module 8–9 guided APA protocol behind a development-only gate (July 22, 2026). WP-093 promotes the accepted Module 8–9 protocol to production (July 22, 2026). WP-094 begins Phase 6 with a development-gated success-screen family and completed-dashboard foundation (July 22, 2026). WP-095 generalizes that family to Modules 2–5/7 and promotes it to production (July 22, 2026). WP-096 begins the remaining Phase 6 workspace work with a development-gated task-workspace hierarchy foundation on representative Module 1/3/5/6/9 screens (July 22, 2026). WP-097 generalizes and promotes that hierarchy across all Module 1–9 active-work families (July 22, 2026). WP-098 closes Phase 6 with app-wide instructional color roles and teacher-voice consistency (July 23, 2026). WP-099 begins Phase 7 with a development-gated teacher progress visibility foundation (July 23, 2026). WP-100 promotes that foundation to the production teacher dashboard (July 23, 2026). WP-101 runs the Phase 7 beta-readiness matrix (Prompt 22). WP-102 tracks assignment cloning as a non-blocking multi-assignment follow-up for this MLK controlled beta. WP-103 tracks full interactive fresh click-through without mid-path seeds (non-blocking when RETURN.* + suite evidence cover boundaries). WP-104 is a bounded Module 1 corrective from the July 23, 2026 human walkthrough (compare/contrast teaching + VocabularyTransferLessonFlow render-phase parent update). Next new walkthrough ID: WP-105.*
 
 ---
 
@@ -3348,5 +3349,56 @@ Existing idea/claim/thesis prose is never rewritten; advancement is gated until 
 - **Beta impact:** Completed inside WP-101 corrective acceptance (not a substitute gate).
 - **Acceptance criteria:** Fresh account reaches durable receipt with no `seedThrough` / panel shortcuts after create; evidence in matrix.
 - **Resolution notes:** (July 23, 2026) Closed with seedless evidence inside WP-101: `37c6229e35….fresh-seedless.json` — Modules 1–9 receipt + dashboard; `seedless=true`, `usedSeedThrough=false`, `usedDevPanel=false`; keyboard families `a11yOk=true`. WP-101 Resolved on the same corrective gate (browser 67/67, prod 4/4, matrix 153/153).
+
+---
+
+### WP-104 — Module 1 compare/contrast teaching + vocab render-phase parent update
+
+**Status:** Resolved  
+**Priority:** High  
+**Category:** Instructional / Bug  
+**Module:** 1  
+**Related:** WP-055, WP-078, WP-089–WP-091; Phase 4; July 23, 2026 human walkthrough
+
+**Walkthrough observation:**
+1. Prompt breakdown correctly identifies “compare and contrast” as the action but does not teach what the phrase means. The later question “What are you comparing?” mixes the two texts with the analytical feature being compared.
+2. Development console error: `Cannot update a component (ModuleOne) while rendering a different component (VocabularyTransferLessonFlow)` — stack `ModuleOne.js` ~789 / `VocabularyTransferLessonFlow.jsx` ~99. Root cause: `commit()` / `patchState()` called `onStateChange` (and completion) inside a functional `setState` updater.
+
+**Student-facing impact:** Students can name the action without understanding compare vs contrast or the rhetorical comparison focus. Vocabulary transfer interactions can throw a React overlay and risk stale or duplicated parent updates during select/check/continue.
+
+**Why it matters technically or operationally:** React state updaters must stay pure; parent/external effects during render-phase updates are unsafe under Strict Mode and can cause save loops or lost responses.
+
+**Recommended smallest reasonable fix:**
+1. Teach compare/contrast after the action-word question; replace the ambiguous comparison question; keep one-question-at-a-time load.
+2. Compute next term state outside the updater; notify parent only from the event-handler path; preserve readiness, persistence, refresh/resume, and Next term.
+
+**Acceptance criteria:**
+1. Selecting/checking an answer produces no render-phase parent update.
+2. `commit()` / `patchState()` do not execute external callbacks inside a state updater.
+3. Parent notification once per intended state change; completion only when readiness is satisfied; no Strict Mode save loop.
+4. Refresh restores term + microstep; Next term advances; all six terms completable.
+5. Compare/contrast teaching + revised question copy present and unambiguous.
+6. Agent browser acceptance at 390×844 and 1440×900 on an isolated account; proportional production build check.
+
+**Root cause (Finding 2):** Verified. `VocabularyTransferLessonFlow` `commit()` / `patchState()` invoked `onStateChange` / `onLessonComplete` inside `setState(prev => { ... })`, so React applied a parent `ModuleOne` update while processing the child render/update. Fixed by pure `buildVocabularyTransferNextState` + `stateRef` event-handler notify outside updaters.
+
+**Resolution notes:** (July 23, 2026)
+
+**Implemented**
+- Prompt MC teaching: `lib/module1/promptBreakdownHelpers.js` — compare/contrast `correctFeedback` / `incorrectFeedback` on `task_verb`; revised `analysis_focus` question/choices/feedback; legacy answer still accepted by `nudge()`; `getPromptStepTeachingFeedback()`
+- Prompt UI: `app/modules/1/prompt/page.js` — WP-055-style `prompt-step-feedback` after selection
+- Vocab notify purity: `lib/module1/vocabularyTransferCommit.js` + `components/module1/VocabularyTransferLessonFlow.jsx`
+- Tests: `tests/wp104-module1-corrective.test.js`
+- Browser harness: `scripts/wp104-browser-acceptance.mjs`
+
+**Closure evidence**
+1. **Automated WP-104:** **11/11**
+2. **Proportional Module 1 / WP-089–091 / WP-055 / WP-101 deadend:** **194/194**
+3. **Browser (isolated `wp104-agent-*@localhost`):** **30/30** at 390×844 and 1440×900 — compare/contrast teaching; revised analysis-focus question; Version B select/check; refresh resume at `king_apply` with follow-up preserved; Next term → ethos; no React parent-update `console.error`; no matching error overlay; no overflow; keyboard focus moves
+4. **Production build:** `npm run build` compiled successfully (routes emitted; exit 0)
+5. **Screenshots:** `/tmp/wp104-browser/` (`prompt-analysis-focus.png`, `m-vocab.png`, `d-vocab.png`, `summary.json`)
+6. **Human remainder:** subjective age-fit / coaching-tone judgment only
+
+**Resolved in commit:** (pending commit)
 
 ---

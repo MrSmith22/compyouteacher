@@ -71,7 +71,7 @@ describe("CP-A assignment welcome stage", () => {
     const complete = {
       task_verb: "Compare and contrast",
       task_type: "A compare and contrast essay",
-      analysis_focus: "How Dr. King uses rhetorical appeals in two texts",
+      analysis_focus: "How Dr. King uses rhetorical appeals in the speech and the letter.",
       required_angle: "Specific evidence from both works",
       student_paraphrase:
         "Compare and contrast how King uses rhetorical appeals in the speech and letter.",

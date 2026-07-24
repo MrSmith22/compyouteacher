@@ -23,6 +23,7 @@ import {
   buildPromptPersistencePayload,
   canAdvanceFromStep,
   getPromptStepStatusLabel,
+  getPromptStepTeachingFeedback,
   getResumeStepIndex,
   hydratePromptAnswers,
   isPromptBreakdownComplete,
@@ -40,6 +41,7 @@ import {
 import ModuleOneWritingPath from "@/components/module1/ModuleOneWritingPath";
 import { resolveTaskWorkspacePresentation } from "@/lib/ui/taskWorkspaceContract";
 import { HIERARCHY_LEVELS, HIERARCHY_TASK_CLASS } from "@/lib/ui/hierarchyContract";
+import { getTeachingFeedbackPresentation } from "@/lib/ui/teachingFeedbackContract";
 
 const MODULE1_NEED_HELP_ID = "module-1-need-help";
 
@@ -421,6 +423,13 @@ export default function ModuleOnePromptPage() {
 
   const mc = PROMPT_MC[stepKey];
   const questionId = `prompt-step-${stepKey}-label`;
+  const teaching = getPromptStepTeachingFeedback(stepKey, stepValue);
+  const teachingPresentation = teaching
+    ? getTeachingFeedbackPresentation({
+        correct: teaching.correct,
+        explanation: teaching.explanation,
+      })
+    : null;
   const workspacePresentation = resolveTaskWorkspacePresentation({
     moduleNumber: 1,
     taskHeading: "Break down what this essay is asking you to do.",
@@ -562,7 +571,25 @@ export default function ModuleOnePromptPage() {
                     </p>
                   </>
                 )}
-                {stepNudge && (
+                {teachingPresentation ? (
+                  <div
+                    className="mt-3 rounded-lg border border-border-soft/70 bg-white px-4 py-3"
+                    role="status"
+                    aria-live="polite"
+                    data-testid="prompt-step-feedback"
+                    data-feedback-correct={
+                      teachingPresentation.correct ? "true" : "false"
+                    }
+                  >
+                    <p className="text-sm font-semibold text-text-primary">
+                      {teachingPresentation.heading}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                      {teachingPresentation.explanation}
+                    </p>
+                  </div>
+                ) : null}
+                {stepNudge && !teachingPresentation ? (
                   <p
                     className="text-sm text-red-600 mt-2"
                     role="status"
@@ -570,7 +597,7 @@ export default function ModuleOnePromptPage() {
                   >
                     {stepNudge}
                   </p>
-                )}
+                ) : null}
               </div>
 
               {error && (
